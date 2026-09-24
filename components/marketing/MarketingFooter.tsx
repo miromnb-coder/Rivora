@@ -16,7 +16,7 @@ export function MarketingFooter() {
         </div>
         <div className="marketing-footer-links">
           <div><div className="footer-heading">Product</div><a href="#product">Overview</a><a href="#how-it-works">How it works</a><a href="#memory">Product memory</a><a href="#confidence">Confidence</a></div>
-          <div><div className="footer-heading">Resources</div><a href="#security">Security</a><a href="#ai-extraction">AI extraction</a><Link href="/app/upload">Process RFQ</Link><Link href="/login">Sign in</Link></div>
+          <div><div className="footer-heading">Resources</div><a href="#confidence">Security</a><a href="#ai-extraction">AI extraction</a><Link href="/app/upload">Process RFQ</Link><Link href="/login">Sign in</Link></div>
           <div><div className="footer-heading">Company</div><a href="mailto:hello@rivora.fi">Contact</a><a href="#pricing">Pricing</a><a href="#product">Product</a></div>
         </div>
         <div className="marketing-footer-bottom">
