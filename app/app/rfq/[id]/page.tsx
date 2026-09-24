@@ -11,7 +11,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
   const { data: rfq } = await supabase
     .from("rfqs")
-    .select("id, reference, source_type, status, overall_confidence, customers(name)")
+    .select("id, reference, source_type, status, overall_confidence, extraction_provider, extraction_model, extraction_confidence, extraction_warnings, customers(name)")
     .eq("id", id)
     .maybeSingle();
 
@@ -19,7 +19,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
   const { data: lines } = await supabase
     .from("rfq_lines")
-    .select("id, line_number, customer_sku, raw_description, quantity, unit, selected_product_id, match_confidence, match_method, review_status")
+    .select("id, line_number, customer_sku, raw_description, quantity, unit, selected_product_id, match_confidence, match_method, review_status, extraction_confidence, source_page, extraction_notes")
     .eq("rfq_id", id)
     .order("line_number");
 
@@ -41,6 +41,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
   const customer = Array.isArray((rfq as any).customers) ? (rfq as any).customers[0] : (rfq as any).customers;
   const unresolved = (lines ?? []).filter((line: any) => ["needs_review", "unmatched", "pending"].includes(line.review_status)).length;
+  const warnings = Array.isArray((rfq as any).extraction_warnings) ? (rfq as any).extraction_warnings : [];
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
@@ -54,9 +55,24 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
         <div className={`status ${rfq.status === "ready" ? "green" : "amber"}`}>{String(rfq.status).replaceAll("_", " ")}</div>
       </div>
 
+      {rfq.extraction_provider ? (
+        <div className="mb-5 rounded-2xl border border-[var(--line)] bg-white p-5">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div><div className="text-xs text-[var(--muted)]">Extraction</div><div className="mt-1 text-sm font-extrabold">{String(rfq.extraction_provider).toUpperCase()} · {rfq.extraction_model}</div></div>
+            <div><div className="text-xs text-[var(--muted)]">PDF extraction confidence</div><div className="mt-1 text-sm font-extrabold">{Math.round(Number(rfq.extraction_confidence ?? 0))}%</div></div>
+            <div><div className="text-xs text-[var(--muted)]">Warnings</div><div className="mt-1 text-sm font-extrabold">{warnings.length}</div></div>
+          </div>
+          {warnings.length ? (
+            <div className="mt-4 rounded-xl bg-[var(--red-soft)] p-4 text-sm text-[var(--red)]">
+              {warnings.map((warning: string, index: number) => <div key={index}>• {warning}</div>)}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="surface overflow-hidden">
         <div className="grid gap-3 border-b border-[var(--line)] px-5 py-4 sm:grid-cols-3">
-          <div><div className="text-xs text-[var(--muted)]">Overall confidence</div><div className="mt-1 text-lg font-extrabold">{Math.round(Number(rfq.overall_confidence ?? 0))}%</div></div>
+          <div><div className="text-xs text-[var(--muted)]">Match confidence</div><div className="mt-1 text-lg font-extrabold">{Math.round(Number(rfq.overall_confidence ?? 0))}%</div></div>
           <div><div className="text-xs text-[var(--muted)]">Matching policy</div><div className="mt-1 text-sm font-bold">Memory / exact auto · fuzzy review</div></div>
           <div><div className="text-xs text-[var(--muted)]">Lines</div><div className="mt-1 text-sm font-bold">{(lines ?? []).length}</div></div>
         </div>
@@ -65,19 +81,29 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
           {(lines ?? []).map((line: any) => {
             const lineCandidates = byLine.get(line.id) ?? [];
             const confidence = Number(line.match_confidence ?? 0);
+            const extractionConfidence = line.extraction_confidence == null ? null : Number(line.extraction_confidence);
             const tone = confidence >= 92 ? "green" : confidence >= 60 ? "amber" : "red";
+            const extractionTone = extractionConfidence == null ? "green" : extractionConfidence >= 90 ? "green" : extractionConfidence >= 70 ? "amber" : "red";
+
             return (
               <div key={line.id} className="p-5">
                 <div className="grid gap-5 lg:grid-cols-[1fr_1.4fr_.65fr]">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-bold text-[var(--muted)]">LINE {line.line_number}</span>
-                      <span className={`status ${tone}`}>{confidence ? `${Math.round(confidence)}%` : "No match"}</span>
+                      <span className={`status ${tone}`}>{confidence ? `${Math.round(confidence)}% match` : "No match"}</span>
+                      {extractionConfidence != null ? (
+                        <span className={`status ${extractionTone}`}>{Math.round(extractionConfidence)}% extraction</span>
+                      ) : null}
                     </div>
                     <div className="mt-3 text-sm font-extrabold">{line.customer_sku || "No customer SKU"}</div>
                     <div className="mt-1 text-sm text-[var(--muted)]">{line.raw_description || "No description"}</div>
                     <div className="mt-2 text-sm"><b>{Number(line.quantity)}</b> {line.unit || "pcs"}</div>
-                    <div className="mt-2 text-xs text-[var(--muted)]">Method: {line.match_method || "none"}</div>
+                    <div className="mt-2 text-xs text-[var(--muted)]">
+                      Method: {line.match_method || "none"}
+                      {line.source_page ? ` · PDF page ${line.source_page}` : ""}
+                    </div>
+                    {line.extraction_notes ? <div className="mt-2 text-xs text-[var(--red)]">{line.extraction_notes}</div> : null}
                   </div>
 
                   <form action={confirmRfqMatch}>
@@ -110,7 +136,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                       </>
                     ) : (
                       <div className="mt-2 rounded-xl bg-[var(--red-soft)] p-4 text-sm text-[var(--red)]">
-                        No candidate cleared the fuzzy threshold. Import a richer catalogue or add this product in the next manual-search iteration.
+                        No catalogue candidate cleared the fuzzy threshold. The extracted RFQ line is preserved for manual handling.
                       </div>
                     )}
                   </form>
@@ -130,7 +156,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
       {rfq.status === "ready" ? (
         <div className="mt-5 rounded-2xl bg-[#10251b] p-5 text-white">
           <div className="text-xs font-bold uppercase tracking-wider text-white/50">Engine result</div>
-          <div className="mt-1 text-xl font-extrabold">All lines are resolved. This RFQ is ready for the quote-generation stage.</div>
+          <div className="mt-1 text-xl font-extrabold">All extracted lines are resolved and cleared for the quote-generation stage.</div>
         </div>
       ) : null}
     </div>
