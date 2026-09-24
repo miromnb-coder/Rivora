@@ -1,6 +1,6 @@
 {
   "name": "rivora",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,6 +11,8 @@
   "dependencies": {
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.1",
+    "csv-parse": "7.0.2",
+    "exceljs": "4.4.0",
     "next": "16.3.5",
     "react": "19.2.0",
     "react-dom": "19.2.0"
