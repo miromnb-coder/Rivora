@@ -2417,3 +2417,104 @@ button, input, select { font: inherit; }
     transition: none;
   }
 }
+
+
+/* Scroll World v3 — WebGL / React Three Fiber */
+.scroll-world-webgl {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  background: #efeee9;
+}
+
+.scroll-world-webgl canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: pan-y;
+}
+
+.scroll-world-fallback {
+  z-index: 1;
+  transition: opacity .28s ease, visibility .28s ease;
+}
+
+.scroll-world-fallback.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.scroll-world-webgl-error {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: #efeee9;
+  color: #777c78;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.world3d-label {
+  padding: 7px 10px;
+  border: 1px solid rgba(30,34,31,.12);
+  border-radius: 999px;
+  background: rgba(248,247,243,.78);
+  color: #737873;
+  box-shadow: 0 10px 28px rgba(17,20,17,.08);
+  backdrop-filter: blur(8px);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  white-space: nowrap;
+  opacity: .56;
+  transform: scale(.9);
+  transition: opacity .2s ease, transform .2s ease, color .2s ease;
+}
+
+.world3d-label.active {
+  opacity: 1;
+  color: #202420;
+  transform: scale(1);
+}
+
+.scroll-world-viewport {
+  isolation: isolate;
+}
+
+.scroll-world-vignette {
+  z-index: 4;
+}
+
+.scroll-world-hint {
+  z-index: 6;
+}
+
+@media (max-width: 720px) {
+  .scroll-world-webgl {
+    inset: 0;
+  }
+
+  .world3d-label {
+    font-size: 7px;
+    padding: 5px 7px;
+    letter-spacing: .09em;
+  }
+
+  .scroll-world-vignette {
+    background:
+      linear-gradient(180deg, rgba(245,244,239,.04), transparent 16%, transparent 86%, rgba(245,244,239,.08)),
+      linear-gradient(90deg, rgba(245,244,239,.08), transparent 9%, transparent 91%, rgba(245,244,239,.06));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world3d-label,
+  .scroll-world-fallback {
+    transition: none;
+  }
+}
