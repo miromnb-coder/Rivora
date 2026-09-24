@@ -2594,3 +2594,60 @@ button, input, select { font: inherit; }
     font-size: 11px;
   }
 }
+
+
+/* Scroll World v5 — cinematic presentation */
+.scroll-world-webgl {
+  background:
+    radial-gradient(circle at 60% 18%, rgba(255,255,255,.42), transparent 28rem),
+    #eceae3;
+}
+
+.scroll-world-webgl::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:3;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), transparent 24%, transparent 78%, rgba(20,24,21,.035)),
+    radial-gradient(circle at 58% 48%, transparent 48%, rgba(21,24,22,.045) 100%);
+  mix-blend-mode:multiply;
+}
+
+.world3d-label {
+  padding: 5px 8px;
+  border-color: rgba(30,34,31,.08);
+  background: rgba(247,246,241,.7);
+  color: #777c78;
+  box-shadow: 0 8px 20px rgba(17,20,17,.055);
+  backdrop-filter: blur(10px);
+  font-size: 7px;
+  letter-spacing: .13em;
+  opacity: .42;
+  transform: scale(.86);
+}
+
+.world3d-label.active {
+  opacity: .82;
+  color: #2d322e;
+  transform: scale(.92);
+}
+
+.scroll-world-vignette {
+  background:
+    linear-gradient(180deg, rgba(245,244,239,.02), transparent 16%, transparent 84%, rgba(245,244,239,.05)),
+    linear-gradient(90deg, rgba(245,244,239,.025), transparent 9%, transparent 91%, rgba(245,244,239,.025));
+}
+
+@media (max-width: 720px) {
+  .world3d-label {
+    font-size: 6px;
+    padding: 4px 6px;
+    opacity: .34;
+  }
+
+  .world3d-label.active {
+    opacity: .74;
+  }
+}
