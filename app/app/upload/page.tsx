@@ -1,4 +1,4 @@
-import { importCatalogue, processPdfRfq, processRfq } from "./actions";
+import { FilePicker } from "@/components/FilePicker";\nimport { importCatalogue, processPdfRfq, processRfq } from "./actions";
 
 export default async function UploadPage({
   searchParams,
@@ -39,7 +39,13 @@ export default async function UploadPage({
           <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
             Required: SKU + product name. Optional: manufacturer, MPN, unit, price, stock.
           </p>
-          <input name="catalogue" type="file" accept=".csv,.xlsx" required className="mt-5 block w-full rounded-xl border border-[var(--line)] bg-white p-3 text-sm" />
+          <FilePicker
+            name="catalogue"
+            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            title="Choose product catalogue"
+            hint="CSV or XLSX · opens the phone Files picker"
+            required
+          />
           <button className="btn-primary mt-5 w-full">Import catalogue</button>
         </form>
 
@@ -61,7 +67,13 @@ export default async function UploadPage({
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">RFQ reference override · optional</span>
             <input name="pdfReference" placeholder="RFQ-2026-1048" className="mt-2 w-full rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
           </label>
-          <input name="pdfRfq" type="file" accept=".pdf,application/pdf" required className="mt-4 block w-full rounded-xl border border-[var(--line)] bg-white p-3 text-sm" />
+          <FilePicker
+            name="pdfRfq"
+            accept=".pdf,application/pdf"
+            title="Choose RFQ PDF"
+            hint="PDF · opens the phone Files picker"
+            required
+          />
           <button disabled={!openAiReady} className="btn-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-45">
             Extract PDF and run matching
           </button>
@@ -81,7 +93,15 @@ export default async function UploadPage({
         <form action={processRfq} className="mt-4 grid gap-3 sm:grid-cols-2">
           <input name="customerName" required placeholder="Customer name" className="rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
           <input name="reference" placeholder="RFQ reference" className="rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
-          <input name="rfq" type="file" accept=".csv,.xlsx" required className="block w-full rounded-xl border border-[var(--line)] bg-white p-3 text-sm sm:col-span-2" />
+          <div className="sm:col-span-2">
+            <FilePicker
+              name="rfq"
+              accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              title="Choose RFQ file"
+              hint="CSV or XLSX · opens the phone Files picker"
+              required
+            />
+          </div>
           <button className="btn-secondary sm:col-span-2">Process CSV / XLSX RFQ</button>
         </form>
       </div>
