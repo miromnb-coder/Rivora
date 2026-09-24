@@ -181,15 +181,24 @@ export async function extractRfqFromPdf(file: File) {
     );
   }
 
-  if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
-    throw new Error("AI extraction currently accepts PDF files only.");
-  }
   if (file.size === 0) throw new Error("The PDF is empty.");
   if (file.size > 10 * 1024 * 1024) {
     throw new Error("The PDF is larger than the 10 MB Rivora v0.3 limit.");
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  const pdfSignature = buffer.subarray(0, 5).toString("ascii");
+  if (pdfSignature !== "%PDF-") {
+    throw new Error(
+      "This file is not a real PDF. Rivora checks the file contents, so iPhone file names and MIME types do not matter."
+    );
+  }
+
+  const normalizedFilename =
+    file.name && file.name.toLowerCase().endsWith(".pdf")
+      ? file.name
+      : `${file.name || "rfq"}.pdf`;
+
   const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
   const model = process.env.OPENAI_RFQ_MODEL?.trim() || "gpt-5.6-luna";
   const client = new OpenAI({ apiKey });
@@ -202,7 +211,7 @@ export async function extractRfqFromPdf(file: File) {
         content: [
           {
             type: "input_file",
-            filename: file.name,
+            filename: normalizedFilename,
             file_data: `data:application/pdf;base64,${buffer.toString("base64")}`,
             detail: "high",
           },
