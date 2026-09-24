@@ -57,7 +57,7 @@ function parseNumber(value: string): number | null {
 
 async function parseXlsx(buffer: Buffer): Promise<RawRow[]> {
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer);
+  await workbook.xlsx.load(buffer as unknown as Parameters<typeof workbook.xlsx.load>[0]);
   const sheet = workbook.worksheets[0];
   if (!sheet) return [];
 
