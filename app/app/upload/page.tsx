@@ -1,4 +1,5 @@
-import { FilePicker } from "@/components/FilePicker";\nimport { importCatalogue, processPdfRfq, processRfq } from "./actions";
+import { FilePicker } from "@/components/FilePicker";
+import { importCatalogue, processPdfRfq, processRfq } from "./actions";
 
 export default async function UploadPage({
   searchParams,
