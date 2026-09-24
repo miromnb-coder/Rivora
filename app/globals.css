@@ -1259,3 +1259,291 @@ button, input, select { font: inherit; }
     box-shadow: 0 34px 88px rgba(23,33,28,.085);
   }
 }
+
+
+/* Marketing monochrome refinement v3 */
+.marketing-page {
+  --m-bg: #f5f4ef;
+  --m-surface: #ffffff;
+  --m-ink: #111411;
+  --m-muted: #737873;
+  --m-line: #dedfdb;
+  --m-green: #59615c;
+  --m-green-dark: #171b18;
+  --m-green-soft: #eff0ed;
+  --m-dark: #111311;
+  --m-dark-card: #171917;
+  --m-warning: #8d6a31;
+  --m-warning-soft: #f6efe3;
+}
+
+.hero-eyebrow span,
+.marketing-label span {
+  background: #8a8f8b;
+}
+
+.marketing-button.primary {
+  background: #181c19;
+  border-color: #181c19;
+  box-shadow: 0 8px 20px rgba(17,20,17,.12);
+}
+
+.marketing-button.primary:hover {
+  background: #0e100f;
+}
+
+.hero-orbit {
+  border-color: rgba(17,20,17,.09);
+}
+
+.hero-orbit::before,
+.hero-orbit::after {
+  background: rgba(20,24,21,.035);
+}
+
+.workflow-divider {
+  background: #f1f1ee;
+  color: #252a26;
+  border-color: #dedfdb;
+  box-shadow: 0 8px 20px rgba(17,20,17,.06);
+}
+
+.match-badge.green {
+  background: #eceeeb;
+  color: #2d332f;
+  border: 1px solid #dfe2de;
+}
+
+.match-badge.gray {
+  background: #f3f3f0;
+  color: #656b66;
+  border: 1px solid #e6e7e3;
+}
+
+.match-badge.amber {
+  background: #f4eee4;
+  color: #765a30;
+  border: 1px solid #eadfce;
+}
+
+.marketing-transition {
+  background:
+    radial-gradient(circle at 50% 110%, rgba(64,69,65,.18), transparent 32%),
+    linear-gradient(to bottom, var(--m-bg) 0%, #ecece8 38%, #6c706d 72%, var(--m-dark) 100%);
+}
+
+.transition-arc {
+  border-color: rgba(255,255,255,.2);
+}
+
+.transition-dot {
+  background: #b7bbb7;
+}
+
+.dark-section {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.035), transparent 30rem),
+    #111311;
+}
+
+.dark-section .marketing-label {
+  color: #b9bdb9;
+}
+
+.dark-section .marketing-label span {
+  background: #777c78;
+}
+
+.dark-heading p {
+  color: #a1a5a1;
+}
+
+.dark-step-card {
+  border-color: rgba(255,255,255,.09);
+  background:
+    linear-gradient(160deg, rgba(255,255,255,.045), rgba(255,255,255,.014));
+}
+
+.dark-step-card:hover {
+  border-color: rgba(255,255,255,.16);
+}
+
+.dark-step-card::after {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+}
+
+.step-number {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  border-color: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.035);
+  color: #e7e9e7;
+}
+
+.step-icon {
+  width: auto;
+  min-width: 42px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.11);
+  background: rgba(255,255,255,.025);
+  color: #c7cbc8;
+  font-size: 9px;
+  letter-spacing: .08em;
+  font-weight: 800;
+}
+
+.step-line.active {
+  border-color: rgba(255,255,255,.15);
+  background: rgba(255,255,255,.035);
+  color: #e4e6e4;
+}
+
+.feature-list i {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid #d9dcda;
+  color: #555c57;
+  font-size: 10px;
+  letter-spacing: .08em;
+  font-weight: 800;
+}
+
+.feature-list > div {
+  gap: 18px;
+}
+
+.feature-list b {
+  font-weight: 760;
+}
+
+.memory-row.highlight {
+  background: #f4f4f1;
+}
+
+.next-rfq-card {
+  background: #fbfbf9;
+}
+
+.confidence-chips span {
+  background: #f8f8f5;
+  border-color: #e2e3df;
+  color: #555b56;
+}
+
+.confidence-row.green {
+  background: #fff;
+}
+
+.confidence-row.amber {
+  background: #f8f5ef;
+}
+
+.threshold-bar .safe {
+  background: #e8e9e6;
+  color: #303632;
+}
+
+.threshold-bar .review {
+  background: #f1ece3;
+  color: #735b35;
+}
+
+.threshold-bar i {
+  border-left-color: #777e79;
+}
+
+.audit-pipeline > div {
+  background: linear-gradient(90deg, #f2f2ef, #fbfbf9);
+  border-color: #e0e1dd;
+}
+
+.audit-pipeline i {
+  width: auto;
+  min-width: 42px;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid #d9dcda;
+  color: #535a55;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.audit-pipeline em {
+  color: #7c817d;
+}
+
+.matched-product {
+  background: #f4f4f1;
+}
+
+.warning-box {
+  background: #f5efe6;
+  color: #745a34;
+}
+
+.cta-card {
+  background:
+    radial-gradient(circle at 80% 24%, rgba(255,255,255,.06), transparent 28%),
+    linear-gradient(145deg,#0d0f0d,#151815);
+}
+
+.cta-copy .marketing-label {
+  color: #b9bdb9;
+}
+
+.cta-copy .marketing-label span {
+  background: #7e837f;
+}
+
+.cta-copy h2 em {
+  color: #d6d8d6;
+}
+
+.cta-primary {
+  background: #f2f2ef;
+  color: #151815;
+}
+
+.cta-rivora {
+  background: linear-gradient(145deg,#242724,#111311);
+  color: #f0f1ef;
+  border: 1px solid rgba(255,255,255,.1);
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-style: italic;
+}
+
+.cta-arrow {
+  color: #929793;
+}
+
+.quote-card i {
+  background: #e8e9e6;
+  color: #303632;
+}
+
+.marketing-footer-bottom > :last-child i {
+  background: #5d625e !important;
+}
+
+@media (max-width: 720px) {
+  .step-icon {
+    min-width: 38px;
+    font-size: 8px;
+  }
+
+  .feature-list i {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    font-size: 9px;
+  }
+}
