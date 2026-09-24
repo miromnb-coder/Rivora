@@ -1,11 +1,8 @@
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { ScrollWorld } from "@/components/marketing/ScrollWorld";
+import { MinimalShaderHero } from "@/components/marketing/MinimalShaderHero";
 import {
-  HeroSection,
-  LightDarkTransition,
   HowItWorks,
-  ProblemSolution,
   CustomerMemory,
   ConfidenceSystem,
   AiExtraction,
@@ -14,15 +11,12 @@ import {
 
 export default function Home() {
   return (
-    <main className="marketing-page">
+    <main className="marketing-page minimal-direction">
       <div className="marketing-shell">
         <MarketingNav />
       </div>
-      <HeroSection />
-      <ScrollWorld />
-      <LightDarkTransition />
+      <MinimalShaderHero />
       <HowItWorks />
-      <ProblemSolution />
       <CustomerMemory />
       <ConfidenceSystem />
       <AiExtraction />
