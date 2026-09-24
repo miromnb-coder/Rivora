@@ -34,31 +34,55 @@ class WebGLErrorBoundary extends Component<
 function CameraRig({ progress }: { progress: number }) {
   const { camera, size } = useThree();
   const target = useRef(new THREE.Vector3());
-  const desired = useMemo(() => new THREE.Vector3(), []);
-  const desiredTarget = useMemo(() => new THREE.Vector3(), []);
+
+  const desktopFrames = useMemo(
+    () => STATIONS.map((x) => ({ position: [x + 0.75, 5.8, 9.2] as const, target: [x, 0.9, 0] as const, fov: 40 })),
+    [],
+  );
+
+  const mobileFrames = useMemo(
+    () => [
+      { position: [0.15, 4.5, 6.4] as const, target: [0, 1.0, 0] as const, fov: 33 },
+      { position: [6.55, 4.6, 6.2] as const, target: [6.4, 1.1, 0] as const, fov: 32 },
+      { position: [12.95, 4.55, 6.0] as const, target: [12.8, 1.15, 0] as const, fov: 31 },
+      { position: [19.35, 4.45, 5.9] as const, target: [19.2, 1.2, 0] as const, fov: 30 },
+      { position: [25.65, 4.2, 5.55] as const, target: [25.6, 1.18, 0] as const, fov: 29 },
+      { position: [32.05, 4.35, 5.65] as const, target: [32, 1.25, 0] as const, fov: 29 },
+    ],
+    [],
+  );
 
   useFrame((_, delta) => {
     const p = THREE.MathUtils.clamp(progress, 0, 1) * (STATIONS.length - 1);
     const from = Math.floor(p);
     const to = Math.min(STATIONS.length - 1, from + 1);
-    const t = p - from;
-    const x = THREE.MathUtils.lerp(STATIONS[from], STATIONS[to], t);
+    const t = THREE.MathUtils.smoothstep(p - from, 0, 1);
     const mobile = size.width < 720;
+    const frames = mobile ? mobileFrames : desktopFrames;
+    const a = frames[from];
+    const b = frames[to];
 
-    desired.set(
-      x + (mobile ? 0.2 : 0.8),
-      mobile ? 7.5 : 6.2,
-      mobile ? 12.8 : 10.2,
-    );
-    desiredTarget.set(x, 0.7, 0);
+    const px = THREE.MathUtils.lerp(a.position[0], b.position[0], t);
+    const py = THREE.MathUtils.lerp(a.position[1], b.position[1], t);
+    const pz = THREE.MathUtils.lerp(a.position[2], b.position[2], t);
+    const tx = THREE.MathUtils.lerp(a.target[0], b.target[0], t);
+    const ty = THREE.MathUtils.lerp(a.target[1], b.target[1], t);
+    const tz = THREE.MathUtils.lerp(a.target[2], b.target[2], t);
+    const fov = THREE.MathUtils.lerp(a.fov, b.fov, t);
 
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, desired.x, 5.2, delta);
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, desired.y, 5.2, delta);
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, desired.z, 5.2, delta);
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, px, 7.5, delta);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, py, 7.5, delta);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, pz, 7.5, delta);
 
-    target.current.x = THREE.MathUtils.damp(target.current.x, desiredTarget.x, 6, delta);
-    target.current.y = THREE.MathUtils.damp(target.current.y, desiredTarget.y, 6, delta);
-    target.current.z = THREE.MathUtils.damp(target.current.z, desiredTarget.z, 6, delta);
+    target.current.x = THREE.MathUtils.damp(target.current.x, tx, 8.5, delta);
+    target.current.y = THREE.MathUtils.damp(target.current.y, ty, 8.5, delta);
+    target.current.z = THREE.MathUtils.damp(target.current.z, tz, 8.5, delta);
+
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.fov = THREE.MathUtils.damp(camera.fov, fov, 8, delta);
+      camera.updateProjectionMatrix();
+    }
+
     camera.lookAt(target.current);
   });
 
@@ -341,7 +365,7 @@ export function ScrollWorld3D({ progress, active, onReady }: Props) {
         <Canvas
           shadows
           dpr={[1, 1.5]}
-          camera={{ position: [0.8, 6.2, 10.2], fov: 42, near: 0.1, far: 100 }}
+          camera={{ position: [0.15, 4.5, 6.4], fov: 33, near: 0.1, far: 100 }}
           gl={{
             antialias: true,
             alpha: false,
