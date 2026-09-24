@@ -52,6 +52,7 @@ export function ScrollWorld() {
   const frameRef = useRef<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -62,10 +63,12 @@ export function ScrollWorld() {
       const rect = section.getBoundingClientRect();
       const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
       const raw = Math.min(1, Math.max(0, -rect.top / scrollable));
-      const nextActive = Math.min(steps.length - 1, Math.floor(raw * steps.length));
+      const position = raw * (steps.length - 1);
+      const nextActive = Math.min(steps.length - 1, Math.max(0, Math.round(position)));
 
       setProgress(raw);
       setActive(nextActive);
+      setIsMobile(window.innerWidth <= 720);
     };
 
     const onScroll = () => {
@@ -84,8 +87,42 @@ export function ScrollWorld() {
     };
   }, []);
 
-  const cameraX = progress * 68;
   const current = steps[active];
+
+  const desktopCamera = [
+    { x: 0, y: 0, scale: 1 },
+    { x: -600, y: 0, scale: 1.02 },
+    { x: -1260, y: -4, scale: 1.03 },
+    { x: -1930, y: -8, scale: 1.04 },
+    { x: -2600, y: -12, scale: 1.055 },
+    { x: -3220, y: -16, scale: 1.07 },
+  ];
+
+  const mobileCamera = [
+    { x: 0, y: 18, scale: 1 },
+    { x: -500, y: 10, scale: 1.06 },
+    { x: -1015, y: 0, scale: 1.1 },
+    { x: -1545, y: -8, scale: 1.14 },
+    { x: -2100, y: -16, scale: 1.18 },
+    { x: -2645, y: -24, scale: 1.21 },
+  ];
+
+  const cameraMap = isMobile ? mobileCamera : desktopCamera;
+  const position = progress * (steps.length - 1);
+  const fromIndex = Math.floor(position);
+  const toIndex = Math.min(steps.length - 1, fromIndex + 1);
+  const t = position - fromIndex;
+  const from = cameraMap[fromIndex];
+  const to = cameraMap[toIndex];
+  const lerp = (a: number, b: number) => a + (b - a) * t;
+  const camera = {
+    x: lerp(from.x, to.x),
+    y: lerp(from.y, to.y),
+    scale: lerp(from.scale, to.scale),
+  };
+
+  const stationClass = (index: number, base: string) =>
+    `world-station ${base} ${index === active ? "is-active" : Math.abs(index - active) === 1 ? "is-near" : "is-dim"}`;
 
   return (
     <section ref={sectionRef} id="scroll-world" className="scroll-world-section" aria-label="Rivora RFQ processing journey">
@@ -106,13 +143,15 @@ export function ScrollWorld() {
         <div className="scroll-world-viewport" aria-hidden="true">
           <div
             className="scroll-world-camera"
-            style={{ transform: `translate3d(calc(-${cameraX}% + 1px), 0, 0)` }}
+            style={{
+              transform: `translate3d(${camera.x}px, ${camera.y}px, 0) scale(${camera.scale})`,
+            }}
           >
             <div className="world-ground" />
             <div className="world-route route-main" />
             <div className="world-route route-review" />
 
-            <div className="world-station station-intake">
+            <div className={stationClass(0, "station-intake")}>
               <div className="station-label">01 / Intake</div>
               <div className="intake-stack">
                 <div className="doc-object pdf">PDF</div>
@@ -127,7 +166,7 @@ export function ScrollWorld() {
               </div>
             </div>
 
-            <div className="world-station station-extract">
+            <div className={stationClass(1, "station-extract")}>
               <div className="station-label">02 / Extract</div>
               <div className="world-machine">
                 <span className="machine-brand">RIVORA</span>
@@ -146,7 +185,7 @@ export function ScrollWorld() {
               </div>
             </div>
 
-            <div className="world-station station-resolve">
+            <div className={stationClass(2, "station-resolve")}>
               <div className="station-label">03 / Resolve</div>
               <div className="resolver-core">
                 <span>RIVORA</span>
@@ -165,7 +204,7 @@ export function ScrollWorld() {
               </div>
             </div>
 
-            <div className="world-station station-confidence">
+            <div className={stationClass(3, "station-confidence")}>
               <div className="station-label">04 / Confidence</div>
               <div className="confidence-gate">
                 <div className="gate-opening" />
@@ -180,7 +219,7 @@ export function ScrollWorld() {
               <div className="route-tag needs-review">REVIEW</div>
             </div>
 
-            <div className="world-station station-review">
+            <div className={stationClass(4, "station-review")}>
               <div className="station-label">05 / Review</div>
               <div className="review-desk">
                 <div className="review-screen">
@@ -193,7 +232,7 @@ export function ScrollWorld() {
               <div className="memory-loop">LEARNED → CUSTOMER MEMORY</div>
             </div>
 
-            <div className="world-station station-quote">
+            <div className={stationClass(5, "station-quote")}>
               <div className="station-label">06 / Quote</div>
               <div className="quote-output">
                 <div className="quote-paper">
@@ -213,7 +252,9 @@ export function ScrollWorld() {
           </div>
 
           <div className="scroll-world-vignette" />
-          <div className="scroll-world-hint">Scroll to follow an RFQ <span>↓</span></div>
+          {active === 0 && (
+            <div className="scroll-world-hint">Scroll to follow an RFQ <span>↓</span></div>
+          )}
         </div>
       </div>
 
