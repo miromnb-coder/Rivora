@@ -10,7 +10,7 @@ export function MarketingNav() {
       <nav className="marketing-nav-links" aria-label="Main navigation">
         <a href="#product">Product</a>
         <a href="#how-it-works">How it works</a>
-        <a href="#security">Security</a>
+        <a href="#confidence">Security</a>
         <a href="#pricing">Pricing</a>
       </nav>
       <div className="flex items-center gap-2.5">
