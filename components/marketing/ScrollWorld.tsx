@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ScrollWorld3D } from "./ScrollWorld3D";
 
 const steps = [
   {
@@ -53,6 +54,7 @@ export function ScrollWorld() {
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [webglReady, setWebglReady] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -141,8 +143,13 @@ export function ScrollWorld() {
         </div>
 
         <div className="scroll-world-viewport" aria-hidden="true">
+          <ScrollWorld3D
+            progress={progress}
+            active={active}
+            onReady={() => setWebglReady(true)}
+          />
           <div
-            className="scroll-world-camera"
+            className={`scroll-world-camera scroll-world-fallback ${webglReady ? "is-hidden" : ""}`}
             style={{
               transform: `translate3d(${camera.x}px, ${camera.y}px, 0) scale(${camera.scale})`,
             }}
