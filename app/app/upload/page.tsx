@@ -70,9 +70,9 @@ export default async function UploadPage({
           </label>
           <FilePicker
             name="pdfRfq"
-            accept=".pdf,application/pdf"
+            accept="*/*"
             title="Choose RFQ PDF"
-            hint="PDF · opens the phone Files picker"
+            hint="Choose the PDF from Files · Rivora verifies the file contents, not the iPhone file type"
             required
           />
           <button disabled={!openAiReady} className="btn-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-45">
