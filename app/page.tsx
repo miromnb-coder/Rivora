@@ -1,5 +1,6 @@
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
+import { ScrollWorld } from "@/components/marketing/ScrollWorld";
 import {
   HeroSection,
   LightDarkTransition,
@@ -18,6 +19,7 @@ export default function Home() {
         <MarketingNav />
       </div>
       <HeroSection />
+      <ScrollWorld />
       <LightDarkTransition />
       <HowItWorks />
       <ProblemSolution />
