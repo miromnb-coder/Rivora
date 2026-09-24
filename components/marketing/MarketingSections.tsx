@@ -93,7 +93,10 @@ export function HowItWorks() {
             <article key={step.n} className="dark-step-card">
               <div className="flex items-start gap-4"><span className="step-number">{step.n}</span><div><h3>{step.title}</h3><p>{step.body}</p></div></div>
               <div className="step-visual">
-                {step.visual.map((line, i) => <div key={line} className={i===2 && step.n==="03" ? "step-line active" : "step-line"}><span className="step-icon">{step.n==="01" ? ["▤","▦","✉"][i] : step.n==="02" ? "→" : ["!","✓","✓"][i]}</span><span>{line}</span></div>)}
+                {step.visual.map((line, i) => {
+                  const tag = step.n==="01" ? ["PDF","XLS","MAIL"][i] : step.n==="02" ? ["MAP","SKU","MPN"][i] : ["CHECK","READY","REVIEW"][i];
+                  return <div key={line} className={i===2 && step.n==="03" ? "step-line active" : "step-line"}><span className="step-icon">{tag}</span><span>{line}</span></div>;
+                })}
               </div>
             </article>
           ))}
@@ -135,9 +138,9 @@ export function CustomerMemory() {
         <h2>Rivora gets better with every correction.</h2>
         <p>Each confirmed match becomes reusable knowledge for future RFQs.</p>
         <div className="feature-list">
-          <div><i>◎</i><span><b>Learns from your decisions</b><small>Every confirmed match is saved to your customer's product memory.</small></span></div>
-          <div><i>↯</i><span><b>Applies knowledge automatically</b><small>Future RFQs from the same customer are matched instantly.</small></span></div>
-          <div><i>↗</i><span><b>Gets more accurate over time</b><small>Your corrections make Rivora smarter for your business.</small></span></div>
+          <div><i>01</i><span><b>Learns from your decisions</b><small>Every confirmed match is saved to your customer's product memory.</small></span></div>
+          <div><i>02</i><span><b>Applies knowledge automatically</b><small>Future RFQs from the same customer are matched instantly.</small></span></div>
+          <div><i>03</i><span><b>Gets more accurate over time</b><small>Your corrections make Rivora smarter for your business.</small></span></div>
         </div>
       </div>
       <div className="memory-ui">
@@ -171,9 +174,9 @@ export function ConfidenceSystem() {
         <h2>Automation where it’s safe. Humans where it matters.</h2>
         <p>Rivora separates deterministic matches from uncertain ones and routes only risky lines to review.</p>
         <div className="feature-list compact">
-          <div><i>✓</i><span><b>Deterministic matching</b><small>Exact and high-confidence matches auto-process.</small></span></div>
-          <div><i>◌</i><span><b>Human review for uncertainty</b><small>Only uncertain lines are routed to your team.</small></span></div>
-          <div><i>◇</i><span><b>Audit-friendly by design</b><small>Every decision keeps its confidence and method.</small></span></div>
+          <div><i>01</i><span><b>Deterministic matching</b><small>Exact and high-confidence matches auto-process.</small></span></div>
+          <div><i>02</i><span><b>Human review for uncertainty</b><small>Only uncertain lines are routed to your team.</small></span></div>
+          <div><i>03</i><span><b>Audit-friendly by design</b><small>Every decision keeps its confidence and method.</small></span></div>
         </div>
       </div>
       <div className="confidence-ui">
@@ -197,15 +200,15 @@ export function AiExtraction() {
         <h2>AI extracts. Rivora verifies. You approve.</h2>
         <p>PDF data extraction and product matching are intentionally separated for safety and control.</p>
         <div className="feature-list compact">
-          <div><i>▤</i><span><b>Full traceability</b><small>See exactly what was extracted, where it came from, and how it was matched.</small></span></div>
-          <div><i>⌁</i><span><b>Separate extraction and matching</b><small>AI reads the document first. Rivora matches products in a second step.</small></span></div>
-          <div><i>◌</i><span><b>Human approval</b><small>Only reviewed lines move forward to quotes.</small></span></div>
+          <div><i>01</i><span><b>Full traceability</b><small>See exactly what was extracted, where it came from, and how it was matched.</small></span></div>
+          <div><i>02</i><span><b>Separate extraction and matching</b><small>AI reads the document first. Rivora matches products in a second step.</small></span></div>
+          <div><i>03</i><span><b>Human approval</b><small>Only reviewed lines move forward to quotes.</small></span></div>
         </div>
       </div>
       <div className="audit-ui">
         <div className="audit-head"><div><b>RFQ-2026-1187</b><small>ACME Industrial</small></div><MatchBadge>Ready for review</MatchBadge></div>
         <div className="audit-product"><b>PUMP-37A</b><span>Circulation pump · 10 pcs</span></div>
-        <div className="audit-pipeline"><div><i>▤</i><span><b>PDF extraction</b><small>Extracts text and structure</small></span></div><em>→</em><div><i>◇</i><span><b>Product matching</b><small>Finds the best product in your catalog</small></span></div></div>
+        <div className="audit-pipeline"><div><i>PDF</i><span><b>PDF extraction</b><small>Extracts text and structure</small></span></div><em>→</em><div><i>SKU</i><span><b>Product matching</b><small>Finds the best product in your catalog</small></span></div></div>
         <div className="audit-metrics"><div><span>PDF extraction</span><b>96%</b></div><div><span>Product match</span><b>99%</b></div><div><span>Source</span><b>Page 2</b></div><div><span>Method</span><b>Exact SKU</b></div></div>
         <div className="audit-bottom"><div className="audit-fields"><b>Extraction result</b><pre>PUMP-37A{"\n"}Circulation pump{"\n"}10 pcs</pre><div><span>Customer code</span><b>PUMP-37A</b></div><div><span>Description</span><b>Circulation pump</b></div><div><span>Quantity</span><b>10 pcs</b></div></div><div className="audit-side"><div className="audit-tabs">Verification <span>Warnings 1</span></div><div className="matched-product"><b>GRU-98561418</b><small>Grundfos ALPHA2 25-60</small></div><div className="warning-box"><b>Low confidence on description</b><small>Customer description differs slightly from catalog. Please confirm the match.</small></div></div></div>
       </div>
@@ -220,7 +223,7 @@ export function FinalCta() {
         <div className="cta-copy"><SectionLabel>Rivora</SectionLabel><h2>Your next RFQ could already be <em>a quote.</em></h2><p>Upload an RFQ and let Rivora extract, resolve and prepare it for review.</p><div className="mt-7 flex flex-wrap gap-3"><Link href="/app/upload" className="cta-primary">Upload an RFQ <span>→</span></Link><a href="mailto:hello@rivora.fi" className="cta-secondary">Book a demo →</a></div><small>PDF, XLSX or CSV. No ERP integration required to start.</small></div>
         <div className="cta-flow">
           <div className="file-stack"><span>PDF</span><span>XLSX</span><span>CSV</span></div>
-          <div className="cta-rivora">≋</div>
+          <div className="cta-rivora">R</div>
           <span className="cta-arrow">→</span>
           <div className="quote-card"><div className="flex items-center gap-2"><i>✓</i><b>Quote ready</b></div><div className="mt-5 space-y-3"><span>GRU-98561418 <b>10 pcs</b></span><span>VLV-441002 <b>25 pcs</b></span><span>SEN-773440 <b>5 pcs</b></span></div></div>
         </div>
