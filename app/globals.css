@@ -2518,3 +2518,79 @@ button, input, select { font: inherit; }
     transition: none;
   }
 }
+
+
+/* Scroll World v4 — mobile WebGL composition fix */
+@media (max-width: 720px) {
+  .scroll-world-sticky {
+    min-height: 100svh;
+    height: 100svh;
+    grid-template-rows: 38% 62%;
+  }
+
+  .scroll-world-copy {
+    align-self: stretch;
+    justify-content: center;
+    padding: 18px 18px 10px;
+    background: linear-gradient(180deg, rgba(245,244,239,.99), rgba(245,244,239,.94));
+  }
+
+  .scroll-world-copy h2 {
+    max-width: 320px;
+    font-size: clamp(28px, 8vw, 35px);
+  }
+
+  .scroll-world-copy p {
+    max-width: 320px;
+    margin-top: 8px;
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+
+  .scroll-world-viewport {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .scroll-world-webgl {
+    inset: 0;
+  }
+
+  .scroll-world-webgl canvas {
+    transform: none !important;
+  }
+
+  .scroll-world-fallback {
+    display: none;
+  }
+
+  .world3d-label {
+    font-size: 8px;
+    padding: 6px 8px;
+    background: rgba(248,247,243,.9);
+  }
+
+  .scroll-world-vignette {
+    background:
+      linear-gradient(180deg, rgba(245,244,239,.05), transparent 14%, transparent 90%, rgba(245,244,239,.08)),
+      linear-gradient(90deg, rgba(245,244,239,.04), transparent 8%, transparent 92%, rgba(245,244,239,.04));
+  }
+}
+
+@media (max-width: 430px) {
+  .scroll-world-sticky {
+    grid-template-rows: 40% 60%;
+  }
+
+  .scroll-world-copy {
+    padding: 14px 14px 8px;
+  }
+
+  .scroll-world-copy h2 {
+    font-size: clamp(27px, 8.3vw, 33px);
+  }
+
+  .scroll-world-copy p {
+    font-size: 11px;
+  }
+}
