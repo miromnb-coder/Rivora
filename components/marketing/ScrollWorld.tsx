@@ -148,8 +148,9 @@ export function ScrollWorld() {
             active={active}
             onReady={() => setWebglReady(true)}
           />
+          {!webglReady && (
           <div
-            className={`scroll-world-camera scroll-world-fallback ${webglReady ? "is-hidden" : ""}`}
+            className="scroll-world-camera scroll-world-fallback"
             style={{
               transform: `translate3d(${camera.x}px, ${camera.y}px, 0) scale(${camera.scale})`,
             }}
@@ -257,6 +258,7 @@ export function ScrollWorld() {
               </div>
             </div>
           </div>
+          )}
 
           <div className="scroll-world-vignette" />
           {active === 0 && (
