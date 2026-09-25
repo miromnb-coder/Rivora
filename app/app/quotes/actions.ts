@@ -415,6 +415,10 @@ export async function sendQuoteEmail(formData: FormData) {
         content: pdf.toString("base64"),
       },
     ],
+    tags: [
+      { name: "nodra_quote_id", value: quote.id },
+      { name: "nodra_attempt", value: String(nextAttempt) },
+    ],
   };
 
   if (replyTo) body.reply_to = [replyTo];
