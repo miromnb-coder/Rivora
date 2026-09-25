@@ -107,7 +107,7 @@ export function PricingLeadCapture() {
         <h2>Start with one workflow. Scale when it proves useful.</h2>
         <p>
           Pricing is scoped around RFQ volume and rollout needs. You can evaluate
-          Rivora with real customer requests before committing to integration work.
+          Nodra with real customer requests before committing to integration work.
         </p>
       </div>
 
@@ -139,7 +139,7 @@ export function PricingLeadCapture() {
           <div className="v2-section-label">Request a conversation</div>
           <h3>Tell us what your RFQ workflow looks like.</h3>
           <p>
-            Share the basics. The request is saved to Rivora and can be followed up
+            Share the basics. The request is saved to Nodra and can be followed up
             based on whether you want a pilot, pricing or a demo.
           </p>
 
