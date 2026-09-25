@@ -13,6 +13,7 @@ export function MarketingNav() {
         <a href="#how-it-works">How it works</a>
         <a href="#confidence">Confidence</a>
         <a href="#ai-extraction">Traceability</a>
+        <a href="#pricing">Pricing</a>
       </nav>
 
       <div className="nav-v2-actions">
