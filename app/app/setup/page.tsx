@@ -121,6 +121,21 @@ export default async function SetupPage() {
         ))}
       </section>
 
+      <section className="surface mt-6 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="upload-v2-section-label">Production monitoring</div>
+            <h3 className="mt-2 text-xl font-bold">Application error monitoring is active.</h3>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+              Unexpected app errors are recorded for the workspace and also written to production runtime logs for investigation.
+            </p>
+          </div>
+          <span className="rounded-full bg-[var(--green-soft)] px-4 py-2 text-sm font-bold text-[var(--green)]">
+            Active
+          </span>
+        </div>
+      </section>
+
       <section className="mt-6 grid gap-4 md:grid-cols-2">
         <a href="/app/templates/catalogue" className="surface p-6">
           <div className="upload-v2-section-label">CSV template</div>
