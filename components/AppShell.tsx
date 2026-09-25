@@ -3,6 +3,7 @@ import { signOut } from "@/app/app/actions";
 
 const nav = [
   ["Inbox", "/app/inbox"],
+  ["Leads", "/app/leads"],
   ["Upload & process", "/app/upload"],
   ["Products", "/app/products"],
   ["Product memory", "/app/memory"],
