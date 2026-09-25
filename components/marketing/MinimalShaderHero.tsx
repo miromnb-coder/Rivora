@@ -18,7 +18,7 @@ export function MinimalShaderHero() {
           <h1>Turn incoming RFQs into quote-ready product lines.</h1>
 
           <p>
-            Upload a customer PDF or spreadsheet. Rivora extracts the line items,
+            Upload a customer PDF or spreadsheet. Nodra extracts the line items,
             resolves customer product codes against your catalogue, flags uncertainty
             and learns from confirmed matches.
           </p>
@@ -38,7 +38,7 @@ export function MinimalShaderHero() {
             <span>Human approval stays in control</span>
           </div>
 
-          <div className="minimal-flow" aria-label="Rivora workflow">
+          <div className="minimal-flow" aria-label="Nodra workflow">
             <span>PDF / XLSX</span><i />
             <span>Extract</span><i />
             <span>Resolve</span><i />
@@ -47,7 +47,7 @@ export function MinimalShaderHero() {
           </div>
         </div>
 
-        <div className="hero-proof" aria-label="Example Rivora product match">
+        <div className="hero-proof" aria-label="Example Nodra product match">
           <div className="hero-proof-label">Customer line</div>
           <div className="hero-proof-input">
             <div>
