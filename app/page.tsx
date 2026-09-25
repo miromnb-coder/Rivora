@@ -2,6 +2,7 @@ import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { MinimalShaderHero } from "@/components/marketing/MinimalShaderHero";
 import {
+  ProofStripV2,
   HowItWorksV2,
   ProductResolutionV2,
   CustomerMemoryV2,
@@ -18,6 +19,7 @@ export default function Home() {
         <MarketingNav />
       </div>
       <MinimalShaderHero />
+      <ProofStripV2 />
       <HowItWorksV2 />
       <ProductResolutionV2 />
       <CustomerMemoryV2 />
