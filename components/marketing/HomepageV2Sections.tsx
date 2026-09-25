@@ -102,3 +102,110 @@ export function CustomerMemoryV2() {
     </section>
   );
 }
+
+
+export function HowItWorksV2() {
+  const steps = [
+    {
+      n: "01",
+      title: "Extract",
+      body: "PDFs, spreadsheets and emails become structured line items.",
+      meta: "Source preserved",
+    },
+    {
+      n: "02",
+      title: "Resolve",
+      body: "Customer product language is matched to your canonical catalogue.",
+      meta: "Memory + exact identifiers",
+    },
+    {
+      n: "03",
+      title: "Review",
+      body: "Only uncertain lines require human attention before quoting.",
+      meta: "Human-in-the-loop",
+    },
+  ];
+
+  return (
+    <section className="marketing-shell v2-section how-v2" id="how-it-works">
+      <div className="v2-section-copy">
+        <SectionLabel>How it works</SectionLabel>
+        <h2>From incoming RFQ to quote-ready lines.</h2>
+        <p>
+          Rivora turns unstructured customer requests into resolved, reviewable
+          product lines without forcing your team through repeated manual searches.
+        </p>
+      </div>
+
+      <div className="how-v2-grid">
+        {steps.map((step) => (
+          <article key={step.n} className="how-v2-step">
+            <div className="how-v2-top">
+              <span className="how-v2-number">{step.n}</span>
+              <span className="how-v2-meta">{step.meta}</span>
+            </div>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function ConfidenceSystemV2() {
+  const rows = [
+    ["Customer memory", "100%", "Auto"],
+    ["Exact SKU", "99%", "Auto"],
+    ["Manufacturer PN", "97%", "Auto"],
+    ["Fuzzy match", "78%", "Review"],
+    ["No match", "0%", "Review"],
+  ] as const;
+
+  return (
+    <section className="marketing-shell v2-section confidence-v2" id="confidence">
+      <div className="v2-section-copy">
+        <SectionLabel>Confidence system</SectionLabel>
+        <h2>Automation where it’s safe. Humans where it matters.</h2>
+        <p>
+          High-confidence, deterministic matches move forward automatically.
+          Anything uncertain is routed to review with the match method and score visible.
+        </p>
+      </div>
+
+      <div className="confidence-v2-proof">
+        <div className="confidence-v2-head">
+          <span>Match method</span>
+          <span>Confidence</span>
+          <span>Route</span>
+        </div>
+
+        <div className="confidence-v2-table">
+          {rows.map(([method, confidence, route]) => {
+            const review = route === "Review";
+            return (
+              <div key={method} className={review ? "confidence-v2-row is-review" : "confidence-v2-row"}>
+                <span>{method}</span>
+                <b>{confidence}</b>
+                <em>{route}</em>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="confidence-v2-threshold">
+          <span>Confidence threshold</span>
+          <b>90%</b>
+          <div className="confidence-v2-scale" aria-hidden="true">
+            <i />
+            <strong />
+          </div>
+          <div className="confidence-v2-scale-labels">
+            <span>Review</span>
+            <span>Auto-process</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
