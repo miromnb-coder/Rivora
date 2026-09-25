@@ -19,5 +19,5 @@ export async function createWorkspace(formData: FormData) {
     redirect(`/onboarding?error=${encodeURIComponent(error.message)}`);
   }
 
-  redirect("/app/upload");
+  redirect("/app/setup");
 }
