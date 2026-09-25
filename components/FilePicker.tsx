@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import type { Locale } from "@/lib/locale";
 
 export function FilePicker({
   name,
@@ -8,15 +9,18 @@ export function FilePicker({
   title,
   hint,
   required = false,
+  locale = "en",
 }: {
   name: string;
   accept: string;
   title: string;
   hint: string;
   required?: boolean;
+  locale?: Locale;
 }) {
   const id = useId();
   const [fileName, setFileName] = useState<string>("");
+  const fi = locale === "fi";
 
   return (
     <div className="mt-4">
@@ -31,19 +35,15 @@ export function FilePicker({
       />
       <label
         htmlFor={id}
-        className="block cursor-pointer rounded-2xl border-2 border-dashed border-[#cbd5ce] bg-[#fafcfb] px-4 py-6 text-center transition active:scale-[.99] hover:border-[var(--green)] hover:bg-[#f6faf7]"
+        className="nodra-file-picker block cursor-pointer px-4 py-6 text-center transition active:scale-[.99]"
       >
-        <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--green-soft)] text-xl font-extrabold text-[var(--green)]">
-          ↑
-        </span>
-        <span className="mt-3 block text-sm font-extrabold">
-          {fileName || title}
-        </span>
+        <span className="nodra-file-picker-icon">↑</span>
+        <span className="mt-3 block text-sm font-extrabold">{fileName || title}</span>
         <span className="mt-1 block text-xs leading-5 text-[var(--muted)]">
-          {fileName ? "Tap to choose another file" : hint}
+          {fileName ? (fi ? "Valitse toinen tiedosto napauttamalla" : "Tap to choose another file") : hint}
         </span>
-        <span className="mx-auto mt-4 inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--line)] bg-white px-4 py-2 text-sm font-bold shadow-sm">
-          {fileName ? "Change file" : "Choose file"}
+        <span className="nodra-file-picker-button">
+          {fileName ? (fi ? "Vaihda tiedosto" : "Change file") : (fi ? "Valitse tiedosto" : "Choose file")}
         </span>
       </label>
     </div>

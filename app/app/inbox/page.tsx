@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { getDictionary } from "@/lib/i18n";
+import { formatLocale, getLocale } from "@/lib/locale";
 
 function statusTone(status: string) {
   if (status === "ready" || status === "quoted") return "ready";
@@ -7,8 +9,21 @@ function statusTone(status: string) {
   return "open";
 }
 
+function statusLabel(status: string, locale: "fi" | "en") {
+  const labels: Record<string, { fi: string; en: string }> = {
+    needs_review: { fi: "Vaatii tarkistuksen", en: "Needs review" },
+    ready: { fi: "Valmis", en: "Ready" },
+    quoted: { fi: "Tarjottu", en: "Quoted" },
+    failed: { fi: "Epäonnistui", en: "Failed" },
+    processing: { fi: "Käsittelyssä", en: "Processing" },
+  };
+  return labels[status]?.[locale] ?? status.replaceAll("_", " ");
+}
+
 export default async function InboxPage() {
-  const { supabase } = await requireWorkspace();
+  const [{ supabase }, locale] = await Promise.all([requireWorkspace(), getLocale()]);
+  const copy = getDictionary(locale).inbox;
+  const dateLocale = formatLocale(locale);
 
   const { data: rfqs } = await supabase
     .from("rfqs")
@@ -24,11 +39,7 @@ export default async function InboxPage() {
         .eq("rfq_id", rfq.id);
 
       const customer = Array.isArray(rfq.customers) ? rfq.customers[0] : rfq.customers;
-      return {
-        ...rfq,
-        lineCount: count ?? 0,
-        customerName: customer?.name ?? "Unknown customer",
-      };
+      return { ...rfq, lineCount: count ?? 0, customerName: customer?.name ?? copy.unknownCustomer };
     })
   );
 
@@ -39,93 +50,62 @@ export default async function InboxPage() {
   const sortedItems = [...items].sort((a, b) => {
     const priority = (status: string) =>
       status === "needs_review" ? 0 : status === "ready" ? 1 : status === "quoted" ? 3 : 2;
-
-    return (
-      priority(a.status) - priority(b.status) ||
-      new Date(b.received_at).getTime() - new Date(a.received_at).getTime()
-    );
+    return priority(a.status) - priority(b.status) ||
+      new Date(b.received_at).getTime() - new Date(a.received_at).getTime();
   });
 
   return (
     <div className="app-page-v2 inbox-v2">
       <header className="inbox-v2-head">
         <div>
-          <div className="app-kicker-v2">RFQ inbox</div>
-          <h1>Review what needs attention. Let the obvious matches move.</h1>
-          <p>
-            Requests are ordered by actionability: uncertain matches first, then quote-ready work,
-            then the rest of the pipeline.
-          </p>
+          <div className="app-kicker-v2">{copy.kicker}</div>
+          <h1>{copy.title}</h1>
+          <p>{copy.description}</p>
         </div>
-
         <Link href="/app/upload" className="inbox-v2-primary">
-          Process RFQ <span aria-hidden="true">→</span>
+          {copy.process} <span aria-hidden="true">→</span>
         </Link>
       </header>
 
       <section className="inbox-v2-summary" aria-label="RFQ summary">
         <Link href="#requests" className="inbox-v2-summary-item is-review">
-          <span>Needs review</span>
-          <strong>{needsReview}</strong>
-          <small>Human decision required</small>
+          <span>{copy.needsReview}</span><strong>{needsReview}</strong><small>{copy.humanRequired}</small>
         </Link>
-
         <Link href="#requests" className="inbox-v2-summary-item">
-          <span>Ready</span>
-          <strong>{ready}</strong>
-          <small>Resolved product lines</small>
+          <span>{copy.ready}</span><strong>{ready}</strong><small>{copy.resolved}</small>
         </Link>
-
         <Link href="#requests" className="inbox-v2-summary-item">
-          <span>Open</span>
-          <strong>{openCount}</strong>
-          <small>Still in workflow</small>
+          <span>{copy.open}</span><strong>{openCount}</strong><small>{copy.workflow}</small>
         </Link>
       </section>
 
       <section className="inbox-v2-list" id="requests">
         <div className="inbox-v2-list-head">
-          <div>
-            <div className="upload-v2-section-label">Requests</div>
-            <h2>Current RFQ queue</h2>
-          </div>
-          <span>{items.length} total</span>
+          <div><div className="upload-v2-section-label">{copy.requests}</div><h2>{copy.queue}</h2></div>
+          <span>{items.length} {getDictionary(locale).common.total}</span>
         </div>
 
         {sortedItems.length ? (
           <div className="inbox-v2-rows">
             {sortedItems.map((item: any) => {
               const confidence = Math.round(Number(item.overall_confidence ?? 0));
-              const tone = statusTone(item.status);
-
               return (
                 <Link key={item.id} href={`/app/rfq/${item.id}`} className="inbox-v2-row">
                   <div className="inbox-v2-row-main">
                     <div className="inbox-v2-row-topline">
-                      <span className={`inbox-v2-state ${tone}`}>
-                        {String(item.status).replaceAll("_", " ")}
-                      </span>
-                      <span>{String(item.source_type).toUpperCase()}</span>
-                      <span>{item.lineCount} lines</span>
+                      <span className={`inbox-v2-state ${statusTone(item.status)}`}>{statusLabel(item.status, locale)}</span>
+                      <span>{String(item.source_type).toUpperCase()}</span><span>{item.lineCount} {copy.lines}</span>
                     </div>
-
-                    <h3>{item.reference || "Untitled RFQ"}</h3>
-                    <p>{item.customerName}</p>
+                    <h3>{item.reference || copy.untitled}</h3><p>{item.customerName}</p>
                   </div>
-
-                  <div className="inbox-v2-confidence">
-                    <span>Confidence</span>
-                    <strong>{confidence}%</strong>
-                  </div>
-
+                  <div className="inbox-v2-confidence"><span>{copy.confidence}</span><strong>{confidence}%</strong></div>
                   <div className="inbox-v2-time">
-                    <span>Received</span>
-                    <strong>{new Date(item.received_at).toLocaleDateString("fi-FI")}</strong>
-                    <small>{new Date(item.received_at).toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" })}</small>
+                    <span>{copy.received}</span>
+                    <strong>{new Date(item.received_at).toLocaleDateString(dateLocale)}</strong>
+                    <small>{new Date(item.received_at).toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" })}</small>
                   </div>
-
                   <div className="inbox-v2-open">
-                    {item.status === "needs_review" ? "Review" : "Open"} <span aria-hidden="true">→</span>
+                    {item.status === "needs_review" ? copy.review : copy.open} <span aria-hidden="true">→</span>
                   </div>
                 </Link>
               );
@@ -133,12 +113,9 @@ export default async function InboxPage() {
           </div>
         ) : (
           <div className="inbox-v2-empty">
-            <div className="upload-v2-section-label">No RFQs yet</div>
-            <h3>Your first request will appear here.</h3>
-            <p>Import a catalogue, then process a PDF, CSV or XLSX customer request.</p>
-            <Link href="/app/upload" className="inbox-v2-primary">
-              Process first RFQ <span aria-hidden="true">→</span>
-            </Link>
+            <div className="upload-v2-section-label">{copy.noRfqs}</div>
+            <h3>{copy.firstTitle}</h3><p>{copy.firstBody}</p>
+            <Link href="/app/upload" className="inbox-v2-primary">{copy.firstAction} <span aria-hidden="true">→</span></Link>
           </div>
         )}
       </section>

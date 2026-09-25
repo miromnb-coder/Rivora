@@ -1,50 +1,51 @@
 import { login, signup } from "./actions";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
-  const params = await searchParams;
+  const [params, locale] = await Promise.all([searchParams, getLocale()]);
+  const copy = getDictionary(locale).login;
 
   return (
-    <main className="min-h-screen bg-[#f5f7f5] px-5 py-12">
+    <main className="nodra-auth min-h-screen px-5 py-12">
       <div className="mx-auto max-w-md">
-        <div className="mb-7 text-center">
-          <div className="text-2xl font-extrabold tracking-[-.04em] text-[#10251b]">Nodra</div>
-          <div className="mt-2 text-sm text-[var(--muted)]">RFQ intelligence desk</div>
+        <div className="mb-7 flex items-start justify-between gap-4">
+          <div>
+            <div className="text-2xl font-extrabold tracking-[-.04em] text-[#171a18]">Nodra</div>
+            <div className="mt-2 text-sm text-[var(--muted)]">{copy.product}</div>
+          </div>
+          <LocaleSwitcher locale={locale} label="" />
         </div>
 
         <div className="surface p-6 sm:p-8">
-          <div className="kicker">Secure workspace</div>
-          <h1 className="mt-2 text-2xl font-extrabold tracking-[-.03em]">Sign in to Nodra.</h1>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Your catalogue, RFQs and product memory are isolated with Supabase Row Level Security.
-          </p>
+          <div className="kicker">{copy.secure}</div>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-[-.03em]">{copy.title}</h1>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{copy.description}</p>
 
           {params.error ? (
-            <div className="mt-5 rounded-xl bg-[var(--red-soft)] p-3 text-sm text-[var(--red)]">
-              {params.error}
-            </div>
+            <div className="nodra-alert nodra-alert-error mt-5">{params.error}</div>
           ) : null}
           {params.message ? (
-            <div className="mt-5 rounded-xl bg-[var(--green-soft)] p-3 text-sm text-[var(--green-dark)]">
-              {params.message}
-            </div>
+            <div className="nodra-alert mt-5">{params.message}</div>
           ) : null}
 
           <form className="mt-6 space-y-4">
             <label className="block">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Email</span>
-              <input name="email" type="email" required className="mt-2 w-full rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
+              <span className="nodra-field-label">{copy.email}</span>
+              <input name="email" type="email" required className="nodra-input mt-2 w-full" />
             </label>
             <label className="block">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Password</span>
-              <input name="password" type="password" minLength={8} required className="mt-2 w-full rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
+              <span className="nodra-field-label">{copy.password}</span>
+              <input name="password" type="password" minLength={8} required className="nodra-input mt-2 w-full" />
             </label>
             <div className="grid grid-cols-2 gap-3 pt-2">
-              <button formAction={login} className="btn-primary">Sign in</button>
-              <button formAction={signup} className="btn-secondary">Create account</button>
+              <button formAction={login} className="btn-primary">{copy.signIn}</button>
+              <button formAction={signup} className="btn-secondary">{copy.create}</button>
             </div>
           </form>
         </div>

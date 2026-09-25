@@ -1,10 +1,11 @@
 import { AppShell } from "@/components/AppShell";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { getLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductLayout({ children }: { children: React.ReactNode }) {
-  const { claims, workspace, supabase } = await requireWorkspace();
+  const [{ claims, workspace, supabase }, locale] = await Promise.all([requireWorkspace(), getLocale()]);
   const showSales = workspace.role === "owner" || workspace.role === "admin";
   let leadAlertCount = 0;
 
@@ -36,6 +37,7 @@ export default async function ProductLayout({ children }: { children: React.Reac
       workspaceRole={workspace.role}
       userEmail={typeof claims.email === "string" ? claims.email : undefined}
       leadAlertCount={leadAlertCount}
+      locale={locale}
     >
       {children}
     </AppShell>

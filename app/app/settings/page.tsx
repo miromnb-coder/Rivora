@@ -2,14 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { removeWorkspaceLogo, updateWorkspaceSettings } from "./actions";
+import { getLocale } from "@/lib/locale";
+import { getSettingsCopy } from "@/lib/i18n/extra";
 
 export default async function SettingsPage({
   searchParams,
 }: {
   searchParams: Promise<{ saved?: string }>;
 }) {
-  const params = await searchParams;
-  const { supabase, workspace } = await requireWorkspace();
+  const [params, locale, workspaceContext] = await Promise.all([searchParams, getLocale(), requireWorkspace()]);
+  const { supabase, workspace } = workspaceContext;
+  const copy = getSettingsCopy(locale);
   const { data: organization } = await supabase
     .from("organizations")
     .select("name,business_id,address_line1,address_line2,postal_code,city,country,email,phone,logo_path,default_tax_rate,default_quote_validity_days,onboarding_completed_at")
@@ -37,23 +40,22 @@ export default async function SettingsPage({
     <div className="app-page-v2">
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-3xl">
-          <div className="app-kicker-v2">Workspace settings</div>
+          <div className="app-kicker-v2">{copy.kicker}</div>
           <h1 className="mt-2 text-4xl font-extrabold tracking-[-.04em]">
-            Company details used on every quote.
+            {copy.title}
           </h1>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            These values become the default commercial settings and seller identity in
-            customer-facing PDFs.
+            {copy.description}
           </p>
         </div>
         <Link href="/app/setup" className="btn-secondary">
-          Pilot setup →
+          {copy.setup} →
         </Link>
       </header>
 
       {params.saved ? (
         <div className="mb-6 rounded-xl bg-[var(--green-soft)] p-4 text-sm text-[var(--green)]">
-          Company settings saved.
+          {copy.saved}
         </div>
       ) : null}
 
@@ -63,7 +65,7 @@ export default async function SettingsPage({
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="sm:col-span-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Company name
+                  {copy.company}
                 </span>
                 <input
                   name="name"
@@ -76,8 +78,8 @@ export default async function SettingsPage({
 
               <label>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Y-tunnus / Business ID{" "}
-                  <em className="font-normal normal-case">optional</em>
+                  {copy.businessId}{" "}
+                  <em className="font-normal normal-case">{copy.optional}</em>
                 </span>
                 <input
                   name="businessId"
@@ -89,7 +91,7 @@ export default async function SettingsPage({
 
               <label>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Company email
+                  {copy.email}
                 </span>
                 <input
                   name="email"
@@ -102,7 +104,7 @@ export default async function SettingsPage({
 
               <label>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Phone
+                  {copy.phone}
                 </span>
                 <input
                   name="phone"
@@ -114,27 +116,27 @@ export default async function SettingsPage({
 
               <label className="sm:col-span-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Address
+                  {copy.address}
                 </span>
                 <input
                   name="addressLine1"
                   maxLength={200}
                   defaultValue={organization?.address_line1 || ""}
-                  placeholder="Street address"
+                  placeholder={copy.street}
                   className="mt-2 w-full rounded-xl border border-[var(--line)] px-3 py-3"
                 />
                 <input
                   name="addressLine2"
                   maxLength={200}
                   defaultValue={organization?.address_line2 || ""}
-                  placeholder="Address line 2 (optional)"
+                  placeholder={copy.address2}
                   className="mt-2 w-full rounded-xl border border-[var(--line)] px-3 py-3"
                 />
               </label>
 
               <label>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Postal code
+                  {copy.postal}
                 </span>
                 <input
                   name="postalCode"
@@ -146,7 +148,7 @@ export default async function SettingsPage({
 
               <label>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  City
+                  {copy.city}
                 </span>
                 <input
                   name="city"
@@ -158,7 +160,7 @@ export default async function SettingsPage({
 
               <label>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Country
+                  {copy.country}
                 </span>
                 <input
                   name="country"
@@ -170,7 +172,7 @@ export default async function SettingsPage({
 
               <label>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Default VAT %
+                  {copy.vat}
                 </span>
                 <input
                   name="defaultTaxRate"
@@ -186,7 +188,7 @@ export default async function SettingsPage({
 
               <label>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Quote validity (days)
+                  {copy.validity}
                 </span>
                 <input
                   name="defaultQuoteValidityDays"
@@ -202,7 +204,7 @@ export default async function SettingsPage({
 
               <label className="sm:col-span-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                  Logo · PNG/JPEG, max 2 MB
+                  {copy.logo}
                 </span>
                 <input
                   name="logo"
@@ -214,17 +216,17 @@ export default async function SettingsPage({
             </div>
 
             {canManage ? (
-              <button className="btn-primary w-fit">Save company settings</button>
+              <button className="btn-primary w-fit">{copy.save}</button>
             ) : (
               <p className="text-sm text-[var(--muted)]">
-                Owner or admin access is required to edit workspace settings.
+                {copy.permission}
               </p>
             )}
           </form>
         </section>
 
         <aside className="surface p-6">
-          <div className="upload-v2-section-label">PDF identity</div>
+          <div className="upload-v2-section-label">{copy.identity}</div>
           <div className="mt-4 flex min-h-24 items-center justify-center rounded-2xl border border-[var(--line)] bg-white p-4">
             {logoDataUrl ? (
               <Image
@@ -236,7 +238,7 @@ export default async function SettingsPage({
                 className="max-h-20 w-auto object-contain"
               />
             ) : (
-              <span className="text-sm text-[var(--muted)]">No logo uploaded</span>
+              <span className="text-sm text-[var(--muted)]">{copy.noLogo}</span>
             )}
           </div>
 
@@ -250,16 +252,16 @@ export default async function SettingsPage({
               organization?.country,
             ]
               .filter(Boolean)
-              .join(", ") || "Address not set"}
+              .join(", ") || copy.noAddress}
           </p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            {organization?.email || "Email not set"}
+            {organization?.email || copy.noEmail}
             {organization?.phone ? ` · ${organization.phone}` : ""}
           </p>
 
           {organization?.logo_path && canManage ? (
             <form action={removeWorkspaceLogo} className="mt-5">
-              <button className="btn-secondary">Remove logo</button>
+              <button className="btn-secondary">{copy.removeLogo}</button>
             </form>
           ) : null}
         </aside>

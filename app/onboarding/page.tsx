@@ -1,35 +1,36 @@
 import { redirect } from "next/navigation";
 import { getAuthContext } from "@/lib/rivora/workspace";
 import { createWorkspace } from "./actions";
+import { getLocale } from "@/lib/locale";
+import { getOnboardingCopy } from "@/lib/i18n/extra";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 
 export default async function OnboardingPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  const params = await searchParams;
-  const { claims, workspace } = await getAuthContext();
+  const [params, locale, auth] = await Promise.all([searchParams, getLocale(), getAuthContext()]);
+  const { claims, workspace } = auth;
   if (!claims) redirect("/login");
   if (workspace) redirect("/app/inbox");
+  const copy = getOnboardingCopy(locale);
 
   return (
-    <main className="min-h-screen bg-[#f5f7f5] px-5 py-12">
+    <main className="nodra-auth min-h-screen px-5 py-12">
       <div className="mx-auto max-w-lg">
+        <div className="mb-5 flex justify-end"><LocaleSwitcher locale={locale} label="" /></div>
         <div className="surface p-7">
-          <div className="kicker">First workspace</div>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-[-.04em]">Create your Nodra workspace.</h1>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            This becomes the security boundary for customers, product catalogue, RFQs and learned SKU mappings.
-          </p>
-          {params.error ? (
-            <div className="mt-5 rounded-xl bg-[var(--red-soft)] p-3 text-sm text-[var(--red)]">{params.error}</div>
-          ) : null}
+          <div className="kicker">{copy.kicker}</div>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-[-.04em]">{copy.title}</h1>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{copy.body}</p>
+          {params.error ? <div className="nodra-alert nodra-alert-error mt-5">{params.error}</div> : null}
           <form action={createWorkspace} className="mt-6">
             <label className="block">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Company / workspace name</span>
-              <input name="workspaceName" required placeholder="Example Industrial Oy" className="mt-2 w-full rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
+              <span className="nodra-field-label">{copy.name}</span>
+              <input name="workspaceName" required placeholder={copy.placeholder} className="nodra-input mt-2 w-full" />
             </label>
-            <button className="btn-primary mt-5 w-full">Create workspace</button>
+            <button className="btn-primary mt-5 w-full">{copy.create}</button>
           </form>
         </div>
       </div>
