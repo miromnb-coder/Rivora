@@ -25,7 +25,7 @@ export default async function QuoteDetailPage({
 
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, rfq_id, quote_number, status, currency, valid_until, customer_reference, notes, tax_rate, recipient_name, recipient_email, sent_to_email, email_provider_id, approved_at, sent_at, last_sent_at, delivery_status, delivery_status_at, delivered_at, bounced_at, failed_at, delivery_attempt_count, created_at, updated_at, customers(name), rfqs(reference)")
+    .select("id, customer_id, rfq_id, quote_number, status, currency, valid_until, customer_reference, notes, tax_rate, recipient_contact_id, recipient_name, recipient_email, sent_to_email, email_provider_id, approved_at, sent_at, last_sent_at, delivery_status, delivery_status_at, delivered_at, bounced_at, failed_at, delivery_attempt_count, created_at, updated_at, customers(name), rfqs(reference)")
     .eq("id", id)
     .maybeSingle();
 
@@ -43,6 +43,13 @@ export default async function QuoteDetailPage({
     .eq("quote_id", id)
     .order("occurred_at", { ascending: false })
     .limit(30);
+
+  const { data: customerContacts } = await supabase
+    .from("customer_contacts")
+    .select("id, name, email, phone, title, is_primary")
+    .eq("customer_id", quote.customer_id)
+    .order("is_primary", { ascending: false })
+    .order("name");
 
   const canManage = ["owner", "admin"].includes(workspace.role);
   const editable = canManage && ["draft", "ready"].includes(quote.status);
@@ -219,6 +226,26 @@ export default async function QuoteDetailPage({
             {deliveryEditable ? (
               <form action={updateQuoteDelivery} className="quote-builder-v1-header-form">
                 <input type="hidden" name="quoteId" value={quote.id} />
+                {(customerContacts ?? []).length ? (
+                  <label>
+                    <span>Saved customer contact</span>
+                    <select
+                      name="recipientContactId"
+                      defaultValue={quote.recipient_contact_id || ""}
+                    >
+                      <option value="">Use manual recipient below</option>
+                      {(customerContacts ?? []).map((contact: any) => (
+                        <option key={contact.id} value={contact.id}>
+                          {contact.name} · {contact.email}{contact.is_primary ? " · primary" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <p className="quote-delivery-v1-gate">
+                    No saved contacts for this customer yet. Add one in Customer CRM or enter the recipient manually.
+                  </p>
+                )}
                 <label>
                   <span>Recipient name</span>
                   <input name="recipientName" maxLength={160} defaultValue={quote.recipient_name || ""} placeholder="Buyer or contact" />
@@ -227,7 +254,12 @@ export default async function QuoteDetailPage({
                   <span>Recipient email</span>
                   <input name="recipientEmail" type="email" maxLength={320} defaultValue={quote.recipient_email || ""} placeholder="buyer@customer.com" />
                 </label>
-                <button className="quote-builder-v1-secondary">Save delivery details</button>
+                <div className="flex flex-wrap gap-2">
+                  <button className="quote-builder-v1-secondary">Save delivery details</button>
+                  <Link href={`/app/customers/${quote.customer_id}`} className="quote-builder-v1-secondary">
+                    Customer CRM →
+                  </Link>
+                </div>
               </form>
             ) : (
               <div className="quote-builder-v1-readonly quote-delivery-v1-readonly">
