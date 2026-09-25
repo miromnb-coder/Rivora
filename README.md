@@ -46,3 +46,7 @@ Core domain:
 `organizations → customers → RFQs → RFQ lines → product candidates → human feedback → customer product mappings → quotes`
 
 The strategic learning loop is `customer_product_mappings`: once a user verifies a customer's alias, Nodra can reuse that knowledge on future RFQs.
+
+## Current product baseline
+
+The current main branch includes Finnish/English locale handling for the public site and authenticated product, plus the neutral white Nodra product UI refresh aligned with the marketing site.
