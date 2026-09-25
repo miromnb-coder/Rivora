@@ -6,11 +6,10 @@ import {
   ProductResolutionV2,
   CustomerMemoryV2,
   ConfidenceSystemV2,
+  AiExtractionV2,
+  BeforeAfterV2,
+  FinalCtaV2,
 } from "@/components/marketing/HomepageV2Sections";
-import {
-  AiExtraction,
-  FinalCta,
-} from "@/components/marketing/MarketingSections";
 
 export default function Home() {
   return (
@@ -23,8 +22,9 @@ export default function Home() {
       <ProductResolutionV2 />
       <CustomerMemoryV2 />
       <ConfidenceSystemV2 />
-      <AiExtraction />
-      <FinalCta />
+      <AiExtractionV2 />
+      <BeforeAfterV2 />
+      <FinalCtaV2 />
       <MarketingFooter />
     </main>
   );
