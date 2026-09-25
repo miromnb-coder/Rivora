@@ -252,7 +252,7 @@ export default async function SettingsPage({
               organization?.country,
             ]
               .filter(Boolean)
-              .join(", ") || "{copy.noAddress}"}
+              .join(", ") || copy.noAddress}
           </p>
           <p className="mt-2 text-sm text-[var(--muted)]">
             {organization?.email || copy.noEmail}
