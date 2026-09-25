@@ -8317,3 +8317,44 @@ button, input, select { font: inherit; }
 .upload-v2-secondary-btn:hover {
   background: #fafafa !important;
 }
+
+
+.nodra-file-picker {
+  border: 1px dashed #d6d8d4;
+  border-radius: 18px;
+  background: #fbfbfa;
+}
+
+.nodra-file-picker:hover {
+  border-color: #aaaeaa;
+  background: #f8f8f6;
+}
+
+.nodra-file-picker-icon {
+  margin-inline: auto;
+  display: flex;
+  height: 42px;
+  width: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f0f1ef;
+  color: #3f4440;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.nodra-file-picker-button {
+  margin: 16px auto 0;
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dedfdb;
+  border-radius: 999px;
+  background: #fff;
+  padding: 0 14px;
+  color: #343834;
+  font-size: 10px;
+  font-weight: 820;
+}
