@@ -4,7 +4,7 @@ import { RivoraMark } from "./RivoraMark";
 export function MarketingNav() {
   return (
     <header className="marketing-nav nav-v2">
-      <Link href="/" aria-label="Rivora home" className="nav-v2-brand">
+      <Link href="/" aria-label="Nodra home" className="nav-v2-brand">
         <RivoraMark />
       </Link>
 
