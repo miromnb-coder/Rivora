@@ -15,7 +15,7 @@ const steps = [
     no: "02",
     label: "Extract",
     title: "Unstructured requests become structured line items.",
-    body: "Rivora reads the RFQ and extracts customer details, references, product codes, descriptions and quantities.",
+    body: "Nodra reads the RFQ and extracts customer details, references, product codes, descriptions and quantities.",
     proof: ["PUMP-37A", "10 PCS", "PAGE 1"],
   },
   {
@@ -127,7 +127,7 @@ export function ScrollWorld() {
     `world-station ${base} ${index === active ? "is-active" : Math.abs(index - active) === 1 ? "is-near" : "is-dim"}`;
 
   return (
-    <section ref={sectionRef} id="scroll-world" className="scroll-world-section" aria-label="Rivora RFQ processing journey">
+    <section ref={sectionRef} id="scroll-world" className="scroll-world-section" aria-label="Nodra RFQ processing journey">
       <div className="scroll-world-sticky">
         <div className="scroll-world-copy" aria-live="polite">
           <div className="scroll-world-kicker">RFQ PROCESSING LANDSCAPE</div>
@@ -177,7 +177,7 @@ export function ScrollWorld() {
             <div className={stationClass(1, "station-extract")}>
               <div className="station-label">02 / Extract</div>
               <div className="world-machine">
-                <span className="machine-brand">RIVORA</span>
+                <span className="machine-brand">NODRA</span>
                 <div className="machine-door"><span>RFQ</span></div>
               </div>
               <div className="line-item-stack">
@@ -196,7 +196,7 @@ export function ScrollWorld() {
             <div className={stationClass(2, "station-resolve")}>
               <div className="station-label">03 / Resolve</div>
               <div className="resolver-core">
-                <span>RIVORA</span>
+                <span>NODRA</span>
                 <small>PRODUCT RESOLVER</small>
               </div>
               <div className="product-shelf">
@@ -244,7 +244,7 @@ export function ScrollWorld() {
               <div className="station-label">06 / Quote</div>
               <div className="quote-output">
                 <div className="quote-paper">
-                  <small>RIVORA</small>
+                  <small>NODRA</small>
                   <b>Quote ready</b>
                   <span>Nordic Process Service Oy</span>
                   <div className="quote-lines"><i /><i /><i /><i /></div>
