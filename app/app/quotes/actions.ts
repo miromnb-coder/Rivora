@@ -201,17 +201,18 @@ export async function updateQuoteHeader(formData: FormData) {
 
 export async function updateQuoteDelivery(formData: FormData) {
   const quoteId = String(formData.get("quoteId") ?? "");
-  const recipientName = String(formData.get("recipientName") ?? "").trim();
-  const recipientEmail = String(formData.get("recipientEmail") ?? "").trim().toLowerCase();
+  const recipientContactId = String(formData.get("recipientContactId") ?? "").trim();
+  let recipientName = String(formData.get("recipientName") ?? "").trim();
+  let recipientEmail = String(formData.get("recipientEmail") ?? "").trim().toLowerCase();
 
   if (!quoteId) throw new Error("Quote is required.");
   if (recipientName.length > 160) throw new Error("Recipient name is too long.");
   if (recipientEmail && !EMAIL_RE.test(recipientEmail)) throw new Error("Enter a valid customer email.");
 
-  const { supabase } = await requireQuoteAdmin();
+  const { supabase, workspace } = await requireQuoteAdmin();
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, status")
+    .select("id, status, customer_id")
     .eq("id", quoteId)
     .maybeSingle();
 
@@ -220,9 +221,26 @@ export async function updateQuoteDelivery(formData: FormData) {
     throw new Error("Sent or expired quote delivery details are locked.");
   }
 
+  let savedContactId: string | null = null;
+  if (recipientContactId) {
+    const { data: contact } = await supabase
+      .from("customer_contacts")
+      .select("id, name, email")
+      .eq("id", recipientContactId)
+      .eq("customer_id", quote.customer_id)
+      .eq("organization_id", workspace.id)
+      .maybeSingle();
+
+    if (!contact) throw new Error("Selected customer contact was not found.");
+    recipientName = contact.name;
+    recipientEmail = contact.email.toLowerCase();
+    savedContactId = contact.id;
+  }
+
   const { error } = await supabase
     .from("quotes")
     .update({
+      recipient_contact_id: savedContactId,
       recipient_name: recipientName || null,
       recipient_email: recipientEmail || null,
       updated_at: new Date().toISOString(),
