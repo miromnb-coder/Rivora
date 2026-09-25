@@ -5,6 +5,13 @@ import { confirmRfqMatch } from "./actions";
 
 const money = new Intl.NumberFormat("en-FI", { style: "currency", currency: "EUR" });
 
+function lineTone(confidence: number, reviewStatus: string) {
+  if (reviewStatus === "confirmed" || reviewStatus === "matched") return "ready";
+  if (reviewStatus === "needs_review" || (confidence >= 60 && confidence < 92)) return "review";
+  if (confidence >= 92) return "ready";
+  return "blocked";
+}
+
 export default async function RfqPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase } = await requireWorkspace();
@@ -39,125 +46,242 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
     byLine.set((candidate as any).rfq_line_id, list);
   }
 
-  const customer = Array.isArray((rfq as any).customers) ? (rfq as any).customers[0] : (rfq as any).customers;
-  const unresolved = (lines ?? []).filter((line: any) => ["needs_review", "unmatched", "pending"].includes(line.review_status)).length;
-  const warnings = Array.isArray((rfq as any).extraction_warnings) ? (rfq as any).extraction_warnings : [];
+  const customer = Array.isArray((rfq as any).customers)
+    ? (rfq as any).customers[0]
+    : (rfq as any).customers;
+
+  const unresolved = (lines ?? []).filter((line: any) =>
+    ["needs_review", "unmatched", "pending"].includes(line.review_status)
+  ).length;
+
+  const resolved = (lines ?? []).length - unresolved;
+  const warnings = Array.isArray((rfq as any).extraction_warnings)
+    ? (rfq as any).extraction_warnings
+    : [];
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
-      <Link href="/app/inbox" className="text-sm font-bold text-[var(--green)]">← Back to inbox</Link>
-      <div className="mt-5 mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+    <div className="app-page-v2 rfq-review-v2">
+      <Link href="/app/inbox" className="rfq-review-v2-back">
+        ← Inbox
+      </Link>
+
+      <header className="rfq-review-v2-head">
         <div>
-          <div className="kicker">Human review</div>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-[-.035em]">{rfq.reference || "RFQ review"}</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">{customer?.name ?? "Unknown customer"} · {String(rfq.source_type).toUpperCase()} · {unresolved} lines need attention.</p>
+          <div className="app-kicker-v2">RFQ review</div>
+          <h1>{rfq.reference || "RFQ review"}</h1>
+          <p>
+            {customer?.name ?? "Unknown customer"} · {String(rfq.source_type).toUpperCase()} ·{" "}
+            {unresolved ? `${unresolved} lines need attention` : "all lines resolved"}
+          </p>
         </div>
-        <div className={`status ${rfq.status === "ready" ? "green" : "amber"}`}>{String(rfq.status).replaceAll("_", " ")}</div>
-      </div>
+
+        <div className={`rfq-review-v2-status ${rfq.status === "ready" ? "ready" : "review"}`}>
+          {String(rfq.status).replaceAll("_", " ")}
+        </div>
+      </header>
+
+      <section className="rfq-review-v2-summary">
+        <div>
+          <span>Resolved</span>
+          <strong>{resolved}</strong>
+          <small>of {(lines ?? []).length} lines</small>
+        </div>
+        <div className={unresolved ? "is-review" : ""}>
+          <span>Needs review</span>
+          <strong>{unresolved}</strong>
+          <small>human decisions</small>
+        </div>
+        <div>
+          <span>Match confidence</span>
+          <strong>{Math.round(Number(rfq.overall_confidence ?? 0))}%</strong>
+          <small>RFQ overall</small>
+        </div>
+        <div>
+          <span>Policy</span>
+          <strong className="is-text">Memory → SKU → MPN → fuzzy</strong>
+          <small>fuzzy stays reviewable</small>
+        </div>
+      </section>
 
       {rfq.extraction_provider ? (
-        <div className="mb-5 rounded-2xl border border-[var(--line)] bg-white p-5">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div><div className="text-xs text-[var(--muted)]">Extraction</div><div className="mt-1 text-sm font-extrabold">{String(rfq.extraction_provider).toUpperCase()} · {rfq.extraction_model}</div></div>
-            <div><div className="text-xs text-[var(--muted)]">PDF extraction confidence</div><div className="mt-1 text-sm font-extrabold">{Math.round(Number(rfq.extraction_confidence ?? 0))}%</div></div>
-            <div><div className="text-xs text-[var(--muted)]">Warnings</div><div className="mt-1 text-sm font-extrabold">{warnings.length}</div></div>
+        <section className="rfq-review-v2-extraction">
+          <div>
+            <span>Extraction</span>
+            <b>{String(rfq.extraction_provider).toUpperCase()} · {rfq.extraction_model}</b>
           </div>
-          {warnings.length ? (
-            <div className="mt-4 rounded-xl bg-[var(--red-soft)] p-4 text-sm text-[var(--red)]">
-              {warnings.map((warning: string, index: number) => <div key={index}>• {warning}</div>)}
-            </div>
-          ) : null}
-        </div>
+          <div>
+            <span>Extraction confidence</span>
+            <b>{Math.round(Number(rfq.extraction_confidence ?? 0))}%</b>
+          </div>
+          <div>
+            <span>Warnings</span>
+            <b>{warnings.length}</b>
+          </div>
+        </section>
       ) : null}
 
-      <div className="surface overflow-hidden">
-        <div className="grid gap-3 border-b border-[var(--line)] px-5 py-4 sm:grid-cols-3">
-          <div><div className="text-xs text-[var(--muted)]">Match confidence</div><div className="mt-1 text-lg font-extrabold">{Math.round(Number(rfq.overall_confidence ?? 0))}%</div></div>
-          <div><div className="text-xs text-[var(--muted)]">Matching policy</div><div className="mt-1 text-sm font-bold">Memory / exact auto · fuzzy review</div></div>
-          <div><div className="text-xs text-[var(--muted)]">Lines</div><div className="mt-1 text-sm font-bold">{(lines ?? []).length}</div></div>
+      {warnings.length ? (
+        <section className="rfq-review-v2-warning">
+          <div className="upload-v2-section-label">Extraction warnings</div>
+          {warnings.map((warning: string, index: number) => (
+            <p key={index}>{warning}</p>
+          ))}
+        </section>
+      ) : null}
+
+      <section className="rfq-review-v2-lines">
+        <div className="rfq-review-v2-lines-head">
+          <div>
+            <div className="upload-v2-section-label">Product resolution</div>
+            <h2>Review line by line.</h2>
+          </div>
+          <span>{(lines ?? []).length} lines</span>
         </div>
 
-        <div className="divide-y divide-[var(--line)]">
+        <div className="rfq-review-v2-line-list">
           {(lines ?? []).map((line: any) => {
             const lineCandidates = byLine.get(line.id) ?? [];
             const confidence = Number(line.match_confidence ?? 0);
-            const extractionConfidence = line.extraction_confidence == null ? null : Number(line.extraction_confidence);
-            const tone = confidence >= 92 ? "green" : confidence >= 60 ? "amber" : "red";
-            const extractionTone = extractionConfidence == null ? "green" : extractionConfidence >= 90 ? "green" : extractionConfidence >= 70 ? "amber" : "red";
+            const extractionConfidence =
+              line.extraction_confidence == null ? null : Number(line.extraction_confidence);
+            const tone = lineTone(confidence, line.review_status);
+            const primaryCandidate = lineCandidates[0];
+            const primaryProduct = Array.isArray(primaryCandidate?.products)
+              ? primaryCandidate?.products?.[0]
+              : primaryCandidate?.products;
 
             return (
-              <div key={line.id} className="p-5">
-                <div className="grid gap-5 lg:grid-cols-[1fr_1.4fr_.65fr]">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-bold text-[var(--muted)]">LINE {line.line_number}</span>
-                      <span className={`status ${tone}`}>{confidence ? `${Math.round(confidence)}% match` : "No match"}</span>
+              <article key={line.id} className={`rfq-review-v2-line ${tone}`}>
+                <div className="rfq-review-v2-source">
+                  <div className="rfq-review-v2-line-meta">
+                    <span>Line {line.line_number}</span>
+                    <span>{line.source_page ? `PDF page ${line.source_page}` : String(rfq.source_type).toUpperCase()}</span>
+                  </div>
+
+                  <h3>{line.customer_sku || "No customer SKU"}</h3>
+                  <p>{line.raw_description || "No description"}</p>
+
+                  <div className="rfq-review-v2-qty">
+                    <strong>{Number(line.quantity)}</strong>
+                    <span>{line.unit || "pcs"}</span>
+                  </div>
+
+                  <div className="rfq-review-v2-method">
+                    <span>Match method</span>
+                    <b>{line.match_method || "No method"}</b>
+                  </div>
+
+                  {line.extraction_notes ? (
+                    <div className="rfq-review-v2-note">{line.extraction_notes}</div>
+                  ) : null}
+                </div>
+
+                <div className="rfq-review-v2-decision">
+                  <div className="rfq-review-v2-decision-top">
+                    <div>
+                      <span>Suggested product</span>
+                      <h4>{primaryProduct?.sku || "No candidate"}</h4>
+                      <p>{primaryProduct?.name || "No catalogue product cleared the current threshold."}</p>
+                    </div>
+
+                    <div className="rfq-review-v2-confidence-stack">
+                      <div>
+                        <span>Match</span>
+                        <strong>{confidence ? `${Math.round(confidence)}%` : "—"}</strong>
+                      </div>
                       {extractionConfidence != null ? (
-                        <span className={`status ${extractionTone}`}>{Math.round(extractionConfidence)}% extraction</span>
+                        <div>
+                          <span>Extraction</span>
+                          <strong>{Math.round(extractionConfidence)}%</strong>
+                        </div>
                       ) : null}
                     </div>
-                    <div className="mt-3 text-sm font-extrabold">{line.customer_sku || "No customer SKU"}</div>
-                    <div className="mt-1 text-sm text-[var(--muted)]">{line.raw_description || "No description"}</div>
-                    <div className="mt-2 text-sm"><b>{Number(line.quantity)}</b> {line.unit || "pcs"}</div>
-                    <div className="mt-2 text-xs text-[var(--muted)]">
-                      Method: {line.match_method || "none"}
-                      {line.source_page ? ` · PDF page ${line.source_page}` : ""}
-                    </div>
-                    {line.extraction_notes ? <div className="mt-2 text-xs text-[var(--red)]">{line.extraction_notes}</div> : null}
                   </div>
 
-                  <form action={confirmRfqMatch}>
-                    <input type="hidden" name="rfqId" value={id} />
-                    <input type="hidden" name="lineId" value={line.id} />
-                    <div className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Candidate products</div>
-                    {lineCandidates.length ? (
-                      <>
-                        <select name="productId" defaultValue={line.selected_product_id ?? lineCandidates[0]?.product_id} className="mt-2 w-full rounded-xl border border-[var(--line)] bg-white px-3 py-3 text-sm font-semibold outline-none focus:border-[var(--green)]">
+                  {lineCandidates.length ? (
+                    <form action={confirmRfqMatch} className="rfq-review-v2-form">
+                      <input type="hidden" name="rfqId" value={id} />
+                      <input type="hidden" name="lineId" value={line.id} />
+
+                      <label>
+                        <span>Product candidate</span>
+                        <select
+                          name="productId"
+                          defaultValue={line.selected_product_id ?? lineCandidates[0]?.product_id}
+                        >
                           {lineCandidates.map((candidate: any) => {
-                            const product = Array.isArray(candidate.products) ? candidate.products[0] : candidate.products;
-                            return <option key={candidate.product_id} value={candidate.product_id}>{product?.sku} — {product?.name} ({Math.round(Number(candidate.confidence))}%)</option>;
-                          })}
-                        </select>
-                        <div className="mt-3 grid gap-2">
-                          {lineCandidates.slice(0, 3).map((candidate: any) => {
-                            const product = Array.isArray(candidate.products) ? candidate.products[0] : candidate.products;
+                            const product = Array.isArray(candidate.products)
+                              ? candidate.products[0]
+                              : candidate.products;
+
                             return (
-                              <div key={candidate.product_id} className="rounded-lg bg-[#fafbfa] px-3 py-2 text-xs text-[var(--muted)]">
-                                <b className="text-[var(--ink)]">{product?.sku}</b> · {candidate.method} · {Math.round(Number(candidate.confidence))}% {product?.unit_price != null ? `· ${money.format(Number(product.unit_price))}` : ""}
-                              </div>
+                              <option key={candidate.product_id} value={candidate.product_id}>
+                                {product?.sku} — {product?.name} ({Math.round(Number(candidate.confidence))}%)
+                              </option>
                             );
                           })}
-                        </div>
-                        <label className="mt-3 flex items-center gap-2 text-xs text-[var(--muted)]">
-                          <input name="remember" type="checkbox" defaultChecked />
-                          Remember this alias for this customer
-                        </label>
-                        <button className="btn-primary mt-3">Confirm selected match</button>
-                      </>
-                    ) : (
-                      <div className="mt-2 rounded-xl bg-[var(--red-soft)] p-4 text-sm text-[var(--red)]">
-                        No catalogue candidate cleared the fuzzy threshold. The extracted RFQ line is preserved for manual handling.
-                      </div>
-                    )}
-                  </form>
+                        </select>
+                      </label>
 
-                  <div className="flex items-start justify-start lg:justify-end">
-                    <span className={`status ${line.review_status === "confirmed" || line.review_status === "matched" ? "green" : line.review_status === "needs_review" ? "amber" : "red"}`}>
-                      {String(line.review_status).replaceAll("_", " ")}
-                    </span>
-                  </div>
+                      <div className="rfq-review-v2-candidates">
+                        {lineCandidates.slice(0, 3).map((candidate: any) => {
+                          const product = Array.isArray(candidate.products)
+                            ? candidate.products[0]
+                            : candidate.products;
+
+                          return (
+                            <div key={candidate.product_id}>
+                              <div>
+                                <b>{product?.sku}</b>
+                                <span>{candidate.method}</span>
+                              </div>
+                              <div>
+                                <strong>{Math.round(Number(candidate.confidence))}%</strong>
+                                {product?.unit_price != null ? (
+                                  <small>{money.format(Number(product.unit_price))}</small>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="rfq-review-v2-actions">
+                        <label className="rfq-review-v2-remember">
+                          <input name="remember" type="checkbox" defaultChecked />
+                          <span>Remember this mapping for this customer</span>
+                        </label>
+
+                        <button>
+                          Confirm match <span aria-hidden="true">→</span>
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="rfq-review-v2-no-candidate">
+                      <div className="upload-v2-section-label">Manual handling required</div>
+                      <p>
+                        No catalogue candidate cleared the fuzzy threshold. The extracted source line remains preserved.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
+
+                <div className={`rfq-review-v2-state ${tone}`}>
+                  {String(line.review_status).replaceAll("_", " ")}
+                </div>
+              </article>
             );
           })}
         </div>
-      </div>
+      </section>
 
       {rfq.status === "ready" ? (
-        <div className="mt-5 rounded-2xl bg-[#10251b] p-5 text-white">
-          <div className="text-xs font-bold uppercase tracking-wider text-white/50">Engine result</div>
-          <div className="mt-1 text-xl font-extrabold">All extracted lines are resolved and cleared for the quote-generation stage.</div>
-        </div>
+        <section className="rfq-review-v2-ready">
+          <div className="upload-v2-section-label">Ready for next stage</div>
+          <h2>Every RFQ line has a resolved product.</h2>
+          <p>The request is cleared for quote generation when that workflow is enabled.</p>
+        </section>
       ) : null}
     </div>
   );
