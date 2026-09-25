@@ -20,24 +20,24 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   const fi = locale === "fi";
   const displayLocale = formatLocale(locale);
   const text = {
-    customers: fi ? "Asiakkaat" : "Customers", profile: fi ? "Asiakasprofiili" : "{text.profile}",
+    customers: fi ? "Asiakkaat" : "Customers", profile: fi ? "Asiakasprofiili" : "Customer profile",
     noExternal: fi ? "Ei ulkoista tunnusta" : "No external ID", contacts: fi ? "Yhteyshenkilöt" : "Contacts",
     primary: fi ? "ENSISIJAINEN" : "PRIMARY", contact: fi ? "Yhteyshenkilö" : "Contact",
     makePrimary: fi ? "Aseta ensisijaiseksi" : "Make primary", remove: fi ? "Poista" : "Remove",
-    noContacts: fi ? "Ei tallennettuja yhteyshenkilöitä vielä." : "{text.noContacts}",
+    noContacts: fi ? "Ei tallennettuja yhteyshenkilöitä vielä." : "No saved contacts yet.",
     contactName: fi ? "Yhteyshenkilön nimi" : "Contact name", email: fi ? "Sähköposti" : "Email",
     titleRole: fi ? "Tehtävänimike / rooli" : "Title / role", phone: fi ? "Puhelin" : "Phone",
     primaryRecipient: fi ? "Ensisijainen tarjouksen vastaanottaja" : "Primary quote recipient",
     addContact: fi ? "Lisää yhteyshenkilö" : "Add contact", quoteHistory: fi ? "Tarjoushistoria" : "Quote history",
     quotes: fi ? "tarjousta" : "quotes", draftQuote: fi ? "Tarjousluonnos" : "Draft quote",
-    notSent: fi ? "Ei lähetetty"  : text.notSent, noQuotes: fi ? "Ei tarjouksia vielä." : "{text.noQuotes}",
+    notSent: fi ? "Ei lähetetty" : "Not sent", noQuotes: fi ? "Ei tarjouksia vielä." : "No quotes yet.",
     rfqHistory: fi ? "Tarjouspyyntöhistoria" : "RFQ history", requests: fi ? "pyyntöä" : "requests",
-    untitledRfq: fi ? "Nimetön tarjouspyyntö" : "Untitled RFQ", noRfqs: fi ? "Ei tarjouspyyntöjä vielä." : "{text.noRfqs}",
+    untitledRfq: fi ? "Nimetön tarjouspyyntö" : "Untitled RFQ", noRfqs: fi ? "Ei tarjouspyyntöjä vielä." : "No RFQs yet.",
     memory: fi ? "Asiakaskohtainen muisti" : "Customer memory", mappings: fi ? "opittua vastinetta" : "learned mappings",
     customerLanguage: fi ? "Asiakkaan tuotekieli" : "Customer language", noSku: fi ? "Ei SKU:ta" : "No SKU",
     noDescription: fi ? "Ei kuvausta" : "No description", canonical: fi ? "Kanoninen tuote" : "Canonical product",
     unavailable: fi ? "Ei saatavilla" : "Unavailable", uses: fi ? "Käytöt" : "Uses",
-    noMappings: fi ? "Ei opittuja tuotevastineita vielä." : "{text.noMappings}",
+    noMappings: fi ? "Ei opittuja tuotevastineita vielä." : "No learned product mappings yet.",
   };
 
   const { data: customer } = await supabase
