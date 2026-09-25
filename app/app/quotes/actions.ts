@@ -3,8 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireQuoteAdmin } from "@/lib/rivora/quotes";
+import {
+  loadQuoteDocumentData,
+  quotePdfFilename,
+  renderQuotePdf,
+} from "@/lib/rivora/quote-document";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function asNumber(value: FormDataEntryValue | null) {
   const parsed = Number(String(value ?? ""));
@@ -13,6 +19,15 @@ function asNumber(value: FormDataEntryValue | null) {
 
 function roundMoney(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 async function getEditableQuote(quoteId: string) {
@@ -180,6 +195,41 @@ export async function updateQuoteHeader(formData: FormData) {
   revalidatePath("/app/quotes");
 }
 
+export async function updateQuoteDelivery(formData: FormData) {
+  const quoteId = String(formData.get("quoteId") ?? "");
+  const recipientName = String(formData.get("recipientName") ?? "").trim();
+  const recipientEmail = String(formData.get("recipientEmail") ?? "").trim().toLowerCase();
+
+  if (!quoteId) throw new Error("Quote is required.");
+  if (recipientName.length > 160) throw new Error("Recipient name is too long.");
+  if (recipientEmail && !EMAIL_RE.test(recipientEmail)) throw new Error("Enter a valid customer email.");
+
+  const { supabase } = await requireQuoteAdmin();
+  const { data: quote } = await supabase
+    .from("quotes")
+    .select("id, status")
+    .eq("id", quoteId)
+    .maybeSingle();
+
+  if (!quote) throw new Error("Quote not found.");
+  if (["sent", "expired"].includes(quote.status)) {
+    throw new Error("Sent or expired quote delivery details are locked.");
+  }
+
+  const { error } = await supabase
+    .from("quotes")
+    .update({
+      recipient_name: recipientName || null,
+      recipient_email: recipientEmail || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", quoteId);
+
+  if (error) throw new Error(error.message);
+  revalidatePath(`/app/quotes/${quoteId}`);
+  revalidatePath("/app/quotes");
+}
+
 export async function updateQuoteLine(formData: FormData) {
   const quoteId = String(formData.get("quoteId") ?? "");
   const lineId = String(formData.get("lineId") ?? "");
@@ -287,27 +337,114 @@ export async function approveQuote(formData: FormData) {
   revalidatePath("/app/quotes");
 }
 
-export async function markQuoteSent(formData: FormData) {
+export async function sendQuoteEmail(formData: FormData) {
   const quoteId = String(formData.get("quoteId") ?? "");
   if (!quoteId) throw new Error("Quote is required.");
 
-  const { supabase } = await requireQuoteAdmin();
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const from = process.env.RIVORA_QUOTE_FROM?.trim();
+  const replyTo = process.env.RIVORA_QUOTE_REPLY_TO?.trim();
+
+  if (!apiKey || !from) {
+    throw new Error("Quote email delivery is not configured.");
+  }
+
+  const { supabase, workspace } = await requireQuoteAdmin();
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, status")
+    .select("id, status, quote_number, recipient_name, recipient_email, approved_at")
     .eq("id", quoteId)
     .maybeSingle();
 
   if (!quote) throw new Error("Quote not found.");
-  if (quote.status !== "approved") throw new Error("Approve the quote before marking it sent.");
+  if (quote.status !== "approved") throw new Error("Approve the quote before sending.");
+  if (!quote.recipient_email || !EMAIL_RE.test(quote.recipient_email)) {
+    throw new Error("Add a valid customer email before sending.");
+  }
+
+  const document = await loadQuoteDocumentData(supabase, quoteId, workspace.name);
+  if (!document) throw new Error("Quote document could not be generated.");
+
+  const pdf = renderQuotePdf(document);
+  const subject = `${workspace.name} - Quote ${document.quoteNumber}`;
+  const recipient = document.recipientName || document.customerName;
+  const total = document.lines.reduce((sum, item) => sum + Number(item.line_total), 0);
+  const tax = total * (document.taxRate / 100);
+  const grand = total + tax;
+  const totalLabel = new Intl.NumberFormat("en-FI", {
+    style: "currency",
+    currency: document.currency,
+  }).format(grand);
+
+  const text = [
+    `Hello ${recipient},`,
+    "",
+    `Please find quote ${document.quoteNumber} attached as a PDF.`,
+    `Quote total: ${totalLabel}`,
+    document.validUntil ? `Valid until: ${document.validUntil}` : "",
+    "",
+    "Best regards,",
+    workspace.name,
+  ].filter(Boolean).join("\n");
+
+  const html = `<div style="font-family:Arial,sans-serif;color:#202520;line-height:1.6">
+    <p>Hello ${escapeHtml(recipient)},</p>
+    <p>Please find quote <strong>${escapeHtml(document.quoteNumber)}</strong> attached as a PDF.</p>
+    <p><strong>Quote total:</strong> ${escapeHtml(totalLabel)}${document.validUntil ? `<br><strong>Valid until:</strong> ${escapeHtml(document.validUntil)}` : ""}</p>
+    <p>Best regards,<br>${escapeHtml(workspace.name)}</p>
+  </div>`;
+
+  const body: Record<string, unknown> = {
+    from,
+    to: [quote.recipient_email],
+    subject,
+    text,
+    html,
+    attachments: [
+      {
+        filename: quotePdfFilename(document.quoteNumber),
+        content: pdf.toString("base64"),
+      },
+    ],
+  };
+
+  if (replyTo) body.reply_to = [replyTo];
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "Idempotency-Key": `rivora-quote-${quote.id}-${quote.approved_at || "approved"}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const providerResult = (await response.json().catch(() => ({}))) as {
+    id?: string;
+    message?: string;
+  };
+
+  if (!response.ok || !providerResult.id) {
+    throw new Error(providerResult.message || "Quote email could not be sent.");
+  }
 
   const now = new Date().toISOString();
   const { error } = await supabase
     .from("quotes")
-    .update({ status: "sent", sent_at: now, updated_at: now })
+    .update({
+      status: "sent",
+      sent_at: now,
+      sent_to_email: quote.recipient_email,
+      email_provider_id: providerResult.id,
+      updated_at: now,
+    })
     .eq("id", quoteId);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error("Email was accepted by the provider, but Rivora could not record the sent state.");
+  }
+
   revalidatePath(`/app/quotes/${quoteId}`);
   revalidatePath("/app/quotes");
 }
