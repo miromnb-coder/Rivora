@@ -529,7 +529,30 @@ begin
     end if;
   end if;
 
-  if new.status in ('ready','approved','sent') then
+  if old.status in ('approved','sent','expired') then
+    if new.customer_id is distinct from old.customer_id
+      or new.rfq_id is distinct from old.rfq_id
+      or new.quote_number is distinct from old.quote_number
+      or new.currency is distinct from old.currency
+      or new.valid_until is distinct from old.valid_until
+      or new.customer_reference is distinct from old.customer_reference
+      or new.notes is distinct from old.notes
+      or new.tax_rate is distinct from old.tax_rate
+    then
+      raise exception 'Approved or sent quote commercial fields are locked';
+    end if;
+  end if;
+
+  if old.status in ('sent','expired') then
+    if new.recipient_contact_id is distinct from old.recipient_contact_id
+      or new.recipient_name is distinct from old.recipient_name
+      or new.recipient_email is distinct from old.recipient_email
+    then
+      raise exception 'Sent quote recipient is locked';
+    end if;
+  end if;
+
+  if old.status is distinct from new.status and new.status in ('ready','approved','sent') then
     if new.valid_until is null or new.valid_until < current_date then
       raise exception 'Quote validity date must be today or later';
     end if;
