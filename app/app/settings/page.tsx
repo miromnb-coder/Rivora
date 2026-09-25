@@ -255,7 +255,7 @@ export default async function SettingsPage({
               .join(", ") || "{copy.noAddress}"}
           </p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            {organization?.email || "{copy.noEmail}"}
+            {organization?.email || copy.noEmail}
             {organization?.phone ? ` · ${organization.phone}` : ""}
           </p>
 
