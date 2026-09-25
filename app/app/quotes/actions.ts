@@ -109,6 +109,9 @@ export async function createQuoteFromRfq(formData: FormData) {
 
   const quoteNumber = `Q-${new Date().getUTCFullYear()}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
   const now = new Date().toISOString();
+  const validity = new Date();
+  validity.setUTCDate(validity.getUTCDate() + workspace.defaultQuoteValidityDays);
+  const validUntil = validity.toISOString().slice(0, 10);
 
   const { data: quote, error: quoteError } = await supabase
     .from("quotes")
@@ -120,7 +123,8 @@ export async function createQuoteFromRfq(formData: FormData) {
       status: "draft",
       currency: "EUR",
       customer_reference: rfq.reference ?? null,
-      tax_rate: 0,
+      valid_until: validUntil,
+      tax_rate: workspace.defaultTaxRate,
       created_by: claims.sub,
       updated_at: now,
     })
@@ -371,10 +375,10 @@ export async function sendQuoteEmail(formData: FormData) {
     throw new Error("Add a valid customer email before sending.");
   }
 
-  const document = await loadQuoteDocumentData(supabase, quoteId, workspace.name);
+  const document = await loadQuoteDocumentData(supabase, quoteId);
   if (!document) throw new Error("Quote document could not be generated.");
 
-  const pdf = renderQuotePdf(document);
+  const pdf = await renderQuotePdf(document);
   const subject = `${workspace.name} - Quote ${document.quoteNumber}`;
   const recipient = document.recipientName || document.customerName;
   const total = document.lines.reduce((sum, item) => sum + Number(item.line_total), 0);
