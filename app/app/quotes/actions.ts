@@ -352,12 +352,21 @@ export async function sendQuoteEmail(formData: FormData) {
   const { supabase, workspace } = await requireQuoteAdmin();
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, status, quote_number, recipient_name, recipient_email, approved_at")
+    .select("id, status, quote_number, recipient_name, recipient_email, approved_at, sent_at, delivery_status, delivery_attempt_count")
     .eq("id", quoteId)
     .maybeSingle();
 
   if (!quote) throw new Error("Quote not found.");
-  if (quote.status !== "approved") throw new Error("Approve the quote before sending.");
+
+  const isInitialSend = quote.status === "approved";
+  const isRetry =
+    quote.status === "sent" &&
+    ["bounced", "failed"].includes(String(quote.delivery_status ?? ""));
+
+  if (!isInitialSend && !isRetry) {
+    throw new Error("Quotes can only be sent after approval or retried after a failed delivery.");
+  }
+
   if (!quote.recipient_email || !EMAIL_RE.test(quote.recipient_email)) {
     throw new Error("Add a valid customer email before sending.");
   }
@@ -410,12 +419,14 @@ export async function sendQuoteEmail(formData: FormData) {
 
   if (replyTo) body.reply_to = [replyTo];
 
+  const nextAttempt = Number(quote.delivery_attempt_count ?? 0) + 1;
+
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "Idempotency-Key": `nodra-quote-${quote.id}-${quote.approved_at || "approved"}`,
+      "Idempotency-Key": `nodra-quote-${quote.id}-attempt-${nextAttempt}`,
     },
     body: JSON.stringify(body),
   });
@@ -434,9 +445,16 @@ export async function sendQuoteEmail(formData: FormData) {
     .from("quotes")
     .update({
       status: "sent",
-      sent_at: now,
+      sent_at: quote.sent_at || now,
+      last_sent_at: now,
       sent_to_email: quote.recipient_email,
       email_provider_id: providerResult.id,
+      delivery_status: "sent",
+      delivery_status_at: now,
+      delivered_at: null,
+      bounced_at: null,
+      failed_at: null,
+      delivery_attempt_count: nextAttempt,
       updated_at: now,
     })
     .eq("id", quoteId);
