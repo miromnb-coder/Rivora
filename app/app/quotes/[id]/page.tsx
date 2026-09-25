@@ -41,7 +41,7 @@ export default async function QuoteDetailPage({
   const editable = canManage && ["draft", "ready"].includes(quote.status);
   const deliveryEditable = canManage && !["sent", "expired"].includes(quote.status);
   const emailConfigured = Boolean(
-    process.env.RESEND_API_KEY?.trim() && process.env.RIVORA_QUOTE_FROM?.trim()
+    process.env.RESEND_API_KEY?.trim() && (process.env.NODRA_QUOTE_FROM ?? process.env.RIVORA_QUOTE_FROM)?.trim()
   );
   const money = moneyFormatter(quote.currency || "EUR");
   const subtotal = (lines ?? []).reduce((sum: number, line: any) => sum + Number(line.line_total ?? 0), 0);
@@ -268,7 +268,7 @@ export default async function QuoteDetailPage({
                     <div className="quote-delivery-v1-gate">
                       {!quote.recipient_email
                         ? "Add the customer email above before sending."
-                        : "Email delivery needs RESEND_API_KEY and RIVORA_QUOTE_FROM on the server."}
+                        : "Email delivery needs RESEND_API_KEY and NODRA_QUOTE_FROM on the server."}
                     </div>
                   )
                 ) : null}
