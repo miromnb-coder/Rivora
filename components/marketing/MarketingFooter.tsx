@@ -27,14 +27,14 @@ export function MarketingFooter() {
               <span>Workflow</span>
               <a href="#ai-extraction">Traceability</a>
               <a href="#before-after">Before / after</a>
-              <Link href="/app/upload">Process an RFQ</Link>
+              <Link href="/app/upload">Upload an RFQ</Link>
               <Link href="/login">Sign in</Link>
             </div>
 
             <div>
               <span>Company</span>
               <a href="mailto:hello@rivora.fi">Contact</a>
-              <a href="#pricing">Get started</a>
+              <a href="#pricing">Upload an RFQ</a>
             </div>
           </div>
         </div>
