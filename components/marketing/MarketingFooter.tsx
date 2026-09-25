@@ -9,7 +9,7 @@ export function MarketingFooter() {
           <div className="footer-v2-brand">
             <RivoraMark className="text-[#132018]" />
             <p>
-              Rivora helps industrial sales teams turn incoming RFQs into structured,
+              Nodra helps industrial sales teams turn incoming RFQs into structured,
               reviewable quotes.
             </p>
           </div>
@@ -33,14 +33,14 @@ export function MarketingFooter() {
 
             <div>
               <span>Company</span>
-              <a href="mailto:hello@rivora.fi">Contact</a>
+              <a href="#pricing">Contact</a>
               <a href="#pricing">Upload an RFQ</a>
             </div>
           </div>
         </div>
 
         <div className="footer-v2-bottom">
-          <span>© 2026 Rivora</span>
+          <span>© 2026 Nodra</span>
           <div>
             <span>Privacy</span>
             <span>Terms</span>
