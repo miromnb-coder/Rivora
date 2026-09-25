@@ -178,3 +178,52 @@ alter table public.activity_events enable row level security;
 
 -- Data API stays closed until organization-scoped Auth/RLS policies are added.
 revoke all on all tables in schema public from anon, authenticated;
+
+
+-- Nodra workspace/company settings, CRM and pilot monitoring extensions.
+alter table public.organizations
+  add column if not exists business_id text,
+  add column if not exists address_line1 text,
+  add column if not exists address_line2 text,
+  add column if not exists postal_code text,
+  add column if not exists city text,
+  add column if not exists country text not null default 'Finland',
+  add column if not exists email text,
+  add column if not exists phone text,
+  add column if not exists logo_path text,
+  add column if not exists default_tax_rate numeric not null default 25.5,
+  add column if not exists default_quote_validity_days integer not null default 14,
+  add column if not exists onboarding_completed_at timestamptz,
+  add column if not exists updated_at timestamptz not null default now();
+
+create table if not exists public.customer_contacts (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  customer_id uuid not null references public.customers(id) on delete cascade,
+  name text not null,
+  email text not null,
+  phone text,
+  title text,
+  is_primary boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create unique index if not exists customer_contacts_customer_email_uidx
+  on public.customer_contacts(customer_id, lower(email));
+
+alter table public.quotes
+  add column if not exists recipient_contact_id uuid
+  references public.customer_contacts(id) on delete set null;
+
+create table if not exists public.app_error_events (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid references public.organizations(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  route text,
+  action text,
+  message text not null,
+  error_digest text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
