@@ -1,15 +1,17 @@
+import type { Locale } from "@/lib/locale";
 import Link from "next/link";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <div className="v2-section-label">{children}</div>;
 }
 
-export function ProofStripV2() {
+export function ProofStripV2({ locale }: { locale: Locale }) {
+  const fi = locale === "fi";
   const items = [
-    ["Input", "PDF / XLSX / CSV"],
-    ["Resolution", "Customer-specific product memory"],
-    ["Control", "Source + confidence visible"],
-    ["Approval", "Human review before quote"],
+    [fi ? "Syöte" : "Input", "PDF / XLSX / CSV"],
+    [fi ? "Ratkaisu" : "Resolution", fi ? "Asiakaskohtainen tuotemuisti" : "Customer-specific product memory"],
+    [fi ? "Hallinta" : "Control", fi ? "Lähde + varmuus näkyvissä" : "Source + confidence visible"],
+    [fi ? "Hyväksyntä" : "Approval", fi ? "Ihmisen tarkistus ennen tarjousta" : "Human review before quote"],
   ];
 
   return (
@@ -24,12 +26,13 @@ export function ProofStripV2() {
   );
 }
 
-export function ProductResolutionV2() {
+export function ProductResolutionV2({ locale }: { locale: Locale }) {
+  const fi = locale === "fi";
   return (
     <section className="marketing-shell v2-section" id="resolution">
       <div className="v2-section-copy">
-        <SectionLabel>Product resolution</SectionLabel>
-        <h2>Customer language in. Your catalogue out.</h2>
+        <SectionLabel>{fi ? "Tuotteiden ratkaisu" : "Product resolution"}</SectionLabel>
+        <h2>{fi ? "Asiakkaan kieli sisään. Oma katalogisi ulos." : "Customer language in. Your catalogue out."}</h2>
         <p>
           Customer-specific SKUs, old product names and manufacturer codes are
           resolved into the products your team actually sells.
@@ -73,12 +76,13 @@ export function ProductResolutionV2() {
   );
 }
 
-export function CustomerMemoryV2() {
+export function CustomerMemoryV2({ locale }: { locale: Locale }) {
+  const fi = locale === "fi";
   return (
     <section className="marketing-shell v2-section memory-v2" id="memory">
       <div className="v2-section-copy">
-        <SectionLabel>Customer memory</SectionLabel>
-        <h2>Every correction becomes reusable knowledge.</h2>
+        <SectionLabel>{fi ? "Asiakaskohtainen muisti" : "Customer memory"}</SectionLabel>
+        <h2>{fi ? "Jokainen korjaus muuttuu uudelleenkäytettäväksi tiedoksi." : "Every correction becomes reusable knowledge."}</h2>
         <p>
           When your team confirms a match, Nodra remembers it for that customer
           and applies the mapping automatically on the next RFQ.
@@ -125,7 +129,8 @@ export function CustomerMemoryV2() {
   );
 }
 
-export function HowItWorksV2() {
+export function HowItWorksV2({ locale }: { locale: Locale }) {
+  const fi = locale === "fi";
   const steps = [
     {
       n: "01",
@@ -150,8 +155,8 @@ export function HowItWorksV2() {
   return (
     <section className="marketing-shell v2-section how-v2" id="how-it-works">
       <div className="v2-section-copy">
-        <SectionLabel>How it works</SectionLabel>
-        <h2>From incoming RFQ to quote-ready lines.</h2>
+        <SectionLabel>{fi ? "Näin se toimii" : "How it works"}</SectionLabel>
+        <h2>{fi ? "Saapuvasta tarjouspyynnöstä tarjousvalmiiksi riveiksi." : "From incoming RFQ to quote-ready lines."}</h2>
         <p>
           Nodra turns unstructured customer requests into resolved, reviewable
           product lines without forcing your team through repeated manual searches.
@@ -174,7 +179,8 @@ export function HowItWorksV2() {
   );
 }
 
-export function ConfidenceSystemV2() {
+export function ConfidenceSystemV2({ locale }: { locale: Locale }) {
+  const fi = locale === "fi";
   const rows = [
     ["Customer memory", "100%", "Auto"],
     ["Exact SKU", "99%", "Auto"],
@@ -186,8 +192,8 @@ export function ConfidenceSystemV2() {
   return (
     <section className="marketing-shell v2-section confidence-v2" id="confidence">
       <div className="v2-section-copy">
-        <SectionLabel>Confidence system</SectionLabel>
-        <h2>Automation where it’s safe. Humans where it matters.</h2>
+        <SectionLabel>{fi ? "Varmuusjärjestelmä" : "Confidence system"}</SectionLabel>
+        <h2>{fi ? "Automaatio siellä missä se on turvallista. Ihminen siellä missä sillä on merkitystä." : "Automation where it’s safe. Humans where it matters."}</h2>
         <p>
           High-confidence, deterministic matches move forward automatically.
           Anything uncertain is routed to review with the match method and score visible.
@@ -231,12 +237,13 @@ export function ConfidenceSystemV2() {
   );
 }
 
-export function AiExtractionV2() {
+export function AiExtractionV2({ locale }: { locale: Locale }) {
+  const fi = locale === "fi";
   return (
     <section className="marketing-shell v2-section ai-v2" id="ai-extraction">
       <div className="v2-section-copy">
-        <SectionLabel>AI extraction</SectionLabel>
-        <h2>AI structures. Nodra shows the evidence. You approve.</h2>
+        <SectionLabel>{fi ? "AI-poiminta" : "AI extraction"}</SectionLabel>
+        <h2>{fi ? "AI jäsentää. Nodra näyttää perustelut. Sinä hyväksyt." : "AI structures. Nodra shows the evidence. You approve."}</h2>
         <p>
           Every line keeps its source, extraction result, match method and confidence
           visible so your team can review decisions instead of trusting a black box.
@@ -299,7 +306,8 @@ export function AiExtractionV2() {
   );
 }
 
-export function BeforeAfterV2() {
+export function BeforeAfterV2({ locale }: { locale: Locale }) {
+  const fi = locale === "fi";
   const before = [
     "Open the PDF",
     "Search ERP",
@@ -321,8 +329,8 @@ export function BeforeAfterV2() {
   return (
     <section className="marketing-shell v2-section before-after-v2" id="before-after">
       <div className="v2-section-copy">
-        <SectionLabel>Before / after</SectionLabel>
-        <h2>Less searching. More quoting.</h2>
+        <SectionLabel>{fi ? "Ennen / jälkeen" : "Before / after"}</SectionLabel>
+        <h2>{fi ? "Vähemmän etsimistä. Enemmän tarjouksia." : "Less searching. More quoting."}</h2>
         <p>
           Nodra replaces repeated product lookup work with a controlled workflow
           that preserves review where it actually matters.
@@ -364,14 +372,15 @@ export function BeforeAfterV2() {
   );
 }
 
-export function FinalCtaV2() {
+export function FinalCtaV2({ locale }: { locale: Locale }) {
+  const fi = locale === "fi";
   return (
     <section className="marketing-shell final-cta-v2" id="get-started">
       <div className="final-cta-v2-card">
         <div className="final-cta-v2-shader" aria-hidden="true" />
         <div className="final-cta-v2-content">
-          <SectionLabel>Start with one RFQ</SectionLabel>
-          <h2>Your next RFQ could already be a quote.</h2>
+          <SectionLabel>{fi ? "Aloita yhdellä tarjouspyynnöllä" : "Start with one RFQ"}</SectionLabel>
+          <h2>{fi ? "Seuraava tarjouspyyntösi voisi olla jo lähes valmis tarjous." : "Your next RFQ could already be a quote."}</h2>
           <p>
             Upload a PDF, XLSX or CSV and see what Nodra can extract, resolve and
             prepare for review.
@@ -379,19 +388,19 @@ export function FinalCtaV2() {
 
           <div className="final-cta-v2-actions">
             <Link href="/app/upload" className="final-cta-v2-primary">
-              Upload an RFQ <span aria-hidden="true">→</span>
+              {fi ? "Lataa tarjouspyyntö" : "Upload an RFQ"} <span aria-hidden="true">→</span>
             </Link>
             <a href="#demo" className="final-cta-v2-secondary">
-              Request a demo
+              {fi ? "Pyydä demo" : "Request a demo"}
             </a>
           </div>
 
           <div className="final-cta-v2-meta">
             <span>PDF / XLSX / CSV</span>
             <i />
-            <span>Human approval</span>
+            <span>{fi ? "Ihmisen hyväksyntä" : "Human approval"}</span>
             <i />
-            <span>No ERP integration required to start</span>
+            <span>{fi ? "ERP-integraatiota ei tarvita aloitukseen" : "No ERP integration required to start"}</span>
           </div>
         </div>
       </div>
