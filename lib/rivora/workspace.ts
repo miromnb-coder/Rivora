@@ -1,6 +1,13 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+type WorkspaceOrganization = {
+  name?: string;
+  default_tax_rate?: number | string | null;
+  default_quote_validity_days?: number | null;
+  onboarding_completed_at?: string | null;
+};
+
 export async function getAuthContext() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -12,7 +19,7 @@ export async function getAuthContext() {
 
   const { data: membership } = await supabase
     .from("organization_members")
-    .select("organization_id, role, organizations(name)")
+    .select("organization_id, role, organizations(name,default_tax_rate,default_quote_validity_days,onboarding_completed_at)")
     .eq("user_id", claims.sub)
     .limit(1)
     .maybeSingle();
@@ -20,6 +27,7 @@ export async function getAuthContext() {
   const organization = Array.isArray(membership?.organizations)
     ? membership?.organizations[0]
     : membership?.organizations;
+  const org = organization as WorkspaceOrganization | null;
 
   return {
     supabase,
@@ -28,7 +36,10 @@ export async function getAuthContext() {
       ? {
           id: membership.organization_id as string,
           role: membership.role as string,
-          name: (organization as { name?: string } | null)?.name ?? "Rivora workspace",
+          name: org?.name ?? "Nodra workspace",
+          defaultTaxRate: Number(org?.default_tax_rate ?? 25.5),
+          defaultQuoteValidityDays: Number(org?.default_quote_validity_days ?? 14),
+          onboardingCompletedAt: org?.onboarding_completed_at ?? null,
         }
       : null,
   };
