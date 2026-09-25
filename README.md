@@ -1,6 +1,6 @@
-# Rivora
+# Nodra
 
-Rivora turns messy industrial RFQs into product-matched, human-reviewable quote drafts.
+Nodra turns messy industrial RFQs into product-matched, human-reviewable quote drafts.
 
 ## v0.1 scope
 
@@ -32,7 +32,7 @@ The app currently runs on demonstration data so the full review workflow can be 
 
 ## Supabase
 
-`supabase/schema.sql` contains the v0.1 domain model. Do **not** apply it to the existing OrderDesk Nordic database. Provision a dedicated Rivora project first, then install organization-scoped RLS policies before exposing tables through the Data API.
+`supabase/schema.sql` contains the v0.1 domain model. Do **not** apply it to the existing OrderDesk Nordic database. Provision a dedicated Nodra project first, then install organization-scoped RLS policies before exposing tables through the Data API.
 
 Environment variables:
 
@@ -45,4 +45,4 @@ Core domain:
 
 `organizations → customers → RFQs → RFQ lines → product candidates → human feedback → customer product mappings → quotes`
 
-The strategic learning loop is `customer_product_mappings`: once a user verifies a customer's alias, Rivora can reuse that knowledge on future RFQs.
+The strategic learning loop is `customer_product_mappings`: once a user verifies a customer's alias, Nodra can reuse that knowledge on future RFQs.
