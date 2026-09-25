@@ -645,6 +645,30 @@ create trigger quote_lines_edit_guard
 before insert or update or delete on public.quote_lines
 for each row execute function private.enforce_quote_line_editable();
 
+create or replace function private.enforce_quote_line_pricing_state()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  if tg_op = 'INSERT' and new.catalogue_unit_price is null then
+    new.pricing_required := true;
+  elsif tg_op = 'UPDATE'
+    and old.pricing_required
+    and new.unit_price is distinct from old.unit_price
+  then
+    new.pricing_required := false;
+  end if;
+
+  return new;
+end;
+$;
+
+drop trigger if exists quote_lines_pricing_guard on public.quote_lines;
+create trigger quote_lines_pricing_guard
+before insert or update on public.quote_lines
+for each row execute function private.enforce_quote_line_pricing_state();
+
 -- Tenant relation guard: even privileged or future application code cannot join objects across workspaces.
 create or replace function private.enforce_workspace_relations()
 returns trigger
