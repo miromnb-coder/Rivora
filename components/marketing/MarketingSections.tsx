@@ -15,7 +15,7 @@ export function HeroSection() {
       <div className="hero-copy">
         <div className="hero-eyebrow"><span />AI quote desk for industrial sales teams</div>
         <h1>Turn messy RFQs into<br className="hidden md:block" /> ready-to-review quotes.</h1>
-        <p>Rivora reads customer PDFs and spreadsheets, resolves product codes, learns customer-specific mappings and prepares the quote for human approval.</p>
+        <p>Nodra reads customer PDFs and spreadsheets, resolves product codes, learns customer-specific mappings and prepares the quote for human approval.</p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link href="/app/upload" className="marketing-button primary large">Process an RFQ <span>→</span></Link>
           <a href="#how-it-works" className="marketing-button secondary large">See how it works</a>
@@ -46,11 +46,11 @@ export function HeroSection() {
         <div className="workflow-divider" aria-hidden="true">→</div>
         <div className="workflow-panel">
           <div className="workflow-head">
-            <div><div className="workflow-title">Rivora output</div><div className="workflow-sub">Matched products and quote-ready lines</div></div>
+            <div><div className="workflow-title">Nodra output</div><div className="workflow-sub">Matched products and quote-ready lines</div></div>
             <MatchBadge>Ready for review</MatchBadge>
           </div>
           <div className="output-table">
-            <div className="output-row output-head"><span>Customer input</span><span>Rivora match</span><span>Confidence</span><span>Source</span></div>
+            <div className="output-row output-head"><span>Customer input</span><span>Nodra match</span><span>Confidence</span><span>Source</span></div>
             <div className="output-row"><span><b>PUMP-37A</b><small>Circulation pump · 10 pcs</small></span><span><b>GRU-98561418</b><small>ALPHA2 25-60</small></span><MatchBadge>99% match</MatchBadge><MatchBadge tone="gray">Customer memory</MatchBadge></div>
             <div className="output-row"><span><b>BV-220</b><small>Ball valve · 25 pcs</small></span><span><b>VLV-441002</b><small>KSB Ball Valve DN50</small></span><MatchBadge>98% match</MatchBadge><MatchBadge tone="gray">Exact SKU</MatchBadge></div>
             <div className="output-row"><span><b>PS-1000</b><small>Pressure sensor · 5 pcs</small></span><span><b>SEN-773440</b><small>WIKA A-10</small></span><MatchBadge>96% match</MatchBadge><MatchBadge tone="gray">Customer memory</MatchBadge></div>
@@ -86,7 +86,7 @@ export function HowItWorks() {
         <div className="dark-heading">
           <SectionLabel>How it works</SectionLabel>
           <h2>From inbox to quote,<br/>without the product-search grind.</h2>
-          <p>Rivora automates RFQ intake, product resolution and review, turning messy customer requests into quote-ready lines in minutes.</p>
+          <p>Nodra automates RFQ intake, product resolution and review, turning messy customer requests into quote-ready lines in minutes.</p>
         </div>
         <div className="dark-card-grid">
           {steps.map((step) => (
@@ -135,12 +135,12 @@ export function CustomerMemory() {
     <section id="memory" className="marketing-shell light-section split-section">
       <div className="section-copy">
         <SectionLabel>Customer Memory</SectionLabel>
-        <h2>Rivora gets better with every correction.</h2>
+        <h2>Nodra gets better with every correction.</h2>
         <p>Each confirmed match becomes reusable knowledge for future RFQs.</p>
         <div className="feature-list">
           <div><i>01</i><span><b>Learns from your decisions</b><small>Every confirmed match is saved to your customer's product memory.</small></span></div>
           <div><i>02</i><span><b>Applies knowledge automatically</b><small>Future RFQs from the same customer are matched instantly.</small></span></div>
-          <div><i>03</i><span><b>Gets more accurate over time</b><small>Your corrections make Rivora smarter for your business.</small></span></div>
+          <div><i>03</i><span><b>Gets more accurate over time</b><small>Your corrections make Nodra smarter for your business.</small></span></div>
         </div>
       </div>
       <div className="memory-ui">
@@ -151,7 +151,7 @@ export function CustomerMemory() {
           {mappings.map((m,i) => <div className={`memory-row ${i===0 ? "highlight":""}`} key={m[0]}><span><b>{m[0]}</b></span><span><b>→ &nbsp; {m[1]}</b></span><span>{m[2]}</span><MatchBadge>Learned mapping</MatchBadge></div>)}
         </div>
         <div className="next-rfq-card">
-          <div><b>Next RFQ → 100% customer memory match</b><small>Rivora automatically applies your learned mappings.</small></div>
+          <div><b>Next RFQ → 100% customer memory match</b><small>Nodra automatically applies your learned mappings.</small></div>
           <div className="next-rfq-flow"><b>PUMP-37A</b><span>→</span><b>GRU-98561418</b><MatchBadge>100% match</MatchBadge></div>
         </div>
       </div>
@@ -172,7 +172,7 @@ export function ConfidenceSystem() {
       <div className="section-copy">
         <SectionLabel>Confidence System</SectionLabel>
         <h2>Automation where it’s safe. Humans where it matters.</h2>
-        <p>Rivora separates deterministic matches from uncertain ones and routes only risky lines to review.</p>
+        <p>Nodra separates deterministic matches from uncertain ones and routes only risky lines to review.</p>
         <div className="feature-list compact">
           <div><i>01</i><span><b>Deterministic matching</b><small>Exact and high-confidence matches auto-process.</small></span></div>
           <div><i>02</i><span><b>Human review for uncertainty</b><small>Only uncertain lines are routed to your team.</small></span></div>
@@ -180,7 +180,7 @@ export function ConfidenceSystem() {
         </div>
       </div>
       <div className="confidence-ui">
-        <div className="confidence-head"><div><div className="text-xl font-black">Confidence & routing</div><div className="text-sm text-[#758078]">How Rivora handles each line item</div></div><MatchBadge>Policy active</MatchBadge></div>
+        <div className="confidence-head"><div><div className="text-xl font-black">Confidence & routing</div><div className="text-sm text-[#758078]">How Nodra handles each line item</div></div><MatchBadge>Policy active</MatchBadge></div>
         <div className="confidence-chips"><span>✓ Deterministic</span><span>⚠ Review required</span><span>⌁ 90% threshold</span><span>▤ Audit-friendly</span></div>
         <div className="confidence-table">
           <div className="confidence-row head"><span>Match method</span><span>Confidence</span><span>Route</span><span>Status</span></div>
@@ -197,11 +197,11 @@ export function AiExtraction() {
     <section id="ai-extraction" className="marketing-shell light-section split-section">
       <div className="section-copy">
         <SectionLabel>AI Extraction</SectionLabel>
-        <h2>AI extracts. Rivora verifies. You approve.</h2>
+        <h2>AI extracts. Nodra verifies. You approve.</h2>
         <p>PDF data extraction and product matching are intentionally separated for safety and control.</p>
         <div className="feature-list compact">
           <div><i>01</i><span><b>Full traceability</b><small>See exactly what was extracted, where it came from, and how it was matched.</small></span></div>
-          <div><i>02</i><span><b>Separate extraction and matching</b><small>AI reads the document first. Rivora matches products in a second step.</small></span></div>
+          <div><i>02</i><span><b>Separate extraction and matching</b><small>AI reads the document first. Nodra matches products in a second step.</small></span></div>
           <div><i>03</i><span><b>Human approval</b><small>Only reviewed lines move forward to quotes.</small></span></div>
         </div>
       </div>
@@ -220,7 +220,7 @@ export function FinalCta() {
   return (
     <section id="pricing" className="marketing-shell cta-section">
       <div className="cta-card">
-        <div className="cta-copy"><SectionLabel>Rivora</SectionLabel><h2>Your next RFQ could already be <em>a quote.</em></h2><p>Upload an RFQ and let Rivora extract, resolve and prepare it for review.</p><div className="mt-7 flex flex-wrap gap-3"><Link href="/app/upload" className="cta-primary">Upload an RFQ <span>→</span></Link><a href="mailto:hello@rivora.fi" className="cta-secondary">Book a demo →</a></div><small>PDF, XLSX or CSV. No ERP integration required to start.</small></div>
+        <div className="cta-copy"><SectionLabel>Nodra</SectionLabel><h2>Your next RFQ could already be <em>a quote.</em></h2><p>Upload an RFQ and let Nodra extract, resolve and prepare it for review.</p><div className="mt-7 flex flex-wrap gap-3"><Link href="/app/upload" className="cta-primary">Upload an RFQ <span>→</span></Link><a href="mailto:hello@nodra.fi" className="cta-secondary">Book a demo →</a></div><small>PDF, XLSX or CSV. No ERP integration required to start.</small></div>
         <div className="cta-flow">
           <div className="file-stack"><span>PDF</span><span>XLSX</span><span>CSV</span></div>
           <div className="cta-rivora">R</div>
