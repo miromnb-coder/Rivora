@@ -7395,3 +7395,82 @@ button, input, select { font: inherit; }
     flex-direction: column;
   }
 }
+
+
+/* Quote PDF v1 + Send Quote */
+.quote-builder-v1-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.quote-builder-v1-pdf-link {
+  color: #2f3731 !important;
+  border-bottom: 1px solid #cfd3ce;
+  padding-bottom: 2px;
+}
+
+.quote-delivery-v1-copy {
+  margin-top: 10px;
+  color: #8a908b;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.quote-delivery-v1-download {
+  margin-top: 14px;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid #daddd8;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #343a35;
+  font-size: 10px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.quote-delivery-v1-readonly {
+  margin-top: 16px;
+}
+
+.quote-delivery-v1-gate {
+  border-radius: 14px;
+  background: #f4ece2;
+  padding: 12px 13px;
+  color: #75583a;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.quote-delivery-v1-sent {
+  border-radius: 14px;
+  background: #e9eee9;
+  padding: 13px;
+  color: #425247;
+}
+
+.quote-delivery-v1-sent strong,
+.quote-delivery-v1-sent span {
+  display: block;
+}
+
+.quote-delivery-v1-sent strong {
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.quote-delivery-v1-sent span {
+  margin-top: 4px;
+  font-size: 9px;
+}
+
+@media (max-width: 620px) {
+  .quote-builder-v1-nav-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
