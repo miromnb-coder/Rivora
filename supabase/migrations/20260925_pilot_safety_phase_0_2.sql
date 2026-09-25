@@ -649,7 +649,7 @@ create or replace function private.enforce_quote_line_pricing_state()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 begin
   if tg_op = 'INSERT' and new.catalogue_unit_price is null then
     new.pricing_required := true;
@@ -662,7 +662,7 @@ begin
 
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists quote_lines_pricing_guard on public.quote_lines;
 create trigger quote_lines_pricing_guard
