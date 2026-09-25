@@ -16,13 +16,20 @@ export default async function UploadPage({
   const openAiReady = Boolean(process.env.OPENAI_API_KEY?.trim());
   const { supabase, workspace } = await requireWorkspace();
 
-  const { count: productCount } = await supabase
-    .from("products")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", workspace.id)
-    .eq("active", true);
+  const [{ count: productCount }, { count: rfqCount }] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", workspace.id)
+      .eq("active", true),
+    supabase
+      .from("rfqs")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", workspace.id),
+  ]);
 
   const productsReady = (productCount ?? 0) > 0;
+  const firstRfq = (rfqCount ?? 0) === 0;
 
   return (
     <div className="app-page-v2 upload-v2">
@@ -47,6 +54,47 @@ export default async function UploadPage({
         </div>
       ) : null}
 
+      {firstRfq ? (
+        <section className="surface mb-6 p-6" id="first-rfq">
+          <div className="upload-v2-section-label">First RFQ guided flow</div>
+          <h2 className="mt-2 text-2xl font-bold">Start with three controlled steps.</h2>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-[var(--line)] p-4">
+              <span className="text-xs font-bold text-[var(--muted)]">01</span>
+              <strong className="mt-2 block">Load catalogue</strong>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Use your own file or the sample catalogue below.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[var(--line)] p-4">
+              <span className="text-xs font-bold text-[var(--muted)]">02</span>
+              <strong className="mt-2 block">Process one RFQ</strong>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                PDF uses AI extraction; CSV/XLSX skips AI and goes straight to matching.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[var(--line)] p-4">
+              <span className="text-xs font-bold text-[var(--muted)]">03</span>
+              <strong className="mt-2 block">Review before quoting</strong>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Resolve uncertain lines, then create and approve the quote.
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <a href="/app/templates/catalogue" className="btn-secondary">
+              Blank CSV template ↓
+            </a>
+            <a href="/app/templates/sample-catalogue" className="btn-secondary">
+              Sample catalogue ↓
+            </a>
+            <a href="/app/setup" className="btn-secondary">
+              Back to pilot setup
+            </a>
+          </div>
+        </section>
+      ) : null}
+
       <section className="upload-v2-setup">
         <div>
           <div className="upload-v2-section-label">Catalogue</div>
@@ -58,6 +106,16 @@ export default async function UploadPage({
               ? `${productCount?.toLocaleString("en-US")} active products available for matching.`
               : "Import a CSV or XLSX product catalogue before processing RFQs."}
           </div>
+          {!productsReady ? (
+            <div className="mt-3 flex flex-wrap gap-3 text-sm">
+              <a href="/app/templates/catalogue" className="font-semibold underline underline-offset-4">
+                Download blank template
+              </a>
+              <a href="/app/templates/sample-catalogue" className="font-semibold underline underline-offset-4">
+                Download sample catalogue
+              </a>
+            </div>
+          ) : null}
         </div>
 
         <div className="upload-v2-setup-status">
