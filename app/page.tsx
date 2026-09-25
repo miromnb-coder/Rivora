@@ -2,8 +2,11 @@ import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { MinimalShaderHero } from "@/components/marketing/MinimalShaderHero";
 import {
+  ProductResolutionV2,
+  CustomerMemoryV2,
+} from "@/components/marketing/HomepageV2Sections";
+import {
   HowItWorks,
-  CustomerMemory,
   ConfidenceSystem,
   AiExtraction,
   FinalCta,
@@ -17,7 +20,8 @@ export default function Home() {
       </div>
       <MinimalShaderHero />
       <HowItWorks />
-      <CustomerMemory />
+      <ProductResolutionV2 />
+      <CustomerMemoryV2 />
       <ConfidenceSystem />
       <AiExtraction />
       <FinalCta />
