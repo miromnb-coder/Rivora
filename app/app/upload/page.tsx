@@ -132,7 +132,7 @@ export default async function UploadPage({
           </div>
 
           <div className="upload-v2-picker">
-            <FilePicker name="pdfRfq" accept="*/*" title={copy.choosePdf} hint={copy.pdfHint} required />
+            <FilePicker name="pdfRfq" accept="*/*" title={copy.choosePdf} hint={copy.pdfHint} required locale={locale} />
           </div>
 
           <div className="upload-v2-submit-row">
