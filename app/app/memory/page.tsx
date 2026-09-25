@@ -34,7 +34,7 @@ export default async function MemoryPage() {
           <div className="app-kicker-v2">Customer memory</div>
           <h1>Every confirmed correction becomes reusable customer knowledge.</h1>
           <p>
-            Rivora stores customer-specific product language as deterministic mappings.
+            Nodra stores customer-specific product language as deterministic mappings.
             When the same code returns, the previous human decision can be reused instead of searched again.
           </p>
         </div>
