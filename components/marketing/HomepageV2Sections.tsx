@@ -13,7 +13,7 @@ export function ProofStripV2() {
   ];
 
   return (
-    <section className="marketing-shell proof-strip-v2" aria-label="Rivora workflow proof points">
+    <section className="marketing-shell proof-strip-v2" aria-label="Nodra workflow proof points">
       {items.map(([label, value]) => (
         <div key={label} className="proof-strip-v2-item">
           <span>{label}</span>
@@ -80,7 +80,7 @@ export function CustomerMemoryV2() {
         <SectionLabel>Customer memory</SectionLabel>
         <h2>Every correction becomes reusable knowledge.</h2>
         <p>
-          When your team confirms a match, Rivora remembers it for that customer
+          When your team confirms a match, Nodra remembers it for that customer
           and applies the mapping automatically on the next RFQ.
         </p>
       </div>
@@ -153,7 +153,7 @@ export function HowItWorksV2() {
         <SectionLabel>How it works</SectionLabel>
         <h2>From incoming RFQ to quote-ready lines.</h2>
         <p>
-          Rivora turns unstructured customer requests into resolved, reviewable
+          Nodra turns unstructured customer requests into resolved, reviewable
           product lines without forcing your team through repeated manual searches.
         </p>
       </div>
@@ -236,7 +236,7 @@ export function AiExtractionV2() {
     <section className="marketing-shell v2-section ai-v2" id="ai-extraction">
       <div className="v2-section-copy">
         <SectionLabel>AI extraction</SectionLabel>
-        <h2>AI structures. Rivora shows the evidence. You approve.</h2>
+        <h2>AI structures. Nodra shows the evidence. You approve.</h2>
         <p>
           Every line keeps its source, extraction result, match method and confidence
           visible so your team can review decisions instead of trusting a black box.
@@ -324,7 +324,7 @@ export function BeforeAfterV2() {
         <SectionLabel>Before / after</SectionLabel>
         <h2>Less searching. More quoting.</h2>
         <p>
-          Rivora replaces repeated product lookup work with a controlled workflow
+          Nodra replaces repeated product lookup work with a controlled workflow
           that preserves review where it actually matters.
         </p>
       </div>
@@ -332,7 +332,7 @@ export function BeforeAfterV2() {
       <div className="before-after-grid">
         <div className="before-after-column before">
           <div className="before-after-title">
-            <span>Without Rivora</span>
+            <span>Without Nodra</span>
             <small>Manual product-search loop</small>
           </div>
           <ol>
@@ -347,7 +347,7 @@ export function BeforeAfterV2() {
 
         <div className="before-after-column after">
           <div className="before-after-title">
-            <span>With Rivora</span>
+            <span>With Nodra</span>
             <small>Controlled RFQ workflow</small>
           </div>
           <ol>
@@ -373,7 +373,7 @@ export function FinalCtaV2() {
           <SectionLabel>Start with one RFQ</SectionLabel>
           <h2>Your next RFQ could already be a quote.</h2>
           <p>
-            Upload a PDF, XLSX or CSV and see what Rivora can extract, resolve and
+            Upload a PDF, XLSX or CSV and see what Nodra can extract, resolve and
             prepare for review.
           </p>
 
