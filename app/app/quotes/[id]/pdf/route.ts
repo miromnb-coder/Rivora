@@ -19,7 +19,7 @@ export async function GET(
 
   const { data: membership } = await supabase
     .from("organization_members")
-    .select("organization_id, organizations(name)")
+    .select("organization_id")
     .eq("user_id", claims.sub)
     .limit(1)
     .maybeSingle();
@@ -28,21 +28,13 @@ export async function GET(
     return new Response("Workspace required", { status: 403 });
   }
 
-  const organization = Array.isArray(membership.organizations)
-    ? membership.organizations[0]
-    : membership.organizations;
-
-  const document = await loadQuoteDocumentData(
-    supabase,
-    id,
-    (organization as { name?: string } | null)?.name || "Nodra"
-  );
+  const document = await loadQuoteDocumentData(supabase, id);
 
   if (!document) {
     return new Response("Quote not found", { status: 404 });
   }
 
-  const pdf = renderQuotePdf(document);
+  const pdf = await renderQuotePdf(document);
 
   return new Response(new Uint8Array(pdf), {
     status: 200,
