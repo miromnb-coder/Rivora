@@ -1,4 +1,5 @@
 import { FilePicker } from "@/components/FilePicker";
+import { requireWorkspace } from "@/lib/rivora/workspace";
 import { importCatalogue, processPdfRfq, processRfq } from "./actions";
 
 export default async function UploadPage({
@@ -13,103 +14,185 @@ export default async function UploadPage({
 }) {
   const params = await searchParams;
   const openAiReady = Boolean(process.env.OPENAI_API_KEY?.trim());
+  const { supabase, workspace } = await requireWorkspace();
+
+  const { count: productCount } = await supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", workspace.id)
+    .eq("active", true);
+
+  const productsReady = (productCount ?? 0) > 0;
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
-      <div className="kicker">Rivora Engine v0.3</div>
-      <h1 className="mt-2 text-3xl font-extrabold tracking-[-.035em]">PDF → structured RFQ → matching engine.</h1>
-      <p className="mt-2 mb-7 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-        Import your catalogue once, then process CSV/XLSX normally or let OpenAI extract a messy customer PDF into structured RFQ lines before Rivora matches products.
-      </p>
+    <div className="app-page-v2 upload-v2">
+      <header className="upload-v2-hero">
+        <div className="app-kicker-v2">Process RFQ</div>
+        <h1>Turn a customer request into resolved product lines.</h1>
+        <p>
+          Upload a PDF for AI-assisted extraction or use a structured CSV/XLSX.
+          Rivora keeps extraction, matching and human review separate.
+        </p>
+      </header>
 
       {params.catalogueImported ? (
-        <div className="mb-5 rounded-xl bg-[var(--green-soft)] p-4 text-sm text-[var(--green-dark)]">
+        <div className="upload-v2-alert success">
           Imported or updated {params.catalogueImported} products.
         </div>
       ) : null}
 
       {params.catalogueError || params.rfqError || params.pdfError ? (
-        <div className="mb-5 rounded-xl bg-[var(--red-soft)] p-4 text-sm text-[var(--red)]">
+        <div className="upload-v2-alert error">
           {params.catalogueError ?? params.rfqError ?? params.pdfError}
         </div>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <form action={importCatalogue} className="surface p-6">
-          <div className="text-lg font-extrabold">1. Import product catalogue</div>
-          <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-            Required: SKU + product name. Optional: manufacturer, MPN, unit, price, stock.
-          </p>
+      <section className="upload-v2-setup">
+        <div>
+          <div className="upload-v2-section-label">Catalogue</div>
+          <div className="upload-v2-setup-title">
+            {productsReady ? "Catalogue ready" : "Catalogue not imported yet"}
+          </div>
+          <div className="upload-v2-setup-copy">
+            {productsReady
+              ? `${productCount?.toLocaleString("en-US")} active products available for matching.`
+              : "Import a CSV or XLSX product catalogue before processing RFQs."}
+          </div>
+        </div>
+
+        <div className="upload-v2-setup-status">
+          <span className={productsReady ? "is-ready" : "is-waiting"}>
+            {productsReady ? "Ready" : "Setup required"}
+          </span>
+        </div>
+
+        <form action={importCatalogue} className="upload-v2-catalogue-form">
           <FilePicker
             name="catalogue"
             accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            title="Choose product catalogue"
-            hint="CSV or XLSX · opens the phone Files picker"
+            title={productsReady ? "Replace product catalogue" : "Choose product catalogue"}
+            hint="CSV or XLSX · SKU + product name required"
             required
           />
-          <button className="btn-primary mt-5 w-full">Import catalogue</button>
-        </form>
-
-        <form action={processPdfRfq} className="surface p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-lg font-extrabold">2. PDF + OpenAI extraction</div>
-            <span className={`status ${openAiReady ? "green" : "red"}`}>
-              {openAiReady ? "OpenAI ready" : "API key missing"}
-            </span>
-          </div>
-          <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-            OpenAI reads the PDF and extracts customer, reference, quantities, SKUs and descriptions. It does not choose catalogue products.
-          </p>
-          <label className="mt-5 block">
-            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Customer override · optional</span>
-            <input name="pdfCustomerName" placeholder="Use only if the PDF is ambiguous" className="mt-2 w-full rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
-          </label>
-          <label className="mt-4 block">
-            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">RFQ reference override · optional</span>
-            <input name="pdfReference" placeholder="RFQ-2026-1048" className="mt-2 w-full rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
-          </label>
-          <FilePicker
-            name="pdfRfq"
-            accept="*/*"
-            title="Choose RFQ PDF"
-            hint="Choose the PDF from Files · Rivora verifies the file contents, not the iPhone file type"
-            required
-          />
-          <button disabled={!openAiReady} className="btn-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-45">
-            Extract PDF and run matching
+          <button className="upload-v2-secondary-btn">
+            {productsReady ? "Replace catalogue" : "Import catalogue"}
           </button>
-          {!openAiReady ? (
-            <p className="mt-3 text-xs leading-5 text-[var(--red)]">
-              Add the server-only OPENAI_API_KEY environment variable in the Vercel project before using PDF extraction.
-            </p>
-          ) : null}
         </form>
-      </div>
+      </section>
 
-      <div className="surface mt-5 p-6">
-        <div className="text-sm font-extrabold">CSV / XLSX fallback</div>
-        <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-          Keep the deterministic v0.2 import path for structured RFQs.
-        </p>
-        <form action={processRfq} className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input name="customerName" required placeholder="Customer name" className="rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
-          <input name="reference" placeholder="RFQ reference" className="rounded-xl border border-[var(--line)] px-3 py-3 outline-none focus:border-[var(--green)]" />
-          <div className="sm:col-span-2">
+      <section className="upload-v2-primary">
+        <div className="upload-v2-primary-head">
+          <div>
+            <div className="upload-v2-section-label">Incoming RFQ</div>
+            <h2>Process a customer PDF.</h2>
+            <p>
+              Rivora extracts customer, reference, quantities, SKUs and descriptions,
+              then runs catalogue matching and sends uncertainty to review.
+            </p>
+          </div>
+
+          <span className={`upload-v2-ai-status ${openAiReady ? "is-ready" : "is-error"}`}>
+            {openAiReady ? "OpenAI ready" : "API key missing"}
+          </span>
+        </div>
+
+        <form action={processPdfRfq} className="upload-v2-form">
+          <div className="upload-v2-fields">
+            <label>
+              <span>Customer override <em>optional</em></span>
+              <input
+                name="pdfCustomerName"
+                placeholder="Use only if the PDF is ambiguous"
+              />
+            </label>
+
+            <label>
+              <span>RFQ reference <em>optional</em></span>
+              <input name="pdfReference" placeholder="RFQ-2026-1048" />
+            </label>
+          </div>
+
+          <div className="upload-v2-picker">
             <FilePicker
-              name="rfq"
-              accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              title="Choose RFQ file"
-              hint="CSV or XLSX · opens the phone Files picker"
+              name="pdfRfq"
+              accept="*/*"
+              title="Choose RFQ PDF"
+              hint="Choose the PDF from Files · Rivora verifies the file contents"
               required
             />
           </div>
-          <button className="btn-secondary sm:col-span-2">Process CSV / XLSX RFQ</button>
-        </form>
-      </div>
 
-      <div className="mt-5 rounded-2xl border border-[var(--line)] bg-white p-5 text-sm leading-6 text-[var(--muted)]">
-        Safety gates: <b className="text-[var(--ink)]">PDF extraction confidence below 90% always requires review</b>. Product matching remains customer memory → exact SKU → exact MPN → fuzzy candidates. AI extraction and catalogue matching are deliberately separated.
-      </div>
+          <div className="upload-v2-submit-row">
+            <button
+              disabled={!openAiReady || !productsReady}
+              className="upload-v2-primary-btn disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Process RFQ <span aria-hidden="true">→</span>
+            </button>
+
+            {!productsReady ? (
+              <p>Import your product catalogue first.</p>
+            ) : !openAiReady ? (
+              <p>Add the server-only OPENAI_API_KEY in Vercel before PDF extraction.</p>
+            ) : (
+              <p>Extraction → matching → review</p>
+            )}
+          </div>
+        </form>
+      </section>
+
+      <section className="upload-v2-structured">
+        <div className="upload-v2-structured-copy">
+          <div className="upload-v2-section-label">Structured RFQ</div>
+          <h3>Already have CSV or XLSX?</h3>
+          <p>
+            Skip AI extraction and send structured lines directly into Rivora’s deterministic matching engine.
+          </p>
+        </div>
+
+        <form action={processRfq} className="upload-v2-structured-form">
+          <div className="upload-v2-fields">
+            <label>
+              <span>Customer</span>
+              <input name="customerName" required placeholder="Customer name" />
+            </label>
+            <label>
+              <span>RFQ reference <em>optional</em></span>
+              <input name="reference" placeholder="RFQ reference" />
+            </label>
+          </div>
+
+          <FilePicker
+            name="rfq"
+            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            title="Choose RFQ file"
+            hint="CSV or XLSX"
+            required
+          />
+
+          <button
+            disabled={!productsReady}
+            className="upload-v2-secondary-btn disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Process CSV / XLSX
+          </button>
+        </form>
+      </section>
+
+      <section className="upload-v2-trust">
+        <div>
+          <span>Review threshold</span>
+          <b>Below 90% → human review</b>
+        </div>
+        <div>
+          <span>Match order</span>
+          <b>Memory → SKU → MPN → fuzzy</b>
+        </div>
+        <div>
+          <span>AI boundary</span>
+          <b>Extraction does not choose products</b>
+        </div>
+      </section>
     </div>
   );
 }
