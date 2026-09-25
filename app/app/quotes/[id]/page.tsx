@@ -10,9 +10,11 @@ import {
   updateQuoteHeader,
   updateQuoteLine,
 } from "../actions";
+import { formatLocale, getLocale } from "@/lib/locale";
+import { getQuoteDetailCopy } from "@/lib/i18n/extra";
 
-function moneyFormatter(currency: string) {
-  return new Intl.NumberFormat("en-FI", { style: "currency", currency: currency || "EUR" });
+function moneyFormatter(currency: string, locale: string) {
+  return new Intl.NumberFormat(locale, { style: "currency", currency: currency || "EUR" });
 }
 
 export default async function QuoteDetailPage({
@@ -20,8 +22,10 @@ export default async function QuoteDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const { supabase, workspace } = await requireWorkspace();
+  const [{ id }, locale, context] = await Promise.all([params, getLocale(), requireWorkspace()]);
+  const { supabase, workspace } = context;
+  const copy = getQuoteDetailCopy(locale);
+  const displayLocale = formatLocale(locale);
 
   const { data: quote } = await supabase
     .from("quotes")
@@ -57,7 +61,7 @@ export default async function QuoteDetailPage({
   const emailConfigured = Boolean(
     process.env.RESEND_API_KEY?.trim() && (process.env.NODRA_QUOTE_FROM ?? process.env.RIVORA_QUOTE_FROM)?.trim()
   );
-  const money = moneyFormatter(quote.currency || "EUR");
+  const money = moneyFormatter(quote.currency || "EUR", displayLocale);
   const pricingRequiredCount = (lines ?? []).filter((line: any) => Boolean(line.pricing_required)).length;
   const subtotal = (lines ?? []).reduce((sum: number, line: any) => sum + Number(line.line_total ?? 0), 0);
   const taxRate = Number(quote.tax_rate ?? 0);
@@ -71,53 +75,53 @@ export default async function QuoteDetailPage({
     ["bounced", "failed"].includes(String(quote.delivery_status ?? ""));
   const deliveryLabel =
     quote.delivery_status === "delivered"
-      ? "Delivered"
+      ? copy.delivered
       : quote.delivery_status === "bounced"
-        ? "Bounced"
+        ? copy.bounced
         : quote.delivery_status === "failed"
-          ? "Failed"
+          ? copy.failed
           : quote.status === "sent"
-            ? "Sent"
-            : "Not sent";
+            ? copy.sent
+            : copy.notSent;
 
   return (
     <div className="app-page-v2 quote-builder-v1">
       <div className="quote-builder-v1-nav">
-        <Link href="/app/quotes">← Quotes</Link>
+        <Link href="/app/quotes">← {copy.quotes}</Link>
         <div className="quote-builder-v1-nav-actions">
           <a href={`/app/quotes/${quote.id}/pdf`} className="quote-builder-v1-pdf-link">
-            Download PDF ↓
+            {copy.downloadPdf} ↓
           </a>
-          {quote.rfq_id ? <Link href={`/app/rfq/${quote.rfq_id}`}>Source RFQ →</Link> : null}
+          {quote.rfq_id ? <Link href={`/app/rfq/${quote.rfq_id}`}>{copy.sourceRfq} →</Link> : null}
         </div>
       </div>
 
       <header className="quote-builder-v1-head">
         <div>
-          <div className="app-kicker-v2">Quote Builder</div>
-          <h1>{quote.quote_number || "Draft quote"}</h1>
+          <div className="app-kicker-v2">{copy.builder}</div>
+          <h1>{quote.quote_number || copy.draftQuote}</h1>
           <p>
-            {customer?.name || "Unknown customer"} · source {rfq?.reference || "RFQ"} ·{" "}
-            {lines?.length ?? 0} commercial lines
+            {customer?.name || copy.unknownCustomer} · {copy.source} {rfq?.reference || "RFQ"} ·{" "}
+            {lines?.length ?? 0} {copy.commercialLines}
           </p>
         </div>
 
-        <span className={`quote-builder-v1-status ${quote.status}`}>
-          {quote.status}
+        <span className={`quote-builder-v1-status ${copy.stages[quote.status] ?? quote.status}`}>
+          {copy.stages[quote.status] ?? quote.status}
         </span>
       </header>
 
       {pricingRequiredCount > 0 ? (
         <section className="upload-v2-alert error">
-          {pricingRequiredCount} quote {pricingRequiredCount === 1 ? "line needs" : "lines need"} an explicit unit price before this quote can be marked ready.
+          {copy.pricingRequired(pricingRequiredCount)}
         </section>
       ) : null}
 
       <section className="quote-builder-v1-summary">
-        <div><span>Subtotal</span><strong>{money.format(subtotal)}</strong><small>{pricingRequiredCount ? "incomplete until all prices are set" : "after line discounts"}</small></div>
-        <div><span>VAT</span><strong>{taxRate}%</strong><small>{money.format(taxTotal)}</small></div>
-        <div><span>Total</span><strong>{money.format(total)}</strong><small>quote value</small></div>
-        <div><span>Validity</span><strong className="is-text">{quote.valid_until ? new Date(`${quote.valid_until}T12:00:00Z`).toLocaleDateString("fi-FI") : "Not set"}</strong><small>customer-facing</small></div>
+        <div><span>{copy.subtotal}</span><strong>{money.format(subtotal)}</strong><small>{pricingRequiredCount ? copy.incomplete : copy.afterDiscounts}</small></div>
+        <div><span>{copy.vat}</span><strong>{taxRate}%</strong><small>{money.format(taxTotal)}</small></div>
+        <div><span>{copy.total}</span><strong>{money.format(total)}</strong><small>{copy.quoteValue}</small></div>
+        <div><span>{copy.validity}</span><strong className="is-text">{quote.valid_until ? new Date(`${quote.valid_until}T12:00:00Z`).toLocaleDateString(displayLocale)  : copy.notSet}</strong><small>{copy.customerFacing}</small></div>
       </section>
 
       <div className="quote-builder-v1-grid">
@@ -125,32 +129,32 @@ export default async function QuoteDetailPage({
           <section className="quote-builder-v1-lines">
             <div className="quote-builder-v1-section-head">
               <div>
-                <div className="upload-v2-section-label">Pricing</div>
-                <h2>Quote lines</h2>
+                <div className="upload-v2-section-label">{copy.pricing}</div>
+                <h2>{copy.quoteLines}</h2>
               </div>
-              <span>{editable ? "Editable" : "Locked snapshot"}</span>
+              <span>{editable ? copy.editable : copy.locked}</span>
             </div>
 
             <div>
               {(lines ?? []).map((line: any) => {
                 const product = Array.isArray(line.products) ? line.products[0] : line.products;
-                const sku = line.sku_snapshot || product?.sku || "No SKU";
-                const description = line.description_snapshot || product?.name || "Product";
+                const sku = line.sku_snapshot || product?.sku || copy.noSku;
+                const description = line.description_snapshot || product?.name || copy.product;
                 const catalogue = line.catalogue_unit_price == null ? null : Number(line.catalogue_unit_price);
 
                 return (
                   <article key={line.id} className="quote-builder-v1-line">
                     <div className="quote-builder-v1-line-copy">
                       <div className="quote-builder-v1-line-meta">
-                        <span>Line {line.line_number}</span>
+                        <span>{copy.line} {line.line_number}</span>
                         {product?.manufacturer ? <span>{product.manufacturer}</span> : null}
                       </div>
                       <h3>{sku}</h3>
                       <p>{description}</p>
                       {catalogue != null ? (
-                        <small>Catalogue snapshot {money.format(catalogue)} / {line.unit}</small>
+                        <small>{copy.catalogueSnapshot} {money.format(catalogue)} / {line.unit}</small>
                       ) : line.pricing_required ? (
-                        <small className="font-bold">No catalogue price · explicit pricing required</small>
+                        <small className="font-bold">{copy.noCataloguePrice}</small>
                       ) : null}
                     </div>
 
@@ -160,39 +164,39 @@ export default async function QuoteDetailPage({
                         <input type="hidden" name="lineId" value={line.id} />
 
                         <label>
-                          <span>Qty</span>
+                          <span>{copy.qty}</span>
                           <input name="quantity" type="number" min="0.001" step="0.001" defaultValue={Number(line.quantity)} required />
                         </label>
                         <label>
-                          <span>Unit price</span>
+                          <span>{copy.unitPrice}</span>
                           <input
                             name="unitPrice"
                             type="number"
                             min="0"
                             step="0.01"
                             defaultValue={line.pricing_required ? "" : Number(line.unit_price)}
-                            placeholder={line.pricing_required ? "Enter price" : undefined}
+                            placeholder={line.pricing_required ? copy.enterPrice : undefined}
                             required
                           />
                         </label>
                         <label>
-                          <span>Discount %</span>
+                          <span>{copy.discount} %</span>
                           <input name="discountPercent" type="number" min="0" max="100" step="0.01" defaultValue={Number(line.discount_percent ?? 0)} required />
                         </label>
 
                         <div className="quote-builder-v1-line-total">
-                          <span>Line total</span>
+                          <span>{copy.lineTotal}</span>
                           <strong>{money.format(Number(line.line_total ?? 0))}</strong>
                         </div>
 
-                        <button>Save</button>
+                        <button>{copy.save}</button>
                       </form>
                     ) : (
                       <div className="quote-builder-v1-line-locked">
-                        <div><span>Qty</span><strong>{Number(line.quantity)} {line.unit}</strong></div>
-                        <div><span>Unit price</span><strong>{money.format(Number(line.unit_price))}</strong></div>
-                        <div><span>Discount</span><strong>{Number(line.discount_percent ?? 0)}%</strong></div>
-                        <div><span>Line total</span><strong>{money.format(Number(line.line_total ?? 0))}</strong></div>
+                        <div><span>{copy.qty}</span><strong>{Number(line.quantity)} {line.unit}</strong></div>
+                        <div><span>{copy.unitPrice}</span><strong>{money.format(Number(line.unit_price))}</strong></div>
+                        <div><span>{copy.discount}</span><strong>{Number(line.discount_percent ?? 0)}%</strong></div>
+                        <div><span>{copy.lineTotal}</span><strong>{money.format(Number(line.line_total ?? 0))}</strong></div>
                       </div>
                     )}
                   </article>
@@ -204,42 +208,42 @@ export default async function QuoteDetailPage({
 
         <aside className="quote-builder-v1-aside">
           <section className="quote-builder-v1-panel">
-            <div className="upload-v2-section-label">Commercial details</div>
+            <div className="upload-v2-section-label">{copy.commercialDetails}</div>
             {editable ? (
               <form action={updateQuoteHeader} className="quote-builder-v1-header-form">
                 <input type="hidden" name="quoteId" value={quote.id} />
                 <label>
-                  <span>Customer reference</span>
+                  <span>{copy.customerReference}</span>
                   <input name="customerReference" defaultValue={quote.customer_reference || ""} maxLength={300} />
                 </label>
                 <label>
-                  <span>Valid until</span>
+                  <span>{copy.validUntil}</span>
                   <input name="validUntil" type="date" defaultValue={quote.valid_until || ""} />
                 </label>
                 <label>
-                  <span>VAT %</span>
+                  <span>{copy.vat} %</span>
                   <input name="taxRate" type="number" min="0" max="100" step="0.01" defaultValue={taxRate} required />
                 </label>
                 <label>
-                  <span>Notes</span>
+                  <span>{copy.notes}</span>
                   <textarea name="notes" rows={5} maxLength={5000} defaultValue={quote.notes || ""} />
                 </label>
-                <button className="quote-builder-v1-secondary">Save details</button>
+                <button className="quote-builder-v1-secondary">{copy.saveDetails}</button>
               </form>
             ) : (
               <div className="quote-builder-v1-readonly">
-                <div><span>Customer reference</span><strong>{quote.customer_reference || "Not set"}</strong></div>
-                <div><span>Valid until</span><strong>{quote.valid_until || "Not set"}</strong></div>
-                <div><span>VAT</span><strong>{taxRate}%</strong></div>
-                <div><span>Notes</span><p>{quote.notes || "No notes"}</p></div>
+                <div><span>{copy.customerReference}</span><strong>{quote.customer_reference || copy.notSet}</strong></div>
+                <div><span>{copy.validUntil}</span><strong>{quote.valid_until || copy.notSet}</strong></div>
+                <div><span>{copy.vat}</span><strong>{taxRate}%</strong></div>
+                <div><span>{copy.notes}</span><p>{quote.notes || copy.noNotes}</p></div>
               </div>
             )}
           </section>
 
           <section className="quote-builder-v1-panel quote-delivery-v1">
-            <div className="upload-v2-section-label">Customer delivery</div>
+            <div className="upload-v2-section-label">{copy.customerDelivery}</div>
             <p className="quote-delivery-v1-copy">
-              The PDF contains only customer-facing commercial information. Draft and ready quotes are visibly marked as unapproved.
+              {copy.deliveryCopy}
             </p>
 
             {deliveryEditable ? (
@@ -247,76 +251,76 @@ export default async function QuoteDetailPage({
                 <input type="hidden" name="quoteId" value={quote.id} />
                 {(customerContacts ?? []).length ? (
                   <label>
-                    <span>Saved customer contact</span>
+                    <span>{copy.savedContact}</span>
                     <select
                       name="recipientContactId"
                       defaultValue={quote.recipient_contact_id || ""}
                     >
-                      <option value="">Use manual recipient below</option>
+                      <option value="">{copy.manualRecipient}</option>
                       {(customerContacts ?? []).map((contact: any) => (
                         <option key={contact.id} value={contact.id}>
-                          {contact.name} · {contact.email}{contact.is_primary ? " · primary" : ""}
+                          {contact.name} · {contact.email}{contact.is_primary ? ` · ${copy.primary}` : ""}
                         </option>
                       ))}
                     </select>
                   </label>
                 ) : (
                   <p className="quote-delivery-v1-gate">
-                    No saved contacts for this customer yet. Add one in Customer CRM or enter the recipient manually.
+                    {copy.noContacts}
                   </p>
                 )}
                 <label>
-                  <span>Recipient name</span>
-                  <input name="recipientName" maxLength={160} defaultValue={quote.recipient_name || ""} placeholder="Buyer or contact" />
+                  <span>{copy.recipientName}</span>
+                  <input name="recipientName" maxLength={160} defaultValue={quote.recipient_name || ""} placeholder={copy.recipientNamePlaceholder} />
                 </label>
                 <label>
-                  <span>Recipient email</span>
+                  <span>{copy.recipientEmail}</span>
                   <input name="recipientEmail" type="email" maxLength={320} defaultValue={quote.recipient_email || ""} placeholder="buyer@customer.com" />
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  <button className="quote-builder-v1-secondary">Save delivery details</button>
+                  <button className="quote-builder-v1-secondary">{copy.saveDelivery}</button>
                   <Link href={`/app/customers/${quote.customer_id}`} className="quote-builder-v1-secondary">
-                    Customer CRM →
+                    {copy.customerCrm} →
                   </Link>
                 </div>
               </form>
             ) : (
               <div className="quote-builder-v1-readonly quote-delivery-v1-readonly">
-                <div><span>Recipient</span><strong>{quote.recipient_name || "Not set"}</strong></div>
-                <div><span>Email</span><strong>{quote.sent_to_email || quote.recipient_email || "Not set"}</strong></div>
+                <div><span>{copy.recipient}</span><strong>{quote.recipient_name || copy.notSet}</strong></div>
+                <div><span>{copy.email}</span><strong>{quote.sent_to_email || quote.recipient_email || copy.notSet}</strong></div>
               </div>
             )}
 
             <a href={`/app/quotes/${quote.id}/pdf`} className="quote-delivery-v1-download">
-              Download customer PDF <span aria-hidden="true">↓</span>
+              {copy.downloadCustomerPdf} <span aria-hidden="true">↓</span>
             </a>
 
             {quote.status === "sent" ? (
               <div className={`quote-delivery-v1-state ${quote.delivery_status || "sent"}`}>
-                <span>Delivery status</span>
+                <span>{copy.deliveryStatus}</span>
                 <strong>{deliveryLabel}</strong>
                 <small>
                   {quote.delivery_status_at
-                    ? new Date(quote.delivery_status_at).toLocaleString("fi-FI")
+                    ? new Date(quote.delivery_status_at).toLocaleString(displayLocale)
                     : quote.last_sent_at
-                      ? new Date(quote.last_sent_at).toLocaleString("fi-FI")
-                      : "Waiting for provider event"}
+                      ? new Date(quote.last_sent_at).toLocaleString(displayLocale)
+                       : copy.waitingProvider}
                 </small>
                 <small>
-                  Attempt {Number(quote.delivery_attempt_count ?? 0)} · {quote.sent_to_email || quote.recipient_email}
+                  {copy.attempt} {Number(quote.delivery_attempt_count ?? 0)} · {quote.sent_to_email || quote.recipient_email}
                 </small>
               </div>
             ) : null}
 
             {(deliveryEvents ?? []).length ? (
               <div className="quote-delivery-v1-timeline">
-                <div className="quote-delivery-v1-timeline-title">Delivery audit trail</div>
+                <div className="quote-delivery-v1-timeline-title">{copy.auditTrail}</div>
                 {(deliveryEvents ?? []).map((event: any) => (
                   <div className="quote-delivery-v1-event" key={event.id}>
                     <i className={event.event_type} aria-hidden="true" />
                     <div>
                       <strong>{String(event.event_type).replace("_", " ")}</strong>
-                      <span>{new Date(event.occurred_at).toLocaleString("fi-FI")}</span>
+                      <span>{new Date(event.occurred_at).toLocaleString(displayLocale)}</span>
                       <small>{event.recipient_email}</small>
                     </div>
                   </div>
@@ -324,13 +328,13 @@ export default async function QuoteDetailPage({
               </div>
             ) : quote.status === "sent" ? (
               <div className="quote-delivery-v1-awaiting">
-                Waiting for the first delivery webhook event.
+                {copy.waitingWebhook}
               </div>
             ) : null}
           </section>
 
           <section className="quote-builder-v1-panel quote-builder-v1-approval">
-            <div className="upload-v2-section-label">Approval & sending</div>
+            <div className="upload-v2-section-label">{copy.approvalSending}</div>
 
             <div className="quote-builder-v1-flow">
               {["draft", "ready", "approved", "sent"].map((stage, index) => {
@@ -339,7 +343,7 @@ export default async function QuoteDetailPage({
                 return (
                   <div key={stage} className={current >= index ? "is-complete" : ""}>
                     <span>{String(index + 1).padStart(2, "0")}</span>
-                    <b>{stage}</b>
+                    <b>{copy.stages[stage] ?? stage}</b>
                   </div>
                 );
               })}
@@ -350,7 +354,7 @@ export default async function QuoteDetailPage({
                 {quote.status === "draft" ? (
                   <form action={markQuoteReady}>
                     <input type="hidden" name="quoteId" value={quote.id} />
-                    <button>Mark ready →</button>
+                    <button>{copy.markReady} →</button>
                   </form>
                 ) : null}
 
@@ -358,11 +362,11 @@ export default async function QuoteDetailPage({
                   <>
                     <form action={approveQuote}>
                       <input type="hidden" name="quoteId" value={quote.id} />
-                      <button>Approve quote →</button>
+                      <button>{copy.approveQuote} →</button>
                     </form>
                     <form action={returnQuoteToDraft}>
                       <input type="hidden" name="quoteId" value={quote.id} />
-                      <button className="is-secondary">Back to draft</button>
+                      <button className="is-secondary">{copy.backDraft}</button>
                     </form>
                   </>
                 ) : null}
@@ -371,13 +375,13 @@ export default async function QuoteDetailPage({
                   emailConfigured && quote.recipient_email ? (
                     <form action={sendQuoteEmail}>
                       <input type="hidden" name="quoteId" value={quote.id} />
-                      <button>Send quote + PDF →</button>
+                      <button>{copy.sendQuote} →</button>
                     </form>
                   ) : (
                     <div className="quote-delivery-v1-gate">
                       {!quote.recipient_email
-                        ? "Add the customer email above before sending."
-                        : "Email delivery needs RESEND_API_KEY and NODRA_QUOTE_FROM on the server."}
+                        ? copy.addEmail
+                         : copy.emailNeedsConfig}
                     </div>
                   )
                 ) : null}
@@ -386,11 +390,11 @@ export default async function QuoteDetailPage({
                   emailConfigured ? (
                     <form action={sendQuoteEmail}>
                       <input type="hidden" name="quoteId" value={quote.id} />
-                      <button>Retry delivery + PDF →</button>
+                      <button>{copy.retryDelivery} →</button>
                     </form>
                   ) : (
                     <div className="quote-delivery-v1-gate">
-                      Email delivery is not configured on the server.
+                      {copy.emailNotConfigured}
                     </div>
                   )
                 ) : null}
@@ -403,12 +407,12 @@ export default async function QuoteDetailPage({
                 ) : null}
               </div>
             ) : (
-              <p className="quote-builder-v1-permission">Owner or admin access is required for approval and customer sending.</p>
+              <p className="quote-builder-v1-permission">{copy.permission}</p>
             )}
 
-            {quote.approved_at ? <small>Approved {new Date(quote.approved_at).toLocaleString("fi-FI")}</small> : null}
-            {quote.sent_at ? <small>Sent {new Date(quote.sent_at).toLocaleString("fi-FI")}</small> : null}
-            {quote.email_provider_id ? <small>Delivery audit ID saved</small> : null}
+            {quote.approved_at ? <small>{copy.approved} {new Date(quote.approved_at).toLocaleString(displayLocale)}</small> : null}
+            {quote.sent_at ? <small>{copy.sentAt} {new Date(quote.sent_at).toLocaleString(displayLocale)}</small> : null}
+            {quote.email_provider_id ? <small>{copy.auditId}</small> : null}
           </section>
         </aside>
       </div>
