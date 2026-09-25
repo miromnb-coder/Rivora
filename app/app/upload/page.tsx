@@ -101,6 +101,7 @@ export default async function UploadPage({
             title={productsReady ? copy.replaceCatalogue : copy.chooseCatalogue}
             hint={copy.catalogueHint}
             required
+            locale={locale}
           />
           <button className="upload-v2-secondary-btn">{productsReady ? copy.replace : copy.import}</button>
         </form>
@@ -161,6 +162,7 @@ export default async function UploadPage({
             title={copy.chooseFile}
             hint="CSV or XLSX"
             required
+            locale={locale}
           />
           <button disabled={!productsReady} className="upload-v2-secondary-btn disabled:cursor-not-allowed disabled:opacity-40">{copy.processStructured}</button>
         </form>
