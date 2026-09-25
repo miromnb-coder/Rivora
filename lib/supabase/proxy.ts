@@ -31,6 +31,7 @@ export async function updateSession(request: NextRequest) {
   const isPublic =
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
+    pathname === "/api/webhooks/resend" ||
     pathname === "/";
 
   if (!data?.claims && !isPublic) {
