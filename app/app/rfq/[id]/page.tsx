@@ -304,7 +304,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                 </div>
 
                 <div className={`rfq-review-v2-state ${tone}`}>
-                  {String(line.review_status).replaceAll("_", " ")}
+                  {line.review_status === "confirmed" ? (fi ? "Vahvistettu" : "Confirmed") : line.review_status === "needs_review" ? text.needsReview : String(line.review_status).replaceAll("_", " ")}
                 </div>
               </article>
             );
