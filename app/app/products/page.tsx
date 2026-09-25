@@ -41,7 +41,7 @@ export default async function ProductsPage() {
           <div className="app-kicker-v2">Product catalogue</div>
           <h1>Your canonical product source for every RFQ match.</h1>
           <p>
-            Rivora resolves customer language against this catalogue. Re-importing an existing SKU updates
+            Nodra resolves customer language against this catalogue. Re-importing an existing SKU updates
             commercial data without breaking learned customer mappings.
           </p>
         </div>
@@ -78,7 +78,7 @@ export default async function ProductsPage() {
         <div className="products-v2-list-head">
           <div>
             <div className="upload-v2-section-label">Catalogue rows</div>
-            <h2>Products Rivora can resolve to.</h2>
+            <h2>Products Nodra can resolve to.</h2>
           </div>
           <span>Showing up to 500 active products</span>
         </div>
