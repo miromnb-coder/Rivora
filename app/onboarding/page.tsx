@@ -17,7 +17,7 @@ export default async function OnboardingPage({
       <div className="mx-auto max-w-lg">
         <div className="surface p-7">
           <div className="kicker">First workspace</div>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-[-.04em]">Create your Rivora workspace.</h1>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-[-.04em]">Create your Nodra workspace.</h1>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
             This becomes the security boundary for customers, product catalogue, RFQs and learned SKU mappings.
           </p>
