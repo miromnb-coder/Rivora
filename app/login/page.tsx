@@ -11,13 +11,13 @@ export default async function LoginPage({
     <main className="min-h-screen bg-[#f5f7f5] px-5 py-12">
       <div className="mx-auto max-w-md">
         <div className="mb-7 text-center">
-          <div className="text-2xl font-extrabold tracking-[-.04em] text-[#10251b]">Rivora</div>
+          <div className="text-2xl font-extrabold tracking-[-.04em] text-[#10251b]">Nodra</div>
           <div className="mt-2 text-sm text-[var(--muted)]">RFQ intelligence desk</div>
         </div>
 
         <div className="surface p-6 sm:p-8">
           <div className="kicker">Secure workspace</div>
-          <h1 className="mt-2 text-2xl font-extrabold tracking-[-.03em]">Sign in to Rivora.</h1>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-[-.03em]">Sign in to Nodra.</h1>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
             Your catalogue, RFQs and product memory are isolated with Supabase Row Level Security.
           </p>
