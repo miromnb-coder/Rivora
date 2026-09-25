@@ -4,6 +4,26 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return <div className="v2-section-label">{children}</div>;
 }
 
+export function ProofStripV2() {
+  const items = [
+    ["Input", "PDF / XLSX / CSV"],
+    ["Resolution", "Customer-specific product memory"],
+    ["Control", "Source + confidence visible"],
+    ["Approval", "Human review before quote"],
+  ];
+
+  return (
+    <section className="marketing-shell proof-strip-v2" aria-label="Rivora workflow proof points">
+      {items.map(([label, value]) => (
+        <div key={label} className="proof-strip-v2-item">
+          <span>{label}</span>
+          <b>{value}</b>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function ProductResolutionV2() {
   return (
     <section className="marketing-shell v2-section" id="resolution">
@@ -67,7 +87,7 @@ export function CustomerMemoryV2() {
 
       <div className="memory-v2-proof">
         <div className="memory-v2-customer">
-          <span>Nordic Process Service Oy</span>
+          <span>Example customer</span>
           <small>Customer-specific product memory</small>
         </div>
 
@@ -195,7 +215,7 @@ export function ConfidenceSystemV2() {
         </div>
 
         <div className="confidence-v2-threshold">
-          <span>Confidence threshold</span>
+          <span>Example review threshold</span>
           <b>90%</b>
           <div className="confidence-v2-scale" aria-hidden="true">
             <i />
@@ -216,7 +236,7 @@ export function AiExtractionV2() {
     <section className="marketing-shell v2-section ai-v2" id="ai-extraction">
       <div className="v2-section-copy">
         <SectionLabel>AI extraction</SectionLabel>
-        <h2>AI extracts. Rivora verifies. You approve.</h2>
+        <h2>AI structures. Rivora shows the evidence. You approve.</h2>
         <p>
           Every line keeps its source, extraction result, match method and confidence
           visible so your team can review decisions instead of trusting a black box.
