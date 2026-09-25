@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { confirmRfqMatch } from "./actions";
+import { createQuoteFromRfq } from "@/app/app/quotes/actions";
 
 const money = new Intl.NumberFormat("en-FI", { style: "currency", currency: "EUR" });
 
@@ -14,7 +15,7 @@ function lineTone(confidence: number, reviewStatus: string) {
 
 export default async function RfqPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { supabase } = await requireWorkspace();
+  const { supabase, workspace } = await requireWorkspace();
 
   const { data: rfq } = await supabase
     .from("rfqs")
@@ -23,6 +24,12 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
     .maybeSingle();
 
   if (!rfq) notFound();
+
+  const { data: existingQuote } = await supabase
+    .from("quotes")
+    .select("id, quote_number, status")
+    .eq("rfq_id", id)
+    .maybeSingle();
 
   const { data: lines } = await supabase
     .from("rfq_lines")
@@ -278,9 +285,37 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
       {rfq.status === "ready" ? (
         <section className="rfq-review-v2-ready">
-          <div className="upload-v2-section-label">Ready for next stage</div>
+          <div className="upload-v2-section-label">Ready for quote</div>
           <h2>Every RFQ line has a resolved product.</h2>
-          <p>The request is cleared for quote generation when that workflow is enabled.</p>
+          <p>
+            Freeze the selected products into a commercial draft, then edit pricing,
+            discounts, VAT and approval state in Quote Builder.
+          </p>
+
+          {existingQuote ? (
+            <Link href={`/app/quotes/${existingQuote.id}`} className="rfq-review-v2-quote-cta">
+              Open {existingQuote.quote_number || "quote"} <span aria-hidden="true">→</span>
+            </Link>
+          ) : ["owner", "admin"].includes(workspace.role) ? (
+            <form action={createQuoteFromRfq}>
+              <input type="hidden" name="rfqId" value={id} />
+              <button className="rfq-review-v2-quote-cta">
+                Create quote <span aria-hidden="true">→</span>
+              </button>
+            </form>
+          ) : (
+            <div className="rfq-review-v2-quote-note">
+              Owner or admin access is required to create the commercial quote.
+            </div>
+          )}
+        </section>
+      ) : existingQuote ? (
+        <section className="rfq-review-v2-ready">
+          <div className="upload-v2-section-label">Quote exists</div>
+          <h2>This RFQ already has a commercial quote.</h2>
+          <Link href={`/app/quotes/${existingQuote.id}`} className="rfq-review-v2-quote-cta">
+            Open {existingQuote.quote_number || "quote"} <span aria-hidden="true">→</span>
+          </Link>
         </section>
       ) : null}
     </div>
