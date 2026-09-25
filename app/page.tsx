@@ -1,6 +1,7 @@
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { MinimalShaderHero } from "@/components/marketing/MinimalShaderHero";
+import { PricingLeadCapture } from "@/components/marketing/PricingLeadCapture";
 import {
   ProofStripV2,
   HowItWorksV2,
@@ -26,6 +27,7 @@ export default function Home() {
       <ConfidenceSystemV2 />
       <AiExtractionV2 />
       <BeforeAfterV2 />
+      <PricingLeadCapture />
       <FinalCtaV2 />
       <MarketingFooter />
     </main>
