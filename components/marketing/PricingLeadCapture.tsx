@@ -131,10 +131,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
       <div className="v2-section-copy">
         <div className="v2-section-label">{fi ? "Hinnoittelu ja käyttöönotto" : "Pricing & rollout"}</div>
         <h2>{fi ? "Aloita yhdellä työnkululla. Skaalaa, kun hyöty on todistettu." : "Start with one workflow. Scale when it proves useful."}</h2>
-        <p>
-          Pricing is scoped around RFQ volume and rollout needs. You can evaluate
-          Nodra with real customer requests before committing to integration work.
-        </p>
+        <p>{fi ? "Hinnoittelu määräytyy tarjouspyyntövolyymin ja käyttöönoton laajuuden mukaan. Voit arvioida Nodraa oikeilla asiakaspyynnöillä ennen integraatioihin sitoutumista." : "Pricing is scoped around RFQ volume and rollout needs. You can evaluate Nodra with real customer requests before committing to integration work."}</p>
       </div>
 
       <div className="pricing-lead-grid">
@@ -164,15 +161,12 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
         <div className="lead-capture-copy">
           <div className="v2-section-label">{fi ? "Pyydä keskustelua" : "Request a conversation"}</div>
           <h3>{fi ? "Kerro, miltä tarjouspyyntötyönkulkunne näyttää." : "Tell us what your RFQ workflow looks like."}</h3>
-          <p>
-            Share the basics. The request is saved to Nodra and can be followed up
-            based on whether you want a pilot, pricing or a demo.
-          </p>
+          <p>{fi ? "Kerro perustiedot. Pyyntö tallennetaan Nodraan ja siihen voidaan palata sen mukaan, haluatko pilotin, hinnoittelun tai demon." : "Share the basics. The request is saved to Nodra and can be followed up based on whether you want a pilot, pricing or a demo."}</p>
 
           <div className="lead-capture-proof">
-            <span>One form</span><i />
-            <span>No account required</span><i />
-            <span>No ERP setup required</span>
+            <span>{fi ? "Yksi lomake" : "One form"}</span><i />
+            <span>{fi ? "Tiliä ei tarvita" : "No account required"}</span><i />
+            <span>{fi ? "ERP-asennusta ei tarvita" : "No ERP setup required"}</span>
           </div>
         </div>
 
@@ -194,7 +188,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
               <input name="company" autoComplete="organization" required maxLength={160} />
             </label>
             <label>
-              <span>Role <em>optional</em></span>
+              <span>{fi ? "Rooli" : "Role"} <em>{fi ? "valinnainen" : "optional"}</em></span>
               <input name="role" autoComplete="organization-title" maxLength={120} />
             </label>
           </div>
@@ -209,7 +203,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
               </select>
             </label>
             <label>
-              <span>RFQs per month <em>optional</em></span>
+              <span>{fi ? "Tarjouspyyntöjä kuukaudessa" : "RFQs per month"} <em>{fi ? "valinnainen" : "optional"}</em></span>
               <select name="rfqVolume" defaultValue="">
                 <option value="">{fi ? "Valitse määrä" : "Select range"}</option>
                 <option value="1-10">1–10</option>
@@ -221,12 +215,12 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
           </div>
 
           <label>
-            <span>What would you like to improve? <em>optional</em></span>
+            <span>{fi ? "Mitä haluaisit parantaa?" : "What would you like to improve?"} <em>{fi ? "valinnainen" : "optional"}</em></span>
             <textarea
               name="message"
               rows={4}
               maxLength={2000}
-              placeholder="For example: product-code matching, repetitive ERP searches, quote review..."
+              placeholder={fi ? "Esimerkiksi: tuotekoodien mätsäys, toistuvat ERP-haut, tarjousten tarkistus..." : "For example: product-code matching, repetitive ERP searches, quote review..."}
             />
           </label>
 
@@ -245,7 +239,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
 
           {submitState === "sent" && (
             <div className="lead-form-message success" role="status">
-              Request received. Your details are saved for follow-up.
+              {fi ? "Pyyntö vastaanotettu. Tietosi on tallennettu yhteydenottoa varten." : "Request received. Your details are saved for follow-up."}
             </div>
           )}
 
