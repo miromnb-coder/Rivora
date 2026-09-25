@@ -18,11 +18,13 @@ export function AppShell({
   const nav = [
     ["Inbox", "/app/inbox"],
     ["Quotes", "/app/quotes"],
+    ["Customers", "/app/customers"],
     ...(showSales ? [["Leads", "/app/leads"]] : []),
     ["Process RFQ", "/app/upload"],
     ["Products", "/app/products"],
     ["Customer memory", "/app/memory"],
     ["Settings", "/app/settings"],
+    ["Setup", "/app/setup"],
   ] as const;
 
   return (
