@@ -342,8 +342,8 @@ export async function sendQuoteEmail(formData: FormData) {
   if (!quoteId) throw new Error("Quote is required.");
 
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.RIVORA_QUOTE_FROM?.trim();
-  const replyTo = process.env.RIVORA_QUOTE_REPLY_TO?.trim();
+  const from = (process.env.NODRA_QUOTE_FROM ?? process.env.RIVORA_QUOTE_FROM)?.trim();
+  const replyTo = (process.env.NODRA_QUOTE_REPLY_TO ?? process.env.RIVORA_QUOTE_REPLY_TO)?.trim();
 
   if (!apiKey || !from) {
     throw new Error("Quote email delivery is not configured.");
@@ -415,7 +415,7 @@ export async function sendQuoteEmail(formData: FormData) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "Idempotency-Key": `rivora-quote-${quote.id}-${quote.approved_at || "approved"}`,
+      "Idempotency-Key": `nodra-quote-${quote.id}-${quote.approved_at || "approved"}`,
     },
     body: JSON.stringify(body),
   });
@@ -442,7 +442,7 @@ export async function sendQuoteEmail(formData: FormData) {
     .eq("id", quoteId);
 
   if (error) {
-    throw new Error("Email was accepted by the provider, but Rivora could not record the sent state.");
+    throw new Error("Email was accepted by the provider, but Nodra could not record the sent state.");
   }
 
   revalidatePath(`/app/quotes/${quoteId}`);
