@@ -13,35 +13,42 @@ export function MinimalShaderHero() {
 
       <div className="marketing-shell minimal-hero-inner v2-hero-inner">
         <div className="minimal-hero-copy">
-          <div className="minimal-kicker">AI quote desk for industrial sales teams</div>
+          <div className="minimal-kicker">RFQ automation for industrial sales teams</div>
 
-          <h1>Turn messy RFQs into ready-to-review quotes.</h1>
+          <h1>Turn incoming RFQs into quote-ready product lines.</h1>
 
           <p>
-            Rivora reads customer PDFs and spreadsheets, resolves product codes
-            and prepares quote-ready lines for human approval.
+            Upload a customer PDF or spreadsheet. Rivora extracts the line items,
+            resolves customer product codes against your catalogue, flags uncertainty
+            and learns from confirmed matches.
           </p>
 
           <div className="minimal-hero-actions">
             <Link href="/app/upload" className="minimal-btn minimal-btn-primary">
-              Process an RFQ <span aria-hidden="true">→</span>
+              Upload an RFQ <span aria-hidden="true">→</span>
             </Link>
-            <a href="#how-it-works" className="minimal-btn minimal-btn-secondary">
-              See how it works
+            <a href="#resolution" className="minimal-btn minimal-btn-secondary">
+              See a resolved line
             </a>
+          </div>
+
+          <div className="hero-conversion-note">
+            <span>No ERP integration required to start</span>
+            <i />
+            <span>Human approval stays in control</span>
           </div>
 
           <div className="minimal-flow" aria-label="Rivora workflow">
             <span>PDF / XLSX</span><i />
             <span>Extract</span><i />
-            <span>Match</span><i />
+            <span>Resolve</span><i />
             <span>Review</span><i />
-            <span>Quote</span>
+            <span>Quote-ready</span>
           </div>
         </div>
 
         <div className="hero-proof" aria-label="Example Rivora product match">
-          <div className="hero-proof-label">Customer input</div>
+          <div className="hero-proof-label">Customer line</div>
           <div className="hero-proof-input">
             <div>
               <b>PUMP-37A</b>
@@ -52,7 +59,7 @@ export function MinimalShaderHero() {
 
           <div className="hero-proof-arrow" aria-hidden="true">↓</div>
 
-          <div className="hero-proof-label">Rivora output</div>
+          <div className="hero-proof-label">Resolved product</div>
           <div className="hero-proof-result">
             <div>
               <b>GRU-98561418</b>
@@ -65,7 +72,7 @@ export function MinimalShaderHero() {
             <span>OLD-991-A</span>
             <i>→</i>
             <b>78%</b>
-            <em>Review</em>
+            <em>Needs review</em>
           </div>
         </div>
       </div>
