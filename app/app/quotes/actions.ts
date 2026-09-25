@@ -403,7 +403,9 @@ export async function sendQuoteEmail(formData: FormData) {
     <p>Best regards,<br>${escapeHtml(workspace.name)}</p>
   </div>`;
 
-  const nextAttempt = Number(quote.delivery_attempt_count ?? 0) + 1;\n\n  const body: Record<string, unknown> = {
+  const nextAttempt = Number(quote.delivery_attempt_count ?? 0) + 1;
+
+  const body: Record<string, unknown> = {
     from,
     to: [quote.recipient_email],
     subject,
