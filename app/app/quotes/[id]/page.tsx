@@ -106,7 +106,7 @@ export default async function QuoteDetailPage({
           </p>
         </div>
 
-        <span className={`quote-builder-v1-status ${copy.stages[quote.status] ?? quote.status}`}>
+        <span className={`quote-builder-v1-status ${quote.status}`}>
           {copy.stages[quote.status] ?? quote.status}
         </span>
       </header>
