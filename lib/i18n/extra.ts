@@ -181,7 +181,7 @@ export function getQuoteDetailCopy(locale: Locale) {
     subtotal: fi ? "Välisumma" : "Subtotal",
     incomplete: fi ? "kesken, kunnes kaikki hinnat on asetettu" : "incomplete until all prices are set",
     afterDiscounts: fi ? "rivikohtaisten alennusten jälkeen" : "after line discounts",
-    vat: "ALV",
+    vat: fi ? "ALV" : "VAT",
     total: fi ? "Yhteensä" : "Total",
     quoteValue: fi ? "tarjouksen arvo" : "quote value",
     validity: fi ? "Voimassaolo" : "Validity",
