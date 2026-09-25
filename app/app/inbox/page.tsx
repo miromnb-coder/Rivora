@@ -82,7 +82,7 @@ export default async function InboxPage() {
       <section className="inbox-v2-list" id="requests">
         <div className="inbox-v2-list-head">
           <div><div className="upload-v2-section-label">{copy.requests}</div><h2>{copy.queue}</h2></div>
-          <span>{items.length} {copy.total}</span>
+          <span>{items.length} {getDictionary(locale).common.total}</span>
         </div>
 
         {sortedItems.length ? (
