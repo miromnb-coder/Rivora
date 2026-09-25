@@ -8229,3 +8229,91 @@ button, input, select { font: inherit; }
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Small shared primitives used by localized setup/upload surfaces */
+.nodra-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid #e1e2df;
+  border-radius: 999px;
+  background: #f6f6f4;
+  padding: 0 10px;
+  color: #555a56;
+  font-size: 9px;
+  font-weight: 820;
+}
+
+.nodra-mini-step {
+  border: 1px solid #e8e9e6;
+  border-radius: 16px;
+  background: #fff;
+  padding: 18px;
+}
+
+.nodra-mini-step > span {
+  color: #9a9e9b;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.nodra-mini-step > strong {
+  display: block;
+  margin-top: 10px;
+  color: #242724;
+  font-size: 13px;
+  font-weight: 820;
+}
+
+.nodra-mini-step > p {
+  margin-top: 6px;
+  color: #7f8480;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.memory-app-v2-summary,
+.memory-app-v2-list,
+.memory-app-v2-explainer {
+  background: #fff !important;
+}
+
+.memory-app-v2-summary {
+  border-radius: 0 !important;
+  border-top: 1px solid #dedfdb !important;
+  border-bottom: 1px solid #dedfdb !important;
+  box-shadow: none !important;
+}
+
+.memory-app-v2-row {
+  border-color: #e8e9e6 !important;
+  background: #fff !important;
+}
+
+.memory-app-v2-row:hover {
+  background: #fafafa !important;
+}
+
+.upload-v2-setup-status .is-ready,
+.upload-v2-ai-status.is-ready {
+  background: #f0f1ef !important;
+  color: #535854 !important;
+}
+
+.upload-v2-setup-status .is-waiting,
+.upload-v2-ai-status.is-error {
+  background: #f7efe3 !important;
+  color: #755a37 !important;
+}
+
+.upload-v2-secondary-btn {
+  border: 1px solid #dedfdb !important;
+  background: #fff !important;
+  color: #343834 !important;
+}
+
+.upload-v2-secondary-btn:hover {
+  background: #fafafa !important;
+}
