@@ -86,14 +86,12 @@ export async function createQuoteFromRfq(formData: FormData) {
 
   if (!rfqLines?.length) throw new Error("RFQ has no lines.");
 
-  const unresolved = rfqLines.some(
-    (line) =>
-      !line.selected_product_id ||
-      ["needs_review", "unmatched", "pending"].includes(line.review_status)
+  const unconfirmed = rfqLines.some(
+    (line) => !line.selected_product_id || line.review_status !== "confirmed"
   );
 
-  if (unresolved) {
-    throw new Error("Resolve every RFQ line before creating a quote.");
+  if (unconfirmed) {
+    throw new Error("Every RFQ line must be explicitly confirmed by a person before creating a quote.");
   }
 
   const productIds = [...new Set(rfqLines.map((line) => line.selected_product_id).filter(Boolean))] as string[];
@@ -138,7 +136,8 @@ export async function createQuoteFromRfq(formData: FormData) {
   const lines = rfqLines.map((line) => {
     const product = productMap.get(line.selected_product_id as string)!;
     const quantity = Number(line.quantity);
-    const unitPrice = Number(product.unit_price ?? 0);
+    const pricingRequired = product.unit_price == null;
+    const unitPrice = pricingRequired ? 0 : Number(product.unit_price);
 
     return {
       organization_id: workspace.id,
@@ -150,10 +149,11 @@ export async function createQuoteFromRfq(formData: FormData) {
       description_snapshot: product.name,
       quantity,
       unit: line.unit || product.unit || "pcs",
-      catalogue_unit_price: product.unit_price == null ? null : unitPrice,
+      catalogue_unit_price: pricingRequired ? null : unitPrice,
       unit_price: unitPrice,
+      pricing_required: pricingRequired,
       discount_percent: 0,
-      line_total: roundMoney(quantity * unitPrice),
+      line_total: pricingRequired ? 0 : roundMoney(quantity * unitPrice),
       updated_at: now,
     };
   });
@@ -274,6 +274,7 @@ export async function updateQuoteLine(formData: FormData) {
       unit_price: unitPrice,
       discount_percent: discount,
       line_total: lineTotal,
+      pricing_required: false,
       updated_at: new Date().toISOString(),
     })
     .eq("id", lineId)
@@ -295,11 +296,21 @@ export async function markQuoteReady(formData: FormData) {
 
   const { data: lines } = await supabase
     .from("quote_lines")
-    .select("id, quantity, unit_price")
+    .select("id, quantity, unit_price, discount_percent, pricing_required")
     .eq("quote_id", quoteId);
 
-  if (!lines?.length || lines.some((line) => Number(line.quantity) <= 0 || Number(line.unit_price) < 0)) {
-    throw new Error("Complete quote pricing before marking it ready.");
+  if (
+    !lines?.length ||
+    lines.some(
+      (line) =>
+        Boolean(line.pricing_required) ||
+        Number(line.quantity) <= 0 ||
+        Number(line.unit_price) < 0 ||
+        Number(line.discount_percent ?? 0) < 0 ||
+        Number(line.discount_percent ?? 0) > 100
+    )
+  ) {
+    throw new Error("Complete and explicitly save pricing for every quote line before marking it ready.");
   }
 
   const { error } = await supabase
@@ -333,15 +344,49 @@ export async function approveQuote(formData: FormData) {
   const quoteId = String(formData.get("quoteId") ?? "");
   if (!quoteId) throw new Error("Quote is required.");
 
-  const { supabase, claims } = await requireQuoteAdmin();
+  const { supabase, claims, workspace } = await requireQuoteAdmin();
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, status")
+    .select("id, status, valid_until, currency, tax_rate")
     .eq("id", quoteId)
     .maybeSingle();
 
   if (!quote) throw new Error("Quote not found.");
   if (quote.status !== "ready") throw new Error("Only a ready quote can be approved.");
+
+  const [{ data: lines }, { data: organization }] = await Promise.all([
+    supabase
+      .from("quote_lines")
+      .select("id, quantity, unit_price, discount_percent, pricing_required")
+      .eq("quote_id", quoteId),
+    supabase
+      .from("organizations")
+      .select("name,email,address_line1,city")
+      .eq("id", workspace.id)
+      .maybeSingle(),
+  ]);
+
+  if (
+    !lines?.length ||
+    lines.some(
+      (line) =>
+        Boolean(line.pricing_required) ||
+        Number(line.quantity) <= 0 ||
+        Number(line.unit_price) < 0 ||
+        Number(line.discount_percent ?? 0) < 0 ||
+        Number(line.discount_percent ?? 0) > 100
+    )
+  ) {
+    throw new Error("Quote pricing is incomplete. Return to draft and explicitly price every line.");
+  }
+
+  if (!quote.valid_until || quote.valid_until < new Date().toISOString().slice(0, 10)) {
+    throw new Error("Set a quote validity date that is today or later.");
+  }
+
+  if (!organization?.name || !organization.email || !organization.address_line1 || !organization.city) {
+    throw new Error("Complete company name, email, street address and city in Company Settings before approval.");
+  }
 
   const now = new Date().toISOString();
   const { error } = await supabase
