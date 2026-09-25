@@ -1,3 +1,5 @@
+import { PDFDocument } from "pdf-lib";
+
 type QuoteDocumentLine = {
   line_number: number;
   sku_snapshot: string | null;
@@ -24,6 +26,12 @@ export type QuoteDocumentData = {
   customerName: string;
   rfqReference: string | null;
   sellerName: string;
+  sellerBusinessId: string | null;
+  sellerAddress: string;
+  sellerEmail: string | null;
+  sellerPhone: string | null;
+  logoBytes: Uint8Array | null;
+  logoMime: string | null;
   lines: QuoteDocumentLine[];
 };
 
@@ -34,12 +42,11 @@ function singleRelation<T>(value: T | T[] | null | undefined): T | null {
 
 export async function loadQuoteDocumentData(
   supabase: any,
-  quoteId: string,
-  sellerName: string
+  quoteId: string
 ): Promise<QuoteDocumentData | null> {
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, quote_number, status, currency, created_at, valid_until, customer_reference, notes, tax_rate, recipient_name, recipient_email, customers(name), rfqs(reference)")
+    .select("id, organization_id, quote_number, status, currency, created_at, valid_until, customer_reference, notes, tax_rate, recipient_name, recipient_email, customers(name), rfqs(reference), organizations(name,business_id,address_line1,address_line2,postal_code,city,country,email,phone,logo_path)")
     .eq("id", quoteId)
     .maybeSingle();
 
@@ -53,6 +60,30 @@ export async function loadQuoteDocumentData(
 
   const customer = singleRelation<{ name?: string }>(quote.customers);
   const rfq = singleRelation<{ reference?: string }>(quote.rfqs);
+  const organization = singleRelation<{
+    name?: string;
+    business_id?: string | null;
+    address_line1?: string | null;
+    address_line2?: string | null;
+    postal_code?: string | null;
+    city?: string | null;
+    country?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    logo_path?: string | null;
+  }>(quote.organizations);
+
+  let logoBytes: Uint8Array | null = null;
+  let logoMime: string | null = null;
+  if (organization?.logo_path) {
+    const { data: logo } = await supabase.storage
+      .from("workspace-assets")
+      .download(organization.logo_path);
+    if (logo) {
+      logoBytes = new Uint8Array(await logo.arrayBuffer());
+      logoMime = logo.type || (organization.logo_path.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
+    }
+  }
 
   return {
     quoteId: quote.id,
@@ -68,7 +99,18 @@ export async function loadQuoteDocumentData(
     recipientEmail: quote.recipient_email,
     customerName: customer?.name || "Customer",
     rfqReference: rfq?.reference || null,
-    sellerName,
+    sellerName: organization?.name || "Nodra",
+    sellerBusinessId: organization?.business_id || null,
+    sellerAddress: [
+      organization?.address_line1,
+      organization?.address_line2,
+      [organization?.postal_code, organization?.city].filter(Boolean).join(" "),
+      organization?.country,
+    ].filter(Boolean).join(", "),
+    sellerEmail: organization?.email || null,
+    sellerPhone: organization?.phone || null,
+    logoBytes,
+    logoMime,
     lines: lines ?? [],
   };
 }
@@ -186,36 +228,43 @@ function dateLabel(value: string | null) {
 
 function buildPageHeader(data: QuoteDocumentData, continuation: boolean) {
   let content = "";
-  content += pdfText(data.sellerName, 44, 793, 17, "F2", 0.08);
+  const sellerX = data.logoBytes ? 122 : 44;
+  content += pdfText(data.sellerName, sellerX, 793, 17, "F2", 0.08);
   content += pdfText("QUOTE", 480, 793, 11, "F2", 0.08);
-  content += line(44, 775, 551, 775, 0.82, 0.8);
+  const sellerMeta = [
+    data.sellerBusinessId ? `Business ID ${data.sellerBusinessId}` : "",
+    data.sellerEmail || "",
+    data.sellerPhone || "",
+  ].filter(Boolean).join(" · ");
+  if (data.sellerAddress) content += pdfText(data.sellerAddress, sellerX, 779, 7.5, "F1", 0.34);
+  if (sellerMeta) content += pdfText(sellerMeta, sellerX, 767, 7.5, "F1", 0.34);
+  content += line(44, 755, 551, 755, 0.82, 0.8);
 
   if (continuation) {
-    content += pdfText(`${data.quoteNumber} - continued`, 44, 748, 11, "F2", 0.15);
-    return { content, tableY: 716 };
+    content += pdfText(`${data.quoteNumber} - continued`, 44, 728, 11, "F2", 0.15);
+    return { content, tableY: 696 };
   }
 
-  content += pdfText("Quote number", 44, 744, 7, "F2", 0.48);
-  content += pdfText(data.quoteNumber, 44, 728, 12, "F2", 0.10);
-  content += pdfText("Quote date", 210, 744, 7, "F2", 0.48);
-  content += pdfText(dateLabel(data.createdAt), 210, 728, 10, "F1", 0.14);
-  content += pdfText("Valid until", 350, 744, 7, "F2", 0.48);
-  content += pdfText(dateLabel(data.validUntil), 350, 728, 10, "F1", 0.14);
+  content += pdfText("Quote number", 44, 724, 7, "F2", 0.48);
+  content += pdfText(data.quoteNumber, 44, 708, 12, "F2", 0.10);
+  content += pdfText("Quote date", 210, 724, 7, "F2", 0.48);
+  content += pdfText(dateLabel(data.createdAt), 210, 708, 10, "F1", 0.14);
+  content += pdfText("Valid until", 350, 724, 7, "F2", 0.48);
+  content += pdfText(dateLabel(data.validUntil), 350, 708, 10, "F1", 0.14);
 
-  content += pdfText("Customer", 44, 690, 7, "F2", 0.48);
-  content += pdfText(data.customerName, 44, 673, 12, "F2", 0.10);
-  if (data.recipientName) content += pdfText(data.recipientName, 44, 658, 9, "F1", 0.28);
-  if (data.recipientEmail) content += pdfText(data.recipientEmail, 44, 644, 9, "F1", 0.28);
-
-  content += pdfText("Reference", 350, 690, 7, "F2", 0.48);
-  content += pdfText(data.customerReference || data.rfqReference || "-", 350, 673, 10, "F1", 0.14);
+  content += pdfText("Customer", 44, 670, 7, "F2", 0.48);
+  content += pdfText(data.customerName, 44, 653, 12, "F2", 0.10);
+  if (data.recipientName) content += pdfText(data.recipientName, 44, 638, 9, "F1", 0.28);
+  if (data.recipientEmail) content += pdfText(data.recipientEmail, 44, 624, 9, "F1", 0.28);
+  content += pdfText("Reference", 350, 670, 7, "F2", 0.48);
+  content += pdfText(data.customerReference || data.rfqReference || "-", 350, 653, 10, "F1", 0.14);
 
   if (!["approved", "sent"].includes(data.status)) {
-    content += fillRect(430, 635, 121, 25, 0.93);
-    content += pdfText("DRAFT - NOT APPROVED", 441, 644, 8, "F2", 0.35);
+    content += fillRect(430, 615, 121, 25, 0.93);
+    content += pdfText("DRAFT - NOT APPROVED", 441, 624, 8, "F2", 0.35);
   }
 
-  return { content, tableY: 610 };
+  return { content, tableY: 590 };
 }
 
 function tableHeader(y: number) {
@@ -275,7 +324,7 @@ function buildPdfObjects(pageStreams: string[]) {
   return Buffer.from(pdf, "latin1");
 }
 
-export function renderQuotePdf(data: QuoteDocumentData) {
+function renderBaseQuotePdf(data: QuoteDocumentData) {
   const pages: string[] = [];
   let page = "";
   let y = 0;
@@ -359,6 +408,29 @@ export function renderQuotePdf(data: QuoteDocumentData) {
   return buildPdfObjects(finalized);
 }
 
+export async function renderQuotePdf(data: QuoteDocumentData) {
+  const base = renderBaseQuotePdf(data);
+  if (!data.logoBytes || !data.logoMime) return base;
+
+  try {
+    const document = await PDFDocument.load(base);
+    const image = data.logoMime.includes("png")
+      ? await document.embedPng(data.logoBytes)
+      : await document.embedJpg(data.logoBytes);
+    const firstPage = document.getPages()[0];
+    const natural = image.scale(1);
+    const scale = Math.min(68 / natural.width, 30 / natural.height, 1);
+    firstPage.drawImage(image, {
+      x: 44,
+      y: 780,
+      width: natural.width * scale,
+      height: natural.height * scale,
+    });
+    return Buffer.from(await document.save());
+  } catch {
+    return base;
+  }
+}
 export function quotePdfFilename(quoteNumber: string) {
   const safe = quoteNumber.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
   return `${safe || "quote"}.pdf`;
