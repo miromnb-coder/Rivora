@@ -24,11 +24,11 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
     resolved: fi ? "Ratkaistu" : "Resolved", ofLines: fi ? "rivistä" : "lines", needsReview: fi ? "Vaatii tarkistuksen" : "Needs review", humanDecisions: fi ? "ihmisen päätöstä" : "human decisions",
     matchConfidence: fi ? "Osumavarmuus" : "Match confidence", overall: fi ? "tarjouspyynnön kokonaisvarmuus" : "RFQ overall", policy: fi ? "Käytäntö" : "Policy", suggest: fi ? "Ehdota → ihminen vahvistaa" : "Suggest → human confirm",
     policyNote: fi ? "myös muisti- ja exact-osumat vaativat vahvistuksen" : "memory and exact matches still require confirmation", extraction: fi ? "Poiminta" : "Extraction", extractionConfidence: fi ? "Poiminnan varmuus" : "Extraction confidence", warnings: fi ? "Varoitukset" : "Warnings",
-    failed: fi ? "Käsittely epäonnistui" : "Processing failed", failedBody: fi ? "Nodra ei pystynyt viimeistelemään tämän tarjouspyynnön käsittelyä." : "Nodra could not finish processing this RFQ.", retry: fi ? "Yritä tuoteosumia uudelleen" : "{text.retry}", extractionWarnings: fi ? "Poiminnan varoitukset" : "Extraction warnings",
+    failed: fi ? "Käsittely epäonnistui" : "Processing failed", failedBody: fi ? "Nodra ei pystynyt viimeistelemään tämän tarjouspyynnön käsittelyä." : "Nodra could not finish processing this RFQ.", retry: fi ? "Yritä tuoteosumia uudelleen" : "Retry product matching", extractionWarnings: fi ? "Poiminnan varoitukset" : "Extraction warnings",
     resolution: fi ? "Tuotteiden ratkaisu" : "Product resolution", reviewLine: fi ? "Tarkista rivi kerrallaan." : "Review line by line.", lines: fi ? "riviä" : "lines", line: fi ? "Rivi" : "Line", page: fi ? "PDF-sivu" : "PDF page",
     noSku: fi ? "Ei asiakkaan SKU:ta" : "No customer SKU", noDescription: fi ? "Ei kuvausta" : "No description", pcs: fi ? "kpl" : "pcs", method: fi ? "Osumamenetelmä" : "Match method", noMethod: fi ? "Ei menetelmää" : "No method",
     suggested: fi ? "Ehdotettu tuote" : "Suggested product", noCandidate: fi ? "Ei ehdokasta" : "No candidate", noCandidateBody: fi ? "Yksikään katalogituote ei ylittänyt nykyistä kynnystä." : "No catalogue product cleared the current threshold.", match: fi ? "Osuma" : "Match", productCandidate: fi ? "Tuote-ehdokas" : "Product candidate",
-    remember: fi ? "Muista tämä vastine tälle asiakkaalle" : "Remember this mapping for this customer", confirm: fi ? "Vahvista osuma" : "Confirm match", manual: fi ? "Manuaalinen käsittely vaaditaan" : "Manual handling required", manualBody: fi ? "Yksikään katalogiehdokas ei ylittänyt fuzzy-kynnystä. Poimittu lähderivi säilytetään muuttumattomana." : "{text.manualBody}",
+    remember: fi ? "Muista tämä vastine tälle asiakkaalle" : "Remember this mapping for this customer", confirm: fi ? "Vahvista osuma" : "Confirm match", manual: fi ? "Manuaalinen käsittely vaaditaan" : "Manual handling required", manualBody: fi ? "Yksikään katalogiehdokas ei ylittänyt fuzzy-kynnystä. Poimittu lähderivi säilytetään muuttumattomana." : "No catalogue candidate cleared the fuzzy threshold. The extracted source line remains preserved.",
     readyForQuote: fi ? "Valmis tarjoukseen" : "Ready for quote", readyTitle: fi ? "Jokainen tarjouspyynnön rivi on ihmisen erikseen vahvistama." : "Every RFQ line has been explicitly confirmed by a person.", readyBody: fi ? "Lukitse vahvistetut tuotteet tarjousluonnokseen ja muokkaa sitten hinnoittelua, alennuksia, ALV:tä ja hyväksyntää Quote Builderissa." : "Freeze the human-confirmed products into a commercial draft, then edit pricing, discounts, VAT and approval state in Quote Builder.",
     openQuote: fi ? "Avaa" : "Open", createQuote: fi ? "Luo tarjous" : "Create quote", permission: fi ? "Tarjouksen luominen vaatii owner- tai admin-oikeuden." : "{text.permission}", quoteExists: fi ? "Tarjous on jo olemassa" : "Quote exists", quoteExistsTitle: fi ? "Tällä tarjouspyynnöllä on jo kaupallinen tarjous." : "This RFQ already has a commercial quote.", quote: fi ? "tarjous" : "quote",
   };
@@ -150,7 +150,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
           {["owner", "admin", "member"].includes(workspace.role) ? (
             <form action={retryRfqProcessing} className="mt-4">
               <input type="hidden" name="rfqId" value={id} />
-              <button className="btn-secondary">Retry product matching</button>
+              <button className="btn-secondary">{text.retry}</button>
             </form>
           ) : null}
         </section>
@@ -227,7 +227,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                       </div>
                       {extractionConfidence != null ? (
                         <div>
-                          <span>Extraction</span>
+                          <span>{text.extraction}</span>
                           <strong>{Math.round(extractionConfidence)}%</strong>
                         </div>
                       ) : null}
@@ -343,7 +343,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
           <div className="upload-v2-section-label">{text.quoteExists}</div>
           <h2>{text.quoteExistsTitle}</h2>
           <Link href={`/app/quotes/${existingQuote.id}`} className="rfq-review-v2-quote-cta">
-            Open {existingQuote.quote_number || "quote"} <span aria-hidden="true">→</span>
+            {text.openQuote} {existingQuote.quote_number || text.quote} <span aria-hidden="true">→</span>
           </Link>
         </section>
       ) : null}
