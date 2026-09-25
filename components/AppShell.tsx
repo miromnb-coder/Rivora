@@ -17,6 +17,7 @@ export function AppShell({
   const showSales = workspaceRole === "owner" || workspaceRole === "admin";
   const nav = [
     ["Inbox", "/app/inbox"],
+    ["Quotes", "/app/quotes"],
     ...(showSales ? [["Leads", "/app/leads"]] : []),
     ["Process RFQ", "/app/upload"],
     ["Products", "/app/products"],
