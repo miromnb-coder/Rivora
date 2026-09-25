@@ -366,7 +366,7 @@ export function BeforeAfterV2() {
 
 export function FinalCtaV2() {
   return (
-    <section className="marketing-shell final-cta-v2" id="pricing">
+    <section className="marketing-shell final-cta-v2" id="get-started">
       <div className="final-cta-v2-card">
         <div className="final-cta-v2-shader" aria-hidden="true" />
         <div className="final-cta-v2-content">
@@ -381,8 +381,8 @@ export function FinalCtaV2() {
             <Link href="/app/upload" className="final-cta-v2-primary">
               Upload an RFQ <span aria-hidden="true">→</span>
             </Link>
-            <a href="mailto:hello@rivora.fi" className="final-cta-v2-secondary">
-              Book a demo
+            <a href="#demo" className="final-cta-v2-secondary">
+              Request a demo
             </a>
           </div>
 
