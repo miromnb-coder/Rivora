@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
-import { confirmRfqMatch } from "./actions";
+import { confirmRfqMatch, retryRfqProcessing } from "./actions";
 import { createQuoteFromRfq } from "@/app/app/quotes/actions";
 
 const money = new Intl.NumberFormat("en-FI", { style: "currency", currency: "EUR" });
 
 function lineTone(confidence: number, reviewStatus: string) {
-  if (reviewStatus === "confirmed" || reviewStatus === "matched") return "ready";
+  if (reviewStatus === "confirmed") return "ready";
+  if (reviewStatus === "matched") return "review";
   if (reviewStatus === "needs_review" || (confidence >= 60 && confidence < 92)) return "review";
   if (confidence >= 92) return "ready";
   return "blocked";
@@ -19,7 +20,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
   const { data: rfq } = await supabase
     .from("rfqs")
-    .select("id, reference, source_type, status, overall_confidence, extraction_provider, extraction_model, extraction_confidence, extraction_warnings, customers(name)")
+    .select("id, reference, source_type, status, overall_confidence, extraction_provider, extraction_model, extraction_confidence, extraction_warnings, processing_error, customers(name)")
     .eq("id", id)
     .maybeSingle();
 
@@ -57,8 +58,8 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
     ? (rfq as any).customers[0]
     : (rfq as any).customers;
 
-  const unresolved = (lines ?? []).filter((line: any) =>
-    ["needs_review", "unmatched", "pending"].includes(line.review_status)
+  const unresolved = (lines ?? []).filter(
+    (line: any) => line.review_status !== "confirmed"
   ).length;
 
   const resolved = (lines ?? []).length - unresolved;
@@ -78,7 +79,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
           <h1>{rfq.reference || "RFQ review"}</h1>
           <p>
             {customer?.name ?? "Unknown customer"} · {String(rfq.source_type).toUpperCase()} ·{" "}
-            {unresolved ? `${unresolved} lines need attention` : "all lines resolved"}
+            {unresolved ? `${unresolved} lines need human confirmation` : "all lines human-confirmed"}
           </p>
         </div>
 
@@ -105,8 +106,8 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
         </div>
         <div>
           <span>Policy</span>
-          <strong className="is-text">Memory → SKU → MPN → fuzzy</strong>
-          <small>fuzzy stays reviewable</small>
+          <strong className="is-text">Suggest → human confirm</strong>
+          <small>memory and exact matches still require confirmation</small>
         </div>
       </section>
 
@@ -124,6 +125,19 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
             <span>Warnings</span>
             <b>{warnings.length}</b>
           </div>
+        </section>
+      ) : null}
+
+      {rfq.status === "failed" ? (
+        <section className="rfq-review-v2-warning">
+          <div className="upload-v2-section-label">Processing failed</div>
+          <p>{rfq.processing_error || "Nodra could not finish processing this RFQ."}</p>
+          {["owner", "admin", "member"].includes(workspace.role) ? (
+            <form action={retryRfqProcessing} className="mt-4">
+              <input type="hidden" name="rfqId" value={id} />
+              <button className="btn-secondary">Retry product matching</button>
+            </form>
+          ) : null}
         </section>
       ) : null}
 
@@ -286,9 +300,9 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
       {rfq.status === "ready" ? (
         <section className="rfq-review-v2-ready">
           <div className="upload-v2-section-label">Ready for quote</div>
-          <h2>Every RFQ line has a resolved product.</h2>
+          <h2>Every RFQ line has been explicitly confirmed by a person.</h2>
           <p>
-            Freeze the selected products into a commercial draft, then edit pricing,
+            Freeze the human-confirmed products into a commercial draft, then edit pricing,
             discounts, VAT and approval state in Quote Builder.
           </p>
 

@@ -7,6 +7,9 @@ export default async function UploadPage({
 }: {
   searchParams: Promise<{
     catalogueImported?: string;
+    catalogueCreated?: string;
+    catalogueUpdated?: string;
+    catalogueMissingPrice?: string;
     catalogueError?: string;
     rfqError?: string;
     pdfError?: string;
@@ -44,7 +47,11 @@ export default async function UploadPage({
 
       {params.catalogueImported ? (
         <div className="upload-v2-alert success">
-          Imported or updated {params.catalogueImported} products.
+          Catalogue committed atomically: {params.catalogueImported} products validated ·{" "}
+          {params.catalogueCreated ?? "0"} new · {params.catalogueUpdated ?? "0"} updated
+          {Number(params.catalogueMissingPrice ?? 0) > 0
+            ? ` · ${params.catalogueMissingPrice} without a catalogue price (pricing will be required in Quote Builder)`
+            : ""}.
         </div>
       ) : null}
 
@@ -77,7 +84,7 @@ export default async function UploadPage({
               <span className="text-xs font-bold text-[var(--muted)]">03</span>
               <strong className="mt-2 block">Review before quoting</strong>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                Resolve uncertain lines, then create and approve the quote.
+                Confirm every suggested product match, then create and approve the quote.
               </p>
             </div>
           </div>
@@ -240,7 +247,7 @@ export default async function UploadPage({
       <section className="upload-v2-trust">
         <div>
           <span>Review threshold</span>
-          <b>Below 90% → human review</b>
+          <b>Every match → human confirmation</b>
         </div>
         <div>
           <span>Match order</span>

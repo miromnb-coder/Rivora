@@ -33,7 +33,7 @@ export default async function QuoteDetailPage({
 
   const { data: lines } = await supabase
     .from("quote_lines")
-    .select("id, line_number, source_rfq_line_id, product_id, sku_snapshot, description_snapshot, quantity, unit, catalogue_unit_price, unit_price, discount_percent, line_total, products(sku,name,manufacturer)")
+    .select("id, line_number, source_rfq_line_id, product_id, sku_snapshot, description_snapshot, quantity, unit, catalogue_unit_price, unit_price, pricing_required, discount_percent, line_total, products(sku,name,manufacturer)")
     .eq("quote_id", id)
     .order("line_number");
 
@@ -58,6 +58,7 @@ export default async function QuoteDetailPage({
     process.env.RESEND_API_KEY?.trim() && (process.env.NODRA_QUOTE_FROM ?? process.env.RIVORA_QUOTE_FROM)?.trim()
   );
   const money = moneyFormatter(quote.currency || "EUR");
+  const pricingRequiredCount = (lines ?? []).filter((line: any) => Boolean(line.pricing_required)).length;
   const subtotal = (lines ?? []).reduce((sum: number, line: any) => sum + Number(line.line_total ?? 0), 0);
   const taxRate = Number(quote.tax_rate ?? 0);
   const taxTotal = subtotal * (taxRate / 100);
@@ -106,8 +107,14 @@ export default async function QuoteDetailPage({
         </span>
       </header>
 
+      {pricingRequiredCount > 0 ? (
+        <section className="upload-v2-alert error">
+          {pricingRequiredCount} quote {pricingRequiredCount === 1 ? "line needs" : "lines need"} an explicit unit price before this quote can be marked ready.
+        </section>
+      ) : null}
+
       <section className="quote-builder-v1-summary">
-        <div><span>Subtotal</span><strong>{money.format(subtotal)}</strong><small>after line discounts</small></div>
+        <div><span>Subtotal</span><strong>{money.format(subtotal)}</strong><small>{pricingRequiredCount ? "incomplete until all prices are set" : "after line discounts"}</small></div>
         <div><span>VAT</span><strong>{taxRate}%</strong><small>{money.format(taxTotal)}</small></div>
         <div><span>Total</span><strong>{money.format(total)}</strong><small>quote value</small></div>
         <div><span>Validity</span><strong className="is-text">{quote.valid_until ? new Date(`${quote.valid_until}T12:00:00Z`).toLocaleDateString("fi-FI") : "Not set"}</strong><small>customer-facing</small></div>
@@ -140,7 +147,11 @@ export default async function QuoteDetailPage({
                       </div>
                       <h3>{sku}</h3>
                       <p>{description}</p>
-                      {catalogue != null ? <small>Catalogue snapshot {money.format(catalogue)} / {line.unit}</small> : null}
+                      {catalogue != null ? (
+                        <small>Catalogue snapshot {money.format(catalogue)} / {line.unit}</small>
+                      ) : line.pricing_required ? (
+                        <small className="font-bold">No catalogue price · explicit pricing required</small>
+                      ) : null}
                     </div>
 
                     {editable ? (
@@ -154,7 +165,15 @@ export default async function QuoteDetailPage({
                         </label>
                         <label>
                           <span>Unit price</span>
-                          <input name="unitPrice" type="number" min="0" step="0.01" defaultValue={Number(line.unit_price)} required />
+                          <input
+                            name="unitPrice"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            defaultValue={line.pricing_required ? "" : Number(line.unit_price)}
+                            placeholder={line.pricing_required ? "Enter price" : undefined}
+                            required
+                          />
                         </label>
                         <label>
                           <span>Discount %</span>
