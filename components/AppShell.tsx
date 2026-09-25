@@ -29,7 +29,7 @@ export function AppShell({
       <aside className="app-sidebar-v2">
         <div className="app-sidebar-v2-top">
           <Link href="/app/inbox" className="app-sidebar-v2-brand">
-            Rivora
+            Nodra
           </Link>
           <div className="app-sidebar-v2-product">RFQ intelligence desk</div>
         </div>
