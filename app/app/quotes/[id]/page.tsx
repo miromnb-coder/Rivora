@@ -4,8 +4,9 @@ import { requireWorkspace } from "@/lib/rivora/workspace";
 import {
   approveQuote,
   markQuoteReady,
-  markQuoteSent,
   returnQuoteToDraft,
+  sendQuoteEmail,
+  updateQuoteDelivery,
   updateQuoteHeader,
   updateQuoteLine,
 } from "../actions";
@@ -24,7 +25,7 @@ export default async function QuoteDetailPage({
 
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, rfq_id, quote_number, status, currency, valid_until, customer_reference, notes, tax_rate, approved_at, sent_at, created_at, updated_at, customers(name), rfqs(reference)")
+    .select("id, rfq_id, quote_number, status, currency, valid_until, customer_reference, notes, tax_rate, recipient_name, recipient_email, sent_to_email, email_provider_id, approved_at, sent_at, created_at, updated_at, customers(name), rfqs(reference)")
     .eq("id", id)
     .maybeSingle();
 
@@ -36,8 +37,12 @@ export default async function QuoteDetailPage({
     .eq("quote_id", id)
     .order("line_number");
 
-  const editable = ["owner", "admin"].includes(workspace.role) && ["draft", "ready"].includes(quote.status);
-  const canApprove = ["owner", "admin"].includes(workspace.role);
+  const canManage = ["owner", "admin"].includes(workspace.role);
+  const editable = canManage && ["draft", "ready"].includes(quote.status);
+  const deliveryEditable = canManage && !["sent", "expired"].includes(quote.status);
+  const emailConfigured = Boolean(
+    process.env.RESEND_API_KEY?.trim() && process.env.RIVORA_QUOTE_FROM?.trim()
+  );
   const money = moneyFormatter(quote.currency || "EUR");
   const subtotal = (lines ?? []).reduce((sum: number, line: any) => sum + Number(line.line_total ?? 0), 0);
   const taxRate = Number(quote.tax_rate ?? 0);
@@ -50,7 +55,12 @@ export default async function QuoteDetailPage({
     <div className="app-page-v2 quote-builder-v1">
       <div className="quote-builder-v1-nav">
         <Link href="/app/quotes">← Quotes</Link>
-        {quote.rfq_id ? <Link href={`/app/rfq/${quote.rfq_id}`}>Source RFQ →</Link> : null}
+        <div className="quote-builder-v1-nav-actions">
+          <a href={`/app/quotes/${quote.id}/pdf`} className="quote-builder-v1-pdf-link">
+            Download PDF ↓
+          </a>
+          {quote.rfq_id ? <Link href={`/app/rfq/${quote.rfq_id}`}>Source RFQ →</Link> : null}
+        </div>
       </div>
 
       <header className="quote-builder-v1-head">
@@ -179,8 +189,39 @@ export default async function QuoteDetailPage({
             )}
           </section>
 
+          <section className="quote-builder-v1-panel quote-delivery-v1">
+            <div className="upload-v2-section-label">Customer delivery</div>
+            <p className="quote-delivery-v1-copy">
+              The PDF contains only customer-facing commercial information. Draft and ready quotes are visibly marked as unapproved.
+            </p>
+
+            {deliveryEditable ? (
+              <form action={updateQuoteDelivery} className="quote-builder-v1-header-form">
+                <input type="hidden" name="quoteId" value={quote.id} />
+                <label>
+                  <span>Recipient name</span>
+                  <input name="recipientName" maxLength={160} defaultValue={quote.recipient_name || ""} placeholder="Buyer or contact" />
+                </label>
+                <label>
+                  <span>Recipient email</span>
+                  <input name="recipientEmail" type="email" maxLength={320} defaultValue={quote.recipient_email || ""} placeholder="buyer@customer.com" />
+                </label>
+                <button className="quote-builder-v1-secondary">Save delivery details</button>
+              </form>
+            ) : (
+              <div className="quote-builder-v1-readonly quote-delivery-v1-readonly">
+                <div><span>Recipient</span><strong>{quote.recipient_name || "Not set"}</strong></div>
+                <div><span>Email</span><strong>{quote.sent_to_email || quote.recipient_email || "Not set"}</strong></div>
+              </div>
+            )}
+
+            <a href={`/app/quotes/${quote.id}/pdf`} className="quote-delivery-v1-download">
+              Download customer PDF <span aria-hidden="true">↓</span>
+            </a>
+          </section>
+
           <section className="quote-builder-v1-panel quote-builder-v1-approval">
-            <div className="upload-v2-section-label">Approval flow</div>
+            <div className="upload-v2-section-label">Approval & sending</div>
 
             <div className="quote-builder-v1-flow">
               {["draft", "ready", "approved", "sent"].map((stage, index) => {
@@ -195,7 +236,7 @@ export default async function QuoteDetailPage({
               })}
             </div>
 
-            {canApprove ? (
+            {canManage ? (
               <div className="quote-builder-v1-stage-actions">
                 {quote.status === "draft" ? (
                   <form action={markQuoteReady}>
@@ -218,18 +259,34 @@ export default async function QuoteDetailPage({
                 ) : null}
 
                 {quote.status === "approved" ? (
-                  <form action={markQuoteSent}>
-                    <input type="hidden" name="quoteId" value={quote.id} />
-                    <button>Mark sent →</button>
-                  </form>
+                  emailConfigured && quote.recipient_email ? (
+                    <form action={sendQuoteEmail}>
+                      <input type="hidden" name="quoteId" value={quote.id} />
+                      <button>Send quote + PDF →</button>
+                    </form>
+                  ) : (
+                    <div className="quote-delivery-v1-gate">
+                      {!quote.recipient_email
+                        ? "Add the customer email above before sending."
+                        : "Email delivery needs RESEND_API_KEY and RIVORA_QUOTE_FROM on the server."}
+                    </div>
+                  )
+                ) : null}
+
+                {quote.status === "sent" ? (
+                  <div className="quote-delivery-v1-sent">
+                    <strong>Sent successfully</strong>
+                    <span>{quote.sent_to_email || quote.recipient_email}</span>
+                  </div>
                 ) : null}
               </div>
             ) : (
-              <p className="quote-builder-v1-permission">Owner or admin approval is required for commercial state changes.</p>
+              <p className="quote-builder-v1-permission">Owner or admin access is required for approval and customer sending.</p>
             )}
 
             {quote.approved_at ? <small>Approved {new Date(quote.approved_at).toLocaleString("fi-FI")}</small> : null}
             {quote.sent_at ? <small>Sent {new Date(quote.sent_at).toLocaleString("fi-FI")}</small> : null}
+            {quote.email_provider_id ? <small>Delivery audit ID saved</small> : null}
           </section>
         </aside>
       </div>
