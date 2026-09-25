@@ -403,7 +403,7 @@ export async function sendQuoteEmail(formData: FormData) {
     <p>Best regards,<br>${escapeHtml(workspace.name)}</p>
   </div>`;
 
-  const body: Record<string, unknown> = {
+  const nextAttempt = Number(quote.delivery_attempt_count ?? 0) + 1;\n\n  const body: Record<string, unknown> = {
     from,
     to: [quote.recipient_email],
     subject,
@@ -423,7 +423,7 @@ export async function sendQuoteEmail(formData: FormData) {
 
   if (replyTo) body.reply_to = [replyTo];
 
-  const nextAttempt = Number(quote.delivery_attempt_count ?? 0) + 1;
+
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
