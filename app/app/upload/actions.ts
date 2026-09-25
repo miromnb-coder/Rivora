@@ -35,35 +35,47 @@ async function upsertCustomer(
 
 export async function importCatalogue(formData: FormData) {
   const file = formData.get("catalogue");
-  let imported = 0;
   let failure: string | null = null;
+  let summary = { total: 0, created: 0, updated: 0, missingPrice: 0 };
 
   try {
     if (!(file instanceof File)) throw new Error("Choose a catalogue file.");
     const { supabase, workspace } = await requireWorkspace();
-    const rows = toCatalogueRows(await parseTabularFile(file));
-
-    for (let start = 0; start < rows.length; start += 500) {
-      const batch = rows.slice(start, start + 500).map((row) => ({
-        organization_id: workspace.id,
-        sku: row.sku,
-        name: row.name,
-        manufacturer: row.manufacturer,
-        manufacturer_part_number: row.manufacturerPartNumber,
-        unit: row.unit,
-        unit_price: row.unitPrice,
-        stock_quantity: row.stockQuantity,
-        active: true,
-        updated_at: new Date().toISOString(),
-      }));
-
-      const { error } = await supabase
-        .from("products")
-        .upsert(batch, { onConflict: "organization_id,sku" });
-
-      if (error) throw error;
-      imported += batch.length;
+    if (!["owner", "admin"].includes(workspace.role)) {
+      throw new Error("Owner or admin access is required to import the product catalogue.");
     }
+
+    const rows = toCatalogueRows(await parseTabularFile(file));
+    const payload = rows.map((row) => ({
+      sku: row.sku,
+      name: row.name,
+      manufacturer: row.manufacturer,
+      manufacturer_part_number: row.manufacturerPartNumber,
+      unit: row.unit,
+      unit_price: row.unitPrice,
+      stock_quantity: row.stockQuantity,
+    }));
+
+    const { data, error } = await supabase.rpc("import_catalogue_rows", {
+      target_organization_id: workspace.id,
+      payload,
+    });
+
+    if (error) throw error;
+
+    const result = (data ?? {}) as {
+      total?: number;
+      created?: number;
+      updated?: number;
+      missing_price?: number;
+    };
+
+    summary = {
+      total: Number(result.total ?? rows.length),
+      created: Number(result.created ?? 0),
+      updated: Number(result.updated ?? 0),
+      missingPrice: Number(result.missing_price ?? rows.filter((row) => row.unitPrice == null).length),
+    };
   } catch (error) {
     failure = errorMessage(error);
   }
@@ -71,7 +83,9 @@ export async function importCatalogue(formData: FormData) {
   if (failure) redirect(`/app/upload?catalogueError=${encodeURIComponent(failure)}`);
 
   revalidatePath("/app/products");
-  redirect(`/app/upload?catalogueImported=${imported}`);
+  redirect(
+    `/app/upload?catalogueImported=${summary.total}&catalogueCreated=${summary.created}&catalogueUpdated=${summary.updated}&catalogueMissingPrice=${summary.missingPrice}`
+  );
 }
 
 export async function processRfq(formData: FormData) {
@@ -80,12 +94,18 @@ export async function processRfq(formData: FormData) {
   const reference = String(formData.get("reference") ?? "").trim();
   let rfqId: string | null = null;
   let failure: string | null = null;
+  let context: Awaited<ReturnType<typeof requireWorkspace>> | null = null;
 
   try {
     if (!(file instanceof File)) throw new Error("Choose an RFQ file.");
     if (!customerName) throw new Error("Customer name is required.");
 
-    const { supabase, workspace } = await requireWorkspace();
+    context = await requireWorkspace();
+    const { supabase, workspace } = context;
+    if (!["owner", "admin", "member"].includes(workspace.role)) {
+      throw new Error("Reviewer access is read-only.");
+    }
+
     const lines = toRfqRows(await parseTabularFile(file));
     const customer = await upsertCustomer(supabase, workspace.id, customerName);
 
@@ -124,8 +144,19 @@ export async function processRfq(formData: FormData) {
     if (matchError) throw matchError;
   } catch (error) {
     failure = errorMessage(error);
+    if (rfqId && context) {
+      await context.supabase
+        .from("rfqs")
+        .update({ status: "failed", processing_error: failure.slice(0, 2000) })
+        .eq("id", rfqId)
+        .eq("organization_id", context.workspace.id);
+    }
   }
 
+  if (failure && rfqId) {
+    revalidatePath("/app/inbox");
+    redirect(`/app/rfq/${rfqId}`);
+  }
   if (failure) redirect(`/app/upload?rfqError=${encodeURIComponent(failure)}`);
   if (!rfqId) redirect("/app/upload?rfqError=RFQ%20creation%20failed");
 
@@ -139,11 +170,17 @@ export async function processPdfRfq(formData: FormData) {
   const referenceOverride = String(formData.get("pdfReference") ?? "").trim();
   let rfqId: string | null = null;
   let failure: string | null = null;
+  let context: Awaited<ReturnType<typeof requireWorkspace>> | null = null;
 
   try {
     if (!(file instanceof File)) throw new Error("Choose a PDF RFQ.");
 
-    const { supabase, workspace } = await requireWorkspace();
+    context = await requireWorkspace();
+    const { supabase, workspace } = context;
+    if (!["owner", "admin", "member"].includes(workspace.role)) {
+      throw new Error("Reviewer access is read-only.");
+    }
+
     const result = await extractRfqFromPdf(file);
     const extracted = result.extraction;
 
@@ -225,8 +262,19 @@ export async function processPdfRfq(formData: FormData) {
     if (matchError) throw matchError;
   } catch (error) {
     failure = errorMessage(error);
+    if (rfqId && context) {
+      await context.supabase
+        .from("rfqs")
+        .update({ status: "failed", processing_error: failure.slice(0, 2000) })
+        .eq("id", rfqId)
+        .eq("organization_id", context.workspace.id);
+    }
   }
 
+  if (failure && rfqId) {
+    revalidatePath("/app/inbox");
+    redirect(`/app/rfq/${rfqId}`);
+  }
   if (failure) redirect(`/app/upload?pdfError=${encodeURIComponent(failure)}`);
   if (!rfqId) redirect("/app/upload?pdfError=PDF%20extraction%20failed");
 
