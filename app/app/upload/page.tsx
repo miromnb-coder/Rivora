@@ -31,7 +31,7 @@ export default async function UploadPage({
         <h1>Turn a customer request into resolved product lines.</h1>
         <p>
           Upload a PDF for AI-assisted extraction or use a structured CSV/XLSX.
-          Rivora keeps extraction, matching and human review separate.
+          Nodra keeps extraction, matching and human review separate.
         </p>
       </header>
 
@@ -86,7 +86,7 @@ export default async function UploadPage({
             <div className="upload-v2-section-label">Incoming RFQ</div>
             <h2>Process a customer PDF.</h2>
             <p>
-              Rivora extracts customer, reference, quantities, SKUs and descriptions,
+              Nodra extracts customer, reference, quantities, SKUs and descriptions,
               then runs catalogue matching and sends uncertainty to review.
             </p>
           </div>
@@ -117,7 +117,7 @@ export default async function UploadPage({
               name="pdfRfq"
               accept="*/*"
               title="Choose RFQ PDF"
-              hint="Choose the PDF from Files · Rivora verifies the file contents"
+              hint="Choose the PDF from Files · Nodra verifies the file contents"
               required
             />
           </div>
@@ -146,7 +146,7 @@ export default async function UploadPage({
           <div className="upload-v2-section-label">Structured RFQ</div>
           <h3>Already have CSV or XLSX?</h3>
           <p>
-            Skip AI extraction and send structured lines directly into Rivora’s deterministic matching engine.
+            Skip AI extraction and send structured lines directly into Nodra’s deterministic matching engine.
           </p>
         </div>
 
