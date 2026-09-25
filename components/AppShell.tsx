@@ -22,6 +22,7 @@ export function AppShell({
     ["Process RFQ", "/app/upload"],
     ["Products", "/app/products"],
     ["Customer memory", "/app/memory"],
+    ["Settings", "/app/settings"],
   ] as const;
 
   return (
