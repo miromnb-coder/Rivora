@@ -227,3 +227,12 @@ create table if not exists public.app_error_events (
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+
+create index if not exists quotes_recipient_contact_id_idx
+  on public.quotes(recipient_contact_id)
+  where recipient_contact_id is not null;
+
+create index if not exists app_error_events_user_id_idx
+  on public.app_error_events(user_id)
+  where user_id is not null;
