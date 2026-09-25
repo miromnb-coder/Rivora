@@ -112,50 +112,55 @@ export function sourceTypeFromName(name: string): "csv" | "excel" {
 }
 
 export function toCatalogueRows(rows: RawRow[]): CatalogueImportRow[] {
-  const mapped = rows
-    .map((row) => {
-      const sku = pick(row, ["sku", "product code", "item code", "item number", "tuotenumero", "nimike"]);
-      const name = pick(row, ["name", "product name", "description", "tuotenimi", "kuvaus"]);
-      if (!sku || !name) return null;
-
-      return {
-        sku,
-        name,
-        manufacturer: pick(row, ["manufacturer", "brand", "valmistaja"]) || null,
-        manufacturerPartNumber:
-          pick(row, ["manufacturer part number", "mpn", "manufacturer sku", "valmistajan tuotenumero"]) || null,
-        unit: pick(row, ["unit", "uom", "yksikkö"]) || "pcs",
-        unitPrice: parseNumber(pick(row, ["price", "unit price", "sales price", "hinta"])),
-        stockQuantity: parseNumber(pick(row, ["stock", "stock quantity", "available", "saldo"])),
-      };
-    })
-    .filter((row): row is CatalogueImportRow => Boolean(row));
-
-  if (!mapped.length) {
-    throw new Error("No products found. Catalogue needs at least SKU and product name columns.");
+  if (!rows.length) {
+    throw new Error("Catalogue file has no product rows.");
   }
 
-  return mapped;
+  return rows.map((row, index) => {
+    const sku = pick(row, ["sku", "product code", "item code", "item number", "tuotenumero", "nimike"]);
+    const name = pick(row, ["name", "product name", "description", "tuotenimi", "kuvaus"]);
+    if (!sku || !name) {
+      throw new Error(`Catalogue row ${index + 2} is missing SKU or product name.`);
+    }
+
+    const unitPrice = parseNumber(pick(row, ["price", "unit price", "sales price", "hinta"]));
+    if (unitPrice != null && unitPrice < 0) {
+      throw new Error(`Catalogue row ${index + 2} has a negative unit price.`);
+    }
+
+    return {
+      sku,
+      name,
+      manufacturer: pick(row, ["manufacturer", "brand", "valmistaja"]) || null,
+      manufacturerPartNumber:
+        pick(row, ["manufacturer part number", "mpn", "manufacturer sku", "valmistajan tuotenumero"]) || null,
+      unit: pick(row, ["unit", "uom", "yksikkö"]) || "pcs",
+      unitPrice,
+      stockQuantity: parseNumber(pick(row, ["stock", "stock quantity", "available", "saldo"])),
+    };
+  });
 }
 
 export function toRfqRows(rows: RawRow[]): RfqImportRow[] {
-  const mapped = rows
-    .map((row) => {
-      const customerSku =
-        pick(row, ["customer sku", "sku", "item code", "part number", "product code", "tuotenumero", "nimike"]) || null;
-      const description =
-        pick(row, ["description", "product name", "item description", "kuvaus", "tuotenimi"]) || "";
-      const quantity = parseNumber(pick(row, ["quantity", "qty", "amount", "määrä", "kpl"]));
-      const unit = pick(row, ["unit", "uom", "yksikkö"]) || "pcs";
-
-      if ((!customerSku && !description) || !quantity || quantity <= 0) return null;
-      return { customerSku, description, quantity, unit };
-    })
-    .filter((row): row is RfqImportRow => Boolean(row));
-
-  if (!mapped.length) {
-    throw new Error("No RFQ lines found. RFQ needs a quantity plus SKU and/or description.");
+  if (!rows.length) {
+    throw new Error("RFQ file has no request rows.");
   }
 
-  return mapped;
+  return rows.map((row, index) => {
+    const customerSku =
+      pick(row, ["customer sku", "sku", "item code", "part number", "product code", "tuotenumero", "nimike"]) || null;
+    const description =
+      pick(row, ["description", "product name", "item description", "kuvaus", "tuotenimi"]) || "";
+    const quantity = parseNumber(pick(row, ["quantity", "qty", "amount", "määrä", "kpl"]));
+    const unit = pick(row, ["unit", "uom", "yksikkö"]) || "pcs";
+
+    if (!customerSku && !description) {
+      throw new Error(`RFQ row ${index + 2} is missing both SKU and description.`);
+    }
+    if (quantity == null || quantity <= 0) {
+      throw new Error(`RFQ row ${index + 2} has a missing or invalid quantity.`);
+    }
+
+    return { customerSku, description, quantity, unit };
+  });
 }
