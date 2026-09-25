@@ -20,7 +20,7 @@ export function MarketingNav() {
           Sign in
         </Link>
         <Link href="/app/upload" className="nav-v2-cta">
-          Try Rivora <span aria-hidden="true">→</span>
+          Upload an RFQ <span aria-hidden="true">→</span>
         </Link>
       </div>
     </header>
