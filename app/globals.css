@@ -7474,3 +7474,117 @@ button, input, select { font: inherit; }
     justify-content: space-between;
   }
 }
+
+
+/* Delivery Tracking v1 */
+.quote-delivery-v1-state {
+  margin-top: 14px;
+  border-radius: 16px;
+  background: #eef1ee;
+  padding: 14px;
+}
+
+.quote-delivery-v1-state > span,
+.quote-delivery-v1-state > strong,
+.quote-delivery-v1-state > small {
+  display: block;
+}
+
+.quote-delivery-v1-state > span {
+  color: #8d938e;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.quote-delivery-v1-state > strong {
+  margin-top: 6px;
+  color: #3d4a40;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.quote-delivery-v1-state > small {
+  margin-top: 5px;
+  color: #848a85;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.quote-delivery-v1-state.bounced,
+.quote-delivery-v1-state.failed,
+.quote-delivery-v1-sent.bounced,
+.quote-delivery-v1-sent.failed {
+  background: #f3e9e3;
+  color: #76513f;
+}
+
+.quote-delivery-v1-timeline {
+  margin-top: 18px;
+  border-top: 1px solid #e1e4df;
+  padding-top: 16px;
+}
+
+.quote-delivery-v1-timeline-title {
+  color: #8d938e;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.quote-delivery-v1-event {
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 11px 0;
+  border-bottom: 1px solid #e7e9e5;
+}
+
+.quote-delivery-v1-event > i {
+  width: 8px;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: #89918a;
+}
+
+.quote-delivery-v1-event > i.delivered {
+  background: #5e7867;
+}
+
+.quote-delivery-v1-event > i.bounced,
+.quote-delivery-v1-event > i.failed {
+  background: #9a644c;
+}
+
+.quote-delivery-v1-event strong,
+.quote-delivery-v1-event span,
+.quote-delivery-v1-event small {
+  display: block;
+}
+
+.quote-delivery-v1-event strong {
+  color: #3c433d;
+  font-size: 9px;
+  font-weight: 850;
+  text-transform: capitalize;
+}
+
+.quote-delivery-v1-event span,
+.quote-delivery-v1-event small,
+.quote-delivery-v1-awaiting {
+  margin-top: 3px;
+  color: #8d938e;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.quote-delivery-v1-awaiting {
+  margin-top: 14px;
+  border-top: 1px solid #e1e4df;
+  padding-top: 13px;
+}
