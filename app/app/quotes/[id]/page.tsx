@@ -25,7 +25,7 @@ export default async function QuoteDetailPage({
 
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, rfq_id, quote_number, status, currency, valid_until, customer_reference, notes, tax_rate, recipient_name, recipient_email, sent_to_email, email_provider_id, approved_at, sent_at, created_at, updated_at, customers(name), rfqs(reference)")
+    .select("id, rfq_id, quote_number, status, currency, valid_until, customer_reference, notes, tax_rate, recipient_name, recipient_email, sent_to_email, email_provider_id, approved_at, sent_at, last_sent_at, delivery_status, delivery_status_at, delivered_at, bounced_at, failed_at, delivery_attempt_count, created_at, updated_at, customers(name), rfqs(reference)")
     .eq("id", id)
     .maybeSingle();
 
@@ -36,6 +36,13 @@ export default async function QuoteDetailPage({
     .select("id, line_number, source_rfq_line_id, product_id, sku_snapshot, description_snapshot, quantity, unit, catalogue_unit_price, unit_price, discount_percent, line_total, products(sku,name,manufacturer)")
     .eq("quote_id", id)
     .order("line_number");
+
+  const { data: deliveryEvents } = await supabase
+    .from("quote_email_events")
+    .select("id, provider_email_id, event_type, recipient_email, occurred_at, message_id")
+    .eq("quote_id", id)
+    .order("occurred_at", { ascending: false })
+    .limit(30);
 
   const canManage = ["owner", "admin"].includes(workspace.role);
   const editable = canManage && ["draft", "ready"].includes(quote.status);
@@ -50,6 +57,20 @@ export default async function QuoteDetailPage({
   const total = subtotal + taxTotal;
   const customer = Array.isArray((quote as any).customers) ? (quote as any).customers[0] : (quote as any).customers;
   const rfq = Array.isArray((quote as any).rfqs) ? (quote as any).rfqs[0] : (quote as any).rfqs;
+  const canRetryDelivery =
+    canManage &&
+    quote.status === "sent" &&
+    ["bounced", "failed"].includes(String(quote.delivery_status ?? ""));
+  const deliveryLabel =
+    quote.delivery_status === "delivered"
+      ? "Delivered"
+      : quote.delivery_status === "bounced"
+        ? "Bounced"
+        : quote.delivery_status === "failed"
+          ? "Failed"
+          : quote.status === "sent"
+            ? "Sent"
+            : "Not sent";
 
   return (
     <div className="app-page-v2 quote-builder-v1">
@@ -218,6 +239,43 @@ export default async function QuoteDetailPage({
             <a href={`/app/quotes/${quote.id}/pdf`} className="quote-delivery-v1-download">
               Download customer PDF <span aria-hidden="true">↓</span>
             </a>
+
+            {quote.status === "sent" ? (
+              <div className={`quote-delivery-v1-state ${quote.delivery_status || "sent"}`}>
+                <span>Delivery status</span>
+                <strong>{deliveryLabel}</strong>
+                <small>
+                  {quote.delivery_status_at
+                    ? new Date(quote.delivery_status_at).toLocaleString("fi-FI")
+                    : quote.last_sent_at
+                      ? new Date(quote.last_sent_at).toLocaleString("fi-FI")
+                      : "Waiting for provider event"}
+                </small>
+                <small>
+                  Attempt {Number(quote.delivery_attempt_count ?? 0)} · {quote.sent_to_email || quote.recipient_email}
+                </small>
+              </div>
+            ) : null}
+
+            {(deliveryEvents ?? []).length ? (
+              <div className="quote-delivery-v1-timeline">
+                <div className="quote-delivery-v1-timeline-title">Delivery audit trail</div>
+                {(deliveryEvents ?? []).map((event: any) => (
+                  <div className="quote-delivery-v1-event" key={event.id}>
+                    <i className={event.event_type} aria-hidden="true" />
+                    <div>
+                      <strong>{String(event.event_type).replace("_", " ")}</strong>
+                      <span>{new Date(event.occurred_at).toLocaleString("fi-FI")}</span>
+                      <small>{event.recipient_email}</small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : quote.status === "sent" ? (
+              <div className="quote-delivery-v1-awaiting">
+                Waiting for the first delivery webhook event.
+              </div>
+            ) : null}
           </section>
 
           <section className="quote-builder-v1-panel quote-builder-v1-approval">
@@ -273,9 +331,22 @@ export default async function QuoteDetailPage({
                   )
                 ) : null}
 
-                {quote.status === "sent" ? (
-                  <div className="quote-delivery-v1-sent">
-                    <strong>Sent successfully</strong>
+                {canRetryDelivery ? (
+                  emailConfigured ? (
+                    <form action={sendQuoteEmail}>
+                      <input type="hidden" name="quoteId" value={quote.id} />
+                      <button>Retry delivery + PDF →</button>
+                    </form>
+                  ) : (
+                    <div className="quote-delivery-v1-gate">
+                      Email delivery is not configured on the server.
+                    </div>
+                  )
+                ) : null}
+
+                {quote.status === "sent" && !canRetryDelivery ? (
+                  <div className={`quote-delivery-v1-sent ${quote.delivery_status || "sent"}`}>
+                    <strong>{deliveryLabel}</strong>
                     <span>{quote.sent_to_email || quote.recipient_email}</span>
                   </div>
                 ) : null}
