@@ -35,7 +35,7 @@ export async function GET(
   const document = await loadQuoteDocumentData(
     supabase,
     id,
-    (organization as { name?: string } | null)?.name || "Rivora"
+    (organization as { name?: string } | null)?.name || "Nodra"
   );
 
   if (!document) {
