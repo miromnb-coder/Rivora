@@ -50,3 +50,5 @@ The strategic learning loop is `customer_product_mappings`: once a user verifies
 ## Current product baseline
 
 The current main branch includes Finnish/English locale handling for the public site and authenticated product, plus the neutral white Nodra product UI refresh aligned with the marketing site.
+
+Deployment trigger: current main baseline verified 2026-09-26.
