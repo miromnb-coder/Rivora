@@ -191,7 +191,7 @@ export async function processPdfRfq(formData: FormData) {
     const customerName = customerOverride || extracted.customer_name?.trim();
     if (!customerName) {
       throw new Error(
-        "OpenAI could not identify the customer. Enter the customer name override and run the PDF again."
+        "AI-poiminta ei tunnistanut asiakasta. Syötä asiakkaan nimi käsin ja käsittele PDF uudelleen."
       );
     }
 
