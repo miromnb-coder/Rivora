@@ -1,4 +1,4 @@
-import { login, signup } from "./actions";
+import { login } from "./actions";
 import { getDictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
@@ -43,10 +43,14 @@ export default async function LoginPage({
               <span className="nodra-field-label">{copy.password}</span>
               <input name="password" type="password" minLength={8} required className="nodra-input mt-2 w-full" />
             </label>
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <button formAction={login} className="btn-primary">{copy.signIn}</button>
-              <button formAction={signup} className="btn-secondary">{copy.create}</button>
+            <div className="pt-2">
+              <button formAction={login} className="btn-primary w-full">{copy.signIn}</button>
             </div>
+            <p className="mt-4 text-center text-xs leading-5 text-[var(--muted)]">
+              {locale === "fi"
+                ? "Uudet Nodra-tilit luodaan vain hyväksytyn pilotin kutsusta."
+                : "New Nodra accounts are created by approved pilot invitation only."}
+            </p>
           </form>
         </div>
       </div>
