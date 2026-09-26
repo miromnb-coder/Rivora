@@ -228,53 +228,61 @@ function dateLabel(value: string | null) {
 
 function buildPageHeader(data: QuoteDocumentData, continuation: boolean) {
   let content = "";
-  const sellerX = data.logoBytes ? 122 : 44;
-  content += pdfText(data.sellerName, sellerX, 793, 17, "F2", 0.08);
-  content += pdfText("QUOTE", 480, 793, 11, "F2", 0.08);
+  const sellerX = data.logoBytes ? 132 : 44;
+
+  content += pdfText(data.sellerName, sellerX, 796, 18, "F2", 0.07);
   const sellerMeta = [
     data.sellerBusinessId ? `Business ID ${data.sellerBusinessId}` : "",
     data.sellerEmail || "",
     data.sellerPhone || "",
-  ].filter(Boolean).join(" · ");
-  if (data.sellerAddress) content += pdfText(data.sellerAddress, sellerX, 779, 7.5, "F1", 0.34);
-  if (sellerMeta) content += pdfText(sellerMeta, sellerX, 767, 7.5, "F1", 0.34);
-  content += line(44, 755, 551, 755, 0.82, 0.8);
+  ].filter(Boolean).join(" | ");
+
+  if (data.sellerAddress) {
+    wrapText(data.sellerAddress, 62, 2).forEach((value, index) => {
+      content += pdfText(value, sellerX, 780 - index * 10, 7.3, "F1", 0.36);
+    });
+  }
+  if (sellerMeta) content += pdfText(sellerMeta, sellerX, 758, 7.3, "F1", 0.36);
+
+  content += pdfText("QUOTE", 471, 798, 16, "F2", 0.08);
+  content += pdfText(data.quoteNumber, 471, 779, 9, "F1", 0.28);
+  content += line(44, 742, 551, 742, 0.80, 0.8);
 
   if (continuation) {
-    content += pdfText(`${data.quoteNumber} - continued`, 44, 728, 11, "F2", 0.15);
-    return { content, tableY: 696 };
+    content += pdfText(`${data.quoteNumber} - continued`, 44, 714, 10, "F2", 0.18);
+    return { content, tableY: 684 };
   }
 
-  content += pdfText("Quote number", 44, 724, 7, "F2", 0.48);
-  content += pdfText(data.quoteNumber, 44, 708, 12, "F2", 0.10);
-  content += pdfText("Quote date", 210, 724, 7, "F2", 0.48);
-  content += pdfText(dateLabel(data.createdAt), 210, 708, 10, "F1", 0.14);
-  content += pdfText("Valid until", 350, 724, 7, "F2", 0.48);
-  content += pdfText(dateLabel(data.validUntil), 350, 708, 10, "F1", 0.14);
+  content += pdfText("QUOTE DETAILS", 44, 716, 7, "F2", 0.48);
+  content += pdfText("Quote date", 44, 694, 7, "F2", 0.50);
+  content += pdfText(dateLabel(data.createdAt), 44, 678, 10, "F1", 0.14);
+  content += pdfText("Valid until", 180, 694, 7, "F2", 0.50);
+  content += pdfText(dateLabel(data.validUntil), 180, 678, 10, "F1", 0.14);
+  content += pdfText("Reference", 316, 694, 7, "F2", 0.50);
+  content += pdfText(data.customerReference || data.rfqReference || "-", 316, 678, 10, "F1", 0.14);
 
-  content += pdfText("Customer", 44, 670, 7, "F2", 0.48);
-  content += pdfText(data.customerName, 44, 653, 12, "F2", 0.10);
-  if (data.recipientName) content += pdfText(data.recipientName, 44, 638, 9, "F1", 0.28);
-  if (data.recipientEmail) content += pdfText(data.recipientEmail, 44, 624, 9, "F1", 0.28);
-  content += pdfText("Reference", 350, 670, 7, "F2", 0.48);
-  content += pdfText(data.customerReference || data.rfqReference || "-", 350, 653, 10, "F1", 0.14);
+  content += fillRect(44, 593, 507, 64, 0.965);
+  content += pdfText("CUSTOMER", 56, 640, 7, "F2", 0.48);
+  content += pdfText(data.customerName, 56, 619, 12, "F2", 0.09);
+  if (data.recipientName) content += pdfText(data.recipientName, 300, 621, 8.5, "F1", 0.30);
+  if (data.recipientEmail) content += pdfText(data.recipientEmail, 300, 606, 8.5, "F1", 0.30);
 
   if (!["approved", "sent"].includes(data.status)) {
-    content += fillRect(430, 615, 121, 25, 0.93);
-    content += pdfText("DRAFT - NOT APPROVED", 441, 624, 8, "F2", 0.35);
+    content += fillRect(424, 669, 127, 25, 0.93);
+    content += pdfText("DRAFT - NOT APPROVED", 434, 678, 8, "F2", 0.34);
   }
 
-  return { content, tableY: 590 };
+  return { content, tableY: 557 };
 }
 
 function tableHeader(y: number) {
-  let content = fillRect(44, y - 4, 507, 24, 0.95);
-  content += pdfText("ITEM", 50, y + 4, 7, "F2", 0.42);
-  content += pdfText("DESCRIPTION", 175, y + 4, 7, "F2", 0.42);
-  content += pdfText("QTY", 354, y + 4, 7, "F2", 0.42);
-  content += pdfText("UNIT PRICE", 398, y + 4, 7, "F2", 0.42);
-  content += pdfText("DISC.", 463, y + 4, 7, "F2", 0.42);
-  content += pdfText("TOTAL", 505, y + 4, 7, "F2", 0.42);
+  let content = fillRect(44, y - 4, 507, 25, 0.92);
+  content += pdfText("ITEM", 50, y + 4, 7, "F2", 0.30);
+  content += pdfText("DESCRIPTION", 175, y + 4, 7, "F2", 0.30);
+  content += pdfText("QTY", 354, y + 4, 7, "F2", 0.30);
+  content += pdfText("UNIT PRICE", 398, y + 4, 7, "F2", 0.30);
+  content += pdfText("DISC.", 463, y + 4, 7, "F2", 0.30);
+  content += pdfText("TOTAL", 505, y + 4, 7, "F2", 0.30);
   return content;
 }
 
@@ -384,14 +392,15 @@ function renderBaseQuotePdf(data: QuoteDocumentData) {
     startPage();
   }
 
-  page += line(330, y + 10, 551, y + 10, 0.76, 0.8);
-  page += pdfText("Subtotal", 380, y - 9, 9, "F1", 0.32);
-  page += pdfText(money(subtotal, data.currency), 492, y - 9, 9, "F2", 0.12);
-  page += pdfText(`VAT ${formatNumber(data.taxRate)}%`, 380, y - 29, 9, "F1", 0.32);
-  page += pdfText(money(tax, data.currency), 492, y - 29, 9, "F2", 0.12);
-  page += line(380, y - 41, 551, y - 41, 0.83, 0.6);
-  page += pdfText("TOTAL", 380, y - 62, 11, "F2", 0.10);
-  page += pdfText(money(grandTotal, data.currency), 478, y - 62, 11, "F2", 0.10);
+  page += fillRect(340, y - 82, 211, 92, 0.97);
+  page += line(340, y + 10, 551, y + 10, 0.78, 0.8);
+  page += pdfText("Subtotal", 356, y - 11, 8.5, "F1", 0.34);
+  page += pdfText(money(subtotal, data.currency), 474, y - 11, 8.8, "F2", 0.12);
+  page += pdfText(`VAT ${formatNumber(data.taxRate)}%`, 356, y - 31, 8.5, "F1", 0.34);
+  page += pdfText(money(tax, data.currency), 474, y - 31, 8.8, "F2", 0.12);
+  page += line(356, y - 43, 535, y - 43, 0.83, 0.6);
+  page += pdfText("TOTAL", 356, y - 66, 10, "F2", 0.08);
+  page += pdfText(money(grandTotal, data.currency), 464, y - 66, 10.5, "F2", 0.08);
 
   if (data.notes) {
     const noteLines = wrapText(data.notes, 84, 5);
@@ -406,9 +415,14 @@ function renderBaseQuotePdf(data: QuoteDocumentData) {
 
   const totalPages = pages.length;
   const finalized = pages.map((content, index) => {
-    let footer = line(44, 42, 551, 42, 0.88, 0.45);
-    footer += pdfText("Generated by Nodra", 44, 25, 7.5, "F1", 0.50);
-    footer += pdfText(`Page ${index + 1} of ${totalPages}`, 493, 25, 7.5, "F1", 0.50);
+    let footer = line(44, 46, 551, 46, 0.87, 0.45);
+    const identity = [
+      data.sellerName,
+      data.sellerBusinessId ? `Business ID ${data.sellerBusinessId}` : "",
+      data.sellerEmail || "",
+    ].filter(Boolean).join(" | ");
+    footer += pdfText(identity, 44, 28, 7.1, "F1", 0.48);
+    footer += pdfText(`Page ${index + 1} / ${totalPages}`, 500, 28, 7.1, "F1", 0.48);
     return content + footer;
   });
 
@@ -426,10 +440,10 @@ export async function renderQuotePdf(data: QuoteDocumentData) {
       : await document.embedJpg(data.logoBytes);
     const firstPage = document.getPages()[0];
     const natural = image.scale(1);
-    const scale = Math.min(68 / natural.width, 30 / natural.height, 1);
+    const scale = Math.min(76 / natural.width, 34 / natural.height, 1);
     firstPage.drawImage(image, {
       x: 44,
-      y: 780,
+      y: 776,
       width: natural.width * scale,
       height: natural.height * scale,
     });
