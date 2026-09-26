@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import type { Locale } from "@/lib/locale";
 
 export function MinimalShaderHero({ locale }: { locale: Locale }) {
