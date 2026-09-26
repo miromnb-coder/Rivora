@@ -3,87 +3,15 @@
 import { FormEvent, useRef, useState } from "react";
 import type { Locale } from "@/lib/locale";
 
-type Intent = "pilot" | "pricing" | "demo";
 type SubmitState = "idle" | "submitting" | "sent" | "error";
-
-const plans = [
-  {
-    name: "Pilot",
-    eyebrow: "Evaluate the workflow",
-    price: "Scoped pilot",
-    body: "Start with real RFQs and validate extraction, product resolution and review with one team.",
-    features: [
-      "PDF / XLSX / CSV intake",
-      "Product resolution + confidence",
-      "Customer product memory",
-      "No ERP integration required",
-    ],
-    intent: "pilot" as Intent,
-    cta: "Request a pilot",
-  },
-  {
-    name: "Team",
-    eyebrow: "For recurring RFQ work",
-    price: "Volume-based",
-    body: "Move repeated RFQ handling into a shared, reviewable workflow as usage becomes regular.",
-    features: [
-      "Everything in Pilot",
-      "Shared team workflow",
-      "Customer-specific memory",
-      "Quote history and approvals",
-    ],
-    intent: "pricing" as Intent,
-    cta: "Request pricing",
-  },
-  {
-    name: "Scale",
-    eyebrow: "For broader rollout",
-    price: "Custom scope",
-    body: "Plan higher-volume use, multiple workflows and integration work around your existing systems.",
-    features: [
-      "Higher RFQ volume",
-      "Rollout planning",
-      "Integration scoping",
-      "Custom onboarding",
-    ],
-    intent: "demo" as Intent,
-    cta: "Talk through rollout",
-  },
-];
 
 export function PricingLeadCapture({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
-  const localizedPlans = plans.map((plan) => {
-    if (!fi) return plan;
-    const translations = {
-      pilot: {
-        name: "Pilotti", eyebrow: "Arvioi työnkulku", price: "Rajattu pilotti",
-        body: "Aloita oikeilla tarjouspyynnöillä ja validoi poiminta, tuotteiden ratkaisu ja tarkistus yhden tiimin kanssa.",
-        features: ["PDF / XLSX / CSV -syöte", "Tuotteiden ratkaisu + varmuus", "Asiakaskohtainen tuotemuisti", "ERP-integraatiota ei tarvita"],
-        cta: "Pyydä pilottia",
-      },
-      pricing: {
-        name: "Tiimi", eyebrow: "Toistuvaan tarjouspyyntötyöhön", price: "Volyymiperusteinen",
-        body: "Siirrä toistuva tarjouspyyntöjen käsittely yhteiseen, tarkistettavaan työnkulkuun käytön kasvaessa.",
-        features: ["Kaikki Pilotissa", "Yhteinen tiimityönkulku", "Asiakaskohtainen muisti", "Tarjoushistoria ja hyväksynnät"],
-        cta: "Pyydä hinnoittelu",
-      },
-      demo: {
-        name: "Skaala", eyebrow: "Laajempaan käyttöönottoon", price: "Mukautettu laajuus",
-        body: "Suunnittele suuremmat volyymit, useat työnkulut ja integraatiot nykyisten järjestelmiesi ympärille.",
-        features: ["Suurempi RFQ-volyymi", "Käyttöönoton suunnittelu", "Integraatioiden määrittely", "Mukautettu onboarding"],
-        cta: "Keskustele käyttöönotosta",
-      },
-    }[plan.intent];
-    return { ...plan, ...translations };
-  });
   const formRef = useRef<HTMLDivElement>(null);
-  const [intent, setIntent] = useState<Intent>("demo");
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [error, setError] = useState("");
 
-  function chooseIntent(nextIntent: Intent) {
-    setIntent(nextIntent);
+  function scrollToPilotForm() {
     setSubmitState("idle");
     setError("");
     requestAnimationFrame(() => {
@@ -107,7 +35,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
         workEmail: data.get("workEmail"),
         company: data.get("company"),
         role: data.get("role"),
-        intent,
+        intent: "pilot",
         rfqVolume: data.get("rfqVolume"),
         message: data.get("message"),
         website: data.get("website"),
@@ -118,7 +46,12 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
 
     if (!response.ok) {
       setSubmitState("error");
-      setError(result.error || (fi ? "Pyyntöä ei voitu tallentaa. Yritä uudelleen." : "We could not save your request. Please try again."));
+      setError(
+        result.error ||
+          (fi
+            ? "Pyyntöä ei voitu tallentaa. Yritä uudelleen."
+            : "We could not save your request. Please try again."),
+      );
       return;
     }
 
@@ -126,47 +59,101 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
     setSubmitState("sent");
   }
 
+  const features = fi
+    ? [
+        "Koko RFQ → tarjous -työnkulku",
+        "PDF / XLSX / CSV -syöte",
+        "Tuotteiden ratkaisu + ihmisen vahvistus",
+        "Customer Memory",
+        "Quote Builder + PDF + sähköpostilähetys",
+        "Onboarding ja suora tuki sisältyvät",
+        "Ei setup-maksua",
+        "Ei käyttäjäkohtaista hinnoittelua pilotin aikana",
+      ]
+    : [
+        "Complete RFQ → quote workflow",
+        "PDF / XLSX / CSV intake",
+        "Product resolution + human confirmation",
+        "Customer Memory",
+        "Quote Builder + PDF + email delivery",
+        "Onboarding and direct support included",
+        "No setup fee",
+        "No per-user pricing during the pilot",
+      ];
+
   return (
     <section className="marketing-shell v2-section pricing-lead" id="pricing">
       <div className="v2-section-copy">
-        <div className="v2-section-label">{fi ? "Hinnoittelu ja käyttöönotto" : "Pricing & rollout"}</div>
-        <h2>{fi ? "Aloita yhdellä työnkululla. Skaalaa, kun hyöty on todistettu." : "Start with one workflow. Scale when it proves useful."}</h2>
-        <p>{fi ? "Hinnoittelu määräytyy tarjouspyyntövolyymin ja käyttöönoton laajuuden mukaan. Voit arvioida Nodraa oikeilla asiakaspyynnöillä ennen integraatioihin sitoutumista." : "Pricing is scoped around RFQ volume and rollout needs. You can evaluate Nodra with real customer requests before committing to integration work."}</p>
+        <div className="v2-section-label">
+          {fi ? "Yksi selkeä sopimus" : "One simple plan"}
+        </div>
+        <h2>
+          {fi
+            ? "Aloita Nodra Pilotilla."
+            : "Start with the Nodra Pilot."}
+        </h2>
+        <p>
+          {fi
+            ? "Yksi sopimus, koko nykyinen Nodra ja selkeä kolmen kuukauden pilotti. Ei pakettivertailua, setup-maksua tai käyttäjäkohtaista hinnoittelua pilotin aikana."
+            : "One agreement, the full Nodra product and a clear three-month pilot. No package comparison, setup fee or per-user pricing during the pilot."}
+        </p>
       </div>
 
-      <div className="pricing-lead-grid">
-        {localizedPlans.map((plan) => (
-          <article className="pricing-lead-card" key={plan.name}>
-            <div>
-              <span className="pricing-lead-eyebrow">{plan.eyebrow}</span>
-              <h3>{plan.name}</h3>
-              <strong>{plan.price}</strong>
-              <p>{plan.body}</p>
+      <div className="pricing-lead-grid pricing-lead-grid-single">
+        <article className="pricing-lead-card pricing-lead-card-single">
+          <div className="pricing-pilot-main">
+            <span className="pricing-lead-eyebrow">
+              {fi ? "3 kuukauden minimijakso" : "3-month minimum"}
+            </span>
+            <h3>Nodra Pilot</h3>
+            <div className="pricing-pilot-price">
+              <strong>990 €</strong>
+              <span>{fi ? "/ kk + ALV" : "/ month + VAT"}</span>
             </div>
+            <p>
+              {fi
+                ? "Ensimmäisen kolmen kuukauden kokonaisarvo on 2 970 € + ALV. Pilotin jälkeen sopimus voi jatkua 990 €/kk samalla laajuudella."
+                : "The first three months total €2,970 + VAT. After the pilot, the agreement can continue at €990/month with the same scope."}
+            </p>
+          </div>
 
+          <div className="pricing-pilot-details">
             <ul>
-              {plan.features.map((feature) => (
+              {features.map((feature) => (
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
 
-            <button type="button" onClick={() => chooseIntent(plan.intent)}>
-              {plan.cta} <span aria-hidden="true">→</span>
+            <button type="button" onClick={scrollToPilotForm}>
+              {fi ? "Aloita pilotti" : "Start the pilot"}{" "}
+              <span aria-hidden="true">→</span>
             </button>
-          </article>
-        ))}
+          </div>
+        </article>
       </div>
 
       <div className="lead-capture-v2" id="demo" ref={formRef}>
         <div className="lead-capture-copy">
-          <div className="v2-section-label">{fi ? "Pyydä keskustelua" : "Request a conversation"}</div>
-          <h3>{fi ? "Kerro, miltä tarjouspyyntötyönkulkunne näyttää." : "Tell us what your RFQ workflow looks like."}</h3>
-          <p>{fi ? "Kerro perustiedot. Pyyntö tallennetaan Nodraan ja siihen voidaan palata sen mukaan, haluatko pilotin, hinnoittelun tai demon." : "Share the basics. The request is saved to Nodra and can be followed up based on whether you want a pilot, pricing or a demo."}</p>
+          <div className="v2-section-label">
+            {fi ? "Aloita Nodra Pilot" : "Start the Nodra Pilot"}
+          </div>
+          <h3>
+            {fi
+              ? "Kerro lyhyesti nykyisestä tarjouspyyntötyönkulustanne."
+              : "Tell us briefly about your current RFQ workflow."}
+          </h3>
+          <p>
+            {fi
+              ? "Käymme yhdessä läpi nykyisen prosessin ja sovitaan, miten ensimmäiset oikeat tarjouspyynnöt viedään Nodran läpi pilotin aikana."
+              : "We will review your current process together and agree how the first real RFQs will be run through Nodra during the pilot."}
+          </p>
 
           <div className="lead-capture-proof">
-            <span>{fi ? "Yksi lomake" : "One form"}</span><i />
-            <span>{fi ? "Tiliä ei tarvita" : "No account required"}</span><i />
-            <span>{fi ? "ERP-asennusta ei tarvita" : "No ERP setup required"}</span>
+            <span>{fi ? "990 €/kk + ALV" : "€990/month + VAT"}</span>
+            <i />
+            <span>{fi ? "3 kk minimijakso" : "3-month minimum"}</span>
+            <i />
+            <span>{fi ? "Onboarding sisältyy" : "Onboarding included"}</span>
           </div>
         </div>
 
@@ -178,49 +165,69 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
             </label>
             <label>
               <span>{fi ? "Työsähköposti" : "Work email"}</span>
-              <input name="workEmail" type="email" autoComplete="email" required maxLength={320} />
+              <input
+                name="workEmail"
+                type="email"
+                autoComplete="email"
+                required
+                maxLength={320}
+              />
             </label>
           </div>
 
           <div className="lead-form-row">
             <label>
               <span>{fi ? "Yritys" : "Company"}</span>
-              <input name="company" autoComplete="organization" required maxLength={160} />
+              <input
+                name="company"
+                autoComplete="organization"
+                required
+                maxLength={160}
+              />
             </label>
             <label>
-              <span>{fi ? "Rooli" : "Role"} <em>{fi ? "valinnainen" : "optional"}</em></span>
-              <input name="role" autoComplete="organization-title" maxLength={120} />
-            </label>
-          </div>
-
-          <div className="lead-form-row">
-            <label>
-              <span>{fi ? "Olen kiinnostunut" : "I'm interested in"}</span>
-              <select value={intent} onChange={(event) => setIntent(event.target.value as Intent)}>
-                <option value="pilot">{fi ? "Pilotti" : "Pilot"}</option>
-                <option value="pricing">{fi ? "Hinnoittelu" : "Pricing"}</option>
-                <option value="demo">{fi ? "Demo / käyttöönotto" : "Demo / rollout discussion"}</option>
-              </select>
-            </label>
-            <label>
-              <span>{fi ? "Tarjouspyyntöjä kuukaudessa" : "RFQs per month"} <em>{fi ? "valinnainen" : "optional"}</em></span>
-              <select name="rfqVolume" defaultValue="">
-                <option value="">{fi ? "Valitse määrä" : "Select range"}</option>
-                <option value="1-10">1–10</option>
-                <option value="11-50">11–50</option>
-                <option value="51-200">51–200</option>
-                <option value="200+">200+</option>
-              </select>
+              <span>
+                {fi ? "Rooli" : "Role"}{" "}
+                <em>{fi ? "valinnainen" : "optional"}</em>
+              </span>
+              <input
+                name="role"
+                autoComplete="organization-title"
+                maxLength={120}
+              />
             </label>
           </div>
 
           <label>
-            <span>{fi ? "Mitä haluaisit parantaa?" : "What would you like to improve?"} <em>{fi ? "valinnainen" : "optional"}</em></span>
+            <span>
+              {fi ? "Tarjouspyyntöjä kuukaudessa" : "RFQs per month"}{" "}
+              <em>{fi ? "valinnainen" : "optional"}</em>
+            </span>
+            <select name="rfqVolume" defaultValue="">
+              <option value="">{fi ? "Valitse määrä" : "Select range"}</option>
+              <option value="1-10">1–10</option>
+              <option value="11-50">11–50</option>
+              <option value="51-200">51–200</option>
+              <option value="200+">200+</option>
+            </select>
+          </label>
+
+          <label>
+            <span>
+              {fi
+                ? "Mitä haluaisit parantaa nykyisessä prosessissa?"
+                : "What would you like to improve in the current process?"}{" "}
+              <em>{fi ? "valinnainen" : "optional"}</em>
+            </span>
             <textarea
               name="message"
               rows={4}
               maxLength={2000}
-              placeholder={fi ? "Esimerkiksi: tuotekoodien mätsäys, toistuvat ERP-haut, tarjousten tarkistus..." : "For example: product-code matching, repetitive ERP searches, quote review..."}
+              placeholder={
+                fi
+                  ? "Esimerkiksi: tuotekoodien mätsäys, toistuvat ERP-haut, tarjousten tarkistus..."
+                  : "For example: product-code matching, repetitive ERP searches, quote review..."
+              }
             />
           </label>
 
@@ -231,15 +238,29 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
 
           <div className="lead-form-submit">
             <button type="submit" disabled={submitState === "submitting"}>
-              {submitState === "submitting" ? (fi ? "Lähetetään…" : "Sending…") : (fi ? "Lähetä pyyntö" : "Send request")}
-              {submitState !== "submitting" && <span aria-hidden="true">→</span>}
+              {submitState === "submitting"
+                ? fi
+                  ? "Lähetetään…"
+                  : "Sending…"
+                : fi
+                  ? "Pyydä Nodra Pilot"
+                  : "Request Nodra Pilot"}
+              {submitState !== "submitting" && (
+                <span aria-hidden="true">→</span>
+              )}
             </button>
-            <p>{fi ? "Käytämme näitä tietoja vain pyyntöösi vastaamiseen." : "We use these details only to respond to your request."}</p>
+            <p>
+              {fi
+                ? "Käytämme näitä tietoja vain pyyntöösi vastaamiseen."
+                : "We use these details only to respond to your request."}
+            </p>
           </div>
 
           {submitState === "sent" && (
             <div className="lead-form-message success" role="status">
-              {fi ? "Pyyntö vastaanotettu. Tietosi on tallennettu yhteydenottoa varten." : "Request received. Your details are saved for follow-up."}
+              {fi
+                ? "Pyyntö vastaanotettu. Olemme yhteydessä pilotin käynnistämisestä."
+                : "Request received. We will follow up about starting the pilot."}
             </div>
           )}
 
