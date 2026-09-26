@@ -108,12 +108,12 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
             <h3>Nodra Pilot</h3>
             <div className="pricing-pilot-price">
               <strong>990 €</strong>
-              <span>{fi ? "/ kk + ALV" : "/ month + VAT"}</span>
+              <span>{fi ? "/ kk" : "/ month"}</span>
             </div>
             <p>
               {fi
-                ? "Ensimmäisen kolmen kuukauden kokonaisarvo on 2 970 € + ALV. Pilotin jälkeen sopimus voi jatkua 990 €/kk samalla laajuudella."
-                : "The first three months total €2,970 + VAT. After the pilot, the agreement can continue at €990/month with the same scope."}
+                ? "Ensimmäisen kolmen kuukauden kokonaisarvo on 2 970 €. Pilotin jälkeen sopimus voi jatkua 990 €/kk samalla laajuudella."
+                : "The first three months total €2,970. After the pilot, the agreement can continue at €990/month with the same scope."}
             </p>
           </div>
 
@@ -149,7 +149,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
           </p>
 
           <div className="lead-capture-proof">
-            <span>{fi ? "990 €/kk + ALV" : "€990/month + VAT"}</span>
+            <span>{fi ? "990 €/kk" : "€990/month"}</span>
             <i />
             <span>{fi ? "3 kk minimijakso" : "3-month minimum"}</span>
             <i />
