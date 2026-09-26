@@ -8753,3 +8753,68 @@ button, input, select { font: inherit; }
     margin-top: 14px;
   }
 }
+
+
+/* Immediate feedback for server navigation */
+.nodra-navigation-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 1000;
+  height: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  overflow: hidden;
+}
+
+.nodra-navigation-progress.is-visible {
+  opacity: 1;
+}
+
+.nodra-navigation-progress > span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: 0 999px 999px 0;
+  background: #171a18;
+  transform: translateX(-110%);
+  animation: nodra-navigation-progress 1s ease-in-out infinite;
+}
+
+@keyframes nodra-navigation-progress {
+  0% { transform: translateX(-110%); }
+  55% { transform: translateX(125%); }
+  100% { transform: translateX(260%); }
+}
+
+.app-sidebar-v2-link.is-pending {
+  color: #303430;
+  background: #f2f2ef;
+  border-color: #dedfdb;
+}
+
+.app-nav-pending-dot {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border: 2px solid #c7cac5;
+  border-top-color: #171a18;
+  border-radius: 999px;
+  animation: nodra-nav-spin .65s linear infinite;
+}
+
+@keyframes nodra-nav-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nodra-navigation-progress > span,
+  .app-nav-pending-dot,
+  .app-route-loading-kicker,
+  .app-route-loading-title,
+  .app-route-loading-copy,
+  .app-route-loading-metrics span,
+  .app-route-loading-list span {
+    animation: none !important;
+  }
+}
