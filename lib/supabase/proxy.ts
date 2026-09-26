@@ -3,6 +3,20 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  const isPublic =
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/auth") ||
+    pathname === "/api/leads" ||
+    pathname === "/api/webhooks/resend";
+
+  // Public marketing/auth routes do not need an authenticated Supabase roundtrip.
+  if (isPublic) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
   const { url, key } = getSupabaseConfig();
 
@@ -27,14 +41,8 @@ export async function updateSession(request: NextRequest) {
   });
 
   const { data } = await supabase.auth.getClaims();
-  const pathname = request.nextUrl.pathname;
-  const isPublic =
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/auth") ||
-    pathname === "/api/webhooks/resend" ||
-    pathname === "/";
 
-  if (!data?.claims && !isPublic) {
+  if (!data?.claims) {
     const target = request.nextUrl.clone();
     target.pathname = "/login";
     target.search = "";
