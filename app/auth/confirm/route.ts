@@ -26,10 +26,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const errorUrl = new URL("/login", baseUrl);
+  const errorUrl = new URL(type === "recovery" ? "/forgot-password" : "/login", baseUrl);
   errorUrl.searchParams.set(
-    "error",
-    "The confirmation link is invalid or expired. Ask Nodra for a new pilot invitation.",
+    type === "recovery" ? "sent" : "error",
+    type === "recovery"
+      ? "1"
+      : "The confirmation link is invalid or expired. Ask Nodra for a new pilot invitation.",
   );
   return NextResponse.redirect(errorUrl);
 }
