@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
+import { NavigationProgress } from "@/components/NavigationProgress";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang={locale}>
-      <body>{children}</body>
+      <body><NavigationProgress />{children}</body>
     </html>
   );
 }
