@@ -22,7 +22,7 @@ export function AppShell({
 }) {
   const showSales = workspaceRole === "owner" || workspaceRole === "admin";
   const copy = getDictionary(locale).nav;
-  const nav = [
+  const nav: Array<readonly [string, string, string]> = [
     [copy.inbox, "/app/inbox", "inbox"],
     [copy.quotes, "/app/quotes", "quotes"],
     [copy.customers, "/app/customers", "customers"],
@@ -32,7 +32,7 @@ export function AppShell({
     [copy.memory, "/app/memory", "memory"],
     [copy.settings, "/app/settings", "settings"],
     [copy.setup, "/app/setup", "setup"],
-  ] as const;
+  ];
 
   return (
     <div className="app-shell-v2 min-h-screen">
