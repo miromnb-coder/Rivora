@@ -27,21 +27,15 @@ export default async function InboxPage() {
 
   const { data: rfqs } = await supabase
     .from("rfqs")
-    .select("id, reference, source_type, status, overall_confidence, received_at, customers(name)")
+    .select("id, reference, source_type, status, overall_confidence, received_at, customers(name), rfq_lines(count)")
     .order("received_at", { ascending: false })
     .limit(50);
 
-  const items = await Promise.all(
-    (rfqs ?? []).map(async (rfq: any) => {
-      const { count } = await supabase
-        .from("rfq_lines")
-        .select("id", { count: "exact", head: true })
-        .eq("rfq_id", rfq.id);
-
-      const customer = Array.isArray(rfq.customers) ? rfq.customers[0] : rfq.customers;
-      return { ...rfq, lineCount: count ?? 0, customerName: customer?.name ?? copy.unknownCustomer };
-    })
-  );
+  const items = (rfqs ?? []).map((rfq: any) => {
+    const customer = Array.isArray(rfq.customers) ? rfq.customers[0] : rfq.customers;
+    const lineCount = Array.isArray(rfq.rfq_lines) ? Number(rfq.rfq_lines[0]?.count ?? 0) : 0;
+    return { ...rfq, lineCount, customerName: customer?.name ?? copy.unknownCustomer };
+  });
 
   const needsReview = items.filter((item) => item.status === "needs_review").length;
   const ready = items.filter((item) => item.status === "ready").length;

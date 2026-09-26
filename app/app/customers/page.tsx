@@ -10,20 +10,19 @@ export default async function CustomersPage() {
   const common = getDictionary(locale).common;
 
   const { data: customers } = await supabase
-    .from("customers").select("id,name,external_id,email_domain,created_at")
+    .from("customers").select("id,name,external_id,email_domain,created_at, customer_contacts(count), quotes(count), rfqs(count), customer_product_mappings(count)")
     .eq("organization_id", workspace.id).order("name").limit(500);
 
-  const rows = await Promise.all(
-    (customers ?? []).map(async (customer) => {
-      const [{ count: contactCount }, { count: quoteCount }, { count: rfqCount }, { count: memoryCount }] = await Promise.all([
-        supabase.from("customer_contacts").select("id", { count: "exact", head: true }).eq("customer_id", customer.id),
-        supabase.from("quotes").select("id", { count: "exact", head: true }).eq("customer_id", customer.id),
-        supabase.from("rfqs").select("id", { count: "exact", head: true }).eq("customer_id", customer.id),
-        supabase.from("customer_product_mappings").select("id", { count: "exact", head: true }).eq("customer_id", customer.id),
-      ]);
-      return { ...customer, contactCount: contactCount ?? 0, quoteCount: quoteCount ?? 0, rfqCount: rfqCount ?? 0, memoryCount: memoryCount ?? 0 };
-    })
-  );
+  const relationCount = (value: unknown) =>
+    Array.isArray(value) ? Number((value[0] as { count?: number } | undefined)?.count ?? 0) : 0;
+
+  const rows = (customers ?? []).map((customer: any) => ({
+    ...customer,
+    contactCount: relationCount(customer.customer_contacts),
+    quoteCount: relationCount(customer.quotes),
+    rfqCount: relationCount(customer.rfqs),
+    memoryCount: relationCount(customer.customer_product_mappings),
+  }));
 
   return (
     <div className="app-page-v2">

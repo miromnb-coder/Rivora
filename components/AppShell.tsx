@@ -3,6 +3,7 @@ import { signOut } from "@/app/app/actions";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/locale";
+import { AppNav } from "@/components/AppNav";
 
 export function AppShell({
   children,
@@ -21,17 +22,20 @@ export function AppShell({
 }) {
   const showSales = workspaceRole === "owner" || workspaceRole === "admin";
   const copy = getDictionary(locale).nav;
-  const nav = [
+  const nav: Array<readonly [string, string, string]> = [
     [copy.inbox, "/app/inbox", "inbox"],
     [copy.quotes, "/app/quotes", "quotes"],
     [copy.customers, "/app/customers", "customers"],
-    ...(showSales ? [[copy.leads, "/app/leads", "leads"]] : []),
     [copy.processRfq, "/app/upload", "process"],
     [copy.products, "/app/products", "products"],
     [copy.memory, "/app/memory", "memory"],
     [copy.settings, "/app/settings", "settings"],
     [copy.setup, "/app/setup", "setup"],
-  ] as const;
+  ];
+
+  if (showSales) {
+    nav.splice(3, 0, [copy.leads, "/app/leads", "leads"]);
+  }
 
   return (
     <div className="app-shell-v2 min-h-screen">
@@ -43,18 +47,7 @@ export function AppShell({
           <div className="app-sidebar-v2-product">{copy.product}</div>
         </div>
 
-        <nav className="app-sidebar-v2-nav" aria-label="Application navigation">
-          {nav.map(([label, href, id]) => (
-            <Link key={href} href={href} className="app-sidebar-v2-link">
-              <span>{label}</span>
-              {id === "leads" && leadAlertCount > 0 ? (
-                <span className="app-sidebar-v2-badge">
-                  {leadAlertCount > 99 ? "99+" : leadAlertCount}
-                </span>
-              ) : null}
-            </Link>
-          ))}
-        </nav>
+        <AppNav items={nav} leadAlertCount={leadAlertCount} />
 
         <div className="app-sidebar-v2-account">
           <LocaleSwitcher locale={locale} label={copy.language} />

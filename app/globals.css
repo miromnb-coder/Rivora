@@ -8434,3 +8434,238 @@ button, input, select { font: inherit; }
     display: none;
   }
 }
+
+
+/* Mobile navigation + route responsiveness polish */
+.nav-v2-cta-short {
+  display: none;
+}
+
+.app-sidebar-v2-link.is-active {
+  background: #171a18;
+  color: #fff;
+}
+
+.app-sidebar-v2-link.is-active:hover {
+  background: #171a18;
+  color: #fff;
+}
+
+.app-route-loading {
+  min-height: 62vh;
+}
+
+.app-route-loading-kicker,
+.app-route-loading-title,
+.app-route-loading-copy,
+.app-route-loading-metrics span,
+.app-route-loading-list span {
+  background: linear-gradient(90deg, #f1f1ee 20%, #f8f8f6 50%, #f1f1ee 80%);
+  background-size: 220% 100%;
+  animation: nodra-loading-shimmer 1.15s ease-in-out infinite;
+}
+
+.app-route-loading-kicker {
+  width: 88px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.app-route-loading-title {
+  width: min(680px, 78%);
+  height: 58px;
+  margin-top: 18px;
+  border-radius: 14px;
+}
+
+.app-route-loading-copy {
+  width: min(560px, 68%);
+  height: 16px;
+  margin-top: 22px;
+  border-radius: 999px;
+}
+
+.app-route-loading-metrics {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid #e3e4e1;
+  border-bottom: 1px solid #e3e4e1;
+  padding: 24px 0;
+  gap: 28px;
+}
+
+.app-route-loading-metrics span {
+  display: block;
+  height: 52px;
+  border-radius: 12px;
+}
+
+.app-route-loading-list {
+  margin-top: 54px;
+  display: grid;
+}
+
+.app-route-loading-list span {
+  display: block;
+  height: 82px;
+  border-top: 1px solid #e8e9e6;
+}
+
+.app-route-loading-list span:last-child {
+  border-bottom: 1px solid #e8e9e6;
+}
+
+@keyframes nodra-loading-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@media (max-width: 900px) {
+  .app-sidebar-v2 {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(255,255,255,.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid #e9eae7;
+  }
+
+  .app-sidebar-v2-top {
+    min-height: 42px;
+    padding: 0 2px 10px;
+    align-items: center;
+  }
+
+  .app-sidebar-v2-brand {
+    color: #171a18;
+    font-size: 22px;
+  }
+
+  .app-sidebar-v2-product {
+    display: none;
+  }
+
+  .app-sidebar-v2-nav {
+    margin: 0 -18px;
+    padding: 0 18px 6px;
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .app-sidebar-v2-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-sidebar-v2-link {
+    flex: 0 0 auto;
+    min-height: 36px;
+    border: 1px solid #ececea;
+    border-radius: 999px;
+    padding: 0 13px;
+    background: #fafafa;
+    color: #686d69;
+    font-size: 10px;
+    font-weight: 780;
+    scroll-snap-align: start;
+  }
+
+  .app-sidebar-v2-link:hover {
+    transform: none;
+    background: #f5f5f3;
+    color: #242824;
+  }
+
+  .app-sidebar-v2-link.is-active {
+    border-color: #171a18;
+    background: #171a18;
+    color: #fff;
+  }
+
+  .app-main-v2 {
+    background: #fff;
+  }
+
+  .app-page-v2 {
+    padding-top: 34px;
+  }
+}
+
+@media (max-width: 720px) {
+  .minimal-direction > .marketing-shell:first-child {
+    width: 100%;
+    padding: 0 18px;
+  }
+
+  .nav-v2 {
+    min-height: 64px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+  }
+
+  .nav-v2-brand {
+    min-width: 0;
+  }
+
+  .nav-v2-brand > span {
+    gap: 8px;
+  }
+
+  .nav-v2-brand > span > span:first-child {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nav-v2-brand > span > span:last-child {
+    font-size: 16px;
+    letter-spacing: .13em;
+  }
+
+  .nav-v2-actions {
+    justify-self: end;
+  }
+
+  .nav-v2-cta {
+    min-height: 38px;
+    padding: 0 13px;
+    font-size: 10px;
+    gap: 7px;
+    box-shadow: none;
+  }
+
+  .nav-v2-cta-long {
+    display: none;
+  }
+
+  .nav-v2-cta-short {
+    display: inline;
+  }
+
+  .minimal-direction .minimal-hero-inner {
+    padding-top: 54px;
+  }
+
+  .app-route-loading-title {
+    width: 88%;
+    height: 44px;
+  }
+
+  .app-route-loading-copy {
+    width: 80%;
+  }
+
+  .app-route-loading-metrics {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
