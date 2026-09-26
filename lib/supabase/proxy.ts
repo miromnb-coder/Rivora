@@ -12,7 +12,6 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/privacy") ||
     pathname.startsWith("/terms") ||
-    pathname === "/api/internal/e2e-invite-7qwm5vx2" ||
     pathname === "/api/leads" ||
     pathname === "/api/webhooks/resend";
 
