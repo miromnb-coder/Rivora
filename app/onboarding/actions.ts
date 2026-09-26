@@ -41,7 +41,10 @@ export async function createWorkspace(formData: FormData) {
   }
 
   const { error: passwordError } = await supabase.auth.updateUser({ password });
-  if (passwordError) {
+  const passwordAlreadySet =
+    passwordError?.message.toLowerCase().includes("different from the old password") ?? false;
+
+  if (passwordError && !passwordAlreadySet) {
     redirect(`/onboarding?error=${encodeURIComponent(passwordError.message)}`);
   }
 
