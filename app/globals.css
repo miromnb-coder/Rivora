@@ -8964,3 +8964,139 @@ button, input, select { font: inherit; }
     font-size: 18px;
   }
 }
+
+
+/* Mobile marketing hardening: keep all content inside viewport and expose sign-in */
+@media (max-width: 720px) {
+  .minimal-direction,
+  .minimal-direction .marketing-shell,
+  .minimal-direction section,
+  .minimal-direction header,
+  .minimal-direction footer {
+    max-width: 100%;
+  }
+
+  .minimal-direction {
+    overflow-x: hidden;
+  }
+
+  .minimal-direction * {
+    min-width: 0;
+  }
+
+  .minimal-direction h1,
+  .minimal-direction h2,
+  .minimal-direction h3,
+  .minimal-direction p,
+  .minimal-direction a,
+  .minimal-direction span,
+  .minimal-direction label {
+    overflow-wrap: break-word;
+  }
+
+  .minimal-direction img,
+  .minimal-direction svg,
+  .minimal-direction video,
+  .minimal-direction canvas,
+  .minimal-direction input,
+  .minimal-direction textarea,
+  .minimal-direction select,
+  .minimal-direction button {
+    max-width: 100%;
+  }
+
+  .minimal-direction > .marketing-shell:first-child {
+    width: 100%;
+    padding-inline: 14px;
+  }
+
+  .nav-v2 {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    min-height: 64px;
+  }
+
+  .nav-v2-actions {
+    gap: 6px;
+    justify-self: end;
+    min-width: 0;
+  }
+
+  .nav-v2-signin {
+    display: inline-flex;
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 10px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  .nav-v2-cta {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 10px;
+    gap: 5px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  .nav-v2-cta > span[aria-hidden="true"] {
+    display: none;
+  }
+
+  .minimal-direction .minimal-hero-copy,
+  .minimal-direction .v2-section-copy,
+  .minimal-direction .pricing-lead-grid,
+  .minimal-direction .pricing-lead-card,
+  .minimal-direction .pricing-lead-card-single,
+  .minimal-direction .lead-capture-v2,
+  .minimal-direction .lead-capture-v2 > *,
+  .minimal-direction .hero-proof,
+  .minimal-direction .memory-v2-proof,
+  .minimal-direction .resolution-proof,
+  .minimal-direction .footer-v2,
+  .minimal-direction .footer-v2-top,
+  .minimal-direction .footer-v2-links {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .minimal-direction .minimal-hero-copy h1,
+  .minimal-direction .v2-section-copy h2,
+  .minimal-direction .final-cta-v2 h2 {
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+
+  .minimal-direction .lead-form-row,
+  .minimal-direction .pricing-lead-card-single,
+  .minimal-direction .footer-v2-links {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .minimal-direction > .marketing-shell:first-child {
+    padding-inline: 10px;
+  }
+
+  .nav-v2 {
+    gap: 5px;
+  }
+
+  .nav-v2-brand .nodra-wordmark {
+    font-size: 14px;
+    letter-spacing: .10em;
+  }
+
+  .nav-v2-actions {
+    gap: 4px;
+  }
+
+  .nav-v2-signin,
+  .nav-v2-cta {
+    padding-inline: 8px;
+    font-size: 9px;
+  }
+}
