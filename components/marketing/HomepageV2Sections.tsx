@@ -1,5 +1,4 @@
 import type { Locale } from "@/lib/locale";
-import Link from "next/link";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <div className="v2-section-label">{children}</div>;
