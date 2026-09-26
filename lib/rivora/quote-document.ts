@@ -270,10 +270,10 @@ function buildPageHeader(data: QuoteDocumentData, continuation: boolean) {
 function tableHeader(y: number) {
   let content = fillRect(44, y - 4, 507, 24, 0.95);
   content += pdfText("ITEM", 50, y + 4, 7, "F2", 0.42);
-  content += pdfText("DESCRIPTION", 112, y + 4, 7, "F2", 0.42);
-  content += pdfText("QTY", 344, y + 4, 7, "F2", 0.42);
-  content += pdfText("UNIT PRICE", 392, y + 4, 7, "F2", 0.42);
-  content += pdfText("DISC.", 461, y + 4, 7, "F2", 0.42);
+  content += pdfText("DESCRIPTION", 175, y + 4, 7, "F2", 0.42);
+  content += pdfText("QTY", 354, y + 4, 7, "F2", 0.42);
+  content += pdfText("UNIT PRICE", 398, y + 4, 7, "F2", 0.42);
+  content += pdfText("DISC.", 463, y + 4, 7, "F2", 0.42);
   content += pdfText("TOTAL", 505, y + 4, 7, "F2", 0.42);
   return content;
 }
@@ -354,18 +354,25 @@ function renderBaseQuotePdf(data: QuoteDocumentData) {
     const unitPrice = Number(lineItem.unit_price);
     const discount = Number(lineItem.discount_percent ?? 0);
     const total = Number(lineItem.line_total);
-    const descriptions = wrapText(lineItem.description_snapshot || "Product", 42, 2);
+    const skuLines = wrapText(
+      lineItem.sku_snapshot || `Line ${lineItem.line_number}`,
+      22,
+      2,
+    );
+    const descriptions = wrapText(lineItem.description_snapshot || "Product", 30, 2);
 
     page += line(44, y + 11, 551, y + 11, 0.90, 0.45);
-    page += pdfText(lineItem.sku_snapshot || `Line ${lineItem.line_number}`, 50, y - 7, 8.5, "F2", 0.13);
-    descriptions.forEach((description, index) => {
-      page += pdfText(description, 112, y - 5 - index * 11, 8.5, "F1", 0.18);
+    skuLines.forEach((sku, index) => {
+      page += pdfText(sku, 50, y - 5 - index * 11, 8.1, "F2", 0.13);
     });
-    page += pdfText(`${quantity} ${lineItem.unit || ""}`.trim(), 344, y - 7, 8.5, "F1", 0.18);
-    page += pdfText(money(unitPrice, data.currency), 392, y - 7, 8.2, "F1", 0.18);
-    page += pdfText(discount > 0 ? `${formatNumber(discount)}%` : "-", 461, y - 7, 8.2, "F1", 0.18);
-    page += pdfText(money(total, data.currency), 505, y - 7, 8.2, "F2", 0.12);
-    y -= 44;
+    descriptions.forEach((description, index) => {
+      page += pdfText(description, 175, y - 5 - index * 11, 8.1, "F1", 0.18);
+    });
+    page += pdfText(`${quantity} ${lineItem.unit || ""}`.trim(), 354, y - 7, 8.2, "F1", 0.18);
+    page += pdfText(money(unitPrice, data.currency), 398, y - 7, 7.9, "F1", 0.18);
+    page += pdfText(discount > 0 ? `${formatNumber(discount)}%` : "-", 463, y - 7, 7.9, "F1", 0.18);
+    page += pdfText(money(total, data.currency), 505, y - 7, 7.9, "F2", 0.12);
+    y -= 48;
   }
 
   const subtotal = data.lines.reduce((sum, item) => sum + Number(item.line_total), 0);
