@@ -1,5 +1,4 @@
 import type { Locale } from "@/lib/locale";
-import Link from "next/link";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <div className="v2-section-label">{children}</div>;
@@ -350,14 +349,14 @@ export function FinalCtaV2({ locale }: { locale: Locale }) {
       <div className="final-cta-v2-card">
         <div className="final-cta-v2-shader" aria-hidden="true" />
         <div className="final-cta-v2-content">
-          <SectionLabel>{fi ? "Aloita yhdellä tarjouspyynnöllä" : "Start with one RFQ"}</SectionLabel>
+          <SectionLabel>{fi ? "Aloita pilotilla" : "Start with a pilot"}</SectionLabel>
           <h2>{fi ? "Seuraava tarjouspyyntösi voisi olla jo lähes valmis tarjous." : "Your next RFQ could already be a quote."}</h2>
-          <p>{fi ? "Lataa PDF, XLSX tai CSV ja katso, mitä Nodra voi poimia, ratkaista ja valmistella tarkistukseen." : "Upload a PDF, XLSX or CSV and see what Nodra can extract, resolve and prepare for review."}</p>
+          <p>{fi ? "Aloita Nodra Pilot ja vie ensimmäiset oikeat tarjouspyyntösi hallitusti koko työnkulun läpi." : "Start the Nodra Pilot and run your first real RFQs through the complete controlled workflow."}</p>
 
           <div className="final-cta-v2-actions">
-            <Link href="/app/upload" className="final-cta-v2-primary">
-              {fi ? "Lataa tarjouspyyntö" : "Upload an RFQ"} <span aria-hidden="true">→</span>
-            </Link>
+            <a href="#pricing" className="final-cta-v2-primary">
+              {fi ? "Aloita Nodra Pilot" : "Start Nodra Pilot"} <span aria-hidden="true">→</span>
+            </a>
             <a href="#demo" className="final-cta-v2-secondary">
               {fi ? "Pyydä demo" : "Request a demo"}
             </a>

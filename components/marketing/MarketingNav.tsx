@@ -16,11 +16,11 @@ export function MarketingNav({ locale }: { locale: Locale }) {
       </nav>
       <div className="nav-v2-actions">
         <Link href="/login" className="nav-v2-signin">{fi ? "Kirjaudu" : "Sign in"}</Link>
-        <Link href="/app/upload" prefetch className="nav-v2-cta">
-          <span className="nav-v2-cta-long">{fi ? "Lataa tarjouspyyntö" : "Upload an RFQ"}</span>
+        <a href="#pricing" className="nav-v2-cta">
+          <span className="nav-v2-cta-long">{fi ? "Aloita pilotti" : "Start pilot"}</span>
           <span className="nav-v2-cta-short">{fi ? "Aloita" : "Start"}</span>
           <span aria-hidden="true">→</span>
-        </Link>
+        </a>
       </div>
     </header>
   );

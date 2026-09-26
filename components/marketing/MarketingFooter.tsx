@@ -24,19 +24,19 @@ export function MarketingFooter({ locale }: { locale: Locale }) {
               <span>{fi ? "Työnkulku" : "Workflow"}</span>
               <a href="#ai-extraction">{fi ? "Jäljitettävyys" : "Traceability"}</a>
               <a href="#before-after">{fi ? "Ennen / jälkeen" : "Before / after"}</a>
-              <Link href="/app/upload">{fi ? "Lataa tarjouspyyntö" : "Upload an RFQ"}</Link>
+              <a href="#pricing">{fi ? "Aloita pilotti" : "Start pilot"}</a>
               <Link href="/login">{fi ? "Kirjaudu" : "Sign in"}</Link>
             </div>
             <div>
               <span>{fi ? "Yritys" : "Company"}</span>
               <a href="#pricing">{fi ? "Yhteys" : "Contact"}</a>
-              <a href="#pricing">{fi ? "Lataa tarjouspyyntö" : "Upload an RFQ"}</a>
+              <a href="#pricing">{fi ? "Aloita pilotti" : "Start pilot"}</a>
             </div>
           </div>
         </div>
         <div className="footer-v2-bottom">
           <span>© 2026 Nodra</span>
-          <div><span>{fi ? "Tietosuoja" : "Privacy"}</span><span>{fi ? "Ehdot" : "Terms"}</span></div>
+          <div><Link href="/privacy">{fi ? "Tietosuoja" : "Privacy"}</Link><Link href="/terms">{fi ? "Ehdot" : "Terms"}</Link></div>
           <span>{fi ? "Rakennettu teollisille myyntitiimeille." : "Built for industrial sales teams."}</span>
         </div>
       </div>
