@@ -3,6 +3,7 @@ import { signOut } from "@/app/app/actions";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/locale";
+import { AppNav } from "@/components/AppNav";
 
 export function AppShell({
   children,
@@ -43,18 +44,7 @@ export function AppShell({
           <div className="app-sidebar-v2-product">{copy.product}</div>
         </div>
 
-        <nav className="app-sidebar-v2-nav" aria-label="Application navigation">
-          {nav.map(([label, href, id]) => (
-            <Link key={href} href={href} className="app-sidebar-v2-link">
-              <span>{label}</span>
-              {id === "leads" && leadAlertCount > 0 ? (
-                <span className="app-sidebar-v2-badge">
-                  {leadAlertCount > 99 ? "99+" : leadAlertCount}
-                </span>
-              ) : null}
-            </Link>
-          ))}
-        </nav>
+        <AppNav items={nav} leadAlertCount={leadAlertCount} />
 
         <div className="app-sidebar-v2-account">
           <LocaleSwitcher locale={locale} label={copy.language} />
