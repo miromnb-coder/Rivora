@@ -8818,3 +8818,130 @@ button, input, select { font: inherit; }
     animation: none !important;
   }
 }
+
+
+/* Unified Nodra white brand system */
+.marketing-page,
+.minimal-direction {
+  --m-bg: #ffffff;
+  --m-surface: #ffffff;
+  --m-ink: #171a18;
+  --m-muted: #747975;
+  --m-line: #e6e7e4;
+  --m-green: #5f6560;
+  --m-green-dark: #171a18;
+  --m-green-soft: #f1f2ef;
+  --m-dark: #171a18;
+  --m-dark-card: #202320;
+  background: #ffffff !important;
+  color: #171a18;
+}
+
+.nodra-wordmark {
+  display: inline-flex;
+  align-items: center;
+  color: #171a18;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: .145em;
+  text-transform: uppercase;
+}
+
+.nav-v2-brand .nodra-wordmark {
+  font-size: 18px;
+}
+
+.footer-v2-brand .nodra-wordmark {
+  font-size: 18px;
+}
+
+.app-sidebar-v2-brand.nodra-wordmark {
+  color: #171a18;
+  font-size: 20px;
+  letter-spacing: .12em;
+}
+
+.minimal-direction > .marketing-shell:first-child,
+.footer-v2-wrap,
+.minimal-direction .v2-section,
+.minimal-direction .pricing-lead,
+.minimal-direction .final-cta-v2 {
+  background: #ffffff;
+}
+
+.minimal-hero {
+  background:
+    radial-gradient(circle at 72% 34%, rgba(17,19,17,.035), transparent 34%),
+    radial-gradient(circle at 46% 58%, rgba(17,19,17,.018), transparent 30%),
+    #ffffff;
+}
+
+.minimal-hero-shader {
+  opacity: .62;
+  filter: blur(72px);
+}
+
+.shader-a {
+  background: rgba(45,49,46,.055);
+}
+
+.shader-b {
+  background: rgba(115,120,116,.045);
+}
+
+.shader-c {
+  background: rgba(28,31,29,.035);
+}
+
+.shader-d {
+  background: rgba(17,19,17,.022);
+}
+
+.minimal-btn-primary,
+.nav-v2-cta,
+.pricing-lead-card-single button {
+  background: #171a18 !important;
+  border-color: #171a18 !important;
+  color: #ffffff !important;
+}
+
+.minimal-btn-primary:hover,
+.nav-v2-cta:hover,
+.pricing-lead-card-single button:hover {
+  background: #050605 !important;
+}
+
+.minimal-btn-secondary,
+.hero-proof,
+.pricing-lead-card,
+.lead-capture-v2,
+.surface {
+  border-color: #e6e7e4;
+}
+
+.pricing-lead-card-single {
+  background: #f8f8f6;
+}
+
+.minimal-direction .dark-section {
+  background: #171a18;
+}
+
+.footer-v2,
+.footer-v2-bottom,
+.nav-v2,
+.minimal-direction .minimal-hero {
+  border-color: #e7e8e5;
+}
+
+@media (max-width: 720px) {
+  .nav-v2-brand .nodra-wordmark {
+    font-size: 16px;
+    letter-spacing: .12em;
+  }
+
+  .app-sidebar-v2-brand.nodra-wordmark {
+    font-size: 18px;
+  }
+}

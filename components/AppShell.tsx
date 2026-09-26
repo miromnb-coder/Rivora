@@ -39,9 +39,7 @@ export function AppShell({
     <div className="app-shell-v2 min-h-screen">
       <aside className="app-sidebar-v2">
         <div className="app-sidebar-v2-top">
-          <Link href="/app/inbox" className="app-sidebar-v2-brand">
-            Nodra
-          </Link>
+          <Link href="/app/inbox" className="app-sidebar-v2-brand nodra-wordmark">NODRA</Link>
           <div className="app-sidebar-v2-product">{copy.product}</div>
         </div>
 
