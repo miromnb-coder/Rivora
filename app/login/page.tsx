@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { login } from "./actions";
 import { getDictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
@@ -46,6 +47,9 @@ export default async function LoginPage({
             <div className="pt-2">
               <button formAction={login} className="btn-primary w-full">{copy.signIn}</button>
             </div>
+            <Link href="/forgot-password" className="block text-center text-xs font-semibold text-[#5f6560] hover:text-[#171a18]">
+              {locale === "fi" ? "Unohditko salasanan?" : "Forgot your password?"}
+            </Link>
             <p className="mt-4 text-center text-xs leading-5 text-[var(--muted)]">
               {locale === "fi"
                 ? "Uudet Nodra-tilit luodaan vain hyväksytyn pilotin kutsusta."
