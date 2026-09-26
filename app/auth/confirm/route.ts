@@ -1,14 +1,18 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getCanonicalAppUrl } from "@/lib/rivora/app-url";
+
+function safeNext(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/onboarding";
+  return value;
+}
 
 export async function GET(request: NextRequest) {
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const type = request.nextUrl.searchParams.get("type") as EmailOtpType | null;
-  const next = request.nextUrl.searchParams.get("next") ?? "/onboarding";
-  const target = request.nextUrl.clone();
-  target.pathname = next;
-  target.search = "";
+  const next = safeNext(request.nextUrl.searchParams.get("next"));
+  const baseUrl = getCanonicalAppUrl();
 
   if (tokenHash && type) {
     const supabase = await createClient();
@@ -16,10 +20,16 @@ export async function GET(request: NextRequest) {
       token_hash: tokenHash,
       type,
     });
-    if (!error) return NextResponse.redirect(target);
+
+    if (!error) {
+      return NextResponse.redirect(new URL(next, baseUrl));
+    }
   }
 
-  target.pathname = "/login";
-  target.searchParams.set("error", "The confirmation link is invalid or expired.");
-  return NextResponse.redirect(target);
+  const errorUrl = new URL("/login", baseUrl);
+  errorUrl.searchParams.set(
+    "error",
+    "The confirmation link is invalid or expired. Ask Nodra for a new pilot invitation.",
+  );
+  return NextResponse.redirect(errorUrl);
 }

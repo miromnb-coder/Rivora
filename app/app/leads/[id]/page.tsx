@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireSalesAdmin } from "@/lib/rivora/sales";
 import { formatLocale, getLocale } from "@/lib/locale";
 import {
-  completeLeadFollowUp, markLeadRead, updateLeadFollowUp, updateLeadNote, updateLeadStatus,
+  approvePilotAccess, completeLeadFollowUp, markLeadRead, updateLeadFollowUp, updateLeadNote, updateLeadStatus,
 } from "../actions";
 
 function statusClass(status: string) {
@@ -42,6 +42,13 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
   const { data: lead } = await supabase.from("marketing_leads").select("*").eq("id", id).maybeSingle();
   if (!lead) notFound();
+
+  const { data: pilotInvite } = await supabase
+    .from("pilot_access_invites")
+    .select("id, approved_at, invite_sent_at, invite_error, accepted_at")
+    .eq("email", String(lead.work_email).trim().toLowerCase())
+    .is("revoked_at", null)
+    .maybeSingle();
 
   const today = new Date().toISOString().slice(0, 10);
   const followUpDue = lead.status !== "closed" && typeof lead.follow_up_on === "string" && lead.follow_up_on <= today;
@@ -96,6 +103,47 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <aside className="space-y-5">
+          <section className="surface p-5">
+            <div className="upload-v2-section-label">{fi ? "Pilotin pääsy" : "Pilot access"}</div>
+            <h2 className="mt-2 text-lg font-bold">
+              {pilotInvite?.accepted_at
+                ? (fi ? "Kutsu hyväksytty" : "Invitation accepted")
+                : pilotInvite?.invite_sent_at
+                  ? (fi ? "Kutsu lähetetty" : "Invitation sent")
+                  : pilotInvite
+                    ? (fi ? "Hyväksytty, lähetys vaatii huomiota" : "Approved, delivery needs attention")
+                    : (fi ? "Ei vielä hyväksytty" : "Not approved yet")}
+            </h2>
+
+            {pilotInvite?.invite_sent_at ? (
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+                {fi ? "Lähetetty" : "Sent"} {new Date(pilotInvite.invite_sent_at).toLocaleString(displayLocale)}
+              </p>
+            ) : null}
+
+            {pilotInvite?.accepted_at ? (
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+                {fi ? "Asiakas on vahvistanut kutsun ja saanut oikeuden luoda työtilan." : "The customer has confirmed the invitation and can create the workspace."}
+              </p>
+            ) : null}
+
+            {pilotInvite?.invite_error ? (
+              <div className="nodra-alert nodra-alert-error mt-3">
+                {pilotInvite.invite_error}
+              </div>
+            ) : null}
+
+            {!pilotInvite?.accepted_at ? (
+              <form action={approvePilotAccess} className="mt-4">
+                <input type="hidden" name="id" value={lead.id} />
+                <button className="btn-primary w-full">
+                  {pilotInvite
+                    ? (fi ? "Lähetä kutsu uudelleen" : "Resend invitation")
+                    : (fi ? "Hyväksy pilottiin ja lähetä kutsu" : "Approve pilot and send invitation")}
+                </button>
+              </form>
+            ) : null}
+          </section>
           <section className="surface p-5">
             <div className="flex items-start justify-between gap-3">
               <div><div className="font-bold">{t.nextAction}</div><p className="mt-1 text-xs leading-5 text-[var(--muted)]">{t.nextBody}</p></div>
