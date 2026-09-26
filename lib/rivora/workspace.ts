@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,7 +9,7 @@ type WorkspaceOrganization = {
   onboarding_completed_at?: string | null;
 };
 
-export async function getAuthContext() {
+export const getAuthContext = cache(async function getAuthContext() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   const claims = data?.claims;
@@ -43,7 +44,7 @@ export async function getAuthContext() {
         }
       : null,
   };
-}
+});
 
 export async function requireWorkspace() {
   const context = await getAuthContext();

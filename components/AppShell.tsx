@@ -10,14 +10,12 @@ export function AppShell({
   workspaceName,
   workspaceRole,
   userEmail,
-  leadAlertCount = 0,
   locale,
 }: {
   children: React.ReactNode;
   workspaceName: string;
   workspaceRole: string;
   userEmail?: string;
-  leadAlertCount?: number;
   locale: Locale;
 }) {
   const showSales = workspaceRole === "owner" || workspaceRole === "admin";
@@ -47,7 +45,7 @@ export function AppShell({
           <div className="app-sidebar-v2-product">{copy.product}</div>
         </div>
 
-        <AppNav items={nav} leadAlertCount={leadAlertCount} />
+        <AppNav items={nav} />
 
         <div className="app-sidebar-v2-account">
           <LocaleSwitcher locale={locale} label={copy.language} />
