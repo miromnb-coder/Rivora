@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireQuoteAdmin } from "@/lib/rivora/quotes";
+import { getLocale } from "@/lib/locale";
 import {
   loadQuoteDocumentData,
   quotePdfFilename,
@@ -442,33 +443,70 @@ export async function sendQuoteEmail(formData: FormData) {
   if (!document) throw new Error("Quote document could not be generated.");
 
   const pdf = await renderQuotePdf(document);
-  const subject = `${workspace.name} - Quote ${document.quoteNumber}`;
-  const recipient = document.recipientName || document.customerName;
+  const locale = await getLocale();
+  const fi = locale === "fi";
+  const subject = fi
+    ? `${workspace.name} - Tarjous ${document.quoteNumber}`
+    : `${workspace.name} - Quote ${document.quoteNumber}`;
+
+  const namedRecipient =
+    document.recipientName &&
+    document.recipientName.trim().toLocaleLowerCase() !==
+      document.customerName.trim().toLocaleLowerCase()
+      ? document.recipientName.trim()
+      : null;
+
   const total = document.lines.reduce((sum, item) => sum + Number(item.line_total), 0);
   const tax = total * (document.taxRate / 100);
   const grand = total + tax;
-  const totalLabel = new Intl.NumberFormat("en-FI", {
+  const totalLabel = new Intl.NumberFormat(fi ? "fi-FI" : "en-FI", {
     style: "currency",
     currency: document.currency,
   }).format(grand);
 
-  const text = [
-    `Hello ${recipient},`,
-    "",
-    `Please find quote ${document.quoteNumber} attached as a PDF.`,
-    `Quote total: ${totalLabel}`,
-    document.validUntil ? `Valid until: ${document.validUntil}` : "",
-    "",
-    "Best regards,",
-    workspace.name,
-  ].filter(Boolean).join("\n");
+  const greeting = fi
+    ? namedRecipient
+      ? `Hei ${namedRecipient},`
+      : "Hei,"
+    : namedRecipient
+      ? `Hello ${namedRecipient},`
+      : "Hello,";
 
-  const html = `<div style="font-family:Arial,sans-serif;color:#202520;line-height:1.6">
-    <p>Hello ${escapeHtml(recipient)},</p>
-    <p>Please find quote <strong>${escapeHtml(document.quoteNumber)}</strong> attached as a PDF.</p>
-    <p><strong>Quote total:</strong> ${escapeHtml(totalLabel)}${document.validUntil ? `<br><strong>Valid until:</strong> ${escapeHtml(document.validUntil)}` : ""}</p>
-    <p>Best regards,<br>${escapeHtml(workspace.name)}</p>
-  </div>`;
+  const text = fi
+    ? [
+        greeting,
+        "",
+        `Liitteenä tarjous ${document.quoteNumber} PDF-muodossa.`,
+        `Tarjouksen loppusumma: ${totalLabel}`,
+        document.validUntil ? `Voimassa asti: ${document.validUntil}` : "",
+        "",
+        "Ystävällisin terveisin,",
+        workspace.name,
+      ].filter(Boolean).join("\n")
+    : [
+        greeting,
+        "",
+        `Please find quote ${document.quoteNumber} attached as a PDF.`,
+        `Quote total: ${totalLabel}`,
+        document.validUntil ? `Valid until: ${document.validUntil}` : "",
+        "",
+        "Best regards,",
+        workspace.name,
+      ].filter(Boolean).join("\n");
+
+  const html = fi
+    ? `<div style="font-family:Arial,sans-serif;color:#202520;line-height:1.6">
+        <p>${escapeHtml(greeting)}</p>
+        <p>Liitteenä tarjous <strong>${escapeHtml(document.quoteNumber)}</strong> PDF-muodossa.</p>
+        <p><strong>Tarjouksen loppusumma:</strong> ${escapeHtml(totalLabel)}${document.validUntil ? `<br><strong>Voimassa asti:</strong> ${escapeHtml(document.validUntil)}` : ""}</p>
+        <p>Ystävällisin terveisin,<br>${escapeHtml(workspace.name)}</p>
+      </div>`
+    : `<div style="font-family:Arial,sans-serif;color:#202520;line-height:1.6">
+        <p>${escapeHtml(greeting)}</p>
+        <p>Please find quote <strong>${escapeHtml(document.quoteNumber)}</strong> attached as a PDF.</p>
+        <p><strong>Quote total:</strong> ${escapeHtml(totalLabel)}${document.validUntil ? `<br><strong>Valid until:</strong> ${escapeHtml(document.validUntil)}` : ""}</p>
+        <p>Best regards,<br>${escapeHtml(workspace.name)}</p>
+      </div>`;
 
   const nextAttempt = Number(quote.delivery_attempt_count ?? 0) + 1;
 

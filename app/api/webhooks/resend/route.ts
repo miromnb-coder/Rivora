@@ -1,5 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-import { getSupabaseConfig } from "@/lib/supabase/config";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,14 +13,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Missing webhook signature." }, { status: 400 });
   }
 
-  const { url, key } = getSupabaseConfig();
-  const supabase = createClient(url, key, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  });
+  const supabase = createAdminClient();
 
   const { data, error } = await supabase.rpc("process_resend_webhook", {
     p_payload: payload,
