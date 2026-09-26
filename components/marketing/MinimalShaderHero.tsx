@@ -20,7 +20,7 @@ export function MinimalShaderHero({ locale }: { locale: Locale }) {
           <p>{fi ? "Lataa asiakkaan PDF tai taulukko. Nodra poimii tuoterivit, ratkaisee asiakkaan tuotekoodit katalogiasi vasten, merkitsee epävarmuuden ja oppii vahvistetuista osumista." : "Upload a customer PDF or spreadsheet. Nodra extracts the line items, resolves customer product codes against your catalogue, flags uncertainty and learns from confirmed matches."}</p>
 
           <div className="minimal-hero-actions">
-            <Link href="/app/upload" className="minimal-btn minimal-btn-primary">{fi ? "Lataa tarjouspyyntö" : "Upload an RFQ"} <span aria-hidden="true">→</span></Link>
+            <a href="#pricing" className="minimal-btn minimal-btn-primary">{fi ? "Aloita pilotti" : "Start pilot"} <span aria-hidden="true">→</span></a>
             <a href="#resolution" className="minimal-btn minimal-btn-secondary">{fi ? "Katso ratkaistu tuoterivi" : "See a resolved line"}</a>
           </div>
 
