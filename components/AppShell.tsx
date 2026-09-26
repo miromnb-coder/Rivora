@@ -26,13 +26,16 @@ export function AppShell({
     [copy.inbox, "/app/inbox", "inbox"],
     [copy.quotes, "/app/quotes", "quotes"],
     [copy.customers, "/app/customers", "customers"],
-    ...(showSales ? [[copy.leads, "/app/leads", "leads"]] : []),
     [copy.processRfq, "/app/upload", "process"],
     [copy.products, "/app/products", "products"],
     [copy.memory, "/app/memory", "memory"],
     [copy.settings, "/app/settings", "settings"],
     [copy.setup, "/app/setup", "setup"],
   ];
+
+  if (showSales) {
+    nav.splice(3, 0, [copy.leads, "/app/leads", "leads"]);
+  }
 
   return (
     <div className="app-shell-v2 min-h-screen">
