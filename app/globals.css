@@ -4152,7 +4152,26 @@ button, input, select { font: inherit; }
 .nav-v2-signin {
   display: inline-flex;
   min-height: 42px;
+  padding: 0 16px;
   align-items: center;
+  justify-content: center;
+  border: 1px solid #dfe2dd;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #171a18;
+  box-shadow: 0 1px 0 rgba(17, 19, 17, .03);
+  transition:
+    color .18s ease,
+    border-color .18s ease,
+    background .18s ease,
+    transform .18s ease;
+}
+
+.nav-v2-signin:hover {
+  color: #171a18;
+  border-color: #bfc3be;
+  background: #f8f8f6;
+  transform: translateY(-1px);
 }
 
 .nav-v2-cta {
