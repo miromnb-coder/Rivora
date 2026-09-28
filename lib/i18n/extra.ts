@@ -264,5 +264,9 @@ export function getQuoteDetailCopy(locale: Locale) {
     approved: fi ? "Hyväksytty" : "Approved",
     sentAt: fi ? "Lähetetty" : "Sent",
     auditId: fi ? "Toimituksen auditointitunnus tallennettu" : "Delivery audit ID saved",
+    reconciling: fi ? "Lähetys vahvistetaan." : "Send is being reconciled.",
+    reconcilingBody: fi
+      ? "Nodra on jo aloittanut tämän lähetyksen. Uusi lähetys estetään, kunnes aiempi yritys on sovitettu palveluntarjoajan tilaan."
+      : "Nodra has already started this send. A duplicate send is blocked until the previous attempt is reconciled with the provider.",
   };
 }
