@@ -571,13 +571,10 @@ export async function sendQuoteEmail(formData: FormData) {
       id?: string;
       message?: string;
     };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Quote email provider request failed.";
-    await supabase.rpc("fail_quote_email_attempt", {
-      target_attempt_id: attempt.attempt_id,
-      target_error_message: message,
-    });
-    throw new Error(message);
+  } catch {
+    throw new Error(
+      "Nodra could not confirm whether the email provider accepted this send. The attempt remains locked to prevent a duplicate email; delivery status can reconcile from the provider webhook."
+    );
   }
 
   if (!response.ok || !providerResult.id) {
