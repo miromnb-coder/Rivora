@@ -53,7 +53,9 @@ export async function updateCustomerMemoryMapping(formData: FormData) {
 
 export async function deleteCustomerMemoryMapping(formData: FormData) {
   const mappingId = String(formData.get("mappingId") ?? "");
+  const confirmed = formData.get("confirmDelete") === "on";
   if (!mappingId) throw new Error("Mapping is required.");
+  if (!confirmed) throw new Error("Confirm Customer Memory deletion before continuing.");
 
   const { supabase, workspace } = await requireWorkspace();
   if (!["owner","admin"].includes(workspace.role)) {
