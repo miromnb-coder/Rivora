@@ -99,11 +99,12 @@ export async function createQuoteFromRfq(formData: FormData) {
   const { data: products } = await supabase
     .from("products")
     .select("id, sku, name, unit, unit_price")
-    .in("id", productIds);
+    .in("id", productIds)
+    .eq("active", true);
 
   const productMap = new Map((products ?? []).map((product) => [product.id, product]));
   if (productMap.size !== productIds.length) {
-    throw new Error("One or more selected products are unavailable.");
+    throw new Error("One or more selected products are inactive or unavailable. Return to RFQ review and select an active product.");
   }
 
   const quoteNumber = `Q-${new Date().getUTCFullYear()}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
