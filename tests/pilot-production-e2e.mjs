@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 const BASE_URL = process.env.E2E_BASE_URL;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e5@gmail.com";
+const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e6@gmail.com";
 
 if (!BASE_URL || !SUPABASE_URL || !SUPABASE_KEY) {
   throw new Error("Missing E2E environment.");
@@ -141,13 +141,33 @@ try {
 
   for (let guard = 0; guard < 10; guard += 1) {
     await settle();
-    const forms = page.locator("form.rfq-review-v2-form");
-    const count = await forms.count();
-    if (!count) break;
-    await clickAndSettle(forms.first().locator("button"));
+    const articles = page.locator(".rfq-review-v2-line");
+    const count = await articles.count();
+    let clicked = false;
+
+    for (let index = 0; index < count; index += 1) {
+      const article = articles.nth(index);
+      const state = (await article.locator(".rfq-review-v2-state").innerText()).trim();
+      if (/confirmed|vahvistettu/i.test(state)) continue;
+
+      const button = article.locator("form.rfq-review-v2-form button");
+      if ((await button.count()) !== 1) {
+        throw new Error("Unconfirmed RFQ line has no selectable product candidate.");
+      }
+
+      await button.click();
+      await page.waitForTimeout(1200);
+      clicked = true;
+      break;
+    }
+
+    if (!clicked) break;
   }
-  if ((await page.locator("form.rfq-review-v2-form").count()) !== 0) {
-    throw new Error("RFQ lines remain unconfirmed.");
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  const rfqStates = await page.locator(".rfq-review-v2-state").allTextContents();
+  if (rfqStates.some((state) => !/confirmed|vahvistettu/i.test(state))) {
+    throw new Error("RFQ lines remain unconfirmed: " + JSON.stringify(rfqStates));
   }
   console.log("PASS human match confirmation and customer memory");
 
@@ -174,11 +194,14 @@ try {
   }
   console.log("PASS PDF");
 
-  await clickAndSettle(page.getByRole("button", { name: /mark ready/i }));
-  await clickAndSettle(page.getByRole("button", { name: /approve quote/i }));
+  await page.getByRole("button", { name: /mark ready|merkitse valmiiksi/i }).click();
+  await page.waitForSelector(".quote-builder-v1-status.ready", { timeout: 15000 });
+  await page.getByRole("button", { name: /approve quote|hyväksy tarjous/i }).click();
+  await page.waitForSelector(".quote-builder-v1-status.approved", { timeout: 15000 });
   console.log("PASS pricing/state/approval");
 
-  await clickAndSettle(page.getByRole("button", { name: /^send quote/i }));
+  await page.getByRole("button", { name: /send quote|lähetä tarjous/i }).click();
+  await page.waitForSelector(".quote-builder-v1-status.sent", { timeout: 15000 });
   console.log("PASS quote email accepted");
 
   let delivered = false;
