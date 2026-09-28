@@ -12,22 +12,24 @@ export default async function SetupPage() {
     { count: productCount },
     { count: rfqCount },
     { count: quoteCount },
+    { count: sentQuoteCount },
     { count: customerCount },
   ] = await Promise.all([
     supabase.from("organizations").select("name,email,address_line1,city,logo_path,onboarding_completed_at").eq("id", workspace.id).maybeSingle(),
     supabase.from("products").select("id", { count: "exact", head: true }).eq("organization_id", workspace.id).eq("active", true),
     supabase.from("rfqs").select("id", { count: "exact", head: true }).eq("organization_id", workspace.id),
     supabase.from("quotes").select("id", { count: "exact", head: true }).eq("organization_id", workspace.id),
+    supabase.from("quotes").select("id", { count: "exact", head: true }).eq("organization_id", workspace.id).eq("status", "sent"),
     supabase.from("customers").select("id", { count: "exact", head: true }).eq("organization_id", workspace.id),
   ]);
 
   const companyReady = Boolean(organization?.name && organization?.email && organization?.address_line1 && organization?.city);
   const catalogueReady = (productCount ?? 0) > 0;
   const firstRfqReady = (rfqCount ?? 0) > 0;
-  const quoteReady = (quoteCount ?? 0) > 0;
+  const quoteReady = (sentQuoteCount ?? 0) > 0;
   const readiness = [companyReady, catalogueReady, firstRfqReady, quoteReady];
   const completeCount = readiness.filter(Boolean).length;
-  const hrefs = ["/app/settings", "/app/upload", "/app/upload#first-rfq", firstRfqReady ? "/app/inbox" : "/app/upload"];
+  const hrefs = ["/app/settings", "/app/upload", "/app/upload#first-rfq", (quoteCount ?? 0) > 0 ? "/app/quotes" : firstRfqReady ? "/app/inbox" : "/app/upload"];
   const nextIndex = readiness.findIndex((value) => !value);
   const setupComplete = nextIndex === -1;
   const recommendedIndex = setupComplete ? 3 : nextIndex;
