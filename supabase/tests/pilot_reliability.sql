@@ -423,6 +423,13 @@ declare
   older_payload text;
   older_svix text := 'msg_'||replace(gen_random_uuid()::text,'-','');
   older_sig text;
+  q2 uuid := gen_random_uuid();
+  ql2 uuid := gen_random_uuid();
+  a2 uuid := gen_random_uuid();
+  provider_id2 text := 'email-webhook-tag-'||gen_random_uuid()::text;
+  tag_payload text;
+  tag_svix text := 'msg_'||replace(gen_random_uuid()::text,'-','');
+  tag_sig text;
 begin
   select id into prod from public.products where organization_id=org and sku='EXACT-100';
   select secret_value into secret from private.integration_secrets where name='resend_webhook_signing_secret';
@@ -496,6 +503,58 @@ begin
   exception when others then
     if position('Invalid webhook signature' in sqlerrm)=0 then raise; end if;
   end;
-end $$;
+
+  -- Provider acceptance persistence can fail after the provider accepted the email.
+  -- A signed attempt tag must be enough to repair the pending attempt from webhook data.
+  insert into public.quotes(
+    id,organization_id,customer_id,quote_number,status,currency,valid_until,tax_rate,
+    created_by,approved_by,approved_at,recipient_email
+  ) values (
+    q2,org,cust,'Q-WEBHOOK-TAG-TEST','draft','EUR',current_date+14,25.5,uid,null,null,'buyer2@example.com'
+  );
+  insert into public.quote_lines(
+    id,organization_id,quote_id,line_number,product_id,quantity,unit,unit_price,
+    catalogue_unit_price,discount_percent,line_total,pricing_required
+  ) values (ql2,org,q2,1,prod,1,'pcs',100,100,0,100,false);
+  update public.quotes set status='ready' where id=q2;
+  update public.quotes set status='approved',approved_by=uid,approved_at=now() where id=q2;
+
+  insert into public.quote_email_attempts(
+    id,organization_id,quote_id,attempt_no,idempotency_key,recipient_email,status,created_by
+  ) values (
+    a2,org,q2,1,'webhook-tag-test-'||a2::text,'buyer2@example.com','pending',uid
+  );
+
+  tag_payload := jsonb_build_object(
+    'id','evt_sent_tag_'||a2::text,
+    'type','email.sent',
+    'created_at',now(),
+    'data',jsonb_build_object(
+      'email_id',provider_id2,
+      'to',jsonb_build_array('buyer2@example.com'),
+      'tags',jsonb_build_object(
+        'nodra_quote_id',q2::text,
+        'nodra_attempt_id',a2::text,
+        'nodra_attempt','1'
+      )
+    )
+  )::text;
+  signed := tag_svix||'.'||ts||'.'||tag_payload;
+  tag_sig := 'v1,'||encode(extensions.hmac(convert_to(signed,'UTF8'),secret_bytes,'sha256'),'base64');
+
+  result := public.process_resend_webhook(tag_payload,tag_svix,ts,tag_sig);
+  if result->>'status'<>'processed' or result->>'attempt_id'<>a2::text then
+    raise exception 'Webhook attempt-tag reconciliation failed: %',result;
+  end if;
+
+  select status,provider_email_id into attempt_status,provider_id
+  from public.quote_email_attempts where id=a2;
+  if attempt_status<>'sent' or provider_id<>provider_id2 then
+    raise exception 'Pending attempt was not repaired from signed attempt tag';
+  end if;
+
+  select status into status_now from public.quotes where id=q2;
+  if status_now<>'sent' then raise exception 'Attempt-tag webhook did not reconcile quote to sent'; end if;
+end $;
 
 rollback;
