@@ -498,6 +498,9 @@ begin
   select delivery_status into current_delivery from public.quotes where id=q;
   if current_delivery<>'delivered' then raise exception 'Older sent event regressed delivered state'; end if;
 
+  select status into attempt_status from public.quote_email_attempts where id=a;
+  if attempt_status<>'delivered' then raise exception 'Older sent event regressed delivered attempt state'; end if;
+
   begin
     perform public.process_resend_webhook(payload,'bad-id',ts,'v1,invalid');
     raise exception 'Invalid webhook signature should fail';
