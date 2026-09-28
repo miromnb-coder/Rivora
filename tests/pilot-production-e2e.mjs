@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 const BASE_URL = process.env.E2E_BASE_URL;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e3@gmail.com";
+const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e4@gmail.com";
 
 if (!BASE_URL || !SUPABASE_URL || !SUPABASE_KEY) {
   throw new Error("Missing E2E environment.");
