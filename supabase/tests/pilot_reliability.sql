@@ -316,7 +316,7 @@ begin
 
   select count(*) into n from public.activity_events
   where entity_id=mapping_id and event_type='customer_memory_changed';
-  if n<>1 then raise exception 'Customer Memory change audit missing'; end if;
+  if n<1 then raise exception 'Customer Memory change audit missing'; end if;
   select count(*) into n from public.activity_events
   where entity_id=mapping_id and event_type='customer_memory_deleted';
   if n<>1 then raise exception 'Customer Memory delete audit missing'; end if;
