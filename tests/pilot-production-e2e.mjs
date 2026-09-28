@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 const BASE_URL = process.env.E2E_BASE_URL;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e6@gmail.com";
+const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e7@gmail.com";
 
 if (!BASE_URL || !SUPABASE_URL || !SUPABASE_KEY) {
   throw new Error("Missing E2E environment.");
@@ -223,8 +223,21 @@ try {
   console.log("PASS first-run completion");
 
   await page.goto(BASE_URL + "/app/customers", { waitUntil: "domcontentloaded" });
-  if (!(await page.locator("body").innerText()).includes("E2E Customer")) {
-    throw new Error("Customer history missing after completed flow.");
+  const customerLink = page.locator('a[href^="/app/customers/"]').filter({ hasText: "E2E Customer" }).first();
+  await customerLink.waitFor({ state: "visible", timeout: 15000 });
+  await customerLink.click();
+  await page.waitForURL(/\/app\/customers\/[^/?]+/, { timeout: 15000 });
+  await page.waitForLoadState("domcontentloaded");
+
+  const historyBody = await page.locator("body").innerText();
+  if (!historyBody.includes("RFQ-E2E-PRODUCTION")) {
+    throw new Error("Customer RFQ history missing after completed flow.");
+  }
+  if (!/Q-\d{4}-[A-Z0-9]+/.test(historyBody)) {
+    throw new Error("Customer quote history missing after completed flow.");
+  }
+  if (!historyBody.includes("E2E-001")) {
+    throw new Error("Customer Memory history missing after completed flow.");
   }
   console.log("PASS history");
 
