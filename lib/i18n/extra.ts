@@ -11,7 +11,7 @@ export function getSetupCopy(locale: Locale) {
     done: "Valmis", next: "Seuraava", waiting: "Odottaa",
     recommendedKicker: "Suositeltu seuraava vaihe", completeKicker: "Käyttöönotto valmis",
     completeTitle: "Peruspolku on valmis oikeaa tarjouspyyntöä varten.",
-    completeBody: "Yritystiedot, katalogi, ensimmäinen tarjouspyyntö ja tarjous ovat kunnossa. Voit jatkaa normaaliin Inbox-työskentelyyn.",
+    completeBody: "Yritystiedot, katalogi, ensimmäinen tarjouspyyntö ja ensimmäinen lähetetty tarjous ovat kunnossa. Voit jatkaa normaaliin Inbox-työskentelyyn.",
     openInbox: "Avaa Inbox",
     monitoring: "Tuotannon valvonta", monitoringTitle: "Sovelluksen virhevalvonta on aktiivinen.",
     monitoringBody: "Odottamattomat sovellusvirheet tallennetaan työtilalle ja tuotannon runtime-lokeihin tutkimista varten.",
