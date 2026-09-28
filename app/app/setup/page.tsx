@@ -29,7 +29,7 @@ export default async function SetupPage() {
   const quoteReady = (sentQuoteCount ?? 0) > 0;
   const readiness = [companyReady, catalogueReady, firstRfqReady, quoteReady];
   const completeCount = readiness.filter(Boolean).length;
-  const hrefs = ["/app/settings", "/app/upload", "/app/upload#first-rfq", firstRfqReady ? "/app/inbox" : "/app/upload"];
+  const hrefs = ["/app/settings", "/app/upload", "/app/upload#first-rfq", (quoteCount ?? 0) > 0 ? "/app/quotes" : firstRfqReady ? "/app/inbox" : "/app/upload"];
   const nextIndex = readiness.findIndex((value) => !value);
   const setupComplete = nextIndex === -1;
   const recommendedIndex = setupComplete ? 3 : nextIndex;
