@@ -488,7 +488,7 @@ begin
   older_payload := jsonb_build_object(
     'id','evt_sent_old_'||a::text,
     'type','email.sent',
-    'created_at',now()-interval '1 minute',
+    'created_at',now()-interval '1 second',
     'data',jsonb_build_object('email_id',provider_id,'to',jsonb_build_array('buyer@example.com'))
   )::text;
   signed := older_svix||'.'||ts||'.'||older_payload;
