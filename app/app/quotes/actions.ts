@@ -419,9 +419,17 @@ export async function sendQuoteEmail(formData: FormData) {
   }
 
   const { supabase, workspace } = await requireQuoteAdmin();
+
+  // Repair a provider-accepted send before allowing another attempt. This closes the
+  // distributed-systems gap where Resend accepted the message but the quote update failed.
+  const { error: reconciliationError } = await supabase.rpc("reconcile_quote_email_delivery", {
+    target_quote_id: quoteId,
+  });
+  if (reconciliationError) throw new Error(reconciliationError.message);
+
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, status, quote_number, recipient_name, recipient_email, approved_at, sent_at, delivery_status, delivery_attempt_count")
+    .select("id, status, quote_number, recipient_name, recipient_email, approved_at, sent_at, delivery_status")
     .eq("id", quoteId)
     .maybeSingle();
 
@@ -509,7 +517,22 @@ export async function sendQuoteEmail(formData: FormData) {
         <p>Best regards,<br>${escapeHtml(workspace.name)}</p>
       </div>`;
 
-  const nextAttempt = Number(quote.delivery_attempt_count ?? 0) + 1;
+  const { data: attemptData, error: attemptError } = await supabase.rpc("begin_quote_email_attempt", {
+    target_quote_id: quote.id,
+    target_recipient_email: quote.recipient_email,
+  });
+
+  if (attemptError) throw new Error(attemptError.message);
+
+  const attempt = (attemptData ?? {}) as {
+    attempt_id?: string;
+    attempt_no?: number;
+    idempotency_key?: string;
+  };
+
+  if (!attempt.attempt_id || !attempt.attempt_no || !attempt.idempotency_key) {
+    throw new Error("Could not create a durable quote email attempt.");
+  }
 
   const body: Record<string, unknown> = {
     from,
@@ -525,56 +548,72 @@ export async function sendQuoteEmail(formData: FormData) {
     ],
     tags: [
       { name: "nodra_quote_id", value: quote.id },
-      { name: "nodra_attempt", value: String(nextAttempt) },
+      { name: "nodra_attempt_id", value: attempt.attempt_id },
+      { name: "nodra_attempt", value: String(attempt.attempt_no) },
     ],
   };
 
   if (replyTo) body.reply_to = [replyTo];
 
-
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": `nodra-quote-${quote.id}-attempt-${nextAttempt}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  const providerResult = (await response.json().catch(() => ({}))) as {
-    id?: string;
-    message?: string;
-  };
-
-  if (!response.ok || !providerResult.id) {
-    throw new Error(providerResult.message || "Quote email could not be sent.");
+  let response: Response;
+  let providerResult: { id?: string; message?: string } = {};
+  try {
+    response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": attempt.idempotency_key,
+      },
+      body: JSON.stringify(body),
+    });
+    providerResult = (await response.json().catch(() => ({}))) as {
+      id?: string;
+      message?: string;
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Quote email provider request failed.";
+    await supabase.rpc("fail_quote_email_attempt", {
+      target_attempt_id: attempt.attempt_id,
+      target_error_message: message,
+    });
+    throw new Error(message);
   }
 
-  const now = new Date().toISOString();
-  const { error } = await supabase
-    .from("quotes")
-    .update({
-      status: "sent",
-      sent_at: quote.sent_at || now,
-      last_sent_at: now,
-      sent_to_email: quote.recipient_email,
-      email_provider_id: providerResult.id,
-      delivery_status: "sent",
-      delivery_status_at: now,
-      delivered_at: null,
-      bounced_at: null,
-      failed_at: null,
-      delivery_attempt_count: nextAttempt,
-      updated_at: now,
-    })
-    .eq("id", quoteId);
+  if (!response.ok || !providerResult.id) {
+    const message = providerResult.message || "Quote email could not be sent.";
+    await supabase.rpc("fail_quote_email_attempt", {
+      target_attempt_id: attempt.attempt_id,
+      target_error_message: message,
+    });
+    throw new Error(message);
+  }
 
-  if (error) {
-    throw new Error("Email was accepted by the provider, but Nodra could not record the sent state.");
+  // Persist provider acceptance independently before touching the quote. If the next
+  // reconciliation call fails, the webhook or a later send action can safely repair it.
+  const { error: acceptedError } = await supabase.rpc("record_quote_email_provider_accept", {
+    target_attempt_id: attempt.attempt_id,
+    target_provider_email_id: providerResult.id,
+    target_provider_response: providerResult,
+  });
+
+  if (acceptedError) {
+    throw new Error(
+      "Email was accepted by the provider, but Nodra could not persist the provider acceptance. Do not resend until delivery status is checked."
+    );
+  }
+
+  const { error: finalizeError } = await supabase.rpc("reconcile_quote_email_attempt", {
+    target_attempt_id: attempt.attempt_id,
+  });
+
+  if (finalizeError) {
+    throw new Error(
+      "Email was accepted by the provider. Nodra recorded the send attempt and will reconcile quote status from the stored provider acceptance or delivery webhook."
+    );
   }
 
   revalidatePath(`/app/quotes/${quoteId}`);
   revalidatePath("/app/quotes");
 }
+
