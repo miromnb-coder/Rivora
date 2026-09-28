@@ -419,6 +419,7 @@ declare
   result jsonb;
   current_delivery text;
   attempt_status text;
+  status_now text;
   n integer;
   older_payload text;
   older_svix text := 'msg_'||replace(gen_random_uuid()::text,'-','');
