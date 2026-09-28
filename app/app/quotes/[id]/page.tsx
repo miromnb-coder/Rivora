@@ -41,6 +41,16 @@ export default async function QuoteDetailPage({
     .eq("quote_id", id)
     .order("line_number");
 
+  const { data: latestAttempts } = await supabase
+    .from("quote_email_attempts")
+    .select("id,attempt_no,status,recipient_email,provider_email_id,created_at,accepted_at,reconciled_at")
+    .eq("quote_id", id)
+    .order("attempt_no", { ascending: false })
+    .limit(1);
+
+  const latestAttempt = latestAttempts?.[0] ?? null;
+  const sendReconciling = ["pending", "provider_accepted"].includes(String(latestAttempt?.status ?? ""));
+
   const { data: deliveryEvents } = await supabase
     .from("quote_email_events")
     .select("id, provider_email_id, event_type, recipient_email, occurred_at, message_id")
@@ -114,6 +124,12 @@ export default async function QuoteDetailPage({
       {pricingRequiredCount > 0 ? (
         <section className="upload-v2-alert error">
           {copy.pricingRequired(pricingRequiredCount)}
+        </section>
+      ) : null}
+
+      {sendReconciling ? (
+        <section className="upload-v2-alert">
+          <strong>{copy.reconciling}</strong> {copy.reconcilingBody}
         </section>
       ) : null}
 
@@ -372,7 +388,9 @@ export default async function QuoteDetailPage({
                 ) : null}
 
                 {quote.status === "approved" ? (
-                  emailConfigured && quote.recipient_email ? (
+                  sendReconciling ? (
+                    <div className="quote-delivery-v1-gate">{copy.reconcilingBody}</div>
+                  ) : emailConfigured && quote.recipient_email ? (
                     <form action={sendQuoteEmail}>
                       <input type="hidden" name="quoteId" value={quote.id} />
                       <button>{copy.sendQuote} →</button>
@@ -387,7 +405,9 @@ export default async function QuoteDetailPage({
                 ) : null}
 
                 {canRetryDelivery ? (
-                  emailConfigured ? (
+                  sendReconciling ? (
+                    <div className="quote-delivery-v1-gate">{copy.reconcilingBody}</div>
+                  ) : emailConfigured ? (
                     <form action={sendQuoteEmail}>
                       <input type="hidden" name="quoteId" value={quote.id} />
                       <button>{copy.retryDelivery} →</button>
