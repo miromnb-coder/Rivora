@@ -488,7 +488,7 @@ begin
   older_payload := jsonb_build_object(
     'id','evt_sent_old_'||a::text,
     'type','email.sent',
-    'created_at',now()-interval '1 minute',
+    'created_at',now()-interval '1 second',
     'data',jsonb_build_object('email_id',provider_id,'to',jsonb_build_array('buyer@example.com'))
   )::text;
   signed := older_svix||'.'||ts||'.'||older_payload;
@@ -497,6 +497,9 @@ begin
 
   select delivery_status into current_delivery from public.quotes where id=q;
   if current_delivery<>'delivered' then raise exception 'Older sent event regressed delivered state'; end if;
+
+  select status into attempt_status from public.quote_email_attempts where id=a;
+  if attempt_status<>'delivered' then raise exception 'Older sent event regressed delivered attempt state'; end if;
 
   begin
     perform public.process_resend_webhook(payload,'bad-id',ts,'v1,invalid');

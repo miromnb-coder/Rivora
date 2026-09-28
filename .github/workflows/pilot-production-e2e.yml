@@ -1,0 +1,24 @@
+name: Pilot Production E2E
+
+on:
+  workflow_dispatch:
+
+jobs:
+  production-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      E2E_BASE_URL: https://www.nodra.fi
+      E2E_EMAIL: nodra.verkkosivut+pilot-e2e7@gmail.com
+      NEXT_PUBLIC_SUPABASE_URL: https://utvxopmdxqnxqgaxugxm.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_SBBsbkvXo1JHzmiYdaucwA_nSZtfF-w
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm install --no-save playwright@1.55.1
+      - run: npx playwright install --with-deps chromium
+      - name: Run production pilot E2E
+        run: node tests/pilot-production-e2e.mjs
