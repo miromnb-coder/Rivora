@@ -123,7 +123,7 @@ function clampConfidence(value: unknown) {
   return Math.max(0, Math.min(100, number));
 }
 
-function validateExtraction(value: unknown): ExtractedRfq {
+export function validateRfqExtraction(value: unknown): ExtractedRfq {
   if (!value || typeof value !== "object") {
     throw new Error("OpenAI returned an invalid RFQ extraction.");
   }
@@ -247,7 +247,7 @@ export async function extractRfqFromPdf(file: File) {
   }
 
   return {
-    extraction: validateExtraction(parsed),
+    extraction: validateRfqExtraction(parsed),
     provider: "openai" as const,
     model,
     responseId: response.id,
