@@ -15,6 +15,7 @@ create table if not exists public.quote_email_attempts (
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   accepted_at timestamptz,
+  provider_status_at timestamptz,
   reconciled_at timestamptz,
   updated_at timestamptz not null default now(),
   unique (quote_id, attempt_no)
@@ -219,13 +220,27 @@ begin
       sent_to_email = a.recipient_email,
       email_provider_id = a.provider_email_id,
       delivery_status = case
+        when delivery_status_at is not null
+          and coalesce(a.provider_status_at,reconcile_time) < delivery_status_at
+          then delivery_status
         when a.status in ('delivered','bounced','failed') then a.status
         else 'sent'
       end,
-      delivery_status_at = greatest(coalesce(delivery_status_at,reconcile_time),reconcile_time),
-      delivered_at = case when a.status='delivered' then coalesce(delivered_at,a.updated_at) else delivered_at end,
-      bounced_at = case when a.status='bounced' then coalesce(bounced_at,a.updated_at) else bounced_at end,
-      failed_at = case when a.status='failed' then coalesce(failed_at,a.updated_at) else failed_at end,
+      delivery_status_at = case
+        when delivery_status_at is not null
+          and coalesce(a.provider_status_at,reconcile_time) < delivery_status_at
+          then delivery_status_at
+        else coalesce(a.provider_status_at,reconcile_time)
+      end,
+      delivered_at = case
+        when a.status='delivered' and (delivery_status_at is null or coalesce(a.provider_status_at,reconcile_time)>=delivery_status_at)
+        then coalesce(a.provider_status_at,reconcile_time) else delivered_at end,
+      bounced_at = case
+        when a.status='bounced' and (delivery_status_at is null or coalesce(a.provider_status_at,reconcile_time)>=delivery_status_at)
+        then coalesce(a.provider_status_at,reconcile_time) else bounced_at end,
+      failed_at = case
+        when a.status='failed' and (delivery_status_at is null or coalesce(a.provider_status_at,reconcile_time)>=delivery_status_at)
+        then coalesce(a.provider_status_at,reconcile_time) else failed_at end,
       delivery_attempt_count = greatest(delivery_attempt_count,a.attempt_no),
       updated_at = greatest(updated_at,reconcile_time)
   where id=a.quote_id;
@@ -424,9 +439,11 @@ begin
   if v_attempt_id is not null then
     update public.quote_email_attempts
     set status=v_event_type,
+        provider_status_at=v_occurred_at,
         updated_at=greatest(updated_at,v_occurred_at),
         reconciled_at=coalesce(reconciled_at,now())
-    where id=v_attempt_id;
+    where id=v_attempt_id
+      and (provider_status_at is null or v_occurred_at>=provider_status_at);
 
     perform private.reconcile_quote_email_attempt_impl(v_attempt_id);
   else
