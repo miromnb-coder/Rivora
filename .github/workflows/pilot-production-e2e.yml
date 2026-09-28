@@ -1,6 +1,12 @@
 name: Pilot Production E2E
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/pilot-production-e2e.yml"
+      - "tests/pilot-production-e2e.mjs"
+      - "docs/pilot-e2e-acceptance.md"
   push:
     branches: [pilot-e2e-acceptance]
     paths:
