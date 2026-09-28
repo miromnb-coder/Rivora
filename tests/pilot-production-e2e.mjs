@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 const BASE_URL = process.env.E2E_BASE_URL;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e2@gmail.com";
+const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e3@gmail.com";
 
 if (!BASE_URL || !SUPABASE_URL || !SUPABASE_KEY) {
   throw new Error("Missing E2E environment.");
@@ -66,8 +66,9 @@ try {
   await page.locator('input[name="workspaceName"]').fill("Nodra Pilot E2E");
   await page.locator('input[name="password"]').fill(password);
   await page.locator('input[name="passwordConfirm"]').fill(password);
-  await clickAndSettle(page.getByRole("button", { name: /create|luo/i }));
-  if (!page.url().includes("/app/setup")) throw new Error("Onboarding did not reach setup: " + page.url());
+  await page.getByRole("button", { name: /create|luo/i }).click();
+  await page.waitForURL(/\/app\/setup(?:\?|$)/, { timeout: 15000 });
+  await settle();
   console.log("PASS onboarding");
 
   await page.goto(BASE_URL + "/app/settings", { waitUntil: "domcontentloaded" });
