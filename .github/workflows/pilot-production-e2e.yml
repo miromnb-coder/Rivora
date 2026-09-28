@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 20
     env:
       E2E_BASE_URL: https://www.nodra.fi
-      E2E_EMAIL: nodra.verkkosivut+pilot-e2e5@gmail.com
+      E2E_EMAIL: nodra.verkkosivut+pilot-e2e6@gmail.com
       NEXT_PUBLIC_SUPABASE_URL: https://utvxopmdxqnxqgaxugxm.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_SBBsbkvXo1JHzmiYdaucwA_nSZtfF-w
     steps:
