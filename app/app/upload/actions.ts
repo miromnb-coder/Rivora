@@ -36,7 +36,7 @@ async function upsertCustomer(
 export async function importCatalogue(formData: FormData) {
   const file = formData.get("catalogue");
   let failure: string | null = null;
-  let summary = { total: 0, created: 0, updated: 0, missingPrice: 0 };
+  let summary = { total: 0, created: 0, updated: 0, missingPrice: 0, deactivated: 0 };
 
   try {
     if (!(file instanceof File)) throw new Error("Choose a catalogue file.");
@@ -68,6 +68,7 @@ export async function importCatalogue(formData: FormData) {
       created?: number;
       updated?: number;
       missing_price?: number;
+      deactivated?: number;
     };
 
     summary = {
@@ -75,6 +76,7 @@ export async function importCatalogue(formData: FormData) {
       created: Number(result.created ?? 0),
       updated: Number(result.updated ?? 0),
       missingPrice: Number(result.missing_price ?? rows.filter((row) => row.unitPrice == null).length),
+      deactivated: Number(result.deactivated ?? 0),
     };
   } catch (error) {
     failure = errorMessage(error);
@@ -84,7 +86,7 @@ export async function importCatalogue(formData: FormData) {
 
   revalidatePath("/app/products");
   redirect(
-    `/app/upload?catalogueImported=${summary.total}&catalogueCreated=${summary.created}&catalogueUpdated=${summary.updated}&catalogueMissingPrice=${summary.missingPrice}`
+    `/app/upload?catalogueImported=${summary.total}&catalogueCreated=${summary.created}&catalogueUpdated=${summary.updated}&catalogueMissingPrice=${summary.missingPrice}&catalogueDeactivated=${summary.deactivated}`
   );
 }
 

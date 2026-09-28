@@ -12,6 +12,7 @@ export default async function UploadPage({
     catalogueCreated?: string;
     catalogueUpdated?: string;
     catalogueMissingPrice?: string;
+    catalogueDeactivated?: string;
     catalogueError?: string;
     rfqError?: string;
     pdfError?: string;
@@ -42,7 +43,8 @@ export default async function UploadPage({
       {params.catalogueImported ? (
         <div className="upload-v2-alert success">
           {copy.imported}: {params.catalogueImported} {copy.validated} · {params.catalogueCreated ?? "0"} {copy.new} · {params.catalogueUpdated ?? "0"} {copy.updated}
-          {Number(params.catalogueMissingPrice ?? 0) > 0 ? ` · ${params.catalogueMissingPrice} ${copy.withoutPrice}` : ""}.
+          {Number(params.catalogueMissingPrice ?? 0) > 0 ? ` · ${params.catalogueMissingPrice} ${copy.withoutPrice}` : ""}
+          {Number(params.catalogueDeactivated ?? 0) > 0 ? ` · ${params.catalogueDeactivated} deactivated` : ""}.
         </div>
       ) : null}
 
