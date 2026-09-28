@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 const BASE_URL = process.env.E2E_BASE_URL;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e4@gmail.com";
+const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e5@gmail.com";
 
 if (!BASE_URL || !SUPABASE_URL || !SUPABASE_KEY) {
   throw new Error("Missing E2E environment.");
@@ -78,8 +78,9 @@ try {
   await page.locator('input[name="postalCode"]').fill("33100");
   await page.locator('input[name="city"]').fill("Tampere");
   await page.locator('input[name="country"]').fill("Finland");
-  await clickAndSettle(page.locator('form:has(input[name="addressLine1"]) button').first());
-  if (!page.url().includes("saved=")) throw new Error("Company settings did not save: " + page.url());
+  await page.locator('form:has(input[name="addressLine1"]) button').first().click();
+  await page.waitForURL(/\/app\/settings\?saved=1/, { timeout: 15000 });
+  await settle();
   console.log("PASS company settings");
 
   const catalogue = [
@@ -95,8 +96,9 @@ try {
     mimeType: "text/csv",
     buffer: Buffer.from(catalogue),
   });
-  await clickAndSettle(catalogueInput.locator("xpath=ancestor::form").locator("button").first());
-  if (!page.url().includes("catalogueImported=")) throw new Error("Catalogue import did not complete: " + page.url());
+  await catalogueInput.locator("xpath=ancestor::form").locator("button").first().click();
+  await page.waitForURL(/catalogueImported=/, { timeout: 15000 });
+  await settle();
   console.log("PASS catalogue import");
 
   await page.goto(BASE_URL + "/app/customers", { waitUntil: "domcontentloaded" });
@@ -104,8 +106,9 @@ try {
   await createCustomerForm.locator('input[name="name"]').fill("E2E Customer");
   await createCustomerForm.locator('input[name="externalId"]').fill("E2E-CUST-001");
   await createCustomerForm.locator('input[name="emailDomain"]').fill("resend.dev");
-  await clickAndSettle(createCustomerForm.locator("button").first());
-  if (!page.url().includes("/app/customers/")) throw new Error("Customer create failed: " + page.url());
+  await createCustomerForm.locator("button").first().click();
+  await page.waitForURL(/\/app\/customers\/[^/?]+/, { timeout: 15000 });
+  await settle();
 
   const contactForm = page.locator('form:has(input[name="isPrimary"])');
   await contactForm.locator('input[name="name"]').fill("E2E Buyer");
@@ -131,8 +134,9 @@ try {
     mimeType: "text/csv",
     buffer: Buffer.from(rfq),
   });
-  await clickAndSettle(rfqForm.locator("button").first());
-  if (!page.url().includes("/app/rfq/")) throw new Error("RFQ create failed: " + page.url());
+  await rfqForm.locator("button").first().click();
+  await page.waitForURL(/\/app\/rfq\/[^/?]+/, { timeout: 15000 });
+  await settle();
   console.log("PASS RFQ import and matching");
 
   for (let guard = 0; guard < 10; guard += 1) {
@@ -149,8 +153,9 @@ try {
 
   const createQuoteForm = page.locator(".rfq-review-v2-ready form");
   if ((await createQuoteForm.count()) !== 1) throw new Error("Quote creation gate not ready.");
-  await clickAndSettle(createQuoteForm.locator("button"));
-  if (!page.url().includes("/app/quotes/")) throw new Error("Quote creation failed: " + page.url());
+  await createQuoteForm.locator("button").click();
+  await page.waitForURL(/\/app\/quotes\/[^/?]+/, { timeout: 15000 });
+  await settle();
   console.log("PASS quote creation");
 
   const recipientForm = page.locator('form:has(input[name="recipientEmail"])');
