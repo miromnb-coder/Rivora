@@ -1,10 +1,14 @@
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { getMemoryCopy } from "@/lib/i18n/extra";
+import { deleteCustomerMemoryMapping, updateCustomerMemoryMapping } from "./actions";
 
 export default async function MemoryPage() {
-  const [{ supabase }, locale] = await Promise.all([requireWorkspace(), getLocale()]);
+  const [{ supabase, workspace }, locale] = await Promise.all([requireWorkspace(), getLocale()]);
   const copy = getMemoryCopy(locale);
+  const fi = locale === "fi";
+  const canEdit = ["owner","admin","member"].includes(workspace.role);
+  const canDelete = ["owner","admin"].includes(workspace.role);
 
   const { data: mappings } = await supabase
     .from("customer_product_mappings")
@@ -50,8 +54,34 @@ export default async function MemoryPage() {
                   <div className="memory-app-v2-customer"><span>{copy.customer}</span><strong>{customer?.name ?? copy.unknown}</strong><small>{mapping.source ? String(mapping.source).replaceAll("_", " ") : copy.human}</small></div>
                   <div className="memory-app-v2-input"><span>{copy.customerLanguage}</span><h3>{mapping.customer_sku || copy.noSku}</h3><p>{mapping.customer_description || copy.noDescription}</p></div>
                   <div className="memory-app-v2-arrow" aria-hidden="true">→</div>
-                  <div className="memory-app-v2-product"><span>{copy.canonical}</span><h3>{product?.sku ?? copy.unavailable}</h3><p>{product?.name ?? copy.mapped}</p>{product?.manufacturer ? <small>{product.manufacturer}</small> : null}</div>
-                  <div className="memory-app-v2-uses"><span>{copy.uses}</span><strong>{uses}</strong><small>{uses > 1 ? copy.reusedLabel : copy.once}</small></div>
+                  <div className="memory-app-v2-product">
+                    <span>{copy.canonical}</span>
+                    <h3>{product?.sku ?? copy.unavailable}</h3>
+                    <p>{product?.name ?? copy.mapped}</p>
+                    {product?.manufacturer ? <small>{product.manufacturer}</small> : null}
+                    {canEdit ? (
+                      <form action={updateCustomerMemoryMapping} className="mt-3 flex flex-wrap gap-2">
+                        <input type="hidden" name="mappingId" value={mapping.id} />
+                        <input
+                          name="productSku"
+                          required
+                          defaultValue={product?.sku ?? ""}
+                          aria-label={fi ? "Uusi katalogin SKU" : "New catalogue SKU"}
+                          className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-2 py-2 text-xs"
+                        />
+                        <button className="btn-secondary">{fi ? "Vaihda" : "Change"}</button>
+                      </form>
+                    ) : null}
+                  </div>
+                  <div className="memory-app-v2-uses">
+                    <span>{copy.uses}</span><strong>{uses}</strong><small>{uses > 1 ? copy.reusedLabel : copy.once}</small>
+                    {canDelete ? (
+                      <form action={deleteCustomerMemoryMapping} className="mt-3">
+                        <input type="hidden" name="mappingId" value={mapping.id} />
+                        <button className="btn-secondary">{fi ? "Poista muistista" : "Delete mapping"}</button>
+                      </form>
+                    ) : null}
+                  </div>
                 </article>
               );
             })}
