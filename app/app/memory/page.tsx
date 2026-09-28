@@ -76,8 +76,12 @@ export default async function MemoryPage() {
                   <div className="memory-app-v2-uses">
                     <span>{copy.uses}</span><strong>{uses}</strong><small>{uses > 1 ? copy.reusedLabel : copy.once}</small>
                     {canDelete ? (
-                      <form action={deleteCustomerMemoryMapping} className="mt-3">
+                      <form action={deleteCustomerMemoryMapping} className="mt-3 space-y-2">
                         <input type="hidden" name="mappingId" value={mapping.id} />
+                        <label className="flex items-start gap-2 text-xs text-[var(--muted)]">
+                          <input name="confirmDelete" type="checkbox" required className="mt-0.5" />
+                          <span>{fi ? "Vahvistan, että tämä vastine poistetaan muistista." : "I confirm this mapping should be removed from memory."}</span>
+                        </label>
                         <button className="btn-secondary">{fi ? "Poista muistista" : "Delete mapping"}</button>
                       </form>
                     ) : null}
