@@ -23,7 +23,7 @@ export function getSetupCopy(locale: Locale) {
       ["Yrityksen asetukset", "Lisää myyjän tiedot, logo, oletus-ALV ja tarjouksen voimassaolo.", "Tarkista asetukset", "Täydennä yrityksen asetukset"],
       ["Tuotekatalogi", "Aloita omalla CSV/XLSX-tiedostolla tai Nodran esimerkkipohjalla.", "Avaa katalogityökalut", "Tuo ensimmäinen katalogi"],
       ["Ensimmäinen tarjouspyyntö", "Käsittele PDF, CSV tai XLSX ja vahvista tuoteosumat ennen tarjousta.", "Käsittele uusi tarjouspyyntö", "Käsittele ensimmäinen tarjouspyyntö"],
-      ["Ensimmäinen tarjous", "Ratkaise tarjouspyyntö, luo tarjous, hyväksy se ja valitse vastaanottaja.", "Avaa tarjoukset", "Jatka työnkulkua"],
+      ["Ensimmäinen lähetetty tarjous", "Ratkaise tarjouspyyntö, luo ja hyväksy tarjous, valitse vastaanottaja ja lähetä testitarjous onnistuneesti.", "Avaa tarjoukset", "Viimeistele ja lähetä tarjous"],
     ],
   } : {
     kicker: "Pilot setup",
@@ -35,7 +35,7 @@ export function getSetupCopy(locale: Locale) {
     done: "Done", next: "Next", waiting: "Waiting",
     recommendedKicker: "Recommended next step", completeKicker: "Setup complete",
     completeTitle: "The core workflow is ready for real RFQs.",
-    completeBody: "Company identity, catalogue, first RFQ and first quote are in place. Continue with normal Inbox work.",
+    completeBody: "Company identity, catalogue, first RFQ and first sent quote are in place. Continue with normal Inbox work.",
     openInbox: "Open Inbox",
     monitoring: "Production monitoring", monitoringTitle: "Application error monitoring is active.",
     monitoringBody: "Unexpected app errors are recorded for the workspace and also written to production runtime logs for investigation.",
@@ -47,7 +47,7 @@ export function getSetupCopy(locale: Locale) {
       ["Company settings", "Add the seller details, logo, default VAT and quote validity used on every new quote.", "Review settings", "Complete company settings"],
       ["Product catalogue", "Start with your own CSV/XLSX or download Nodra’s sample/template files.", "View catalogue tools", "Import first catalogue"],
       ["First RFQ", "Process a PDF, CSV or XLSX and review uncertain product matches before quoting.", "Process another RFQ", "Process first RFQ"],
-      ["First quote", "Resolve the RFQ, create the quote, approve it and select a customer contact for sending.", "Open quotes", "Continue workflow"],
+      ["First sent quote", "Resolve the RFQ, create and approve the quote, choose a recipient and successfully send the first test quote.", "Open quotes", "Finish and send quote"],
     ],
   };
 }
