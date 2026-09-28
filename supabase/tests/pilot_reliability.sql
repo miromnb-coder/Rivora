@@ -555,6 +555,6 @@ begin
 
   select status into status_now from public.quotes where id=q2;
   if status_now<>'sent' then raise exception 'Attempt-tag webhook did not reconcile quote to sent'; end if;
-end $;
+end $$;
 
 rollback;
