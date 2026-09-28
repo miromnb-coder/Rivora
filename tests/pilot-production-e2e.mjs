@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 const BASE_URL = process.env.E2E_BASE_URL;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e@gmail.com";
+const EMAIL = process.env.E2E_EMAIL || "nodra.verkkosivut+pilot-e2e2@gmail.com";
 
 if (!BASE_URL || !SUPABASE_URL || !SUPABASE_KEY) {
   throw new Error("Missing E2E environment.");
@@ -58,10 +58,9 @@ try {
   await page.goto(BASE_URL + "/login", { waitUntil: "domcontentloaded" });
   await page.locator('input[name="email"]').fill(EMAIL);
   await page.locator('input[name="password"]').fill(password);
-  await clickAndSettle(page.getByRole("button", { name: /sign in/i }));
-  if (!page.url().includes("/app") && !page.url().includes("/onboarding")) {
-    throw new Error("Login did not continue: " + page.url());
-  }
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await page.waitForURL(/\/(app|onboarding)(?:\/|$)/, { timeout: 15000 });
+  await settle();
 
   await page.goto(BASE_URL + "/onboarding", { waitUntil: "domcontentloaded" });
   await page.locator('input[name="workspaceName"]').fill("Nodra Pilot E2E");
