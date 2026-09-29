@@ -55,9 +55,18 @@ button, input, select { font: inherit; }
 
 .btn-primary,
 .btn-secondary {
+  min-height: 42px;
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1.15;
+  text-align: center;
   font-weight: 700;
+  white-space: normal;
+  vertical-align: middle;
   transition: 140ms ease;
   cursor: pointer;
 }
@@ -9098,5 +9107,29 @@ button, input, select { font: inherit; }
   .nav-v2-cta {
     padding-inline: 8px;
     font-size: 9px;
+  }
+}
+
+
+/* App button alignment hardening */
+.btn-primary,
+.btn-secondary,
+button.btn-primary,
+button.btn-secondary,
+a.btn-primary,
+a.btn-secondary {
+  box-sizing: border-box;
+}
+
+.btn-primary > *,
+.btn-secondary > * {
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    padding-inline: 13px;
   }
 }
