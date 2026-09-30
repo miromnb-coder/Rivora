@@ -9166,3 +9166,51 @@ a.btn-secondary {
     padding-inline: 13px;
   }
 }
+
+
+/* Quote company settings gate */
+.quote-settings-required {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quote-settings-required > div {
+  min-width: 0;
+}
+
+.quote-settings-required strong,
+.quote-settings-required span {
+  display: block;
+}
+
+.quote-settings-required span {
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.quote-settings-required-link {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+@media (max-width: 620px) {
+  .quote-settings-required {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .quote-settings-required-link {
+    width: 100%;
+  }
+}
