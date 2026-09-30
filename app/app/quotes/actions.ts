@@ -293,8 +293,18 @@ export async function markQuoteReady(formData: FormData) {
   const quoteId = String(formData.get("quoteId") ?? "");
   if (!quoteId) throw new Error("Quote is required.");
 
-  const { supabase, quote } = await getEditableQuote(quoteId);
+  const { supabase, quote, workspace } = await getEditableQuote(quoteId);
   if (quote.status !== "draft") return;
+
+  const { data: organization } = await supabase
+    .from("organizations")
+    .select("name,email,address_line1,city")
+    .eq("id", workspace.id)
+    .maybeSingle();
+
+  if (!organization?.name || !organization.email || !organization.address_line1 || !organization.city) {
+    redirect(`/app/quotes/${quoteId}?settingsRequired=1`);
+  }
 
   const { data: lines } = await supabase
     .from("quote_lines")
@@ -387,7 +397,7 @@ export async function approveQuote(formData: FormData) {
   }
 
   if (!organization?.name || !organization.email || !organization.address_line1 || !organization.city) {
-    throw new Error("Complete company name, email, street address and city in Company Settings before approval.");
+    redirect(`/app/quotes/${quoteId}?settingsRequired=1`);
   }
 
   const now = new Date().toISOString();
