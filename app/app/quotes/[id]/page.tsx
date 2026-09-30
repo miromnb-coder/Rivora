@@ -293,10 +293,11 @@ export default async function QuoteDetailPage({
                   <span>{copy.recipientEmail}</span>
                   <input name="recipientEmail" type="email" maxLength={320} defaultValue={quote.recipient_email || ""} placeholder="buyer@customer.com" />
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="quote-delivery-v1-actions">
                   <button className="quote-builder-v1-secondary">{copy.saveDelivery}</button>
-                  <Link href={`/app/customers/${quote.customer_id}`} className="quote-builder-v1-secondary">
-                    {copy.customerCrm} →
+                  <Link href={`/app/customers/${quote.customer_id}`} className="quote-builder-v1-secondary quote-delivery-v1-customer-link">
+                    <span>{copy.customerCrm}</span>
+                    <span aria-hidden="true">→</span>
                   </Link>
                 </div>
               </form>
