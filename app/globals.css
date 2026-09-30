@@ -9214,3 +9214,52 @@ a.btn-secondary {
     width: 100%;
   }
 }
+
+
+/* Official Nodra logo assets */
+.nodra-logo-lockup {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.nodra-logo-lockup-image {
+  display: block;
+  width: 132px;
+  height: auto;
+}
+
+.nav-v2-brand .nodra-logo-lockup-image {
+  width: 132px;
+}
+
+.footer-v2-brand .nodra-logo-lockup-image {
+  width: 148px;
+}
+
+.app-sidebar-v2-brand {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  line-height: 0;
+}
+
+.app-sidebar-v2-logo {
+  display: block;
+  width: 138px;
+  height: auto;
+}
+
+@media (max-width: 720px) {
+  .nav-v2-brand .nodra-logo-lockup-image {
+    width: 112px;
+  }
+
+  .footer-v2-brand .nodra-logo-lockup-image {
+    width: 132px;
+  }
+
+  .app-sidebar-v2-logo {
+    width: 124px;
+  }
+}
