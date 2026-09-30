@@ -19,10 +19,12 @@ function moneyFormatter(currency: string, locale: string) {
 
 export default async function QuoteDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ settingsRequired?: string }>;
 }) {
-  const [{ id }, locale, context] = await Promise.all([params, getLocale(), requireWorkspace()]);
+  const [{ id }, query, locale, context] = await Promise.all([params, searchParams, getLocale(), requireWorkspace()]);
   const { supabase, workspace } = context;
   const copy = getQuoteDetailCopy(locale);
   const displayLocale = formatLocale(locale);
@@ -124,6 +126,18 @@ export default async function QuoteDetailPage({
       {pricingRequiredCount > 0 ? (
         <section className="upload-v2-alert error">
           {copy.pricingRequired(pricingRequiredCount)}
+        </section>
+      ) : null}
+
+      {query.settingsRequired === "1" ? (
+        <section className="upload-v2-alert error quote-settings-required">
+          <div>
+            <strong>{copy.companySettingsRequired}</strong>
+            <span>{copy.companySettingsRequiredBody}</span>
+          </div>
+          <Link href="/app/settings" className="quote-settings-required-link">
+            {copy.openSettings} →
+          </Link>
         </section>
       ) : null}
 
