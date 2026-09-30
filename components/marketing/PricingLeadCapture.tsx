@@ -139,7 +139,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
           </div>
           <h3>
             {fi
-              ? "Kerro lyhyesti nykyisestä tarjouspyyntötyönkulustanne."
+              ? "Kerro lyhyesti nykyisestä tarjouspyyntö­työnkulustanne."
               : "Tell us briefly about your current RFQ workflow."}
           </h3>
           <p>
