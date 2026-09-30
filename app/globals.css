@@ -7206,10 +7206,43 @@ button, input, select { font: inherit; }
   border: 1px solid #daddd8;
   border-radius: 999px;
   background: #fff;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   color: #343a35;
   font-size: 10px;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
   font-weight: 850;
   cursor: pointer;
+}
+
+.quote-delivery-v1-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.quote-delivery-v1-actions .quote-builder-v1-secondary {
+  width: 100%;
+}
+
+.quote-delivery-v1-customer-link {
+  min-width: 92px;
+}
+
+@media (max-width: 380px) {
+  .quote-delivery-v1-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-delivery-v1-customer-link {
+    min-width: 0;
+  }
 }
 
 .quote-builder-v1-readonly {
