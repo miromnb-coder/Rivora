@@ -9263,3 +9263,38 @@ a.btn-secondary {
     width: 124px;
   }
 }
+
+
+/* Pilot lead form layout hardening */
+.lead-capture-v2 > *,
+.lead-capture-copy,
+.lead-capture-form,
+.lead-form-row,
+.lead-form-row > label {
+  min-width: 0;
+}
+
+.lead-capture-copy h3 {
+  width: 100%;
+  max-width: 100%;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
+.lead-capture-form label > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 981px) and (max-width: 1280px) {
+  .lead-capture-v2 {
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    gap: clamp(40px, 5vw, 64px);
+  }
+
+  .lead-capture-copy h3 {
+    font-size: clamp(38px, 4.1vw, 52px);
+  }
+}
