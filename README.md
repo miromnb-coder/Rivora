@@ -11,8 +11,11 @@ Nodra turns messy industrial RFQs into product-matched, human-reviewable quote d
 5. Human confirms/corrects matches
 6. Confirmed corrections become customer-specific product memory
 7. Build a quote draft
+8. Upload a customer purchase order (PDF / Excel / CSV)
+9. Extract and persist auditable PO metadata + order lines
+10. Optionally anchor the PO to an approved or sent quote
 
-ERP write-back, autonomous sending, billing and complex CPQ are intentionally out of scope.
+Quote ↔ PO reconciliation and ERP write-back are the next layers. Autonomous ERP writes remain intentionally out of scope until reconciliation and human approval are validated.
 
 ## Stack
 
@@ -45,10 +48,12 @@ Core domain:
 
 `organizations → customers → RFQs → RFQ lines → product candidates → human feedback → customer product mappings → quotes`
 
-The strategic learning loop is `customer_product_mappings`: once a user verifies a customer's alias, Nodra can reuse that knowledge on future RFQs.
+The strategic learning loop is `customer_product_mappings`: once a user verifies a customer's alias, Nodra can reuse that knowledge on future RFQs and, in the next reconciliation layer, customer purchase orders.
+
+Purchase-order foundation adds `purchase_orders → purchase_order_lines → purchase_order_files`. Source files live in the private `purchase-order-files` Storage bucket and each PO can optionally reference the quote that preceded it.
 
 ## Current product baseline
 
-The current main branch includes Finnish/English locale handling for the public site and authenticated product, plus the neutral white Nodra product UI refresh aligned with the marketing site.
+The current product includes Finnish/English locale handling, RFQ extraction/matching, Quote Builder and delivery tracking. Sprint 1 of the order workflow adds purchase-order upload/extraction before Quote ↔ PO reconciliation.
 
 Deployment trigger: current main baseline verified 2026-09-26.

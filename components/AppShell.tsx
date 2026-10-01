@@ -23,6 +23,7 @@ export function AppShell({
   const nav: Array<readonly [string, string, string]> = [
     [copy.inbox, "/app/inbox", "inbox"],
     [copy.quotes, "/app/quotes", "quotes"],
+    [copy.purchaseOrders, "/app/purchase-orders", "purchaseOrders"],
     [copy.customers, "/app/customers", "customers"],
     [copy.processRfq, "/app/upload", "process"],
     [copy.products, "/app/products", "products"],
