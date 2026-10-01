@@ -24,6 +24,7 @@ export function AppShell({
     [copy.inbox, "/app/inbox", "inbox"],
     [copy.quotes, "/app/quotes", "quotes"],
     [copy.purchaseOrders, "/app/purchase-orders", "purchaseOrders"],
+    [copy.salesOrders, "/app/sales-orders", "salesOrders"],
     [copy.customers, "/app/customers", "customers"],
     [copy.processRfq, "/app/upload", "process"],
     [copy.products, "/app/products", "products"],
