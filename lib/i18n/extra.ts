@@ -177,6 +177,7 @@ export function getQuoteDetailCopy(locale: Locale) {
   return {
     quotes: fi ? "Tarjoukset" : "Quotes",
     downloadPdf: fi ? "Lataa PDF" : "Download PDF",
+    uploadPurchaseOrder: fi ? "Lataa ostotilaus" : "Upload purchase order",
     sourceRfq: fi ? "Lähdepyyntö" : "Source RFQ",
     builder: "Quote Builder",
     draftQuote: fi ? "Tarjousluonnos" : "Draft quote",
