@@ -15,7 +15,7 @@ Nodra turns messy industrial RFQs into product-matched, human-reviewable quote d
 9. Extract and persist auditable PO metadata + order lines
 10. Optionally anchor the PO to an approved or sent quote
 
-Quote ↔ PO reconciliation and ERP write-back are the next layers. Autonomous ERP writes remain intentionally out of scope until reconciliation and human approval are validated.
+Quote ↔ PO reconciliation now gates Sales Order Draft creation. The first ERP adapter targets Microsoft Dynamics 365 Business Central and creates Draft sales orders only; posting, shipping, invoicing and autonomous ERP approval remain out of scope.
 
 ## Stack
 
@@ -52,10 +52,27 @@ The strategic learning loop is `customer_product_mappings`: once a user verifies
 
 Purchase-order foundation adds `purchase_orders → purchase_order_lines → purchase_order_files`. Source files live in the private `purchase-order-files` Storage bucket and each PO can optionally reference the quote that preceded it.
 
-Sprint 2 adds deterministic Quote ↔ PO reconciliation. Each run is versioned in `purchase_order_reconciliations` with line-level results in `purchase_order_reconciliation_lines`. Exact customer SKU, canonical SKU and MPN matches are preferred; description-similarity matches always require human review. Quantity, unit, net unit price, line total, extra PO lines and quote lines missing from the PO become explicit exceptions. Review accepts exceptions without mutating either source document, and owner/admin approval is required before the PO can move to the approved state. ERP write-back remains disabled.
+Sprint 2 adds deterministic Quote ↔ PO reconciliation. Each run is versioned in `purchase_order_reconciliations` with line-level results in `purchase_order_reconciliation_lines`. Exact customer SKU, canonical SKU and MPN matches are preferred; description-similarity matches always require human review. Quantity, unit, net unit price, line total, extra PO lines and quote lines missing from the PO become explicit exceptions. Review accepts exceptions without mutating either source document, and owner/admin approval is required before the PO can move to the approved state.
+
+Sprint 3 adds `sales_order_drafts → sales_order_draft_lines`, explicit ERP entity mappings, and audited `erp_delivery_attempts`. Sales Order Drafts are created only from the latest approved PO reconciliation. Accepted PO commercial values are preferred while canonical product identity comes from the approved quote line. An unmatched extra PO line blocks draft creation rather than guessing an ERP product.
+
+The Business Central adapter uses Microsoft Entra service-to-service Client Credentials authentication. Secrets stay server-side in environment variables. Before creating a Business Central Draft sales order, the adapter validates the mapped customer and items, checks item base units, and searches for an existing order using customer number + customer PO number. Partial creation locks automatic retry so a network or line-level failure cannot silently duplicate an ERP order.
+
+Business Central server environment variables:
+
+```bash
+BUSINESS_CENTRAL_WORKSPACE_ID=
+BUSINESS_CENTRAL_TENANT_ID=
+BUSINESS_CENTRAL_CLIENT_ID=
+BUSINESS_CENTRAL_CLIENT_SECRET=
+BUSINESS_CENTRAL_ENVIRONMENT=
+BUSINESS_CENTRAL_COMPANY_ID=
+```
+
+`BUSINESS_CENTRAL_WORKSPACE_ID` deliberately binds the first adapter configuration to one Averomira workspace. Multi-workspace OAuth credential storage is a later connector-hardening step.
 
 ## Current product baseline
 
-The current product includes Finnish/English locale handling, RFQ extraction/matching, Quote Builder and delivery tracking. Sprint 1 of the order workflow adds purchase-order upload/extraction before Quote ↔ PO reconciliation.
+The current product includes Finnish/English locale handling, RFQ extraction/matching, Quote Builder, delivery tracking, PO extraction, deterministic Quote ↔ PO reconciliation, Sales Order Drafts and the first Business Central ERP adapter.
 
 Deployment trigger: current main baseline verified 2026-09-26.

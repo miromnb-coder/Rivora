@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { formatLocale, getLocale } from "@/lib/locale";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { ReconciliationPanel } from "./ReconciliationPanel";
+import { createSalesOrderDraftAction } from "../../sales-orders/actions";
 
 function statusLabel(status: string, fi: boolean) {
   const labels: Record<string, string> = fi
@@ -105,16 +106,24 @@ export default async function PurchaseOrderDetailPage({
   ]);
 
   const reconciliation = reconciliationRows?.[0] ?? null;
-  const { data: reconciliationLines } = reconciliation
-    ? await supabase
-        .from("purchase_order_reconciliation_lines")
-        .select(
-          "id,reconciliation_id,purchase_order_id,po_line_id,quote_line_id,line_kind,match_method,match_score,exception_codes,review_status,review_note,reviewed_at,po_snapshot,quote_snapshot"
-        )
-        .eq("reconciliation_id", reconciliation.id)
-        .eq("organization_id", workspace.id)
-        .order("created_at")
-    : { data: [] as any[] };
+  const [{ data: reconciliationLines }, { data: salesOrderDraft }] = await Promise.all([
+    reconciliation
+      ? supabase
+          .from("purchase_order_reconciliation_lines")
+          .select(
+            "id,reconciliation_id,purchase_order_id,po_line_id,quote_line_id,line_kind,match_method,match_score,exception_codes,review_status,review_note,reviewed_at,po_snapshot,quote_snapshot"
+          )
+          .eq("reconciliation_id", reconciliation.id)
+          .eq("organization_id", workspace.id)
+          .order("created_at")
+      : Promise.resolve({ data: [] as any[] }),
+    supabase
+      .from("sales_order_drafts")
+      .select("id,status,external_order_number")
+      .eq("purchase_order_id", id)
+      .eq("organization_id", workspace.id)
+      .maybeSingle(),
+  ]);
 
   const customer = Array.isArray((purchaseOrder as any).customers)
     ? (purchaseOrder as any).customers[0]
@@ -348,18 +357,46 @@ export default async function PurchaseOrderDetailPage({
           <div className="upload-v2-section-label">
             {fi ? "Seuraava vaihe" : "Next step"}
           </div>
-          <h2 className="mt-2 text-2xl font-bold">
-            {fi ? "Sales Order Draft + ERP adapter" : "Sales Order Draft + ERP adapter"}
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            {fi
-              ? "Hyväksytty reconciliation on seuraavan sprintin turvallinen lähtöpiste: luodaan sisäinen myyntitilausluonnos ja vasta sen jälkeen ERP-kohtainen adapteri."
-              : "An approved reconciliation is the safe handoff for the next sprint: create an internal sales-order draft first, then add an ERP-specific adapter."}
-          </p>
+          <h2 className="mt-2 text-2xl font-bold">Sales Order Draft</h2>
+          {salesOrderDraft ? (
+            <>
+              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+                {fi
+                  ? "Tälle PO:lle on jo luotu lukittu myyntitilausluonnos."
+                  : "A locked sales order draft already exists for this PO."}
+              </p>
+              <Link
+                href={`/app/sales-orders/${salesOrderDraft.id}`}
+                className="upload-v2-primary-btn mt-5 inline-flex"
+              >
+                {fi ? "Avaa Sales Order Draft" : "Open Sales Order Draft"} →
+              </Link>
+            </>
+          ) : purchaseOrder.status === "approved" && ["owner", "admin"].includes(workspace.role) ? (
+            <>
+              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+                {fi
+                  ? "Luo hyväksytystä reconciliationista ERP-riippumaton myyntitilausluonnos. PO:n hyväksytyt kaupalliset arvot lukitaan tähän snapshotiin."
+                  : "Create an ERP-independent sales order draft from the approved reconciliation. Accepted PO commercial values are locked into this snapshot."}
+              </p>
+              <form action={createSalesOrderDraftAction} className="mt-5">
+                <input type="hidden" name="purchaseOrderId" value={purchaseOrder.id} />
+                <button className="upload-v2-primary-btn">
+                  {fi ? "Luo Sales Order Draft" : "Create Sales Order Draft"} →
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="mt-4 rounded-xl bg-[#fafbfa] p-4 text-sm text-[var(--muted)]">
+              {fi
+                ? "Sales Order Draft voidaan luoda vasta, kun viimeisin PO reconciliation on hyväksytty owner/admin-oikeuksilla."
+                : "A Sales Order Draft can be created only after the latest PO reconciliation is approved by an owner/admin."}
+            </div>
+          )}
           <div className="mt-4 rounded-xl bg-[var(--green-soft)] p-4 text-sm text-[var(--green-dark)]">
             {fi
-              ? "Sprintti 2 ei kirjoita ERP:iin automaattisesti."
-              : "Sprint 2 still performs no automatic ERP write."}
+              ? "Business Central -adapteri luo vain Draft-orderin. Se ei postaa, toimita tai laskuta tilausta."
+              : "The Business Central adapter creates a Draft order only. It does not post, ship or invoice the order."}
           </div>
         </section>
       </div>
