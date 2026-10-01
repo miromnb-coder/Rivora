@@ -104,6 +104,11 @@ export default async function QuoteDetailPage({
           <a href={`/app/quotes/${quote.id}/pdf`} className="quote-builder-v1-pdf-link">
             {copy.downloadPdf} ↓
           </a>
+          {quote.status === "sent" ? (
+            <Link href={`/app/purchase-orders?quoteId=${quote.id}`}>
+              {copy.uploadPurchaseOrder} →
+            </Link>
+          ) : null}
           {quote.rfq_id ? <Link href={`/app/rfq/${quote.rfq_id}`}>{copy.sourceRfq} →</Link> : null}
         </div>
       </div>
