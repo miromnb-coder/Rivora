@@ -20,6 +20,17 @@ export type RfqImportRow = {
   unit: string;
 };
 
+export type PurchaseOrderImportRow = {
+  customerSku: string | null;
+  description: string;
+  manufacturer: string | null;
+  manufacturerPartNumber: string | null;
+  quantity: number;
+  unit: string;
+  unitPrice: number | null;
+  lineTotal: number | null;
+};
+
 function normalizeHeader(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9åäö]+/g, "");
 }
@@ -162,5 +173,58 @@ export function toRfqRows(rows: RawRow[]): RfqImportRow[] {
     }
 
     return { customerSku, description, quantity, unit };
+  });
+}
+
+
+export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
+  if (!rows.length) {
+    throw new Error("Purchase order file has no order rows.");
+  }
+
+  return rows.map((row, index) => {
+    const customerSku =
+      pick(row, ["customer sku", "sku", "item code", "part number", "product code", "tuotenumero", "nimike"]) || null;
+    const description =
+      pick(row, ["description", "product name", "item description", "kuvaus", "tuotenimi"]) || "";
+    const manufacturer = pick(row, ["manufacturer", "brand", "valmistaja"]) || null;
+    const manufacturerPartNumber =
+      pick(row, ["manufacturer part number", "mpn", "manufacturer sku", "valmistajan tuotenumero"]) || null;
+    const quantity = parseNumber(pick(row, ["quantity", "qty", "amount", "ordered quantity", "määrä", "kpl"]));
+    const unit = pick(row, ["unit", "uom", "yksikkö"]) || "pcs";
+    const unitPrice = parseNumber(
+      pick(row, ["unit price", "price", "net price", "hinta", "yksikköhinta"])
+    );
+    const lineTotal = parseNumber(
+      pick(row, ["line total", "total", "row total", "sum", "rivisumma"])
+    );
+
+    if (!customerSku && !manufacturerPartNumber && !description) {
+      throw new Error(
+        `Purchase order row ${index + 2} is missing a product identifier and description.`
+      );
+    }
+    if (quantity == null || quantity <= 0) {
+      throw new Error(
+        `Purchase order row ${index + 2} has a missing or invalid quantity.`
+      );
+    }
+    if (unitPrice != null && unitPrice < 0) {
+      throw new Error(`Purchase order row ${index + 2} has a negative unit price.`);
+    }
+    if (lineTotal != null && lineTotal < 0) {
+      throw new Error(`Purchase order row ${index + 2} has a negative line total.`);
+    }
+
+    return {
+      customerSku,
+      description,
+      manufacturer,
+      manufacturerPartNumber,
+      quantity,
+      unit,
+      unitPrice,
+      lineTotal,
+    };
   });
 }
