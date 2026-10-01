@@ -184,7 +184,7 @@ function buildCandidate(
         jaccardSimilarity(po.description, quote.description),
         jaccardSimilarity(po.description, quote.sourceDescription)
       );
-      if (similarity >= 0.86) {
+      if (similarity >= 0.8) {
         score = 80 + similarity * 10;
         method = "description_similarity";
         fuzzy = true;
