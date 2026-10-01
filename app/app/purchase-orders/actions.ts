@@ -266,18 +266,19 @@ export async function processPdfPurchaseOrder(formData: FormData) {
       .single();
 
     if (poError) throw poError;
-    purchaseOrderId = purchaseOrder.id;
+    const createdPurchaseOrderId = String(purchaseOrder.id);
+    purchaseOrderId = createdPurchaseOrderId;
 
     await storePurchaseOrderFile({
       context,
-      purchaseOrderId,
+      purchaseOrderId: createdPurchaseOrderId,
       file,
       sha256: result.sha256,
     });
 
     const linePayload = extracted.lines.map((line, index) => ({
       organization_id: workspace.id,
-      purchase_order_id: purchaseOrderId,
+      purchase_order_id: createdPurchaseOrderId,
       line_number: index + 1,
       customer_sku: line.customer_sku || null,
       raw_description: line.description,
@@ -299,7 +300,7 @@ export async function processPdfPurchaseOrder(formData: FormData) {
 
     const { error: auditError } = await supabase.from("ai_extractions").insert({
       organization_id: workspace.id,
-      purchase_order_id: purchaseOrderId,
+      purchase_order_id: createdPurchaseOrderId,
       provider: result.provider,
       model: result.model,
       response_id: result.responseId,
@@ -321,7 +322,7 @@ export async function processPdfPurchaseOrder(formData: FormData) {
         processing_error: null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", purchaseOrderId)
+      .eq("id", createdPurchaseOrderId)
       .eq("organization_id", workspace.id);
 
     if (readyError) throw readyError;
@@ -404,18 +405,19 @@ export async function processStructuredPurchaseOrder(formData: FormData) {
       .single();
 
     if (poError) throw poError;
-    purchaseOrderId = purchaseOrder.id;
+    const createdPurchaseOrderId = String(purchaseOrder.id);
+    purchaseOrderId = createdPurchaseOrderId;
 
     await storePurchaseOrderFile({
       context,
-      purchaseOrderId,
+      purchaseOrderId: createdPurchaseOrderId,
       file,
       sha256,
     });
 
     const linePayload = rows.map((line, index) => ({
       organization_id: workspace.id,
-      purchase_order_id: purchaseOrderId,
+      purchase_order_id: createdPurchaseOrderId,
       line_number: index + 1,
       customer_sku: line.customerSku,
       raw_description: line.description,
@@ -439,7 +441,7 @@ export async function processStructuredPurchaseOrder(formData: FormData) {
         processing_error: null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", purchaseOrderId)
+      .eq("id", createdPurchaseOrderId)
       .eq("organization_id", workspace.id);
 
     if (readyError) throw readyError;
