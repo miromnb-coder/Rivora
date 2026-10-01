@@ -676,3 +676,60 @@ drop trigger if exists purchase_order_reconciliation_lines_audit
 create trigger purchase_order_reconciliation_lines_audit
 after update on public.purchase_order_reconciliation_lines
 for each row execute function private.audit_purchase_order_exception_review();
+
+
+create or replace function public.approve_purchase_order_reconciliation(
+  target_reconciliation_id uuid
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  target_org uuid;
+  target_po uuid;
+  target_run integer;
+begin
+  select r.organization_id, r.purchase_order_id, r.run_number
+  into target_org, target_po, target_run
+  from public.purchase_order_reconciliations r
+  where r.id = target_reconciliation_id
+  for update;
+
+  if target_org is null then
+    raise exception 'Purchase order reconciliation not found';
+  end if;
+
+  if not private.has_org_role(target_org, array['owner','admin']) then
+    raise exception 'Owner or admin access is required to approve PO reconciliation';
+  end if;
+
+  if exists (
+    select 1
+    from public.purchase_order_reconciliations newer
+    where newer.purchase_order_id = target_po
+      and newer.run_number > target_run
+  ) then
+    raise exception 'Only the latest reconciliation run can be approved';
+  end if;
+
+  update public.purchase_order_reconciliations
+  set status = 'approved',
+      reviewed_by = (select auth.uid()),
+      reviewed_at = now()
+  where id = target_reconciliation_id;
+
+  update public.purchase_orders
+  set status = 'approved',
+      processing_error = null,
+      updated_at = now()
+  where id = target_po
+    and organization_id = target_org;
+end;
+$$;
+
+revoke all on function public.approve_purchase_order_reconciliation(uuid)
+from public;
+grant execute on function public.approve_purchase_order_reconciliation(uuid)
+to authenticated;
