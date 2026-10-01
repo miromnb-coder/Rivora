@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   createBusinessCentralSalesOrder,
   getBusinessCentralConfigurationStatus,
@@ -35,9 +36,11 @@ export async function createSalesOrderDraftAction(formData: FormData) {
   let failure: string | null = null;
 
   try {
-    const { supabase } = await requireSalesOrderAdmin();
-    const { data, error } = await supabase.rpc("create_sales_order_draft", {
+    const context = await requireSalesOrderAdmin();
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc("create_sales_order_draft_server", {
       target_purchase_order_id: purchaseOrderId,
+      target_actor_id: String(context.claims.sub),
     });
     if (error) throw error;
     draftId = String(data ?? "");
@@ -118,7 +121,9 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
 
   try {
     context = await requireSalesOrderAdmin();
-    const { supabase, workspace } = context;
+    const { supabase, workspace, claims } = context;
+    const admin = createAdminClient();
+    const actorId = String(claims.sub);
 
     const config = getBusinessCentralConfigurationStatus(workspace.id);
     if (!config.configured) {
@@ -219,12 +224,13 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
     };
 
     const requestPayload = sanitizedBusinessCentralRequest(input);
-    const { data: startedAttempt, error: startError } = await supabase.rpc(
-      "begin_erp_delivery_attempt",
+    const { data: startedAttempt, error: startError } = await admin.rpc(
+      "begin_erp_delivery_attempt_server",
       {
         target_sales_order_draft_id: salesOrderDraftId,
         target_provider: "business_central",
         target_request_payload: requestPayload,
+        target_actor_id: actorId,
       },
     );
 
@@ -242,13 +248,14 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
             ? "existing"
             : "partial";
 
-      const { error: finishError } = await supabase.rpc("finish_erp_delivery_attempt", {
+      const { error: finishError } = await admin.rpc("finish_erp_delivery_attempt_server", {
         target_attempt_id: attemptId,
         target_status: attemptStatus,
         target_external_order_id: result.externalOrderId,
         target_external_order_number: result.externalOrderNumber ?? "",
         target_error_message: result.status === "partial" ? result.error : "",
         target_response_summary: result.summary,
+        target_actor_id: actorId,
       });
       if (finishError) throw finishError;
 
@@ -265,13 +272,14 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
       const message =
         adapterError instanceof Error ? adapterError.message : "Business Central export failed.";
 
-      const { error: finishError } = await supabase.rpc("finish_erp_delivery_attempt", {
+      const { error: finishError } = await admin.rpc("finish_erp_delivery_attempt_server", {
         target_attempt_id: attemptId,
         target_status: "failed",
         target_external_order_id: "",
         target_external_order_number: "",
         target_error_message: message,
         target_response_summary: {},
+        target_actor_id: actorId,
       });
 
       if (finishError) {
