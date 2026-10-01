@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatLocale, getLocale } from "@/lib/locale";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { ReconciliationPanel } from "./ReconciliationPanel";
 
 function statusLabel(status: string, fi: boolean) {
   const labels: Record<string, string> = fi
@@ -40,7 +41,7 @@ export default async function PurchaseOrderDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reconcileError?: string; reconciled?: string }>;
 }) {
   const [{ id }, query, locale, context] = await Promise.all([
     params,
@@ -56,7 +57,7 @@ export default async function PurchaseOrderDetailPage({
   const { data: purchaseOrder } = await supabase
     .from("purchase_orders")
     .select(
-      "id,customer_id,quote_id,po_number,quote_reference,status,currency,order_date,source_type,source_file_name,overall_confidence,extraction_provider,extraction_model,extraction_confidence,extraction_warnings,processing_error,received_at,created_at,updated_at,customers(name),quotes(quote_number,status)"
+      "id,customer_id,quote_id,po_number,quote_reference,status,currency,order_date,source_type,source_file_name,overall_confidence,extraction_provider,extraction_model,extraction_confidence,extraction_warnings,processing_error,received_at,created_at,updated_at,customers(name),quotes(quote_number,status,currency)"
     )
     .eq("id", id)
     .eq("organization_id", workspace.id)
@@ -64,7 +65,12 @@ export default async function PurchaseOrderDetailPage({
 
   if (!purchaseOrder) notFound();
 
-  const [{ data: lines }, { data: files }] = await Promise.all([
+  const [
+    { data: lines },
+    { data: files },
+    { data: reconciliationRows },
+    { data: quoteOptions },
+  ] = await Promise.all([
     supabase
       .from("purchase_order_lines")
       .select(
@@ -79,7 +85,36 @@ export default async function PurchaseOrderDetailPage({
       .eq("purchase_order_id", id)
       .eq("organization_id", workspace.id)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("purchase_order_reconciliations")
+      .select(
+        "id,purchase_order_id,quote_id,run_number,algorithm_version,status,header_exceptions,header_review_status,header_review_note,summary,created_at,reviewed_at"
+      )
+      .eq("purchase_order_id", id)
+      .eq("organization_id", workspace.id)
+      .order("run_number", { ascending: false })
+      .limit(1),
+    supabase
+      .from("quotes")
+      .select("id,quote_number,status,currency")
+      .eq("organization_id", workspace.id)
+      .eq("customer_id", purchaseOrder.customer_id)
+      .in("status", ["approved", "sent"])
+      .order("updated_at", { ascending: false })
+      .limit(100),
   ]);
+
+  const reconciliation = reconciliationRows?.[0] ?? null;
+  const { data: reconciliationLines } = reconciliation
+    ? await supabase
+        .from("purchase_order_reconciliation_lines")
+        .select(
+          "id,reconciliation_id,purchase_order_id,po_line_id,quote_line_id,line_kind,match_method,match_score,exception_codes,review_status,review_note,reviewed_at,po_snapshot,quote_snapshot"
+        )
+        .eq("reconciliation_id", reconciliation.id)
+        .eq("organization_id", workspace.id)
+        .order("created_at")
+    : { data: [] as any[] };
 
   const customer = Array.isArray((purchaseOrder as any).customers)
     ? (purchaseOrder as any).customers[0]
@@ -132,9 +167,15 @@ export default async function PurchaseOrderDetailPage({
         </span>
       </header>
 
-      {query.error || purchaseOrder.processing_error ? (
+      {query.error || query.reconcileError || purchaseOrder.processing_error ? (
         <section className="upload-v2-alert error mt-6">
-          {query.error || purchaseOrder.processing_error}
+          {query.error || query.reconcileError || purchaseOrder.processing_error}
+        </section>
+      ) : null}
+
+      {query.reconciled ? (
+        <section className="upload-v2-alert success mt-6">
+          {query.reconciled}
         </section>
       ) : null}
 
@@ -186,6 +227,17 @@ export default async function PurchaseOrderDetailPage({
         </div>
       </section>
 
+      <ReconciliationPanel
+        locale={locale}
+        displayLocale={displayLocale}
+        workspaceRole={workspace.role}
+        purchaseOrder={purchaseOrder}
+        linkedQuote={quote}
+        quoteOptions={quoteOptions ?? []}
+        reconciliation={reconciliation}
+        lines={reconciliationLines ?? []}
+      />
+
       <section className="surface mt-6 overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--line)] p-6">
           <div>
@@ -197,7 +249,7 @@ export default async function PurchaseOrderDetailPage({
             </h2>
           </div>
           <span className="text-sm text-[var(--muted)]">
-            {fi ? "Ei vielä tarjousvertailua" : "No quote reconciliation yet"}
+            {fi ? "Lähdedata vertailun alla" : "Source data used by reconciliation"}
           </span>
         </div>
 
@@ -297,17 +349,17 @@ export default async function PurchaseOrderDetailPage({
             {fi ? "Seuraava vaihe" : "Next step"}
           </div>
           <h2 className="mt-2 text-2xl font-bold">
-            {fi ? "Quote ↔ PO reconciliation" : "Quote ↔ PO reconciliation"}
+            {fi ? "Sales Order Draft + ERP adapter" : "Sales Order Draft + ERP adapter"}
           </h2>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
             {fi
-              ? "Sprintissä 2 Averomira vertaa tämän PO:n tuoterivit, määrät, yksiköt ja hinnat linkitettyyn tarjoukseen ja nostaa vain poikkeukset tarkistettavaksi."
-              : "In Sprint 2 Averomira will compare this PO's products, quantities, units and prices against the linked quote and surface only exceptions for review."}
+              ? "Hyväksytty reconciliation on seuraavan sprintin turvallinen lähtöpiste: luodaan sisäinen myyntitilausluonnos ja vasta sen jälkeen ERP-kohtainen adapteri."
+              : "An approved reconciliation is the safe handoff for the next sprint: create an internal sales-order draft first, then add an ERP-specific adapter."}
           </p>
           <div className="mt-4 rounded-xl bg-[var(--green-soft)] p-4 text-sm text-[var(--green-dark)]">
             {fi
-              ? "ERP-kirjoitusta ei tehdä vielä. Tämän sprintin tulos on luotettava, auditoitava PO-rakenne."
-              : "No ERP write occurs yet. This sprint produces a reliable, auditable PO structure."}
+              ? "Sprintti 2 ei kirjoita ERP:iin automaattisesti."
+              : "Sprint 2 still performs no automatic ERP write."}
           </div>
         </section>
       </div>

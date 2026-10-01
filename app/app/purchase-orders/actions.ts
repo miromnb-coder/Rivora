@@ -10,6 +10,7 @@ import {
   toPurchaseOrderRows,
 } from "@/lib/rivora/imports";
 import { extractPurchaseOrderFromPdf } from "@/lib/rivora/openai-po";
+import { reconcilePurchaseOrderForWorkspace } from "@/lib/rivora/po-reconciliation-service";
 
 type WorkspaceContext = Awaited<ReturnType<typeof requireWorkspace>>;
 
@@ -326,6 +327,30 @@ export async function processPdfPurchaseOrder(formData: FormData) {
       .eq("organization_id", workspace.id);
 
     if (readyError) throw readyError;
+
+    if (selectedQuote) {
+      try {
+        await reconcilePurchaseOrderForWorkspace({
+          supabase,
+          organizationId: workspace.id,
+          purchaseOrderId: createdPurchaseOrderId,
+        });
+      } catch (reconciliationError) {
+        const reconciliationMessage =
+          reconciliationError instanceof Error
+            ? reconciliationError.message
+            : "Purchase order reconciliation failed.";
+        await supabase
+          .from("purchase_orders")
+          .update({
+            status: "extracted",
+            processing_error: `Reconciliation: ${reconciliationMessage}`.slice(0, 2000),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", createdPurchaseOrderId)
+          .eq("organization_id", workspace.id);
+      }
+    }
   } catch (error) {
     failure = errorMessage(error);
     await markFailed(context, purchaseOrderId, failure);
@@ -445,6 +470,30 @@ export async function processStructuredPurchaseOrder(formData: FormData) {
       .eq("organization_id", workspace.id);
 
     if (readyError) throw readyError;
+
+    if (selectedQuote) {
+      try {
+        await reconcilePurchaseOrderForWorkspace({
+          supabase,
+          organizationId: workspace.id,
+          purchaseOrderId: createdPurchaseOrderId,
+        });
+      } catch (reconciliationError) {
+        const reconciliationMessage =
+          reconciliationError instanceof Error
+            ? reconciliationError.message
+            : "Purchase order reconciliation failed.";
+        await supabase
+          .from("purchase_orders")
+          .update({
+            status: "extracted",
+            processing_error: `Reconciliation: ${reconciliationMessage}`.slice(0, 2000),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", createdPurchaseOrderId)
+          .eq("organization_id", workspace.id);
+      }
+    }
   } catch (error) {
     failure = errorMessage(error);
     await markFailed(context, purchaseOrderId, failure);

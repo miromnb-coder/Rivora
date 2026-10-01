@@ -52,6 +52,8 @@ The strategic learning loop is `customer_product_mappings`: once a user verifies
 
 Purchase-order foundation adds `purchase_orders → purchase_order_lines → purchase_order_files`. Source files live in the private `purchase-order-files` Storage bucket and each PO can optionally reference the quote that preceded it.
 
+Sprint 2 adds deterministic Quote ↔ PO reconciliation. Each run is versioned in `purchase_order_reconciliations` with line-level results in `purchase_order_reconciliation_lines`. Exact customer SKU, canonical SKU and MPN matches are preferred; description-similarity matches always require human review. Quantity, unit, net unit price, line total, extra PO lines and quote lines missing from the PO become explicit exceptions. Review accepts exceptions without mutating either source document, and owner/admin approval is required before the PO can move to the approved state. ERP write-back remains disabled.
+
 ## Current product baseline
 
 The current product includes Finnish/English locale handling, RFQ extraction/matching, Quote Builder and delivery tracking. Sprint 1 of the order workflow adds purchase-order upload/extraction before Quote ↔ PO reconciliation.
