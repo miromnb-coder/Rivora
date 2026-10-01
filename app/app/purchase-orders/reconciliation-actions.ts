@@ -25,16 +25,17 @@ async function requireApprover() {
   return context;
 }
 
-function detailUrl(purchaseOrderId: string, message?: string, type: "ok" | "error" = "ok") {
+function detailUrl(purchaseOrderId: string, message: string, type: "ok" | "error") {
   const key = type === "error" ? "reconcileError" : "reconciled";
-  return message
-    ? `/app/purchase-orders/${purchaseOrderId}?${key}=${encodeURIComponent(message)}`
-    : `/app/purchase-orders/${purchaseOrderId}`;
+  return `/app/purchase-orders/${purchaseOrderId}?${key}=${encodeURIComponent(message)}`;
 }
 
 export async function runPurchaseOrderReconciliation(formData: FormData) {
   const purchaseOrderId = clean(formData.get("purchaseOrderId"), 80);
   if (!purchaseOrderId) throw new Error("Purchase order ID is required.");
+
+  let failure: string | null = null;
+  let success = "Reconciliation completed.";
 
   try {
     const { supabase, workspace } = await requireReviewer();
@@ -43,27 +44,26 @@ export async function runPurchaseOrderReconciliation(formData: FormData) {
       organizationId: workspace.id,
       purchaseOrderId,
     });
-
-    revalidatePath("/app/purchase-orders");
-    revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
-    redirect(
-      detailUrl(
-        purchaseOrderId,
-        result.status === "matched"
-          ? "Quote and purchase order match."
-          : "Reconciliation completed. Review the exceptions.",
-      ),
-    );
+    success =
+      result.status === "matched"
+        ? "Quote and purchase order match."
+        : "Reconciliation completed. Review the exceptions.";
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Reconciliation failed.";
-    redirect(detailUrl(purchaseOrderId, message, "error"));
+    failure = error instanceof Error ? error.message : "Reconciliation failed.";
   }
+
+  revalidatePath("/app/purchase-orders");
+  revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
+  redirect(detailUrl(purchaseOrderId, failure ?? success, failure ? "error" : "ok"));
 }
 
 export async function linkPurchaseOrderQuote(formData: FormData) {
   const purchaseOrderId = clean(formData.get("purchaseOrderId"), 80);
   const quoteId = clean(formData.get("quoteId"), 80);
   if (!purchaseOrderId || !quoteId) throw new Error("Purchase order and quote are required.");
+
+  let failure: string | null = null;
+  let success = "Quote linked.";
 
   try {
     const { supabase, workspace } = await requireReviewer();
@@ -117,20 +117,17 @@ export async function linkPurchaseOrderQuote(formData: FormData) {
       purchaseOrderId,
     });
 
-    revalidatePath("/app/purchase-orders");
-    revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
-    redirect(
-      detailUrl(
-        purchaseOrderId,
-        result.status === "matched"
-          ? "Quote linked and reconciliation matched."
-          : "Quote linked. Review the reconciliation exceptions.",
-      ),
-    );
+    success =
+      result.status === "matched"
+        ? "Quote linked and reconciliation matched."
+        : "Quote linked. Review the reconciliation exceptions.";
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Quote linking failed.";
-    redirect(detailUrl(purchaseOrderId, message, "error"));
+    failure = error instanceof Error ? error.message : "Quote linking failed.";
   }
+
+  revalidatePath("/app/purchase-orders");
+  revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
+  redirect(detailUrl(purchaseOrderId, failure ?? success, failure ? "error" : "ok"));
 }
 
 export async function acceptPurchaseOrderException(formData: FormData) {
@@ -141,8 +138,10 @@ export async function acceptPurchaseOrderException(formData: FormData) {
     throw new Error("Purchase order and reconciliation line are required.");
   }
 
+  let failure: string | null = null;
+
   try {
-    const { supabase, workspace } = await requireReviewer();
+    const { supabase, workspace, claims } = await requireReviewer();
 
     const { data: line, error: lineError } = await supabase
       .from("purchase_order_reconciliation_lines")
@@ -164,20 +163,25 @@ export async function acceptPurchaseOrderException(formData: FormData) {
       .update({
         review_status: "accepted",
         review_note: note || null,
-        reviewed_by: String((await supabase.auth.getClaims()).data?.claims?.sub ?? ""),
+        reviewed_by: String(claims.sub),
         reviewed_at: new Date().toISOString(),
       })
       .eq("id", reconciliationLineId)
       .eq("organization_id", workspace.id);
 
     if (updateError) throw updateError;
-
-    revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
-    redirect(detailUrl(purchaseOrderId, "Exception accepted."));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Exception review failed.";
-    redirect(detailUrl(purchaseOrderId, message, "error"));
+    failure = error instanceof Error ? error.message : "Exception review failed.";
   }
+
+  revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
+  redirect(
+    detailUrl(
+      purchaseOrderId,
+      failure ?? "Exception accepted.",
+      failure ? "error" : "ok",
+    ),
+  );
 }
 
 export async function acceptPurchaseOrderHeaderExceptions(formData: FormData) {
@@ -188,10 +192,10 @@ export async function acceptPurchaseOrderHeaderExceptions(formData: FormData) {
     throw new Error("Purchase order and reconciliation are required.");
   }
 
+  let failure: string | null = null;
+
   try {
-    const { supabase, workspace } = await requireReviewer();
-    const claims = await supabase.auth.getClaims();
-    const userId = String(claims.data?.claims?.sub ?? "");
+    const { supabase, workspace, claims } = await requireReviewer();
 
     const { data: reconciliation, error: reconciliationError } = await supabase
       .from("purchase_order_reconciliations")
@@ -213,20 +217,26 @@ export async function acceptPurchaseOrderHeaderExceptions(formData: FormData) {
       .update({
         header_review_status: "accepted",
         header_review_note: note || null,
-        header_reviewed_by: userId || null,
+        header_reviewed_by: String(claims.sub),
         header_reviewed_at: new Date().toISOString(),
       })
       .eq("id", reconciliationId)
       .eq("organization_id", workspace.id);
 
     if (updateError) throw updateError;
-
-    revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
-    redirect(detailUrl(purchaseOrderId, "Header exceptions accepted."));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Header exception review failed.";
-    redirect(detailUrl(purchaseOrderId, message, "error"));
+    failure =
+      error instanceof Error ? error.message : "Header exception review failed.";
   }
+
+  revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
+  redirect(
+    detailUrl(
+      purchaseOrderId,
+      failure ?? "Header exceptions accepted.",
+      failure ? "error" : "ok",
+    ),
+  );
 }
 
 export async function approvePurchaseOrderReconciliation(formData: FormData) {
@@ -236,19 +246,25 @@ export async function approvePurchaseOrderReconciliation(formData: FormData) {
     throw new Error("Purchase order and reconciliation are required.");
   }
 
+  let failure: string | null = null;
+
   try {
     const { supabase } = await requireApprover();
-
     const { error } = await supabase.rpc("approve_purchase_order_reconciliation", {
       target_reconciliation_id: reconciliationId,
     });
     if (error) throw error;
-
-    revalidatePath("/app/purchase-orders");
-    revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
-    redirect(detailUrl(purchaseOrderId, "PO reconciliation approved."));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Approval failed.";
-    redirect(detailUrl(purchaseOrderId, message, "error"));
+    failure = error instanceof Error ? error.message : "Approval failed.";
   }
+
+  revalidatePath("/app/purchase-orders");
+  revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
+  redirect(
+    detailUrl(
+      purchaseOrderId,
+      failure ?? "PO reconciliation approved.",
+      failure ? "error" : "ok",
+    ),
+  );
 }
