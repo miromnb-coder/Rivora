@@ -260,7 +260,7 @@ export async function processPdfPurchaseOrder(formData: FormData) {
         extraction_confidence: extracted.overall_confidence,
         extraction_warnings: warnings,
         extraction_completed_at: new Date().toISOString(),
-        created_by: workspace.userId,
+        created_by: String(context.claims.sub),
       })
       .select("id")
       .single();
@@ -398,7 +398,7 @@ export async function processStructuredPurchaseOrder(formData: FormData) {
         status: "processing",
         currency,
         order_date: normalizeDate(orderDateInput),
-        created_by: workspace.userId,
+        created_by: String(context.claims.sub),
       })
       .select("id")
       .single();
