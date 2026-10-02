@@ -108,7 +108,7 @@ export default async function AppHome() {
       eyebrow: fi ? "Tarjouspyyntö" : "RFQ",
       title: fi ? "Tarjouspyyntö odottaa tarkistusta" : "RFQ needs review",
       detail: `${customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")} · ${rfq.reference || "RFQ"}`,
-      href: `/app/rfq/${rfq.id}`,
+      href: `/app/orders/case/rfq/${rfq.id}`,
       action: fi ? "Tarkista tarjouspyyntö" : "Review RFQ",
       priority: 10,
       updatedAt: rfq.received_at,
@@ -149,7 +149,7 @@ export default async function AppHome() {
       eyebrow: fi ? "Tarjous" : "Quote",
       title: state.title,
       detail: `${customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")} · ${rfq?.reference || quote.quote_number || "Quote"} · ${money.format(total)}`,
-      href: `/app/quotes/${quote.id}`,
+      href: `/app/orders/case/quote/${quote.id}`,
       action: state.action,
       priority: state.priority,
       updatedAt: quote.updated_at,
@@ -178,7 +178,7 @@ export default async function AppHome() {
       eyebrow: fi ? "Ostotilaus" : "Purchase order",
       title: state.title,
       detail: `${customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")} · ${po.po_number || "PO"}${quote?.quote_number ? ` · ${quote.quote_number}` : ""}`,
-      href: `/app/purchase-orders/${po.id}`,
+      href: `/app/orders/case/po/${po.id}`,
       action: state.action,
       priority: state.priority,
       updatedAt: po.updated_at,
@@ -209,7 +209,7 @@ export default async function AppHome() {
             ? "Tilaus on valmis Business Centraliin"
             : "Order is ready for Business Central",
       detail: `${customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")} · ${order.customer_po_number || "PO"} · ${money.format(total)}`,
-      href: `/app/sales-orders/${order.id}`,
+      href: `/app/orders/case/sales/${order.id}`,
       action: order.status === "erp_failed"
         ? fi ? "Tarkista ERP-vienti" : "Review ERP export"
         : fi ? "Luo myyntitilaus" : "Create sales order",
@@ -233,7 +233,7 @@ export default async function AppHome() {
       customer: relationOne<any>(item.customers)?.name || (fi ? "Tuntematon asiakas" : "Unknown customer"),
       reference: item.customer_po_number || relationOne<any>(item.purchase_orders)?.po_number || "Sales order",
       stage: item.status === "erp_created" ? (fi ? "Valmis" : "Complete") : "ERP",
-      href: `/app/sales-orders/${item.id}`,
+      href: `/app/orders/case/sales/${item.id}`,
       updatedAt: item.updated_at,
     })),
     ...(purchaseOrders ?? []).slice(0, 4).map((item: any) => ({
@@ -241,7 +241,7 @@ export default async function AppHome() {
       customer: relationOne<any>(item.customers)?.name || (fi ? "Tuntematon asiakas" : "Unknown customer"),
       reference: item.po_number || "PO",
       stage: fi ? "Ostotilaus" : "Purchase order",
-      href: `/app/purchase-orders/${item.id}`,
+      href: `/app/orders/case/po/${item.id}`,
       updatedAt: item.updated_at,
     })),
     ...(quotes ?? []).slice(0, 4).map((item: any) => ({
@@ -249,7 +249,7 @@ export default async function AppHome() {
       customer: relationOne<any>(item.customers)?.name || (fi ? "Tuntematon asiakas" : "Unknown customer"),
       reference: item.quote_number || relationOne<any>(item.rfqs)?.reference || "Quote",
       stage: fi ? "Tarjous" : "Quote",
-      href: `/app/quotes/${item.id}`,
+      href: `/app/orders/case/quote/${item.id}`,
       updatedAt: item.updated_at,
     })),
   ]

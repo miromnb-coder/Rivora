@@ -99,7 +99,7 @@ export default async function OrdersPage({
       stageLabel,
       nextAction,
       attention,
-      href: `/app/rfq/${rfq.id}`,
+      href: `/app/orders/case/rfq/${rfq.id}`,
       updatedAt: rfq.received_at,
     });
   }
@@ -137,7 +137,7 @@ export default async function OrdersPage({
       stageLabel,
       nextAction,
       attention,
-      href: `/app/quotes/${quote.id}`,
+      href: `/app/orders/case/quote/${quote.id}`,
       updatedAt: existing ? newest(existing.updatedAt, quote.updated_at) : quote.updated_at,
     });
     quoteToCase.set(String(quote.id), key);
@@ -178,7 +178,7 @@ export default async function OrdersPage({
       stageLabel,
       nextAction,
       attention,
-      href: `/app/purchase-orders/${po.id}`,
+      href: `/app/orders/case/po/${po.id}`,
       updatedAt: existing ? newest(existing.updatedAt, po.updated_at) : po.updated_at,
     });
     poToCase.set(String(po.id), key);
@@ -218,7 +218,7 @@ export default async function OrdersPage({
       stageLabel,
       nextAction,
       attention,
-      href: `/app/sales-orders/${order.id}`,
+      href: `/app/orders/case/sales/${order.id}`,
       updatedAt: existing ? newest(existing.updatedAt, order.updated_at) : order.updated_at,
     });
   }

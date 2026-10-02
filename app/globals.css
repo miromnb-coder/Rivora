@@ -9437,3 +9437,387 @@ a.btn-secondary {
     letter-spacing: -.01em;
   }
 }
+
+
+/* Averomira unified order case - Sprint 2 */
+.case-workspace-v1-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.case-workspace-v1-head h1 {
+  margin-top: 10px;
+  max-width: 760px;
+  color: #171a18;
+  font-size: clamp(38px,4.8vw,62px);
+  line-height: .98;
+  letter-spacing: -.052em;
+  font-weight: 680;
+}
+
+.case-workspace-v1-head p {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.case-workspace-v1-value {
+  min-width: 180px;
+  text-align: right;
+}
+
+.case-workspace-v1-value span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.case-workspace-v1-value strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 26px;
+  letter-spacing: -.03em;
+}
+
+.case-progress-v1 {
+  margin-top: 34px;
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.case-progress-v1-step {
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.case-progress-v1-step + .case-progress-v1-step {
+  border-left: 1px solid var(--line);
+}
+
+.case-progress-v1-marker {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d9ddd9;
+  color: #8a908b;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.case-progress-v1-step span,
+.case-progress-v1-step strong {
+  display: block;
+}
+
+.case-progress-v1-step span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.case-progress-v1-step strong {
+  margin-top: 4px;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.case-progress-v1-step.is-done {
+  background: #fafbf9;
+}
+
+.case-progress-v1-step.is-done .case-progress-v1-marker {
+  border-color: #cdd7d0;
+  background: #e9efeb;
+  color: #405047;
+}
+
+.case-progress-v1-step.is-current {
+  background: #171a18;
+  color: #fff;
+}
+
+.case-progress-v1-step.is-current span {
+  color: #aeb4af;
+}
+
+.case-progress-v1-step.is-current .case-progress-v1-marker {
+  border-color: rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+}
+
+.case-workspace-v1-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 300px;
+  gap: 24px;
+  align-items: start;
+}
+
+.case-primary-v1,
+.case-reconciliation-v1,
+.case-documents-v1,
+.case-summary-v1 {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+}
+
+.case-primary-v1 {
+  padding: 34px;
+}
+
+.case-primary-v1 h2 {
+  margin-top: 12px;
+  max-width: 720px;
+  color: #171a18;
+  font-size: clamp(28px,3vw,42px);
+  line-height: 1.04;
+  letter-spacing: -.04em;
+  font-weight: 680;
+}
+
+.case-primary-v1 p {
+  margin-top: 14px;
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.case-primary-v1 .upload-v2-primary-btn {
+  margin-top: 24px;
+}
+
+.case-reconciliation-v1 {
+  margin-top: 18px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.case-reconciliation-v1 h2 {
+  margin-top: 8px;
+  font-size: 21px;
+  letter-spacing: -.025em;
+}
+
+.case-reconciliation-v1 p {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.case-documents-v1 {
+  margin-top: 18px;
+  overflow: hidden;
+}
+
+.case-documents-v1-head {
+  padding: 24px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.case-documents-v1-head h2 {
+  margin-top: 8px;
+  font-size: 22px;
+  letter-spacing: -.025em;
+}
+
+.case-documents-v1-head > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.case-documents-v1-list {
+  display: grid;
+}
+
+.case-documents-v1-row {
+  min-height: 76px;
+  padding: 16px 24px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr auto;
+  gap: 18px;
+  align-items: center;
+  transition: background .16s ease;
+}
+
+.case-documents-v1-row + .case-documents-v1-row {
+  border-top: 1px solid var(--line);
+}
+
+.case-documents-v1-row:hover {
+  background: #fafaf7;
+}
+
+.case-documents-v1-row span,
+.case-documents-v1-row strong {
+  display: block;
+}
+
+.case-documents-v1-row span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.case-documents-v1-row strong {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.case-documents-v1-row b {
+  font-size: 16px;
+}
+
+.case-summary-v1 {
+  position: sticky;
+  top: 28px;
+  padding: 24px;
+}
+
+.case-summary-v1 h2 {
+  margin-top: 8px;
+  font-size: 22px;
+  letter-spacing: -.025em;
+}
+
+.case-summary-v1 dl {
+  margin-top: 22px;
+}
+
+.case-summary-v1 dl > div {
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+}
+
+.case-summary-v1 dt {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.case-summary-v1 dd {
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.case-summary-v1-links {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.case-summary-v1-links a {
+  min-height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 750;
+  transition: background .16s ease;
+}
+
+.case-summary-v1-links a:hover {
+  background: #fafaf7;
+}
+
+@media (max-width: 900px) {
+  .case-workspace-v1-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .case-summary-v1 {
+    position: static;
+  }
+}
+
+@media (max-width: 680px) {
+  .case-workspace-v1-head {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .case-workspace-v1-value {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .case-progress-v1 {
+    grid-template-columns: 1fr;
+    border-radius: 18px;
+  }
+
+  .case-progress-v1-step + .case-progress-v1-step {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .case-primary-v1 {
+    padding: 24px;
+  }
+
+  .case-primary-v1 .upload-v2-primary-btn {
+    width: 100%;
+  }
+
+  .case-reconciliation-v1 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .case-reconciliation-v1 .btn-secondary {
+    width: 100%;
+  }
+
+  .case-documents-v1-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .case-documents-v1-row > div:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .case-documents-v1-row > b {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
