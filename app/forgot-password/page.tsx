@@ -27,15 +27,15 @@ export default async function ForgotPasswordPage({
           </h1>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
             {fi
-              ? "Syötä Nodra-tilisi sähköpostiosoite. Jos osoitteella on tili, lähetämme turvallisen palautuslinkin."
-              : "Enter the email address for your Nodra account. If an account exists, we will send a secure recovery link."}
+              ? "Syötä Averomira-tilisi sähköpostiosoite. Jos osoitteella on tili, lähetämme turvallisen palautuslinkin."
+              : "Enter the email address for your Averomira account. If an account exists, we will send a secure recovery link."}
           </p>
 
           {sent ? (
             <div className="nodra-alert mt-5" role="status">
               {fi
-                ? "Jos osoitteella on Nodra-tili, palautuslinkki on lähetetty. Tarkista myös roskapostikansio."
-                : "If a Nodra account exists for that address, a recovery link has been sent. Check your spam folder too."}
+                ? "Jos osoitteella on Averomira-tili, palautuslinkki on lähetetty. Tarkista myös roskapostikansio."
+                : "If a Averomira account exists for that address, a recovery link has been sent. Check your spam folder too."}
             </div>
           ) : null}
 

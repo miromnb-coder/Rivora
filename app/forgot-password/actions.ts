@@ -45,18 +45,18 @@ async function sendRecoveryEmail(email: string) {
   const text = [
     "Hei,",
     "",
-    "Nodra-tilillesi pyydettiin salasanan palautusta.",
+    "Averomira-tilillesi pyydettiin salasanan palautusta.",
     "Aseta uusi salasana tästä linkistä:",
     recoveryUrl.toString(),
     "",
     "Jos et pyytänyt salasanan palautusta, voit jättää tämän viestin huomiotta.",
     "",
-    "Nodra",
+    "Averomira",
   ].join("\n");
 
   const html = `<div style="font-family:Arial,sans-serif;color:#202520;line-height:1.65">
     <p>Hei,</p>
-    <p>Nodra-tilillesi pyydettiin salasanan palautusta.</p>
+    <p>Averomira-tilillesi pyydettiin salasanan palautusta.</p>
     <p><a href="${escapeHtml(recoveryUrl.toString())}" style="display:inline-block;background:#171a18;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:700">Aseta uusi salasana</a></p>
     <p style="color:#747975;font-size:13px">Jos et pyytänyt salasanan palautusta, voit jättää tämän viestin huomiotta.</p>
   </div>`;
@@ -64,7 +64,7 @@ async function sendRecoveryEmail(email: string) {
   const body: Record<string, unknown> = {
     from,
     to: [email],
-    subject: "Palauta Nodra-salasanasi",
+    subject: "Palauta Averomira-salasanasi",
     text,
     html,
   };

@@ -28,7 +28,7 @@ export default function AppError({
       <section className="surface mx-auto max-w-2xl p-8">
         <div className="app-kicker-v2">Something went wrong</div>
         <h1 className="mt-2 text-3xl font-extrabold tracking-[-.04em]">
-          Nodra could not complete this screen.
+          Averomira could not complete this screen.
         </h1>
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
           The error has been recorded for the workspace. Retry the action; if it repeats, use the previous workflow step instead of resubmitting the same send action.

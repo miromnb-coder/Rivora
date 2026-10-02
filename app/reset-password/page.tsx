@@ -38,8 +38,8 @@ export default async function ResetPasswordPage({
           </h1>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
             {fi
-              ? "Valitse vähintään 8 merkin salasana Nodra-tilillesi."
-              : "Choose a password with at least 8 characters for your Nodra account."}
+              ? "Valitse vähintään 8 merkin salasana Averomira-tilillesi."
+              : "Choose a password with at least 8 characters for your Averomira account."}
           </p>
 
           {params.error ? (

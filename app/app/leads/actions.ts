@@ -180,27 +180,27 @@ async function sendPilotInviteEmail({
   const text = [
     greeting,
     "",
-    "Nodra Pilot -pääsysi on hyväksytty.",
+    "Averomira Pilot -pääsysi on hyväksytty.",
     "Avaa alla oleva linkki vahvistaaksesi sähköpostisi, asettaaksesi salasanan ja luodaksesi yrityksesi työtilan:",
     confirmUrl.toString(),
     "",
     "Jos et odottanut tätä kutsua, voit jättää viestin huomiotta.",
     "",
-    "Nodra",
+    "Averomira",
   ].join("\n");
 
   const html = `<div style="font-family:Arial,sans-serif;color:#202520;line-height:1.65">
     <p>${escapeHtml(greeting)}</p>
-    <p>Nodra Pilot -pääsysi on hyväksytty.</p>
+    <p>Averomira Pilot -pääsysi on hyväksytty.</p>
     <p>Avaa alla oleva linkki vahvistaaksesi sähköpostisi, asettaaksesi salasanan ja luodaksesi yrityksesi työtilan.</p>
-    <p><a href="${escapeHtml(confirmUrl.toString())}" style="display:inline-block;background:#171a18;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:700">Avaa Nodra Pilot</a></p>
+    <p><a href="${escapeHtml(confirmUrl.toString())}" style="display:inline-block;background:#171a18;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:700">Avaa Averomira Pilot</a></p>
     <p style="color:#747975;font-size:13px">Jos et odottanut tätä kutsua, voit jättää viestin huomiotta.</p>
   </div>`;
 
   const body: Record<string, unknown> = {
     from,
     to: [email],
-    subject: "Nodra Pilot -kutsusi on valmis",
+    subject: "Averomira Pilot -kutsusi on valmis",
     text,
     html,
   };

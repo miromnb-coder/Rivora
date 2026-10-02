@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     type === "recovery" ? "sent" : "error",
     type === "recovery"
       ? "1"
-      : "The confirmation link is invalid or expired. Ask Nodra for a new pilot invitation.",
+      : "The confirmation link is invalid or expired. Ask Averomira for a new pilot invitation.",
   );
   return NextResponse.redirect(errorUrl);
 }
