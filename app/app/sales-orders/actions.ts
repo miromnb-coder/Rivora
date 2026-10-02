@@ -8,6 +8,7 @@ import {
   createBusinessCentralSalesOrder,
   getBusinessCentralConfigurationStatus,
   sanitizedBusinessCentralRequest,
+  suggestBusinessCentralMappings,
   type BusinessCentralSalesOrderInput,
 } from "@/lib/rivora/erp/business-central";
 
@@ -28,12 +29,145 @@ function draftUrl(id: string, message: string, type: "ok" | "error") {
   return `/app/sales-orders/${id}?${key}=${encodeURIComponent(message)}`;
 }
 
+
+async function autoMapSalesOrderDraft({
+  salesOrderDraftId,
+  context,
+}: {
+  salesOrderDraftId: string;
+  context: Awaited<ReturnType<typeof requireSalesOrderAdmin>>;
+}) {
+  const { supabase, workspace, claims } = context;
+  const config = getBusinessCentralConfigurationStatus(workspace.id);
+  if (!config.configured) {
+    return {
+      configured: false,
+      created: 0,
+      total: 0,
+    };
+  }
+
+  const { data: draft, error: draftError } = await supabase
+    .from("sales_order_drafts")
+    .select("id,customer_id,customers(id,name,external_id)")
+    .eq("id", salesOrderDraftId)
+    .eq("organization_id", workspace.id)
+    .maybeSingle();
+
+  if (draftError) throw draftError;
+  if (!draft) throw new Error("Sales order draft not found.");
+
+  const { data: lines, error: lineError } = await supabase
+    .from("sales_order_draft_lines")
+    .select(
+      "product_id,sku,unit,products(id,sku,name,manufacturer_part_number,unit)",
+    )
+    .eq("sales_order_draft_id", salesOrderDraftId)
+    .eq("organization_id", workspace.id)
+    .order("line_number");
+
+  if (lineError) throw lineError;
+
+  const customer = Array.isArray((draft as any).customers)
+    ? (draft as any).customers[0]
+    : (draft as any).customers;
+
+  if (!customer) throw new Error("Sales order customer was not found.");
+
+  const uniqueProducts = new Map<string, any>();
+  for (const line of lines ?? []) {
+    const product = Array.isArray((line as any).products)
+      ? (line as any).products[0]
+      : (line as any).products;
+    const productId = String((line as any).product_id);
+    if (!productId || uniqueProducts.has(productId)) continue;
+    uniqueProducts.set(productId, {
+      id: productId,
+      sku: String(product?.sku || (line as any).sku || ""),
+      name: String(product?.name || ""),
+      manufacturerPartNumber: product?.manufacturer_part_number
+        ? String(product.manufacturer_part_number)
+        : null,
+      unit: String(product?.unit || (line as any).unit || ""),
+    });
+  }
+
+  const entityIds = [
+    String(draft.customer_id),
+    ...Array.from(uniqueProducts.keys()),
+  ];
+
+  const { data: existingMappings, error: existingError } = await supabase
+    .from("erp_entity_mappings")
+    .select("entity_type,local_entity_id,external_number")
+    .eq("organization_id", workspace.id)
+    .eq("provider", "business_central")
+    .in("local_entity_id", entityIds);
+
+  if (existingError) throw existingError;
+
+  const alreadyMapped = new Set(
+    (existingMappings ?? [])
+      .filter((mapping: any) => mapping.external_number)
+      .map(
+        (mapping: any) =>
+          `${String(mapping.entity_type)}:${String(mapping.local_entity_id)}`,
+      ),
+  );
+
+  const suggestions = await suggestBusinessCentralMappings({
+    workspaceId: workspace.id,
+    customer: {
+      id: String(draft.customer_id),
+      name: String(customer.name || ""),
+      externalId: customer.external_id ? String(customer.external_id) : null,
+    },
+    products: Array.from(uniqueProducts.values()),
+  });
+
+  const toCreate = suggestions.filter(
+    (suggestion) =>
+      !alreadyMapped.has(
+        `${suggestion.entityType}:${suggestion.localEntityId}`,
+      ),
+  );
+
+  if (toCreate.length) {
+    const { error: saveError } = await supabase
+      .from("erp_entity_mappings")
+      .upsert(
+        toCreate.map((suggestion) => ({
+          organization_id: workspace.id,
+          provider: "business_central",
+          entity_type: suggestion.entityType,
+          local_entity_id: suggestion.localEntityId,
+          external_id: suggestion.externalId,
+          external_number: suggestion.externalNumber,
+          metadata: suggestion.metadata,
+          updated_by: String(claims.sub),
+        })),
+        {
+          onConflict: "organization_id,provider,entity_type,local_entity_id",
+        },
+      );
+
+    if (saveError) throw saveError;
+  }
+
+  return {
+    configured: true,
+    created: toCreate.length,
+    total: suggestions.length,
+  };
+}
+
 export async function createSalesOrderDraftAction(formData: FormData) {
   const purchaseOrderId = clean(formData.get("purchaseOrderId"), 80);
   if (!purchaseOrderId) throw new Error("Purchase order ID is required.");
 
   let draftId = "";
   let failure: string | null = null;
+  let success = "Sales order draft created.";
 
   try {
     const context = await requireSalesOrderAdmin();
@@ -45,6 +179,22 @@ export async function createSalesOrderDraftAction(formData: FormData) {
     if (error) throw error;
     draftId = String(data ?? "");
     if (!draftId) throw new Error("Sales order draft creation returned no ID.");
+
+    try {
+      const mappingResult = await autoMapSalesOrderDraft({
+        salesOrderDraftId: draftId,
+        context,
+      });
+      if (mappingResult.configured) {
+        success =
+          mappingResult.created > 0
+            ? `Sales order draft created. ${mappingResult.created} Business Central mapping(s) found automatically.`
+            : "Sales order draft created. Existing Business Central mappings were preserved.";
+      }
+    } catch {
+      success =
+        "Sales order draft created. Business Central automatic mapping can be retried from the draft.";
+    }
   } catch (error) {
     failure = error instanceof Error ? error.message : "Sales order draft creation failed.";
   }
@@ -58,7 +208,53 @@ export async function createSalesOrderDraftAction(formData: FormData) {
     );
   }
 
-  redirect(draftUrl(draftId, "Sales order draft created.", "ok"));
+  redirect(draftUrl(draftId, success, "ok"));
+}
+
+export async function autoMapBusinessCentralAction(formData: FormData) {
+  const salesOrderDraftId = clean(formData.get("salesOrderDraftId"), 80);
+  if (!salesOrderDraftId) throw new Error("Sales order draft ID is required.");
+
+  let failure: string | null = null;
+  let success = "Business Central mapping search completed.";
+
+  try {
+    const context = await requireSalesOrderAdmin();
+    const result = await autoMapSalesOrderDraft({
+      salesOrderDraftId,
+      context,
+    });
+
+    if (!result.configured) {
+      throw new Error(
+        "Business Central server credentials are not configured for this workspace.",
+      );
+    }
+
+    success =
+      result.created > 0
+        ? `${result.created} new Business Central mapping(s) found automatically.`
+        : result.total > 0
+          ? "Automatic matches were already saved. No existing mapping was overwritten."
+          : "No safe exact Business Central matches were found. Review the remaining mappings manually.";
+  } catch (error) {
+    failure =
+      error instanceof Error
+        ? error.message
+        : "Business Central automatic mapping failed.";
+  }
+
+  revalidatePath("/app/sales-orders");
+  revalidatePath(`/app/sales-orders/${salesOrderDraftId}`);
+  revalidatePath(`/app/orders/case/sales/${salesOrderDraftId}`);
+
+  redirect(
+    draftUrl(
+      salesOrderDraftId,
+      failure ?? success,
+      failure ? "error" : "ok",
+    ),
+  );
 }
 
 export async function saveErpMappingAction(formData: FormData) {
@@ -88,6 +284,11 @@ export async function saveErpMappingAction(formData: FormData) {
           entity_type: entityType,
           local_entity_id: localEntityId,
           external_number: externalNumber,
+          metadata: {
+            autoMatched: false,
+            confidence: 100,
+            matchMethod: "manual_confirmation",
+          },
           updated_by: String(claims.sub),
         },
         {
@@ -101,6 +302,7 @@ export async function saveErpMappingAction(formData: FormData) {
   }
 
   revalidatePath(`/app/sales-orders/${salesOrderDraftId}`);
+  revalidatePath(`/app/orders/case/sales/${salesOrderDraftId}`);
   redirect(
     draftUrl(
       salesOrderDraftId,
@@ -294,6 +496,7 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
 
   revalidatePath("/app/sales-orders");
   revalidatePath(`/app/sales-orders/${salesOrderDraftId}`);
+  revalidatePath(`/app/orders/case/sales/${salesOrderDraftId}`);
 
   redirect(
     draftUrl(
