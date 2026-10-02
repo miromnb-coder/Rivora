@@ -18,30 +18,20 @@ export function AppShell({
   userEmail?: string;
   locale: Locale;
 }) {
-  const showSales = workspaceRole === "owner" || workspaceRole === "admin";
   const copy = getDictionary(locale).nav;
   const nav: Array<readonly [string, string, string]> = [
-    [copy.inbox, "/app/inbox", "inbox"],
-    [copy.quotes, "/app/quotes", "quotes"],
-    [copy.purchaseOrders, "/app/purchase-orders", "purchaseOrders"],
-    [copy.salesOrders, "/app/sales-orders", "salesOrders"],
+    [copy.dashboard, "/app", "dashboard"],
+    [copy.orders, "/app/orders", "orders"],
     [copy.customers, "/app/customers", "customers"],
-    [copy.processRfq, "/app/upload", "process"],
     [copy.products, "/app/products", "products"],
-    [copy.memory, "/app/memory", "memory"],
     [copy.settings, "/app/settings", "settings"],
-    [copy.setup, "/app/setup", "setup"],
   ];
-
-  if (showSales) {
-    nav.splice(3, 0, [copy.leads, "/app/leads", "leads"]);
-  }
 
   return (
     <div className="app-shell-v2 min-h-screen">
       <aside className="app-sidebar-v2">
         <div className="app-sidebar-v2-top">
-          <Link href="/app/inbox" className="app-sidebar-v2-brand nodra-wordmark" aria-label="Averomira">
+          <Link href="/app" className="app-sidebar-v2-brand nodra-wordmark" aria-label="Averomira">
             Averomira
           </Link>
           <div className="app-sidebar-v2-product">{copy.product}</div>
@@ -62,7 +52,18 @@ export function AppShell({
         </div>
       </aside>
 
+      <header className="app-mobile-topbar">
+        <Link href="/app" className="app-mobile-brand nodra-wordmark" aria-label="Averomira">
+          Averomira
+        </Link>
+        <span>{workspaceName}</span>
+      </header>
+
       <main className="app-main-v2">{children}</main>
+
+      <div className="app-mobile-bottom-nav">
+        <AppNav items={nav} />
+      </div>
     </div>
   );
 }
