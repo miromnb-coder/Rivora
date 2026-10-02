@@ -18,6 +18,44 @@ function stageState(done: boolean, current: boolean) {
   return done ? "done" : current ? "current" : "future";
 }
 
+function caseStatusLabel(status: string, fi: boolean) {
+  const labels: Record<string, string> = fi
+    ? {
+        processing: "Käsittelyssä",
+        needs_review: "Vaatii tarkistuksen",
+        ready: "Valmis",
+        draft: "Luonnos",
+        approved: "Hyväksytty",
+        sent: "Lähetetty",
+        extracted: "Poimittu",
+        matched: "Täsmää",
+        ready_for_erp: "Valmis ERP:iin",
+        erp_pending: "Viedään ERP:iin",
+        erp_created: "Luotu ERP:iin",
+        erp_partial: "ERP-tarkistus",
+        erp_failed: "ERP-vienti epäonnistui",
+        failed: "Epäonnistui",
+      }
+    : {
+        processing: "Processing",
+        needs_review: "Needs review",
+        ready: "Ready",
+        draft: "Draft",
+        approved: "Approved",
+        sent: "Sent",
+        extracted: "Extracted",
+        matched: "Matched",
+        ready_for_erp: "Ready for ERP",
+        erp_pending: "Sending to ERP",
+        erp_created: "Created in ERP",
+        erp_partial: "ERP review",
+        erp_failed: "ERP export failed",
+        failed: "Failed",
+      };
+
+  return labels[status] || status.replaceAll("_", " ");
+}
+
 export default async function OrderCasePage({
   params,
 }: {
@@ -501,7 +539,7 @@ export default async function OrderCasePage({
                   </div>
                   <div>
                     <span>{fi ? "Tila" : "Status"}</span>
-                    <strong>{document.status.replaceAll("_", " ")}</strong>
+                    <strong>{caseStatusLabel(document.status, fi)}</strong>
                   </div>
                   <b aria-hidden="true">→</b>
                 </Link>
