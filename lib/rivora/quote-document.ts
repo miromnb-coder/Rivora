@@ -99,7 +99,7 @@ export async function loadQuoteDocumentData(
     recipientEmail: quote.recipient_email,
     customerName: customer?.name || "Customer",
     rfqReference: rfq?.reference || null,
-    sellerName: organization?.name || "Nodra",
+    sellerName: organization?.name || "Averomira",
     sellerBusinessId: organization?.business_id || null,
     sellerAddress: [
       organization?.address_line1,
