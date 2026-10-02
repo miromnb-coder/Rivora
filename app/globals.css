@@ -9298,3 +9298,142 @@ a.btn-secondary {
     font-size: clamp(38px, 4.1vw, 52px);
   }
 }
+
+
+/* Averomira workflow redesign - Sprint 1 */
+.app-sidebar-v2-link.is-active {
+  background: rgba(255,255,255,.085);
+  color: #fff;
+}
+
+.app-sidebar-v2-link.is-active::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #f3f1eb;
+}
+
+.app-sidebar-v2-link.is-active > span:first-child {
+  margin-right: auto;
+}
+
+.app-nav-pending-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .55;
+}
+
+.app-mobile-topbar,
+.app-mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .app-shell-v2 {
+    display: block;
+  }
+
+  .app-sidebar-v2 {
+    display: none;
+  }
+
+  .app-mobile-topbar {
+    min-height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid #e1e2dd;
+    background: rgba(244,243,238,.94);
+    padding: 0 18px;
+    backdrop-filter: blur(16px);
+  }
+
+  .app-mobile-brand {
+    color: #171a18;
+    font-size: 18px;
+    font-weight: 850;
+    letter-spacing: -.04em;
+  }
+
+  .app-mobile-topbar > span {
+    max-width: 48%;
+    overflow: hidden;
+    color: #777d78;
+    font-size: 10px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-main-v2 {
+    padding-bottom: 82px;
+  }
+
+  .app-mobile-bottom-nav {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    z-index: 50;
+    display: block;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 20px;
+    background: rgba(23,26,24,.96);
+    box-shadow: 0 16px 48px rgba(17,20,17,.2);
+    padding: 6px;
+    backdrop-filter: blur(18px);
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-nav {
+    margin-top: 0;
+    display: grid;
+    grid-template-columns: repeat(5,minmax(0,1fr));
+    gap: 2px;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link {
+    min-height: 50px;
+    justify-content: center;
+    border-radius: 15px;
+    padding: 5px 4px;
+    color: #aeb3af;
+    text-align: center;
+    font-size: 9px;
+    line-height: 1.15;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link.is-active {
+    background: rgba(255,255,255,.09);
+    color: #fff;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link.is-active::before,
+  .app-mobile-bottom-nav .app-nav-pending-dot {
+    display: none;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link > span:first-child {
+    margin: 0;
+  }
+}
+
+@media (max-width: 430px) {
+  .app-mobile-bottom-nav {
+    right: 7px;
+    bottom: 7px;
+    left: 7px;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link {
+    font-size: 8px;
+    letter-spacing: -.01em;
+  }
+}
