@@ -626,7 +626,7 @@ export async function sendQuoteEmail(formData: FormData) {
 
   if (finalizeError) {
     throw new Error(
-      "Email was accepted by the provider. Nodra recorded the send attempt and will reconcile quote status from the stored provider acceptance or delivery webhook."
+      "Email was accepted by the provider. Averomira recorded the send attempt and will reconcile quote status from the stored provider acceptance or delivery webhook."
     );
   }
 
