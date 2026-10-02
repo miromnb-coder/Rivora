@@ -89,13 +89,13 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
         </div>
         <h2>
           {fi
-            ? "Aloita Nodra Pilotilla."
-            : "Start with the Nodra Pilot."}
+            ? "Aloita Averomira Pilotilla."
+            : "Start with the Averomira Pilot."}
         </h2>
         <p>
           {fi
-            ? "Yksi sopimus, koko nykyinen Nodra ja selkeä kolmen kuukauden pilotti. Ei pakettivertailua, setup-maksua tai käyttäjäkohtaista hinnoittelua pilotin aikana."
-            : "One agreement, the full Nodra product and a clear three-month pilot. No package comparison, setup fee or per-user pricing during the pilot."}
+            ? "Yksi sopimus, koko nykyinen Averomira ja selkeä kolmen kuukauden pilotti. Ei pakettivertailua, setup-maksua tai käyttäjäkohtaista hinnoittelua pilotin aikana."
+            : "One agreement, the full Averomira product and a clear three-month pilot. No package comparison, setup fee or per-user pricing during the pilot."}
         </p>
       </div>
 
@@ -105,7 +105,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
             <span className="pricing-lead-eyebrow">
               {fi ? "3 kuukauden minimijakso" : "3-month minimum"}
             </span>
-            <h3>Nodra Pilot</h3>
+            <h3>Averomira Pilot</h3>
             <div className="pricing-pilot-price">
               <strong>990 €</strong>
               <span>{fi ? "/ kk" : "/ month"}</span>
@@ -135,7 +135,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
       <div className="lead-capture-v2" id="demo" ref={formRef}>
         <div className="lead-capture-copy">
           <div className="v2-section-label">
-            {fi ? "Aloita Nodra Pilot" : "Start the Nodra Pilot"}
+            {fi ? "Aloita Averomira Pilot" : "Start the Averomira Pilot"}
           </div>
           <h3>
             {fi
@@ -144,8 +144,8 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
           </h3>
           <p>
             {fi
-              ? "Käymme yhdessä läpi nykyisen prosessin ja sovitaan, miten ensimmäiset oikeat tarjouspyynnöt viedään Nodran läpi pilotin aikana."
-              : "We will review your current process together and agree how the first real RFQs will be run through Nodra during the pilot."}
+              ? "Käymme yhdessä läpi nykyisen prosessin ja sovitaan, miten ensimmäiset oikeat tarjouspyynnöt viedään Averomiran läpi pilotin aikana."
+              : "We will review your current process together and agree how the first real RFQs will be run through Averomira during the pilot."}
           </p>
 
           <div className="lead-capture-proof">
@@ -243,8 +243,8 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
                   ? "Lähetetään…"
                   : "Sending…"
                 : fi
-                  ? "Pyydä Nodra Pilot"
-                  : "Request Nodra Pilot"}
+                  ? "Pyydä Averomira Pilot"
+                  : "Request Averomira Pilot"}
               {submitState !== "submitting" && (
                 <span aria-hidden="true">→</span>
               )}

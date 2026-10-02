@@ -6,7 +6,7 @@ export function MarketingNav({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   return (
     <header className="marketing-nav nav-v2">
-      <Link href="/" aria-label="Nodra home" className="nav-v2-brand"><RivoraMark /></Link>
+      <Link href="/" aria-label="Averomira home" className="nav-v2-brand"><RivoraMark /></Link>
       <nav className="nav-v2-links" aria-label="Main navigation">
         <a href="#product">{fi ? "Tuote" : "Product"}</a>
         <a href="#how-it-works">{fi ? "Näin se toimii" : "How it works"}</a>

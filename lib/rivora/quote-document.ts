@@ -99,7 +99,7 @@ export async function loadQuoteDocumentData(
     recipientEmail: quote.recipient_email,
     customerName: customer?.name || "Customer",
     rfqReference: rfq?.reference || null,
-    sellerName: organization?.name || "Nodra",
+    sellerName: organization?.name || "Averomira",
     sellerBusinessId: organization?.business_id || null,
     sellerAddress: [
       organization?.address_line1,
@@ -308,7 +308,7 @@ function buildPdfObjects(pageStreams: string[]) {
 
   objects[2] = `<< /Type /Pages /Kids [${kids.join(" ")}] /Count ${pageCount} >>`;
 
-  let pdf = "%PDF-1.4\n%NODRA\n";
+  let pdf = "%PDF-1.4\n%AVEROMIRA\n";
   const offsets: number[] = [0];
 
   for (let i = 1; i < objects.length; i += 1) {

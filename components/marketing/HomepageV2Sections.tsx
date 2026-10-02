@@ -14,7 +14,7 @@ export function ProofStripV2({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <section className="marketing-shell proof-strip-v2" aria-label="Nodra workflow proof points">
+    <section className="marketing-shell proof-strip-v2" aria-label="Averomira workflow proof points">
       {items.map(([label, value]) => (
         <div key={label} className="proof-strip-v2-item">
           <span>{label}</span>
@@ -79,7 +79,7 @@ export function CustomerMemoryV2({ locale }: { locale: Locale }) {
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Asiakaskohtainen muisti" : "Customer memory"}</SectionLabel>
         <h2>{fi ? "Jokainen korjaus muuttuu uudelleenkäytettäväksi tiedoksi." : "Every correction becomes reusable knowledge."}</h2>
-        <p>{fi ? "Kun tiimisi vahvistaa osuman, Nodra muistaa sen kyseiselle asiakkaalle ja käyttää vastinetta seuraavassa tarjouspyynnössä." : "When your team confirms a match, Nodra remembers it for that customer and applies the mapping automatically on the next RFQ."}</p>
+        <p>{fi ? "Kun tiimisi vahvistaa osuman, Averomira muistaa sen kyseiselle asiakkaalle ja käyttää vastinetta seuraavassa tarjouspyynnössä." : "When your team confirms a match, Averomira remembers it for that customer and applies the mapping automatically on the next RFQ."}</p>
       </div>
 
       <div className="memory-v2-proof">
@@ -139,7 +139,7 @@ export function HowItWorksV2({ locale }: { locale: Locale }) {
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Näin se toimii" : "How it works"}</SectionLabel>
         <h2>{fi ? "Saapuvasta tarjouspyynnöstä tarjousvalmiiksi riveiksi." : "From incoming RFQ to quote-ready lines."}</h2>
-        <p>{fi ? "Nodra muuttaa jäsentämättömät asiakaspyynnöt ratkaistuiksi ja tarkistettaviksi tuoteriveiksi ilman toistuvia manuaalisia hakuja." : "Nodra turns unstructured customer requests into resolved, reviewable product lines without forcing your team through repeated manual searches."}</p>
+        <p>{fi ? "Averomira muuttaa jäsentämättömät asiakaspyynnöt ratkaistuiksi ja tarkistettaviksi tuoteriveiksi ilman toistuvia manuaalisia hakuja." : "Averomira turns unstructured customer requests into resolved, reviewable product lines without forcing your team through repeated manual searches."}</p>
       </div>
 
       <div className="how-v2-grid">
@@ -179,7 +179,7 @@ export function ConfidenceSystemV2({ locale }: { locale: Locale }) {
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Varmuusjärjestelmä" : "Confidence system"}</SectionLabel>
         <h2>{fi ? "Automaatio siellä missä se on turvallista. Ihminen siellä missä sillä on merkitystä." : "Automation where it’s safe. Humans where it matters."}</h2>
-        <p>{fi ? "Nodra ehdottaa korkean varmuuden deterministiset osumat nopeasti, mutta tuotevalinta vahvistetaan silti ennen tarjousta. Epävarmat tapaukset nostetaan selvästi tarkistukseen." : "Nodra surfaces high-confidence deterministic matches quickly, while product selection is still confirmed before quoting. Uncertain cases are clearly routed to review."}</p>
+        <p>{fi ? "Averomira ehdottaa korkean varmuuden deterministiset osumat nopeasti, mutta tuotevalinta vahvistetaan silti ennen tarjousta. Epävarmat tapaukset nostetaan selvästi tarkistukseen." : "Averomira surfaces high-confidence deterministic matches quickly, while product selection is still confirmed before quoting. Uncertain cases are clearly routed to review."}</p>
       </div>
 
       <div className="confidence-v2-proof">
@@ -225,7 +225,7 @@ export function AiExtractionV2({ locale }: { locale: Locale }) {
     <section className="marketing-shell v2-section ai-v2" id="ai-extraction">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "AI-poiminta" : "AI extraction"}</SectionLabel>
-        <h2>{fi ? "AI jäsentää. Nodra näyttää perustelut. Sinä hyväksyt." : "AI structures. Nodra shows the evidence. You approve."}</h2>
+        <h2>{fi ? "AI jäsentää. Averomira näyttää perustelut. Sinä hyväksyt." : "AI structures. Averomira shows the evidence. You approve."}</h2>
         <p>{fi ? "Jokainen rivi säilyttää lähteen, poimintatuloksen, osumamenetelmän ja varmuuden näkyvissä, jotta tiimisi voi tarkistaa päätökset mustan laatikon sijaan." : "Every line keeps its source, extraction result, match method and confidence visible so your team can review decisions instead of trusting a black box."}</p>
       </div>
 
@@ -304,13 +304,13 @@ export function BeforeAfterV2({ locale }: { locale: Locale }) {
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Ennen / jälkeen" : "Before / after"}</SectionLabel>
         <h2>{fi ? "Vähemmän etsimistä. Enemmän tarjouksia." : "Less searching. More quoting."}</h2>
-        <p>{fi ? "Nodra korvaa toistuvan tuotehaun hallitulla työnkululla ja säilyttää tarkistuksen siellä, missä sitä oikeasti tarvitaan." : "Nodra replaces repeated product lookup work with a controlled workflow that preserves review where it actually matters."}</p>
+        <p>{fi ? "Averomira korvaa toistuvan tuotehaun hallitulla työnkululla ja säilyttää tarkistuksen siellä, missä sitä oikeasti tarvitaan." : "Averomira replaces repeated product lookup work with a controlled workflow that preserves review where it actually matters."}</p>
       </div>
 
       <div className="before-after-grid">
         <div className="before-after-column before">
           <div className="before-after-title">
-            <span>{fi ? "Ilman Nodraa" : "Without Nodra"}</span>
+            <span>{fi ? "Ilman Averomiraa" : "Without Averomira"}</span>
             <small>{fi ? "Manuaalinen tuotehakukierre" : "Manual product-search loop"}</small>
           </div>
           <ol>
@@ -325,7 +325,7 @@ export function BeforeAfterV2({ locale }: { locale: Locale }) {
 
         <div className="before-after-column after">
           <div className="before-after-title">
-            <span>{fi ? "Nodran kanssa" : "With Nodra"}</span>
+            <span>{fi ? "Averomiran kanssa" : "With Averomira"}</span>
             <small>{fi ? "Hallittu tarjouspyyntötyönkulku" : "Controlled RFQ workflow"}</small>
           </div>
           <ol>
@@ -351,11 +351,11 @@ export function FinalCtaV2({ locale }: { locale: Locale }) {
         <div className="final-cta-v2-content">
           <SectionLabel>{fi ? "Aloita pilotilla" : "Start with a pilot"}</SectionLabel>
           <h2>{fi ? "Seuraava tarjouspyyntösi voisi olla jo lähes valmis tarjous." : "Your next RFQ could already be a quote."}</h2>
-          <p>{fi ? "Aloita Nodra Pilot ja vie ensimmäiset oikeat tarjouspyyntösi hallitusti koko työnkulun läpi." : "Start the Nodra Pilot and run your first real RFQs through the complete controlled workflow."}</p>
+          <p>{fi ? "Aloita Averomira Pilot ja vie ensimmäiset oikeat tarjouspyyntösi hallitusti koko työnkulun läpi." : "Start the Averomira Pilot and run your first real RFQs through the complete controlled workflow."}</p>
 
           <div className="final-cta-v2-actions">
             <a href="#pricing" className="final-cta-v2-primary">
-              {fi ? "Aloita Nodra Pilot" : "Start Nodra Pilot"} <span aria-hidden="true">→</span>
+              {fi ? "Aloita Averomira Pilot" : "Start Averomira Pilot"} <span aria-hidden="true">→</span>
             </a>
             <a href="#demo" className="final-cta-v2-secondary">
               {fi ? "Pyydä demo" : "Request a demo"}
