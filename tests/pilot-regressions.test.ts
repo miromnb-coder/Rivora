@@ -150,7 +150,7 @@ test("quote PDF golden fixture is deterministic, valid and customer-safe", async
   const first = await renderQuotePdf(goldenQuote);
   const second = await renderQuotePdf(goldenQuote);
 
-  assert.ok(first.subarray(0, 15).toString("latin1").startsWith("%PDF-1.4\n%NODRA"));
+  assert.ok(first.subarray(0, 15).toString("latin1").startsWith("%PDF-1.4\n%AVEROMIRA"));
   assert.deepEqual(first, second);
 
   const parsed = await PDFDocument.load(first);
