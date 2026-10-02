@@ -293,6 +293,223 @@ export function sanitizedBusinessCentralRequest(input: BusinessCentralSalesOrder
   };
 }
 
+
+export type BusinessCentralMappingSuggestion = {
+  entityType: "customer" | "product";
+  localEntityId: string;
+  externalId: string;
+  externalNumber: string;
+  displayName: string | null;
+  confidence: number;
+  matchMethod:
+    | "customer_external_id_exact"
+    | "customer_name_exact"
+    | "product_sku_exact"
+    | "product_mpn_exact"
+    | "product_name_exact";
+  metadata: Record<string, unknown>;
+};
+
+export type BusinessCentralMappingLookupInput = {
+  workspaceId: string;
+  customer: {
+    id: string;
+    name: string;
+    externalId?: string | null;
+  };
+  products: Array<{
+    id: string;
+    sku: string;
+    name: string;
+    manufacturerPartNumber?: string | null;
+    unit?: string | null;
+  }>;
+};
+
+async function firstCustomerMatch({
+  token,
+  root,
+  field,
+  value,
+}: {
+  token: string;
+  root: string;
+  field: "number" | "displayName";
+  value: string;
+}) {
+  if (!value.trim()) return null;
+  const result = await requestJson<ODataCollection<BcCustomer>>({
+    token,
+    url: collectionUrl(
+      root,
+      "customers",
+      `${field} eq '${odataString(value.trim())}'`,
+      "id,number,displayName,blocked",
+    ),
+  });
+  const candidates = (result.value ?? []).filter(
+    (customer) => !(customer.blocked && customer.blocked.trim()),
+  );
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+async function firstItemMatch({
+  token,
+  root,
+  field,
+  value,
+  localUnit,
+}: {
+  token: string;
+  root: string;
+  field: "number" | "displayName";
+  value: string;
+  localUnit?: string | null;
+}) {
+  if (!value.trim()) return null;
+  const result = await requestJson<ODataCollection<BcItem>>({
+    token,
+    url: collectionUrl(
+      root,
+      "items",
+      `${field} eq '${odataString(value.trim())}'`,
+      "id,number,displayName,blocked,baseUnitOfMeasureCode",
+    ),
+  });
+  const candidates = (result.value ?? []).filter((item) => {
+    if (item.blocked) return false;
+    if (!localUnit || !item.baseUnitOfMeasureCode) return true;
+    return businessCentralUnitsCompatible(localUnit, item.baseUnitOfMeasureCode);
+  });
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+export async function suggestBusinessCentralMappings(
+  input: BusinessCentralMappingLookupInput,
+): Promise<BusinessCentralMappingSuggestion[]> {
+  const config = requireConfig(input.workspaceId);
+  const token = await accessToken(config);
+  const root = baseUrl(config);
+  const suggestions: BusinessCentralMappingSuggestion[] = [];
+
+  let customer: BcCustomer | null = null;
+  let customerMethod: BusinessCentralMappingSuggestion["matchMethod"] | null = null;
+  let customerConfidence = 0;
+
+  if (input.customer.externalId?.trim()) {
+    customer = await firstCustomerMatch({
+      token,
+      root,
+      field: "number",
+      value: input.customer.externalId,
+    });
+    if (customer) {
+      customerMethod = "customer_external_id_exact";
+      customerConfidence = 100;
+    }
+  }
+
+  if (!customer && input.customer.name.trim()) {
+    customer = await firstCustomerMatch({
+      token,
+      root,
+      field: "displayName",
+      value: input.customer.name,
+    });
+    if (customer) {
+      customerMethod = "customer_name_exact";
+      customerConfidence = 96;
+    }
+  }
+
+  if (customer && customerMethod) {
+    suggestions.push({
+      entityType: "customer",
+      localEntityId: input.customer.id,
+      externalId: customer.id,
+      externalNumber: customer.number,
+      displayName: customer.displayName || null,
+      confidence: customerConfidence,
+      matchMethod: customerMethod,
+      metadata: {
+        autoMatched: true,
+        confidence: customerConfidence,
+        matchMethod: customerMethod,
+        businessCentralDisplayName: customer.displayName || null,
+      },
+    });
+  }
+
+  for (const product of input.products) {
+    let item: BcItem | null = null;
+    let matchMethod: BusinessCentralMappingSuggestion["matchMethod"] | null = null;
+    let confidence = 0;
+
+    if (product.sku.trim()) {
+      item = await firstItemMatch({
+        token,
+        root,
+        field: "number",
+        value: product.sku,
+        localUnit: product.unit,
+      });
+      if (item) {
+        matchMethod = "product_sku_exact";
+        confidence = 100;
+      }
+    }
+
+    if (!item && product.manufacturerPartNumber?.trim()) {
+      item = await firstItemMatch({
+        token,
+        root,
+        field: "number",
+        value: product.manufacturerPartNumber,
+        localUnit: product.unit,
+      });
+      if (item) {
+        matchMethod = "product_mpn_exact";
+        confidence = 98;
+      }
+    }
+
+    if (!item && product.name.trim()) {
+      item = await firstItemMatch({
+        token,
+        root,
+        field: "displayName",
+        value: product.name,
+        localUnit: product.unit,
+      });
+      if (item) {
+        matchMethod = "product_name_exact";
+        confidence = 96;
+      }
+    }
+
+    if (!item || !matchMethod) continue;
+
+    suggestions.push({
+      entityType: "product",
+      localEntityId: product.id,
+      externalId: item.id,
+      externalNumber: item.number,
+      displayName: item.displayName || null,
+      confidence,
+      matchMethod,
+      metadata: {
+        autoMatched: true,
+        confidence,
+        matchMethod,
+        businessCentralDisplayName: item.displayName || null,
+        businessCentralBaseUnit: item.baseUnitOfMeasureCode || null,
+      },
+    });
+  }
+
+  return suggestions;
+}
+
 export async function createBusinessCentralSalesOrder(
   input: BusinessCentralSalesOrderInput,
 ): Promise<BusinessCentralCreateResult> {
