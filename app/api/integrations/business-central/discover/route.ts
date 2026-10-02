@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+// Redeploy marker: refresh Preview environment snapshot.
 
 type Company = {
   id?: string;
