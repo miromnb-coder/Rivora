@@ -4,7 +4,7 @@ export function getSetupCopy(locale: Locale) {
   return locale === "fi" ? {
     kicker: "Pilotin käyttöönotto",
     title: "Vie uusi työtila tyhjästä ensimmäiseen lähetettyyn tarjoukseen.",
-    description: "Nodra pitää pilotin polun selkeänä: yritystiedot → katalogi → tarjouspyyntö → tarkistettu tarjous.",
+    description: "Averomira pitää pilotin polun selkeänä: yritystiedot → katalogi → tarjouspyyntö → tarkistettu tarjous.",
     readiness: "Pilotin valmius", coreSteps: "ydinvaihetta valmiina",
     customers: "asiakasta", products: "tuotetta", rfqs: "tarjouspyyntöä", quotes: "tarjousta",
     ready: "Pilotin työnkulku valmis", progress: "Käyttöönotto kesken",
@@ -21,14 +21,14 @@ export function getSetupCopy(locale: Locale) {
     sampleBody: "Pieni turvallinen datasetti ensimmäisen tarjouspyynnön testaamiseen.",
     steps: [
       ["Yrityksen asetukset", "Lisää myyjän tiedot, logo, oletus-ALV ja tarjouksen voimassaolo.", "Tarkista asetukset", "Täydennä yrityksen asetukset"],
-      ["Tuotekatalogi", "Aloita omalla CSV/XLSX-tiedostolla tai Nodran esimerkkipohjalla.", "Avaa katalogityökalut", "Tuo ensimmäinen katalogi"],
+      ["Tuotekatalogi", "Aloita omalla CSV/XLSX-tiedostolla tai Averomiran esimerkkipohjalla.", "Avaa katalogityökalut", "Tuo ensimmäinen katalogi"],
       ["Ensimmäinen tarjouspyyntö", "Käsittele PDF, CSV tai XLSX ja vahvista tuoteosumat ennen tarjousta.", "Käsittele uusi tarjouspyyntö", "Käsittele ensimmäinen tarjouspyyntö"],
       ["Ensimmäinen lähetetty tarjous", "Ratkaise tarjouspyyntö, luo ja hyväksy tarjous, valitse vastaanottaja ja lähetä testitarjous onnistuneesti.", "Avaa tarjoukset", "Viimeistele ja lähetä tarjous"],
     ],
   } : {
     kicker: "Pilot setup",
     title: "Get a new workspace from empty to first sent quote.",
-    description: "Nodra keeps the pilot path explicit: company identity → catalogue → RFQ → reviewed quote.",
+    description: "Averomira keeps the pilot path explicit: company identity → catalogue → RFQ → reviewed quote.",
     readiness: "Pilot readiness", coreSteps: "core steps complete",
     customers: "customers", products: "products", rfqs: "RFQs", quotes: "quotes",
     ready: "Pilot workflow ready", progress: "Setup in progress",
@@ -45,7 +45,7 @@ export function getSetupCopy(locale: Locale) {
     sampleBody: "A small safe dataset for testing the first RFQ flow.",
     steps: [
       ["Company settings", "Add the seller details, logo, default VAT and quote validity used on every new quote.", "Review settings", "Complete company settings"],
-      ["Product catalogue", "Start with your own CSV/XLSX or download Nodra’s sample/template files.", "View catalogue tools", "Import first catalogue"],
+      ["Product catalogue", "Start with your own CSV/XLSX or download Averomira’s sample/template files.", "View catalogue tools", "Import first catalogue"],
       ["First RFQ", "Process a PDF, CSV or XLSX and review uncertain product matches before quoting.", "Process another RFQ", "Process first RFQ"],
       ["First sent quote", "Resolve the RFQ, create and approve the quote, choose a recipient and successfully send the first test quote.", "Open quotes", "Finish and send quote"],
     ],
@@ -55,7 +55,7 @@ export function getSetupCopy(locale: Locale) {
 export function getMemoryCopy(locale: Locale) {
   return locale === "fi" ? {
     kicker: "Asiakaskohtainen muisti", title: "Jokainen vahvistettu korjaus muuttuu uudelleenkäytettäväksi asiakastiedoksi.",
-    description: "Nodra tallentaa asiakkaan käyttämät tuotenimet deterministisiksi vastineiksi. Kun sama koodi palaa, aiempi ihmisen päätös voidaan käyttää uudelleen.",
+    description: "Averomira tallentaa asiakkaan käyttämät tuotenimet deterministisiksi vastineiksi. Kun sama koodi palaa, aiempi ihmisen päätös voidaan käyttää uudelleen.",
     saved: "Tallennetut vastineet", aliases: "asiakaskohtaista aliasia", learned: "Opitut asiakkaat", language: "joilla tallennettua tuotekieltä",
     totalUses: "Käyttökerrat", applications: "vastineen käyttökertaa", reused: "Uudelleenkäytetyt", moreThanOnce: "käytetty useammin kuin kerran",
     mappings: "Opitut vastineet", listTitle: "Asiakkaan kieli → kanoninen tuote.", newest: "Uusimmat vahvistukset ensin",
@@ -69,7 +69,7 @@ export function getMemoryCopy(locale: Locale) {
     reuseTitle: "Seuraava pyyntö käyttää sitä", reuseCopy: "Tunnettu vastine ratkaistaan ennen fuzzy-mätsäystä.",
   } : {
     kicker: "Customer memory", title: "Every confirmed correction becomes reusable customer knowledge.",
-    description: "Nodra stores customer-specific product language as deterministic mappings. When the same code returns, the previous human decision can be reused instead of searched again.",
+    description: "Averomira stores customer-specific product language as deterministic mappings. When the same code returns, the previous human decision can be reused instead of searched again.",
     saved: "Saved mappings", aliases: "customer-specific aliases", learned: "Customers learned", language: "with saved product language",
     totalUses: "Total uses", applications: "mapping applications", reused: "Reused mappings", moreThanOnce: "used more than once",
     mappings: "Learned mappings", listTitle: "Customer language → canonical product.", newest: "Newest confirmations first",
@@ -86,11 +86,11 @@ export function getMemoryCopy(locale: Locale) {
 
 export function getOnboardingCopy(locale: Locale) {
   return locale === "fi" ? {
-    kicker: "Ensimmäinen työtila", title: "Luo Nodra-työtilasi.",
+    kicker: "Ensimmäinen työtila", title: "Luo Averomira-työtilasi.",
     body: "Työtila muodostaa tietoturvarajan asiakkaille, tuotekatalogille, tarjouspyynnöille ja opituille SKU-vastineille.",
     name: "Yrityksen / työtilan nimi", placeholder: "Esimerkki Teollisuus Oy", create: "Luo työtila",
   } : {
-    kicker: "First workspace", title: "Create your Nodra workspace.",
+    kicker: "First workspace", title: "Create your Averomira workspace.",
     body: "This becomes the security boundary for customers, product catalogue, RFQs and learned SKU mappings.",
     name: "Company / workspace name", placeholder: "Example Industrial Oy", create: "Create workspace",
   };
@@ -124,7 +124,7 @@ export function getSettingsCopy(locale: Locale) {
 export function getUploadCopy(locale: Locale) {
   return locale === "fi" ? {
     kicker:"Käsittele tarjouspyyntö", title:"Muuta asiakkaan pyyntö ratkaistuiksi tuoteriveiksi.",
-    description:"Lataa PDF AI-avusteiseen poimintaan tai käytä rakenteista CSV/XLSX-tiedostoa. Nodra pitää poiminnan, mätsäyksen ja ihmisen tarkistuksen erillään.",
+    description:"Lataa PDF AI-avusteiseen poimintaan tai käytä rakenteista CSV/XLSX-tiedostoa. Averomira pitää poiminnan, mätsäyksen ja ihmisen tarkistuksen erillään.",
     imported:"Katalogi tallennettu atomisesti", validated:"tuotetta validoitu", new:"uutta", updated:"päivitetty",
     withoutPrice:"ilman katalogihintaa (hinnoittelu vaaditaan Quote Builderissa)",
     guided:"Ensimmäisen tarjouspyynnön ohjattu polku", guidedTitle:"Aloita kolmella hallitulla vaiheella.",
@@ -137,17 +137,17 @@ export function getUploadCopy(locale: Locale) {
     downloadBlank:"Lataa tyhjä pohja", downloadSample:"Lataa esimerkkikatalogi", setupRequired:"Käyttöönotto vaaditaan",
     replaceCatalogue:"Korvaa tuotekatalogi", chooseCatalogue:"Valitse tuotekatalogi", catalogueHint:"CSV tai XLSX · SKU + tuotteen nimi vaaditaan",
     replace:"Korvaa katalogi", import:"Tuo katalogi",
-    incoming:"Saapuva tarjouspyyntö", pdfTitle:"Käsittele asiakkaan PDF.", pdfBody:"Nodra poimii asiakkaan, viitteen, määrät, SKU:t ja kuvaukset, ajaa katalogimätsäyksen ja ohjaa epävarmat osumat tarkistukseen.",
+    incoming:"Saapuva tarjouspyyntö", pdfTitle:"Käsittele asiakkaan PDF.", pdfBody:"Averomira poimii asiakkaan, viitteen, määrät, SKU:t ja kuvaukset, ajaa katalogimätsäyksen ja ohjaa epävarmat osumat tarkistukseen.",
     aiReady:"AI-poiminta valmis", apiMissing:"AI-poiminta ei ole käytettävissä", customerOverride:"Asiakasohitus", optional:"valinnainen",
     ambiguous:"Käytä vain, jos PDF on epäselvä", rfqRef:"Tarjouspyynnön viite", choosePdf:"Valitse tarjouspyynnön PDF",
-    pdfHint:"Valitse PDF tiedostoista · Nodra tarkistaa tiedoston sisällön", process:"Käsittele tarjouspyyntö",
+    pdfHint:"Valitse PDF tiedostoista · Averomira tarkistaa tiedoston sisällön", process:"Käsittele tarjouspyyntö",
     importFirst:"Tuo tuotekatalogi ensin.", addKey:"AI-poimintaa ei ole määritetty tälle ympäristölle.", flow:"Poiminta → mätsäys → tarkistus",
-    structured:"Rakenteinen tarjouspyyntö", structuredTitle:"Onko sinulla jo CSV tai XLSX?", structuredBody:"Ohita AI-poiminta ja lähetä rakenteiset rivit suoraan Nodran deterministiseen mätsäysmoottoriin.",
+    structured:"Rakenteinen tarjouspyyntö", structuredTitle:"Onko sinulla jo CSV tai XLSX?", structuredBody:"Ohita AI-poiminta ja lähetä rakenteiset rivit suoraan Averomiran deterministiseen mätsäysmoottoriin.",
     customer:"Asiakas", customerName:"Asiakkaan nimi", chooseFile:"Valitse tarjouspyyntötiedosto", processStructured:"Käsittele CSV / XLSX",
     threshold:"Tarkistusperiaate", thresholdBody:"Jokainen osuma → ihmisen vahvistus", order:"Mätsäysjärjestys", boundary:"AI:n raja", boundaryBody:"Poiminta ei valitse tuotteita",
   } : {
     kicker:"Process RFQ", title:"Turn a customer request into resolved product lines.",
-    description:"Upload a PDF for AI-assisted extraction or use a structured CSV/XLSX. Nodra keeps extraction, matching and human review separate.",
+    description:"Upload a PDF for AI-assisted extraction or use a structured CSV/XLSX. Averomira keeps extraction, matching and human review separate.",
     imported:"Catalogue committed atomically", validated:"products validated", new:"new", updated:"updated",
     withoutPrice:"without a catalogue price (pricing will be required in Quote Builder)",
     guided:"First RFQ guided flow", guidedTitle:"Start with three controlled steps.",
@@ -160,12 +160,12 @@ export function getUploadCopy(locale: Locale) {
     downloadBlank:"Download blank template", downloadSample:"Download sample catalogue", setupRequired:"Setup required",
     replaceCatalogue:"Replace product catalogue", chooseCatalogue:"Choose product catalogue", catalogueHint:"CSV or XLSX · SKU + product name required",
     replace:"Replace catalogue", import:"Import catalogue",
-    incoming:"Incoming RFQ", pdfTitle:"Process a customer PDF.", pdfBody:"Nodra extracts customer, reference, quantities, SKUs and descriptions, then runs catalogue matching and sends uncertainty to review.",
+    incoming:"Incoming RFQ", pdfTitle:"Process a customer PDF.", pdfBody:"Averomira extracts customer, reference, quantities, SKUs and descriptions, then runs catalogue matching and sends uncertainty to review.",
     aiReady:"AI extraction ready", apiMissing:"AI extraction unavailable", customerOverride:"Customer override", optional:"optional",
     ambiguous:"Use only if the PDF is ambiguous", rfqRef:"RFQ reference", choosePdf:"Choose RFQ PDF",
-    pdfHint:"Choose the PDF from Files · Nodra verifies the file contents", process:"Process RFQ",
+    pdfHint:"Choose the PDF from Files · Averomira verifies the file contents", process:"Process RFQ",
     importFirst:"Import your product catalogue first.", addKey:"AI extraction is not configured for this environment.", flow:"Extraction → matching → review",
-    structured:"Structured RFQ", structuredTitle:"Already have CSV or XLSX?", structuredBody:"Skip AI extraction and send structured lines directly into Nodra’s deterministic matching engine.",
+    structured:"Structured RFQ", structuredTitle:"Already have CSV or XLSX?", structuredBody:"Skip AI extraction and send structured lines directly into Averomira’s deterministic matching engine.",
     customer:"Customer", customerName:"Customer name", chooseFile:"Choose RFQ file", processStructured:"Process CSV / XLSX",
     threshold:"Review threshold", thresholdBody:"Every match → human confirmation", order:"Match order", boundary:"AI boundary", boundaryBody:"Extraction does not choose products",
   };
@@ -270,7 +270,7 @@ export function getQuoteDetailCopy(locale: Locale) {
     auditId: fi ? "Toimituksen auditointitunnus tallennettu" : "Delivery audit ID saved",
     reconciling: fi ? "Lähetys vahvistetaan." : "Send is being reconciled.",
     reconcilingBody: fi
-      ? "Nodra on jo aloittanut tämän lähetyksen. Uusi lähetys estetään, kunnes aiempi yritys on sovitettu palveluntarjoajan tilaan."
-      : "Nodra has already started this send. A duplicate send is blocked until the previous attempt is reconciled with the provider.",
+      ? "Averomira on jo aloittanut tämän lähetyksen. Uusi lähetys estetään, kunnes aiempi yritys on sovitettu palveluntarjoajan tilaan."
+      : "Averomira has already started this send. A duplicate send is blocked until the previous attempt is reconciled with the provider.",
   };
 }
