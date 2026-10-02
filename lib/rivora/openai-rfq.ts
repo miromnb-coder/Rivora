@@ -183,14 +183,14 @@ export async function extractRfqFromPdf(file: File) {
 
   if (file.size === 0) throw new Error("The PDF is empty.");
   if (file.size > 10 * 1024 * 1024) {
-    throw new Error("The PDF is larger than the 10 MB Rivora v0.3 limit.");
+    throw new Error("The PDF is larger than the 10 MB Averomira limit.");
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const pdfSignature = buffer.subarray(0, 5).toString("ascii");
   if (pdfSignature !== "%PDF-") {
     throw new Error(
-      "This file is not a real PDF. Rivora checks the file contents, so iPhone file names and MIME types do not matter."
+      "This file is not a real PDF. Averomira checks the file contents, so iPhone file names and MIME types do not matter."
     );
   }
 
