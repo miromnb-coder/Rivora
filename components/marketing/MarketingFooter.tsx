@@ -10,7 +10,7 @@ export function MarketingFooter({ locale }: { locale: Locale }) {
         <div className="footer-v2-top">
           <div className="footer-v2-brand">
             <RivoraMark className="text-[#132018]" />
-            <p>{fi ? "Averomira auttaa teollisia myyntitiimejä muuttamaan saapuvat tarjouspyynnöt rakenteisiksi, tarkistettaviksi tarjouksiksi." : "Averomira helps industrial sales teams turn incoming RFQs into structured, reviewable quotes."}</p>
+            <p>{fi ? "Averomira auttaa teollisia myyntitiimejä viemään asiakastilaukset tarjouspyynnöstä tarkistetuksi myyntitilaukseksi ja ERP:iin." : "Averomira helps industrial sales teams move customer orders from RFQ to verified sales order and ERP."}</p>
           </div>
           <div className="footer-v2-links">
             <div>
