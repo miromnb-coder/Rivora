@@ -37,7 +37,7 @@ export const getAuthContext = cache(async function getAuthContext() {
       ? {
           id: membership.organization_id as string,
           role: membership.role as string,
-          name: org?.name ?? "Nodra workspace",
+          name: org?.name ?? "Averomira workspace",
           defaultTaxRate: Number(org?.default_tax_rate ?? 25.5),
           defaultQuoteValidityDays: Number(org?.default_quote_validity_days ?? 14),
           onboardingCompletedAt: org?.onboarding_completed_at ?? null,
