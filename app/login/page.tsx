@@ -17,7 +17,7 @@ export default async function LoginPage({
       <div className="mx-auto max-w-md">
         <div className="mb-7 flex items-start justify-between gap-4">
           <div>
-            <div className="text-2xl font-extrabold tracking-[-.04em] text-[#171a18]">Nodra</div>
+            <div className="text-2xl font-extrabold tracking-[-.04em] text-[#171a18]">Averomira</div>
             <div className="mt-2 text-sm text-[var(--muted)]">{copy.product}</div>
           </div>
           <LocaleSwitcher locale={locale} label="" />
@@ -52,8 +52,8 @@ export default async function LoginPage({
             </Link>
             <p className="mt-4 text-center text-xs leading-5 text-[var(--muted)]">
               {locale === "fi"
-                ? "Uudet Nodra-tilit luodaan vain hyväksytyn pilotin kutsusta."
-                : "New Nodra accounts are created by approved pilot invitation only."}
+                ? "Uudet Averomira-tilit luodaan vain hyväksytyn pilotin kutsusta."
+                : "New Averomira accounts are created by approved pilot invitation only."}
             </p>
           </form>
         </div>
