@@ -37,12 +37,12 @@ export default async function OnboardingPage({
           <div className="surface p-7">
             <div className="kicker">{fi ? "Kutsu vaaditaan" : "Invitation required"}</div>
             <h1 className="mt-2 text-3xl font-extrabold tracking-[-.04em]">
-              {fi ? "Tällä tilillä ei ole hyväksyttyä Nodra Pilot -kutsua." : "This account does not have an approved Nodra Pilot invitation."}
+              {fi ? "Tällä tilillä ei ole hyväksyttyä Averomira Pilot -kutsua." : "This account does not have an approved Averomira Pilot invitation."}
             </h1>
             <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
               {fi
-                ? "Uudet työtilat avataan hyväksytyn pilotin jälkeen. Jos olet jo sopinut pilotista, pyydä uusi kutsu Nodra-yhteyshenkilöltäsi."
-                : "New workspaces are opened after an approved pilot. If you have already agreed a pilot, ask your Nodra contact for a new invitation."}
+                ? "Uudet työtilat avataan hyväksytyn pilotin jälkeen. Jos olet jo sopinut pilotista, pyydä uusi kutsu Averomira-yhteyshenkilöltäsi."
+                : "New workspaces are opened after an approved pilot. If you have already agreed a pilot, ask your Averomira contact for a new invitation."}
             </p>
             <form action={signOut} className="mt-6">
               <button className="btn-secondary w-full">{fi ? "Kirjaudu ulos" : "Sign out"}</button>
