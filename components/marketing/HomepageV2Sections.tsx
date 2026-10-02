@@ -8,9 +8,9 @@ export function ProofStripV2({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   const items = [
     [fi ? "Syöte" : "Input", "PDF / XLSX / CSV"],
-    [fi ? "Ratkaisu" : "Resolution", fi ? "Asiakaskohtainen tuotemuisti" : "Customer-specific product memory"],
-    [fi ? "Hallinta" : "Control", fi ? "Lähde + varmuus näkyvissä" : "Source + confidence visible"],
-    [fi ? "Hyväksyntä" : "Approval", fi ? "Ihmisen tarkistus ennen tarjousta" : "Human review before quote"],
+    [fi ? "Tarjous" : "Quote", fi ? "Tuotteet ratkaistu ja tarkistettu" : "Products resolved and reviewed"],
+    [fi ? "Ostotilaus" : "Purchase order", fi ? "Quote ↔ PO -vertailu" : "Quote ↔ PO reconciliation"],
+    [fi ? "ERP" : "ERP", fi ? "Business Central -valmis myyntitilaus" : "Business Central-ready sales order"],
   ];
 
   return (
@@ -125,21 +125,23 @@ export function CustomerMemoryV2({ locale }: { locale: Locale }) {
 export function HowItWorksV2({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   const steps = fi ? [
-    { n: "01", title: "Poimi", body: "PDF:t, taulukot ja sähköpostit muuttuvat rakenteisiksi tuoteriveiksi.", meta: "Lähde säilytetään" },
-    { n: "02", title: "Ratkaise", body: "Asiakkaan tuotekieli sovitetaan kanoniseen katalogiisi.", meta: "Muisti + tarkat tunnisteet" },
-    { n: "03", title: "Tarkista", body: "Jokainen tuotevalinta vahvistetaan ennen tarjousta; epävarmat tapaukset korostetaan.", meta: "Ihminen mukana päätöksessä" },
+    { n: "01", title: "Poimi RFQ", body: "PDF:t ja taulukot muuttuvat rakenteisiksi tuoteriveiksi, joiden lähde säilyy.", meta: "RFQ → tuoterivit" },
+    { n: "02", title: "Rakenna tarjous", body: "Asiakkaan tuotekieli ratkaistaan katalogiisi ja epävarmat osumat nostetaan tarkistukseen.", meta: "Tuotemuisti + hyväksyntä" },
+    { n: "03", title: "Tarkista PO", body: "Asiakkaan ostotilaus verrataan hyväksyttyyn tarjoukseen ja vain poikkeamat vaativat päätöksen.", meta: "Quote ↔ PO" },
+    { n: "04", title: "Vie ERP:iin", body: "Hyväksytty tilaus valmistellaan myyntitilausluonnokseksi ja Business Central -vastineet muistetaan.", meta: "Sales Order → ERP" },
   ] : [
-    { n: "01", title: "Extract", body: "PDFs, spreadsheets and emails become structured line items.", meta: "Source preserved" },
-    { n: "02", title: "Resolve", body: "Customer product language is matched to your canonical catalogue.", meta: "Memory + exact identifiers" },
-    { n: "03", title: "Review", body: "Every product selection is confirmed before quoting, with uncertain lines highlighted.", meta: "Human-in-the-loop" },
+    { n: "01", title: "Extract RFQ", body: "PDFs and spreadsheets become structured line items while preserving their source.", meta: "RFQ → line items" },
+    { n: "02", title: "Build quote", body: "Customer product language is resolved to your catalogue and uncertain matches are routed to review.", meta: "Product memory + approval" },
+    { n: "03", title: "Check PO", body: "The customer purchase order is reconciled with the approved quote and only exceptions need a decision.", meta: "Quote ↔ PO" },
+    { n: "04", title: "Send to ERP", body: "The approved order becomes a sales order draft and Business Central mappings are remembered.", meta: "Sales Order → ERP" },
   ];
 
   return (
     <section className="marketing-shell v2-section how-v2" id="how-it-works">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Näin se toimii" : "How it works"}</SectionLabel>
-        <h2>{fi ? "Saapuvasta tarjouspyynnöstä tarjousvalmiiksi riveiksi." : "From incoming RFQ to quote-ready lines."}</h2>
-        <p>{fi ? "Averomira muuttaa jäsentämättömät asiakaspyynnöt ratkaistuiksi ja tarkistettaviksi tuoteriveiksi ilman toistuvia manuaalisia hakuja." : "Averomira turns unstructured customer requests into resolved, reviewable product lines without forcing your team through repeated manual searches."}</p>
+        <h2>{fi ? "Yksi hallittu polku tarjouspyynnöstä ERP-valmiiksi tilaukseksi." : "One controlled path from RFQ to ERP-ready order."}</h2>
+        <p>{fi ? "Averomira yhdistää tuoteratkaisun, tarjouksen, asiakkaan PO:n tarkistuksen ja ERP-valmistelun samaan tilauscaseen." : "Averomira connects product resolution, quoting, customer PO review and ERP preparation in one order case."}</p>
       </div>
 
       <div className="how-v2-grid">
@@ -288,30 +290,30 @@ export function AiExtractionV2({ locale }: { locale: Locale }) {
 export function BeforeAfterV2({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   const before = fi ? [
-    "Avaa PDF", "Hae ERP:stä", "Hae vanhoista tarjouksista", "Tulkitse asiakkaan SKU:t", "Kopioi tuotetiedot", "Rakenna tarjous",
+    "Avaa RFQ ja etsi tuotteet", "Rakenna tarjous", "Odota asiakkaan PO:ta", "Vertaa rivejä käsin", "Etsi ERP-tuotenumerot", "Syötä myyntitilaus ERP:iin",
   ] : [
-    "Open the PDF", "Search ERP", "Search old quotes", "Decode customer SKUs", "Copy product details", "Build the quote",
+    "Open RFQ and search products", "Build the quote", "Wait for customer PO", "Compare lines manually", "Find ERP item numbers", "Enter the sales order in ERP",
   ];
 
   const after = fi ? [
-    "Lataa tarjouspyyntö", "Poimi tuoterivit", "Ratkaise tuotteet", "Tarkista epävarmuus", "Vahvista osumat", "Tarjousvalmiit rivit",
+    "Lataa RFQ", "Tarkista vain epävarmat tuotteet", "Lähetä tarjous", "Lataa PO", "Ratkaise vain poikkeamat", "Luo myyntitilaus Business Centraliin",
   ] : [
-    "Upload RFQ", "Extract line items", "Resolve products", "Review uncertainty", "Confirm matches", "Quote-ready lines",
+    "Upload RFQ", "Review only uncertain products", "Send quote", "Upload PO", "Resolve only exceptions", "Create the sales order in Business Central",
   ];
 
   return (
     <section className="marketing-shell v2-section before-after-v2" id="before-after">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Ennen / jälkeen" : "Before / after"}</SectionLabel>
-        <h2>{fi ? "Vähemmän etsimistä. Enemmän tarjouksia." : "Less searching. More quoting."}</h2>
-        <p>{fi ? "Averomira korvaa toistuvan tuotehaun hallitulla työnkululla ja säilyttää tarkistuksen siellä, missä sitä oikeasti tarvitaan." : "Averomira replaces repeated product lookup work with a controlled workflow that preserves review where it actually matters."}</p>
+        <h2>{fi ? "Vähemmän hyppimistä järjestelmien välillä." : "Less jumping between systems."}</h2>
+        <p>{fi ? "Sama tilauscase jatkuu tarjouspyynnöstä asiakkaan PO:hon ja edelleen ERP:iin. Käyttäjä tekee vain ne päätökset, joita automaatio ei voi tehdä turvallisesti." : "The same order case continues from RFQ to customer PO and into ERP. The user only makes decisions automation cannot safely make."}</p>
       </div>
 
       <div className="before-after-grid">
         <div className="before-after-column before">
           <div className="before-after-title">
             <span>{fi ? "Ilman Averomiraa" : "Without Averomira"}</span>
-            <small>{fi ? "Manuaalinen tuotehakukierre" : "Manual product-search loop"}</small>
+            <small>{fi ? "Hajanaiset työvaiheet" : "Fragmented workflow"}</small>
           </div>
           <ol>
             {before.map((item, index) => (
@@ -326,7 +328,7 @@ export function BeforeAfterV2({ locale }: { locale: Locale }) {
         <div className="before-after-column after">
           <div className="before-after-title">
             <span>{fi ? "Averomiran kanssa" : "With Averomira"}</span>
-            <small>{fi ? "Hallittu tarjouspyyntötyönkulku" : "Controlled RFQ workflow"}</small>
+            <small>{fi ? "Yksi tilauspolku" : "One order workflow"}</small>
           </div>
           <ol>
             {after.map((item, index) => (
@@ -350,8 +352,8 @@ export function FinalCtaV2({ locale }: { locale: Locale }) {
         <div className="final-cta-v2-shader" aria-hidden="true" />
         <div className="final-cta-v2-content">
           <SectionLabel>{fi ? "Aloita pilotilla" : "Start with a pilot"}</SectionLabel>
-          <h2>{fi ? "Seuraava tarjouspyyntösi voisi olla jo lähes valmis tarjous." : "Your next RFQ could already be a quote."}</h2>
-          <p>{fi ? "Aloita Averomira Pilot ja vie ensimmäiset oikeat tarjouspyyntösi hallitusti koko työnkulun läpi." : "Start the Averomira Pilot and run your first real RFQs through the complete controlled workflow."}</p>
+          <h2>{fi ? "Vie seuraava asiakastilaus RFQ:sta ERP:iin yhdellä hallitulla polulla." : "Run your next customer order from RFQ to ERP in one controlled flow."}</h2>
+          <p>{fi ? "Aloita Averomira Pilot oikealla tarjouspyynnöllä ja näe, kuinka paljon käsityötä voidaan poistaa ilman että tärkeät hyväksynnät katoavat." : "Start the Averomira Pilot with a real RFQ and see how much manual work can be removed without losing important approvals."}</p>
 
           <div className="final-cta-v2-actions">
             <a href="#pricing" className="final-cta-v2-primary">
@@ -367,7 +369,7 @@ export function FinalCtaV2({ locale }: { locale: Locale }) {
             <i />
             <span>{fi ? "Ihmisen hyväksyntä" : "Human approval"}</span>
             <i />
-            <span>{fi ? "ERP-integraatiota ei tarvita aloitukseen" : "No ERP integration required to start"}</span>
+            <span>{fi ? "RFQ → Quote → PO → ERP" : "RFQ → Quote → PO → ERP"}</span>
           </div>
         </div>
       </div>
