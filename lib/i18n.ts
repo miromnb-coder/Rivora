@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/locale";
 const dictionaries = {
   en: {
     nav: {
+      dashboard: "Workspace", orders: "Orders",
       inbox: "Inbox", quotes: "Quotes", purchaseOrders: "Purchase orders", salesOrders: "Sales orders", customers: "Customers", leads: "Leads",
       processRfq: "Process RFQ", products: "Products", memory: "Customer memory",
       settings: "Settings", setup: "Setup", workspace: "Workspace", signOut: "Sign out",
@@ -67,6 +68,7 @@ const dictionaries = {
   },
   fi: {
     nav: {
+      dashboard: "Työpöytä", orders: "Tilaukset",
       inbox: "Saapuneet", quotes: "Tarjoukset", purchaseOrders: "Ostotilaukset", salesOrders: "Myyntitilaukset", customers: "Asiakkaat", leads: "Liidit",
       processRfq: "Käsittele tarjouspyyntö", products: "Tuotteet", memory: "Asiakaskohtainen muisti",
       settings: "Asetukset", setup: "Käyttöönotto", workspace: "Työtila", signOut: "Kirjaudu ulos",
