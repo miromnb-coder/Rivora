@@ -423,15 +423,11 @@ export async function sendQuoteEmail(formData: FormData) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from =
     (
-      process.env.AVEROMIRA_QUOTE_FROM ??
-      process.env.NODRA_QUOTE_FROM ??
-      process.env.RIVORA_QUOTE_FROM
+      process.env.AVEROMIRA_QUOTE_FROM
     )?.trim() || "Averomira <miro@averomira.com>";
   const replyTo =
     (
-      process.env.AVEROMIRA_QUOTE_REPLY_TO ??
-      process.env.NODRA_QUOTE_REPLY_TO ??
-      process.env.RIVORA_QUOTE_REPLY_TO
+      process.env.AVEROMIRA_QUOTE_REPLY_TO
     )?.trim() || "miro@averomira.com";
 
   if (!apiKey) {
