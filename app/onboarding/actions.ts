@@ -37,7 +37,7 @@ export async function createWorkspace(formData: FormData) {
     .maybeSingle();
 
   if (!invite) {
-    redirect("/onboarding?error=An%20approved%20Nodra%20Pilot%20invitation%20is%20required");
+    redirect("/onboarding?error=An%20approved%20Averomira%20Pilot%20invitation%20is%20required");
   }
 
   const { error: passwordError } = await supabase.auth.updateUser({ password });
