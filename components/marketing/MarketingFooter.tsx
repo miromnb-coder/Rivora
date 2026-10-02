@@ -10,7 +10,7 @@ export function MarketingFooter({ locale }: { locale: Locale }) {
         <div className="footer-v2-top">
           <div className="footer-v2-brand">
             <RivoraMark className="text-[#132018]" />
-            <p>{fi ? "Nodra auttaa teollisia myyntitiimejä muuttamaan saapuvat tarjouspyynnöt rakenteisiksi, tarkistettaviksi tarjouksiksi." : "Nodra helps industrial sales teams turn incoming RFQs into structured, reviewable quotes."}</p>
+            <p>{fi ? "Averomira auttaa teollisia myyntitiimejä muuttamaan saapuvat tarjouspyynnöt rakenteisiksi, tarkistettaviksi tarjouksiksi." : "Averomira helps industrial sales teams turn incoming RFQs into structured, reviewable quotes."}</p>
           </div>
           <div className="footer-v2-links">
             <div>
@@ -35,7 +35,7 @@ export function MarketingFooter({ locale }: { locale: Locale }) {
           </div>
         </div>
         <div className="footer-v2-bottom">
-          <span>© 2026 Nodra</span>
+          <span>© 2026 Averomira</span>
           <div><Link href="/privacy">{fi ? "Tietosuoja" : "Privacy"}</Link><Link href="/terms">{fi ? "Ehdot" : "Terms"}</Link></div>
           <span>{fi ? "Rakennettu teollisille myyntitiimeille." : "Built for industrial sales teams."}</span>
         </div>
