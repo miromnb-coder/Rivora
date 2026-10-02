@@ -4,10 +4,10 @@ import { NavigationProgress } from "@/components/NavigationProgress";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.nodra.fi"),
-  title: "Nodra — RFQ to ready-to-review quote",
+  metadataBase: new URL("https://www.averomira.com"),
+  title: "Averomira — RFQ to ready-to-review quote",
   description: "AI-assisted RFQ product matching for technical distributors and manufacturers.",
-  applicationName: "Nodra",
+  applicationName: "Averomira",
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
