@@ -115,7 +115,7 @@ export async function parseTabularFile(file: File): Promise<RawRow[]> {
 
   if (lower.endsWith(".xlsx")) return parseXlsx(buffer);
 
-  throw new Error("Nodra accepts CSV and XLSX files.");
+  throw new Error("Averomira accepts CSV and XLSX files.");
 }
 
 export function sourceTypeFromName(name: string): "csv" | "excel" {
