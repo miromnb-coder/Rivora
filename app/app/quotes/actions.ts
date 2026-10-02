@@ -421,10 +421,20 @@ export async function sendQuoteEmail(formData: FormData) {
   if (!quoteId) throw new Error("Quote is required.");
 
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  const from = (process.env.NODRA_QUOTE_FROM ?? process.env.RIVORA_QUOTE_FROM)?.trim();
-  const replyTo = (process.env.NODRA_QUOTE_REPLY_TO ?? process.env.RIVORA_QUOTE_REPLY_TO)?.trim();
+  const from =
+    (
+      process.env.AVEROMIRA_QUOTE_FROM ??
+      process.env.NODRA_QUOTE_FROM ??
+      process.env.RIVORA_QUOTE_FROM
+    )?.trim() || "Averomira <miro@averomira.com>";
+  const replyTo =
+    (
+      process.env.AVEROMIRA_QUOTE_REPLY_TO ??
+      process.env.NODRA_QUOTE_REPLY_TO ??
+      process.env.RIVORA_QUOTE_REPLY_TO
+    )?.trim() || "miro@averomira.com";
 
-  if (!apiKey || !from) {
+  if (!apiKey) {
     throw new Error("Quote email delivery is not configured.");
   }
 
@@ -583,7 +593,7 @@ export async function sendQuoteEmail(formData: FormData) {
     };
   } catch {
     throw new Error(
-      "Nodra could not confirm whether the email provider accepted this send. The attempt remains locked to prevent a duplicate email; delivery status can reconcile from the provider webhook."
+      "Averomira could not confirm whether the email provider accepted this send. The attempt remains locked to prevent a duplicate email; delivery status can reconcile from the provider webhook."
     );
   }
 
@@ -606,7 +616,7 @@ export async function sendQuoteEmail(formData: FormData) {
 
   if (acceptedError) {
     throw new Error(
-      "Email was accepted by the provider, but Nodra could not persist the provider acceptance. Do not resend until delivery status is checked."
+      "Email was accepted by the provider, but Averomira could not persist the provider acceptance. Do not resend until delivery status is checked."
     );
   }
 
