@@ -10302,3 +10302,327 @@ textarea:focus-visible {
     border-radius: 11px;
   }
 }
+
+
+/* Averomira white app system — final color direction */
+:root {
+  --app-bg: #ffffff;
+  --app-surface: #ffffff;
+  --app-ink: #202320;
+  --app-muted: #7b807c;
+  --app-line: #e8e9e6;
+  --app-soft: #f7f7f5;
+  --app-soft-2: #fbfbfa;
+  --app-shadow: 0 8px 28px rgba(20,24,21,.035);
+}
+
+.app-shell-v2,
+.app-main-v2 {
+  background: #ffffff !important;
+}
+
+.app-sidebar-v2 {
+  background: #ffffff !important;
+  color: var(--app-ink) !important;
+  border-right: 1px solid var(--app-line) !important;
+  box-shadow: none !important;
+}
+
+.app-sidebar-v2-brand,
+.app-sidebar-v2-brand.nodra-wordmark {
+  color: #202320 !important;
+}
+
+.app-sidebar-v2-product {
+  color: #9a9e9a !important;
+}
+
+.app-sidebar-v2-link {
+  border: 1px solid transparent;
+  background: transparent !important;
+  color: #6f746f !important;
+  box-shadow: none !important;
+}
+
+.app-sidebar-v2-link:hover {
+  border-color: #eeeeeb;
+  background: #fafaf8 !important;
+  color: #2b2f2b !important;
+  transform: none !important;
+}
+
+.app-sidebar-v2-link.is-active,
+.app-sidebar-v2-link.is-active:hover {
+  border-color: #e8e9e6 !important;
+  background: #f4f4f1 !important;
+  color: #202320 !important;
+  box-shadow: none !important;
+}
+
+.app-sidebar-v2-link.is-active::before {
+  display: none !important;
+  content: none !important;
+}
+
+.app-sidebar-v2-link.is-active > span:first-child,
+.app-sidebar-v2-link.is-active .app-nav-label,
+.app-sidebar-v2-link.is-active .app-nav-icon {
+  color: #202320 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.app-nav-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.app-nav-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9a9e9a;
+}
+
+.app-nav-label {
+  min-width: 0;
+  color: inherit;
+}
+
+.app-sidebar-v2-link:hover .app-nav-icon {
+  color: #555a56;
+}
+
+.app-sidebar-v2-link.is-active .app-nav-icon {
+  color: #202320 !important;
+}
+
+.app-sidebar-v2-account {
+  border-top-color: var(--app-line) !important;
+}
+
+.app-sidebar-v2-account-label,
+.app-locale-switcher > span {
+  color: #a0a4a0 !important;
+}
+
+.app-sidebar-v2-account-name {
+  color: #2b2f2b !important;
+}
+
+.app-sidebar-v2-role,
+.app-sidebar-v2-email,
+.app-sidebar-v2-signout {
+  color: #8b908c !important;
+}
+
+.app-sidebar-v2-signout:hover {
+  color: #303430 !important;
+}
+
+.app-locale-switcher select {
+  border-color: #e1e3df !important;
+  background: #fff !important;
+  color: #3d423e !important;
+}
+
+/* Keep black only for the strongest primary action and always pair it with white text. */
+.app-shell-v2 .btn-primary,
+.app-shell-v2 .upload-v2-primary-btn,
+.app-shell-v2 .products-v2-primary,
+.app-shell-v2 .inbox-v2-primary,
+.app-shell-v2 .quote-builder-v1-stage-actions button:not(.is-secondary),
+.app-shell-v2 .rfq-review-v2-actions button {
+  background: #202320 !important;
+  border-color: #202320 !important;
+  color: #ffffff !important;
+}
+
+.app-shell-v2 .btn-primary *,
+.app-shell-v2 .upload-v2-primary-btn *,
+.app-shell-v2 .products-v2-primary *,
+.app-shell-v2 .inbox-v2-primary *,
+.app-shell-v2 .quote-builder-v1-stage-actions button:not(.is-secondary) *,
+.app-shell-v2 .rfq-review-v2-actions button * {
+  color: #ffffff !important;
+}
+
+.app-shell-v2 .btn-primary:hover,
+.app-shell-v2 .upload-v2-primary-btn:hover,
+.app-shell-v2 .products-v2-primary:hover,
+.app-shell-v2 .inbox-v2-primary:hover {
+  background: #111411 !important;
+  border-color: #111411 !important;
+}
+
+/* Secondary controls stay white. */
+.app-shell-v2 .btn-secondary,
+.app-shell-v2 .upload-v2-secondary-btn,
+.app-shell-v2 .quote-builder-v1-secondary,
+.app-shell-v2 .quote-builder-v1-stage-actions button.is-secondary {
+  border-color: #e0e2de !important;
+  background: #ffffff !important;
+  color: #343834 !important;
+}
+
+/* Remove large black blocks from the operational UI. */
+.case-progress-v1-step.is-current {
+  border-color: #dedfdb !important;
+  background: #f4f4f1 !important;
+  color: #202320 !important;
+}
+
+.case-progress-v1-step.is-current span,
+.case-progress-v1-step.is-current strong {
+  color: #202320 !important;
+}
+
+.case-progress-v1-step.is-current .case-progress-v1-marker {
+  border-color: #202320 !important;
+  background: #202320 !important;
+  color: #ffffff !important;
+}
+
+.rfq-review-v2-ready {
+  border: 1px solid #e6e7e4 !important;
+  background: #f8f8f6 !important;
+  color: #202320 !important;
+}
+
+.rfq-review-v2-ready .upload-v2-section-label,
+.rfq-review-v2-ready p {
+  color: #777d78 !important;
+}
+
+.rfq-review-v2-ready h2 {
+  color: #202320 !important;
+}
+
+.nodra-filter-pill.is-active {
+  border-color: #d9dbd7 !important;
+  background: #f2f3f1 !important;
+  color: #202320 !important;
+}
+
+/* White mobile navigation: no dark floating slab. */
+@media (max-width: 1023px) {
+  .app-mobile-topbar {
+    background: rgba(255,255,255,.97) !important;
+    border-bottom: 1px solid #e8e9e6 !important;
+    color: #202320 !important;
+  }
+
+  .app-mobile-brand {
+    color: #202320 !important;
+  }
+
+  .app-mobile-bottom-nav {
+    right: 10px;
+    left: 10px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    border: 1px solid #e3e4e1 !important;
+    border-radius: 18px;
+    background: rgba(255,255,255,.97) !important;
+    box-shadow: 0 10px 30px rgba(20,24,21,.10) !important;
+    padding: 5px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-nav {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5,minmax(0,1fr));
+    gap: 3px;
+    overflow: visible;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link {
+    min-width: 0;
+    min-height: 54px;
+    border: 1px solid transparent !important;
+    border-radius: 13px;
+    background: transparent !important;
+    padding: 6px 2px;
+    color: #929793 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .app-mobile-bottom-nav .app-nav-main {
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .app-mobile-bottom-nav .app-nav-icon {
+    width: 17px;
+    height: 17px;
+    flex-basis: 17px;
+    color: currentColor;
+  }
+
+  .app-mobile-bottom-nav .app-nav-label {
+    max-width: 100%;
+    overflow: hidden;
+    color: inherit;
+    font-size: 8px;
+    font-weight: 760;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link:hover {
+    border-color: transparent !important;
+    background: #fafaf8 !important;
+    color: #606560 !important;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link.is-active,
+  .app-mobile-bottom-nav .app-sidebar-v2-link.is-active:hover {
+    border-color: #e6e7e4 !important;
+    background: #f3f3f0 !important;
+    color: #202320 !important;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link.is-active::after,
+  .app-mobile-bottom-nav .app-sidebar-v2-link.is-active::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  .app-mobile-bottom-nav .app-nav-pending-dot {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border-color: #d0d3cf;
+    border-top-color: #606560;
+  }
+}
+
+@media (max-width: 430px) {
+  .app-mobile-bottom-nav {
+    right: 7px;
+    left: 7px;
+    border-radius: 16px;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar-v2-link {
+    min-height: 52px;
+    border-radius: 11px;
+  }
+
+  .app-mobile-bottom-nav .app-nav-label {
+    font-size: 7.5px;
+  }
+}
