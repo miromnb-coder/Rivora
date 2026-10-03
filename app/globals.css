@@ -11519,3 +11519,31 @@ textarea:focus-visible {
     border-top: 1px solid var(--app-border);
   }
 }
+
+
+/* Sidebar accordion behavior on short desktop/tablet-height viewports */
+@media (min-width: 1024px) {
+  .app-sidebar-v2 {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  .app-sidebar-v2-top,
+  .app-sidebar-v2-account {
+    flex: 0 0 auto;
+  }
+
+  .app-sidebar-v2-nav {
+    flex: 1 1 auto !important;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: #d7d9d5 transparent;
+  }
+
+  .app-sidebar-v2-account {
+    margin-top: auto !important;
+  }
+}
