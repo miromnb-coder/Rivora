@@ -30,15 +30,15 @@ export function FilePicker({
         type="file"
         accept={accept}
         required={required}
-        className="sr-only"
+        className="sr-only upload-file-input"
         onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")}
       />
       <label
         htmlFor={id}
-        className="nodra-file-picker block cursor-pointer px-4 py-6 text-center transition active:scale-[.99]"
+        className="nodra-file-picker block cursor-pointer px-4 py-4 text-center transition"
       >
         <span className="nodra-file-picker-icon">↑</span>
-        <span className="mt-3 block text-sm font-extrabold">{fileName || title}</span>
+        <span className="mt-3 block text-sm font-semibold">{fileName || title}</span>
         <span className="mt-1 block text-xs leading-5 text-[var(--muted)]">
           {fileName ? (fi ? "Valitse toinen tiedosto napauttamalla" : "Tap to choose another file") : hint}
         </span>
