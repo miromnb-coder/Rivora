@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -138,4 +139,161 @@ export async function removeWorkspaceLogo() {
   if (error) throw new Error(error.message);
 
   revalidatePath("/app/settings");
+}
+
+
+function settingsUrl(message: string, tone: "ok" | "error" = "ok", anchor = "") {
+  const query = new URLSearchParams({ message, tone });
+  return `/app/settings?${query.toString()}${anchor ? `#${anchor}` : ""}`;
+}
+
+export async function inviteWorkspaceMember(formData: FormData) {
+  const context = await requireSettingsAdmin();
+  const { workspace } = context;
+  const email = clean(formData.get("email"), 320).toLowerCase();
+  const role = clean(formData.get("role"), 30) || "member";
+
+  if (!EMAIL_RE.test(email)) {
+    redirect(settingsUrl("Anna kelvollinen sähköpostiosoite.", "error", "users"));
+  }
+  if (!["admin", "member", "reviewer"].includes(role)) {
+    redirect(settingsUrl("Valitse sallittu käyttäjärooli.", "error", "users"));
+  }
+
+  let failure: string | null = null;
+
+  try {
+    const admin = createAdminClient();
+    const { data: listed, error: listError } = await admin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    if (listError) throw listError;
+
+    let user = listed.users.find(
+      (candidate) => String(candidate.email || "").toLowerCase() === email,
+    );
+
+    if (!user) {
+      const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
+        email,
+        {
+          data: {
+            invited_to_workspace_id: workspace.id,
+            invited_to_workspace_name: workspace.name,
+          },
+        },
+      );
+      if (inviteError) throw inviteError;
+      user = invited.user;
+    }
+
+    if (!user?.id) throw new Error("Käyttäjää ei voitu luoda.");
+
+    const { data: memberships, error: membershipError } = await admin
+      .from("organization_members")
+      .select("organization_id,role")
+      .eq("user_id", user.id);
+
+    if (membershipError) throw membershipError;
+
+    const otherWorkspace = (memberships ?? []).find(
+      (membership: any) => String(membership.organization_id) !== workspace.id,
+    );
+    if (otherWorkspace) {
+      throw new Error(
+        "Tämä käyttäjä kuuluu jo toiseen työtilaan. Nykyinen työtilamalli tukee yhtä työtilaa käyttäjää kohden.",
+      );
+    }
+
+    const { error: upsertError } = await admin
+      .from("organization_members")
+      .upsert(
+        {
+          organization_id: workspace.id,
+          user_id: user.id,
+          role,
+        },
+        { onConflict: "organization_id,user_id" },
+      );
+
+    if (upsertError) throw upsertError;
+
+    revalidatePath("/app/settings");
+  } catch (error) {
+    failure =
+      error instanceof Error ? error.message : "Käyttäjän kutsuminen epäonnistui.";
+  }
+
+  redirect(
+    settingsUrl(
+      failure ?? "Käyttäjä kutsuttiin työtilaan.",
+      failure ? "error" : "ok",
+      "users",
+    ),
+  );
+}
+
+export async function updateWorkspaceMemberRole(formData: FormData) {
+  const context = await requireSettingsAdmin();
+  const { workspace, claims } = context;
+  const userId = clean(formData.get("userId"), 80);
+  const role = clean(formData.get("role"), 30);
+
+  if (!userId || !["owner", "admin", "member", "reviewer"].includes(role)) {
+    redirect(settingsUrl("Käyttäjäroolin päivitys epäonnistui.", "error", "users"));
+  }
+
+  if (String(claims.sub) === userId && role !== workspace.role) {
+    redirect(
+      settingsUrl(
+        "Et voi vaihtaa omaa rooliasi tästä näkymästä.",
+        "error",
+        "users",
+      ),
+    );
+  }
+
+  let failure: string | null = null;
+
+  try {
+    const admin = createAdminClient();
+    const { data: target, error: targetError } = await admin
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", workspace.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (targetError) throw targetError;
+    if (!target) throw new Error("Käyttäjää ei löytynyt työtilasta.");
+
+    if (target.role === "owner" && workspace.role !== "owner") {
+      throw new Error("Vain omistaja voi muuttaa omistajan roolia.");
+    }
+    if (role === "owner" && workspace.role !== "owner") {
+      throw new Error("Vain omistaja voi antaa omistajan roolin.");
+    }
+
+    const { error } = await admin
+      .from("organization_members")
+      .update({ role })
+      .eq("organization_id", workspace.id)
+      .eq("user_id", userId);
+
+    if (error) throw error;
+
+    revalidatePath("/app/settings");
+  } catch (error) {
+    failure =
+      error instanceof Error ? error.message : "Roolin päivitys epäonnistui.";
+  }
+
+  redirect(
+    settingsUrl(
+      failure ?? "Käyttäjän rooli päivitettiin.",
+      failure ? "error" : "ok",
+      "users",
+    ),
+  );
 }

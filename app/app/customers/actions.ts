@@ -47,6 +47,36 @@ export async function createCustomer(formData: FormData) {
   redirect(`/app/customers/${data.id}`);
 }
 
+
+export async function updateCustomer(formData: FormData) {
+  const { supabase, workspace } = await requireWorkspace();
+  const customerId = clean(formData.get("customerId"), 80);
+  const name = clean(formData.get("name"), 200);
+  const externalId = clean(formData.get("externalId"), 120);
+  const emailDomain = clean(formData.get("emailDomain"), 200).toLowerCase();
+
+  if (!customerId) throw new Error("Customer is required.");
+  if (!name) throw new Error("Customer name is required.");
+
+  await assertCustomer(supabase, workspace.id, customerId);
+
+  const { error } = await supabase
+    .from("customers")
+    .update({
+      name,
+      external_id: externalId || null,
+      email_domain: emailDomain || null,
+    })
+    .eq("id", customerId)
+    .eq("organization_id", workspace.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/app/customers");
+  revalidatePath(`/app/customers/${customerId}`);
+  redirect(`/app/customers/${customerId}?saved=1`);
+}
+
 export async function addCustomerContact(formData: FormData) {
   const { supabase, workspace } = await requireWorkspace();
   const customerId = String(formData.get("customerId") ?? "");
