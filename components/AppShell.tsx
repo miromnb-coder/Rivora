@@ -36,6 +36,14 @@ export function AppShell({
     [copy.completedOrders, "/app/orders?view=done"],
   ];
 
+  const settingsSubItems: Array<readonly [string, string]> = [
+    [copy.companySettings, "/app/settings#company"],
+    [copy.quoteSettings, "/app/settings#quote-settings"],
+    [copy.brandSettings, "/app/settings#brand"],
+    [copy.businessCentralSettings, "/app/settings#business-central"],
+    [copy.userSettings, "/app/settings#users"],
+  ];
+
   return (
     <div className="app-shell-v2 min-h-screen">
       <aside className="app-sidebar-v2">
@@ -46,7 +54,7 @@ export function AppShell({
           <div className="app-sidebar-v2-product">{copy.product}</div>
         </div>
 
-        <AppNav items={nav} orderSubItems={orderSubItems} />
+        <AppNav items={nav} orderSubItems={orderSubItems} settingsSubItems={settingsSubItems} />
 
         <div className="app-sidebar-v2-account">
           <LocaleSwitcher locale={locale} label={copy.language} />
@@ -71,7 +79,7 @@ export function AppShell({
       <main className="app-main-v2">{children}</main>
 
       <div className="app-mobile-bottom-nav">
-        <AppNav items={nav} orderSubItems={[]} compact />
+        <AppNav items={nav} orderSubItems={[]} settingsSubItems={[]} compact />
       </div>
     </div>
   );
