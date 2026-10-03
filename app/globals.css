@@ -9818,7 +9818,7 @@ a.btn-secondary {
 }
 
 .case-summary-v1 dl > div {
-  padding: 8px 0;
+  padding: 13px 0;
   border-top: 1px solid var(--line);
 }
 
@@ -11624,7 +11624,7 @@ textarea:focus-visible {
 
   .settings-member-row {
     grid-template-columns: 1fr;
-    padding: 8px 0;
+    padding: 13px 0;
   }
 
   .settings-member-row form,
