@@ -103,38 +103,61 @@ function Chevron({ open }: { open: boolean }) {
   );
 }
 
+function hrefPath(href: string) {
+  return href.split(/[?#]/)[0];
+}
+
+function currentLocationKey(pathname: string) {
+  if (typeof window === "undefined") return pathname;
+  return pathname + window.location.search + window.location.hash;
+}
+
 export function AppNav({
   items,
   orderSubItems = [],
+  settingsSubItems = [],
   compact = false,
 }: {
   items: readonly NavItem[];
   orderSubItems?: readonly SubItem[];
+  settingsSubItems?: readonly SubItem[];
   compact?: boolean;
 }) {
   const pathname = usePathname();
   const ordersActive = isItemActive(pathname, "/app/orders", "orders");
+  const settingsActive = isItemActive(pathname, "/app/settings", "settings");
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [ordersOpen, setOrdersOpen] = useState(ordersActive);
+  const [settingsOpen, setSettingsOpen] = useState(settingsActive);
   const [activeSubHref, setActiveSubHref] = useState<string | null>(null);
 
   useEffect(() => {
     setPendingHref(null);
     if (ordersActive && orderSubItems.length) setOrdersOpen(true);
+    if (settingsActive && settingsSubItems.length) setSettingsOpen(true);
+    setActiveSubHref(currentLocationKey(pathname));
+  }, [pathname, ordersActive, settingsActive, orderSubItems.length, settingsSubItems.length]);
 
-    if (typeof window !== "undefined" && pathname === "/app/orders") {
-      setActiveSubHref(pathname + window.location.search);
-    } else {
-      setActiveSubHref(null);
-    }
-  }, [pathname, ordersActive, orderSubItems.length]);
+  useEffect(() => {
+    const syncHash = () => setActiveSubHref(currentLocationKey(pathname));
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [pathname]);
 
   return (
     <nav className={"app-sidebar-v2-nav" + (compact ? " is-compact" : "")} aria-label="Application navigation">
       {items.map(([label, href, id]) => {
         const active = isItemActive(pathname, href, id);
         const pending = pendingHref === href && !active;
-        const expandable = id === "orders" && orderSubItems.length > 0;
+        const subItems =
+          id === "orders"
+            ? orderSubItems
+            : id === "settings"
+              ? settingsSubItems
+              : [];
+        const expandable = subItems.length > 0;
+        const open = id === "orders" ? ordersOpen : settingsOpen;
+        const setOpen = id === "orders" ? setOrdersOpen : setSettingsOpen;
 
         if (expandable) {
           return (
@@ -143,7 +166,7 @@ export function AppNav({
               className={
                 "app-sidebar-v2-order-group" +
                 (active ? " is-active" : "") +
-                (ordersOpen ? " is-open" : "")
+                (open ? " is-open" : "")
               }
             >
               <div className="app-sidebar-v2-order-parent">
@@ -152,9 +175,9 @@ export function AppNav({
                   prefetch
                   onClick={() => {
                     setPendingHref(href);
-                    setActiveSubHref("/app/orders");
+                    setActiveSubHref(href);
                   }}
-                  className="app-sidebar-v2-link app-sidebar-v2-link-orders"
+                  className={"app-sidebar-v2-link app-sidebar-v2-link-" + id}
                 >
                   <span className="app-nav-main">
                     <span className="app-nav-icon"><NavIcon id={id} /></span>
@@ -165,20 +188,39 @@ export function AppNav({
                 <button
                   type="button"
                   className="app-sidebar-v2-chevron"
-                  aria-label={ordersOpen ? "Collapse orders menu" : "Expand orders menu"}
-                  aria-expanded={ordersOpen}
-                  onClick={() => setOrdersOpen((value) => !value)}
+                  aria-label={open ? `Collapse ${label} menu` : `Expand ${label} menu`}
+                  aria-expanded={open}
+                  onClick={() => setOpen((value) => !value)}
                 >
-                  <Chevron open={ordersOpen} />
+                  <Chevron open={open} />
                 </button>
               </div>
 
-              <div className="app-sidebar-v2-subnav" hidden={!ordersOpen}>
-                {orderSubItems.map(([subLabel, subHref]) => {
-                  const subActive =
-                    pathname === "/app/orders" &&
-                    (activeSubHref === subHref ||
-                      (!activeSubHref && subHref === "/app/orders"));
+              <div className="app-sidebar-v2-subnav" hidden={!open}>
+                {subItems.map(([subLabel, subHref]) => {
+                  const targetPath = hrefPath(subHref);
+                  const currentKey = activeSubHref || pathname;
+                  let subActive = false;
+
+                  if (id === "orders") {
+                    subActive =
+                      pathname === targetPath &&
+                      (currentKey === subHref ||
+                        (subHref === "/app/orders" &&
+                          !currentKey.includes("?view=")));
+                  } else if (id === "settings") {
+                    if (subHref === "/app/settings#business-central") {
+                      subActive =
+                        pathname.startsWith("/app/settings/business-central") ||
+                        currentKey === subHref;
+                    } else {
+                      subActive =
+                        pathname === "/app/settings" &&
+                        (currentKey === subHref ||
+                          (subHref === "/app/settings#company" &&
+                            !currentKey.includes("#")));
+                    }
+                  }
 
                   return (
                     <Link
