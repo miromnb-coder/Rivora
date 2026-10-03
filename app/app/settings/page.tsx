@@ -110,13 +110,6 @@ export default async function SettingsPage({
         </div>
       ) : null}
 
-      <nav className="mb-5 flex flex-wrap gap-2" aria-label={fi ? "Asetusosiot" : "Settings sections"}>
-        <a href="#company" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">{fi ? "Yritystiedot" : "Company"}</a>
-        <a href="#quote-settings" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">{fi ? "Tarjousasetukset" : "Quote settings"}</a>
-        <a href="#brand" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">{fi ? "Brändi / PDF" : "Brand / PDF"}</a>
-        <a href="#business-central" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">Business Central</a>
-        <a href="#users" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">{fi ? "Käyttäjät" : "Users"}</a>
-      </nav>
 
       <form action={updateWorkspaceSettings} className="grid gap-5">
         <section id="company" className="surface scroll-mt-5 p-6">
