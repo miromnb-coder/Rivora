@@ -349,112 +349,127 @@ export default async function AppHome() {
     .slice(0, 6);
 
   return (
-    <div className="app-page-v2">
-      <header className="flex flex-wrap items-end justify-between gap-6">
-        <div>
+    <div className="app-page-v2 dashboard-page">
+      <header className="dashboard-hero">
+        <div className="dashboard-hero-copy">
           <div className="app-kicker-v2">{fi ? "Työpöytä" : "Workspace"}</div>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-[#202320] md:text-4xl">
-              {fi ? "Vaatii huomiota" : "Needs attention"}
-            </h1>
-            <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-[#f1f2ef] px-2.5 py-1 text-sm font-bold text-[#343834]">
+          <div className="dashboard-title-row">
+            <h1>{fi ? "Vaatii huomiota" : "Needs attention"}</h1>
+            <span className="dashboard-attention-count" aria-label={fi ? `${dedupedTasks.length} huomiota vaativaa casea` : `${dedupedTasks.length} cases need attention`}>
               {dedupedTasks.length}
             </span>
           </div>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+          <p>
             {fi
               ? "Näet ensin caset, jotka tarvitsevat päätöksen juuri nyt."
               : "Averomira puts the work needing a human decision first. Everything else stays in the background."}
           </p>
         </div>
-        <Link href="/app/upload" className="upload-v2-primary-btn">
-          + {fi ? "Uusi tarjouspyyntö" : "New RFQ"}
+
+        <Link href="/app/upload" className="upload-v2-primary-btn dashboard-primary-cta">
+          <span aria-hidden="true">+</span>
+          {fi ? "Uusi tarjouspyyntö" : "New RFQ"}
         </Link>
       </header>
 
-      <section className="mt-7 grid gap-2 md:grid-cols-4">
-        {[
-          [fi ? "Avoimet RFQ:t" : "Open RFQs", openRfqs],
-          [fi ? "Lähetetyt tarjoukset" : "Sent quotes", sentQuotes],
-          [fi ? "Aktiiviset PO:t" : "Active POs", activePos],
-          [fi ? "ERP-toimet" : "ERP actions", erpReady],
-        ].map(([label, value]) => (
-          <div key={String(label)} className="rounded-xl border border-[var(--line)] bg-white px-4 py-3">
-            <span className="text-xs font-semibold text-[var(--muted)]">{label}</span>
-            <strong className="mt-1.5 block text-xl font-semibold">{value}</strong>
-          </div>
-        ))}
-      </section>
-
-      <section className="mt-8">
-        <div className="flex items-end justify-between gap-4">
+      <section className="dashboard-section dashboard-attention-section" aria-labelledby="dashboard-tasks-heading">
+        <div className="dashboard-section-head">
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.025em]">
-              {fi ? "Seuraavat tehtävät" : "Next tasks"}
-            </h2>
+            <div className="dashboard-section-eyebrow">{fi ? "Työjono" : "Work queue"}</div>
+            <h2 id="dashboard-tasks-heading">{fi ? "Seuraavat tehtävät" : "Next tasks"}</h2>
           </div>
-          <Link href="/app/orders?view=attention" className="text-sm font-semibold">
-            {fi ? "Näytä kaikki" : "View all"} →
+          <Link href="/app/orders?view=attention" className="dashboard-text-link">
+            {fi ? "Näytä kaikki" : "View all"} <span aria-hidden="true">→</span>
           </Link>
         </div>
 
         {attention.length ? (
-          <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--line)] bg-white divide-y divide-[var(--line)]">
-            {attention.map((task) => (
+          <div className="dashboard-attention-list">
+            {attention.map((task, index) => (
               <Link
                 key={task.key}
                 href={task.href}
-                className="group grid gap-3 px-5 py-4 transition hover:bg-[#fafaf8] md:grid-cols-[120px_minmax(0,1fr)_190px_24px] md:items-center"
+                className={"dashboard-task-row" + (index === 0 ? " is-primary" : "")}
               >
-                <span className="text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted)]">
-                  {task.eyebrow}
-                </span>
-                <div className="min-w-0">
-                  <h3 className="text-[15px] font-semibold tracking-[-0.015em]">{task.title}</h3>
-                  <p className="mt-1 truncate text-xs text-[var(--muted)]">{task.detail}</p>
+                <div className="dashboard-task-kind">{task.eyebrow}</div>
+                <div className="dashboard-task-copy">
+                  <h3>{task.title}</h3>
+                  <p>{task.detail}</p>
                 </div>
-                <div className="text-sm font-semibold">{task.action}</div>
-                <span className="text-base transition group-hover:translate-x-1">→</span>
+                <div className="dashboard-task-action">
+                  <span>{task.action}</span>
+                  <span className="dashboard-row-arrow" aria-hidden="true">→</span>
+                </div>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="mt-5 rounded-3xl border border-[var(--line)] bg-white p-8">
+          <div className="dashboard-empty-state">
             <strong>{fi ? "Ei kiireellisiä tehtäviä." : "No urgent tasks."}</strong>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {fi ? "Voit aloittaa uuden tarjouspyynnön tai avata kaikki tilaukset." : "Start a new RFQ or open all orders."}
+            <p>
+              {fi
+                ? "Voit aloittaa uuden tarjouspyynnön tai avata kaikki tilaukset."
+                : "Start a new RFQ or open all orders."}
             </p>
           </div>
         )}
       </section>
 
-      <section className="mt-8 overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
-        <div className="flex items-end justify-between gap-4 border-b border-[var(--line)] px-5 py-4">
+      <section className="dashboard-section dashboard-status-section" aria-labelledby="dashboard-status-heading">
+        <div className="dashboard-section-head dashboard-section-head-compact">
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.025em]">
+            <div className="dashboard-section-eyebrow">{fi ? "Yhteenveto" : "Overview"}</div>
+            <h2 id="dashboard-status-heading">{fi ? "Tilanne nyt" : "Current status"}</h2>
+          </div>
+        </div>
+
+        <div className="dashboard-kpi-strip">
+          {[
+            [fi ? "Avoimet RFQ:t" : "Open RFQs", openRfqs],
+            [fi ? "Lähetetyt tarjoukset" : "Sent quotes", sentQuotes],
+            [fi ? "Aktiiviset PO:t" : "Active POs", activePos],
+            [fi ? "ERP-toimet" : "ERP actions", erpReady],
+          ].map(([label, value]) => (
+            <div key={String(label)} className="dashboard-kpi-item">
+              <strong>{value}</strong>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="dashboard-section dashboard-recent-section" aria-labelledby="dashboard-recent-heading">
+        <div className="dashboard-section-head">
+          <div>
+            <div className="dashboard-section-eyebrow">{fi ? "Historia" : "History"}</div>
+            <h2 id="dashboard-recent-heading">
               {fi ? "Viimeisimmät tilauscaset" : "Recent order cases"}
             </h2>
           </div>
-          <Link href="/app/orders" className="text-sm font-semibold">
-            {fi ? "Kaikki tilaukset" : "All orders"} →
+          <Link href="/app/orders" className="dashboard-text-link">
+            {fi ? "Kaikki tilaukset" : "All orders"} <span aria-hidden="true">→</span>
           </Link>
         </div>
-        <div className="divide-y divide-[var(--line)]">
+
+        <div className="dashboard-recent-list">
           {recentCases.length ? recentCases.map((item) => (
             <Link
               key={item.key}
               href={item.href}
-              className="grid gap-2 px-5 py-4 transition hover:bg-[#fafaf8] md:grid-cols-[1.4fr_1fr_.7fr_auto] md:items-center"
+              className="dashboard-recent-row"
             >
-              <strong>{item.customer}</strong>
-              <span className="text-sm text-[var(--muted)]">{item.reference}</span>
-              <span className="text-sm font-semibold">{item.stage}</span>
-              <span className="text-sm font-semibold">
-                {new Date(item.updatedAt).toLocaleDateString(displayLocale)} →
-              </span>
+              <div className="dashboard-recent-identity">
+                <strong>{item.customer}</strong>
+                <span>{item.reference}</span>
+              </div>
+              <span className="dashboard-recent-stage">{item.stage}</span>
+              <div className="dashboard-recent-meta">
+                <span>{new Date(item.updatedAt).toLocaleDateString(displayLocale)}</span>
+                <span className="dashboard-row-arrow" aria-hidden="true">→</span>
+              </div>
             </Link>
           )) : (
-            <div className="p-8 text-sm text-[var(--muted)]">
+            <div className="dashboard-empty-state dashboard-empty-state-plain">
               {fi ? "Tilauksia ei ole vielä." : "No orders yet."}
             </div>
           )}
