@@ -30,7 +30,7 @@ export default async function ProductsPage() {
 
   return (
     <div className="app-page-v2 products-v2">
-      <header className="products-v2-head">
+      <header className="products-v2-head product-page-head">
         <div><div className="app-kicker-v2">{copy.kicker}</div><h1>{copy.title}</h1><p>{copy.description}</p></div>
         <Link href="/app/upload" className="products-v2-primary">{copy.update} <span aria-hidden="true">→</span></Link>
       </header>

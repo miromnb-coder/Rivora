@@ -10,6 +10,7 @@ export function FilePicker({
   hint,
   required = false,
   locale = "en",
+  variant = "default",
 }: {
   name: string;
   accept: string;
@@ -17,28 +18,35 @@ export function FilePicker({
   hint: string;
   required?: boolean;
   locale?: Locale;
+  variant?: "default" | "compact";
 }) {
   const id = useId();
   const [fileName, setFileName] = useState<string>("");
   const fi = locale === "fi";
+  const compact = variant === "compact";
 
   return (
-    <div className="mt-4">
+    <div className={`file-picker mt-4${compact ? " file-picker--compact" : ""}`}>
       <input
         id={id}
         name={name}
         type="file"
         accept={accept}
         required={required}
-        className="sr-only"
+        className="sr-only upload-file-input"
         onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")}
       />
       <label
         htmlFor={id}
-        className="nodra-file-picker block cursor-pointer px-4 py-6 text-center transition active:scale-[.99]"
+        className={
+          "nodra-file-picker block cursor-pointer px-4 text-center transition " +
+          (compact ? "py-4" : "py-6 active:scale-[.99]")
+        }
       >
         <span className="nodra-file-picker-icon">↑</span>
-        <span className="mt-3 block text-sm font-extrabold">{fileName || title}</span>
+        <span className={`mt-3 block text-sm ${compact ? "font-semibold" : "font-extrabold"}`}>
+          {fileName || title}
+        </span>
         <span className="mt-1 block text-xs leading-5 text-[var(--muted)]">
           {fileName ? (fi ? "Valitse toinen tiedosto napauttamalla" : "Tap to choose another file") : hint}
         </span>
