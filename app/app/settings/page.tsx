@@ -123,8 +123,8 @@ export default async function SettingsPage({
           <div className="mb-5">
             <div>
               <div className="upload-v2-section-label">{fi ? "Yritystiedot" : "Company"}</div>
-              <h2>{fi ? "Yrityksen perustiedot" : "Company details"}</h2>
-              <p>{fi ? "Näitä tietoja käytetään tarjouksissa ja asiakas-PDF:issä." : "These details are used in quotes and customer PDFs."}</p>
+              <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "Yrityksen perustiedot" : "Company details"}</h2>
+              <p className="mt-2 text-sm text-[var(--muted)]">{fi ? "Näitä tietoja käytetään tarjouksissa ja asiakas-PDF:issä." : "These details are used in quotes and customer PDFs."}</p>
             </div>
           </div>
 
@@ -169,7 +169,7 @@ export default async function SettingsPage({
           <div className="mb-5">
             <div>
               <div className="upload-v2-section-label">{fi ? "Tarjousasetukset" : "Quote settings"}</div>
-              <h2>{fi ? "Uusien tarjousten oletukset" : "Defaults for new quotes"}</h2>
+              <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "Uusien tarjousten oletukset" : "Defaults for new quotes"}</h2>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -188,7 +188,7 @@ export default async function SettingsPage({
           <div className="mb-5">
             <div>
               <div className="upload-v2-section-label">{fi ? "Brändi / PDF" : "Brand / PDF"}</div>
-              <h2>{fi ? "Tarjouksen visuaalinen identiteetti" : "Quote identity"}</h2>
+              <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "Tarjouksen visuaalinen identiteetti" : "Quote identity"}</h2>
             </div>
           </div>
 
@@ -235,7 +235,7 @@ export default async function SettingsPage({
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="upload-v2-section-label">Business Central</div>
-            <h2>{fi ? "ERP-yhteys" : "ERP connection"}</h2>
+            <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "ERP-yhteys" : "ERP connection"}</h2>
             <p>
               {config.configured
                 ? fi
@@ -251,9 +251,9 @@ export default async function SettingsPage({
           </span>
         </div>
         <div className="grid overflow-hidden rounded-2xl border border-[var(--line)] sm:grid-cols-3">
-          <div><span>{fi ? "Ympäristö" : "Environment"}</span><strong>{config.environment || "—"}</strong></div>
-          <div><span>Company ID</span><strong>{config.companyId || "—"}</strong></div>
-          <div><span>{fi ? "Työtila" : "Workspace"}</span><strong>{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
+          <div className="p-4"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</span><strong className="mt-2 block text-sm">{config.environment || "—"}</strong></div>
+          <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Company ID</span><strong className="mt-2 block break-all text-sm">{config.companyId || "—"}</strong></div>
+          <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Työtila" : "Workspace"}</span><strong className="mt-2 block text-sm">{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
         </div>
         <div className="mt-4">
           <Link href="/app/settings/business-central" className="btn-secondary">
@@ -266,8 +266,8 @@ export default async function SettingsPage({
         <div className="mb-5">
           <div>
             <div className="upload-v2-section-label">{fi ? "Käyttäjät" : "Users"}</div>
-            <h2>{fi ? "Työtilan käyttäjät ja roolit" : "Workspace users and roles"}</h2>
-            <p>{fi ? "Adminit voivat kutsua käyttäjiä ja hallita käyttöoikeuksia." : "Admins can invite users and manage access."}</p>
+            <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "Työtilan käyttäjät ja roolit" : "Workspace users and roles"}</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">{fi ? "Adminit voivat kutsua käyttäjiä ja hallita käyttöoikeuksia." : "Admins can invite users and manage access."}</p>
           </div>
         </div>
 
