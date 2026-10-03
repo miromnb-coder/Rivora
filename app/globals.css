@@ -9818,7 +9818,7 @@ a.btn-secondary {
 }
 
 .case-summary-v1 dl > div {
-  padding: 13px 0;
+  padding: 8px 0;
   border-top: 1px solid var(--line);
 }
 
@@ -11624,7 +11624,7 @@ textarea:focus-visible {
 
   .settings-member-row {
     grid-template-columns: 1fr;
-    padding: 13px 0;
+    padding: 8px 0;
   }
 
   .settings-member-row form,
@@ -13452,7 +13452,7 @@ textarea:focus-visible {
 
 .inbox-v2 .inbox-v2-summary-item {
   min-height: 78px;
-  padding: 12px 18px 13px 0;
+  padding: 8px 18px 9px 0;
 }
 
 .inbox-v2 .inbox-v2-summary-item + .inbox-v2-summary-item {
@@ -13524,7 +13524,7 @@ textarea:focus-visible {
 
 .inbox-v2 .inbox-v2-row-main {
   min-width: 0;
-  padding: 13px 0;
+  padding: 8px 0;
 }
 
 .inbox-v2 .inbox-v2-row-topline {
@@ -13622,7 +13622,7 @@ textarea:focus-visible {
 @media (max-width: 620px) {
   .inbox-v2 .inbox-v2-summary-item {
     min-height: 72px;
-    padding: 11px 0 12px;
+    padding: 8px 0 9px;
   }
 
   .inbox-v2 .inbox-v2-summary-item + .inbox-v2-summary-item,
@@ -13633,7 +13633,7 @@ textarea:focus-visible {
   .inbox-v2 .inbox-v2-row {
     grid-template-columns: minmax(0,1fr) auto;
     gap: 14px;
-    padding: 14px 0;
+    padding: 8px 0;
   }
 
   .inbox-v2 .inbox-v2-row-main {
@@ -13659,7 +13659,7 @@ textarea:focus-visible {
 
 .quotes-v1 .quotes-v1-summary > div {
   min-height: 78px;
-  padding: 12px 18px 13px 0;
+  padding: 8px 18px 9px 0;
 }
 
 .quotes-v1 .quotes-v1-summary > div + div {
@@ -13727,7 +13727,7 @@ textarea:focus-visible {
 
 .quotes-v1 .quotes-v1-row > div:first-child {
   min-width: 0;
-  padding: 13px 0;
+  padding: 8px 0;
 }
 
 .quotes-v1 .quotes-v1-meta {
@@ -13814,7 +13814,7 @@ textarea:focus-visible {
 @media (max-width: 620px) {
   .quotes-v1 .quotes-v1-summary > div {
     min-height: 72px;
-    padding: 11px 0 12px;
+    padding: 8px 0 9px;
   }
 
   .quotes-v1 .quotes-v1-summary > div + div,
@@ -13826,7 +13826,7 @@ textarea:focus-visible {
   .quotes-v1 .quotes-v1-row {
     grid-template-columns: minmax(0,1fr) auto;
     gap: 14px;
-    padding: 14px 0;
+    padding: 8px 0;
   }
 
   .quotes-v1 .quotes-v1-row > div:first-child {
