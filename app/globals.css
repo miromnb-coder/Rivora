@@ -11235,6 +11235,14 @@ textarea:focus-visible {
   align-items: end;
 }
 
+.customer-detail-editor .settings-field-label {
+  color: #6e736f !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 14px;
+  letter-spacing: .035em !important;
+}
+
 .customer-detail-editor-form label,
 .customer-detail-layout,
 .customer-detail-history,
