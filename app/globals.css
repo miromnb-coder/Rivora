@@ -12578,7 +12578,7 @@ textarea:focus-visible {
   max-width: 720px;
 }
 
-.product-page-head h1 {
+.app-page-v2 > header.product-page-head h1 {
   margin-top: 8px !important;
   max-width: 820px;
   color: var(--app-ink) !important;
@@ -12589,7 +12589,7 @@ textarea:focus-visible {
   text-wrap: balance;
 }
 
-.product-page-head p {
+.app-page-v2 > header.product-page-head p {
   margin-top: 10px !important;
   max-width: 640px !important;
   color: var(--app-muted) !important;
@@ -13152,7 +13152,7 @@ textarea:focus-visible {
     gap: 18px;
   }
 
-  .product-page-head h1 {
+  .app-page-v2 > header.product-page-head h1 {
     font-size: 30px !important;
     line-height: 36px !important;
   }
