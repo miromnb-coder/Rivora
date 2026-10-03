@@ -136,7 +136,7 @@ export default async function ProductDetailPage({
 
           {mapping?.external_number ? (
             <div className="mt-3.5 border-y border-[#ecede9] py-3.5">
-              <span className="block text-[10px] font-semibold uppercase leading-3.5 tracking-[.045em] text-[#858a86]">
+              <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.045em] text-[#858a86]">
                 BC item no.
               </span>
               <strong className="mt-1 block break-words text-sm font-semibold leading-5 text-[var(--app-ink)]">
