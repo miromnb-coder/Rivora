@@ -60,13 +60,13 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
   ]);
 
   return (
-    <div className="app-page-v2">
-      <div className="mb-5"><Link href="/app/customers" className="text-sm font-semibold">← {text.customers}</Link></div>
+    <div className="app-page-v2 customer-detail-page">
+      <div className="customer-detail-back"><Link href="/app/customers">← {text.customers}</Link></div>
 
-      <header className="mb-8">
+      <header className="customer-detail-head">
         <div className="app-kicker-v2">{text.profile}</div>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-[-.04em]">{customer.name}</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
+        <h1>{customer.name}</h1>
+        <p>
           {customer.external_id || text.noExternal}{customer.email_domain ? ` · ${customer.email_domain}` : ""}
         </p>
       </header>
@@ -77,12 +77,12 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
         </div>
       ) : null}
 
-      <section className="surface mb-6 p-5">
-        <div className="mb-4">
+      <section className="customer-detail-editor">
+        <div className="customer-detail-section-head">
           <div className="upload-v2-section-label">{text.details}</div>
-          <h2 className="mt-1 text-lg font-bold">{text.details}</h2>
+          <h2>{text.details}</h2>
         </div>
-        <form action={updateCustomer} className="grid gap-3 md:grid-cols-[1.5fr_1fr_1fr_auto] md:items-end">
+        <form action={updateCustomer} className="customer-detail-editor-form">
           <input type="hidden" name="customerId" value={customer.id} />
           <label>
             <span className="settings-field-label">{fi ? "Asiakasyrityksen nimi" : "Customer company name"}</span>
@@ -100,23 +100,23 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
         </form>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-        <aside className="space-y-6">
-          <section className="surface p-6">
+      <div className="customer-detail-layout">
+        <aside>
+          <section className="customer-detail-contacts">
             <div className="upload-v2-section-label">{text.contacts}</div>
-            <div className="mt-4 space-y-3">
+            <div className="customer-detail-contact-list">
               {(contacts ?? []).map((contact) => (
-                <article key={contact.id} className="rounded-xl border border-[var(--line)] p-4">
-                  <div className="flex items-start justify-between gap-3">
+                <article key={contact.id} className="customer-detail-contact-row">
+                  <div className="customer-detail-contact-main">
                     <div>
                       <strong>{contact.name}</strong>
                       {contact.is_primary ? <span className="ml-2 rounded-full bg-[var(--green-soft)] px-2 py-1 text-[10px] font-bold text-[var(--green)]">{text.primary}</span> : null}
-                      <p className="mt-1 text-sm text-[var(--muted)]">{contact.title || text.contact}</p>
+                      <p>{contact.title || text.contact}</p>
                     </div>
                   </div>
-                  <a href={`mailto:${contact.email}`} className="mt-3 block text-sm font-semibold">{contact.email}</a>
-                  {contact.phone ? <p className="mt-1 text-sm text-[var(--muted)]">{contact.phone}</p> : null}
-                  <div className="mt-3 flex gap-2">
+                  <a href={`mailto:${contact.email}`} className="customer-detail-contact-email">{contact.email}</a>
+                  {contact.phone ? <p className="customer-detail-contact-phone">{contact.phone}</p> : null}
+                  <div className="customer-detail-contact-actions">
                     {!contact.is_primary ? (
                       <form action={setPrimaryContact}>
                         <input type="hidden" name="customerId" value={customer.id} />
@@ -135,28 +135,28 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
               {!(contacts ?? []).length ? <p className="text-sm text-[var(--muted)]">{text.noContacts}</p> : null}
             </div>
 
-            <form action={addCustomerContact} className="mt-6 grid gap-3 border-t border-[var(--line)] pt-5">
+            <form action={addCustomerContact} className="customer-detail-contact-form">
               <input type="hidden" name="customerId" value={customer.id} />
-              <input name="name" required placeholder={text.contactName} className="rounded-xl border border-[var(--line)] px-3 py-3" />
-              <input name="email" type="email" required placeholder={text.email} className="rounded-xl border border-[var(--line)] px-3 py-3" />
-              <input name="title" placeholder={text.titleRole} className="rounded-xl border border-[var(--line)] px-3 py-3" />
-              <input name="phone" placeholder={text.phone} className="rounded-xl border border-[var(--line)] px-3 py-3" />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isPrimary" /> {text.primaryRecipient}</label>
+              <input name="name" required placeholder={text.contactName} />
+              <input name="email" type="email" required placeholder={text.email} />
+              <input name="title" placeholder={text.titleRole} />
+              <input name="phone" placeholder={text.phone} />
+              <label className="customer-detail-primary-check"><input type="checkbox" name="isPrimary" /> {text.primaryRecipient}</label>
               <button className="btn-primary">{text.addContact}</button>
             </form>
           </section>
         </aside>
 
-        <main className="space-y-6">
-          <section className="surface overflow-hidden">
-            <div className="border-b border-[var(--line)] p-5">
+        <main className="customer-detail-history">
+          <section className="customer-detail-history-section">
+            <div className="customer-detail-history-head">
               <div className="upload-v2-section-label">{text.quoteHistory}</div>
-              <h2 className="mt-1 text-xl font-bold">{quotes?.length ?? 0} {text.quotes}</h2>
+              <h2>{quotes?.length ?? 0} {text.quotes}</h2>
             </div>
             {(quotes ?? []).length ? (
-              <div className="divide-y divide-[var(--line)]">
+              <div className="customer-detail-history-rows">
                 {(quotes ?? []).map((quote) => (
-                  <Link key={quote.id} href={`/app/quotes/${quote.id}`} className="grid gap-3 p-4 hover:bg-black/[.025] md:grid-cols-[1fr_120px_140px_30px] md:items-center">
+                  <Link key={quote.id} href={`/app/quotes/${quote.id}`} className="customer-detail-history-row customer-detail-quote-row">
                     <div><strong>{quote.quote_number || text.draftQuote}</strong><p className="text-xs text-[var(--muted)]">{new Date(quote.created_at).toLocaleDateString(displayLocale)}</p></div>
                     <span className="text-sm capitalize">{statusLabel(quote.status, fi)}</span>
                     <span className="text-sm capitalize">{quote.delivery_status ? statusLabel(quote.delivery_status, fi)  : text.notSent}</span>
@@ -167,15 +167,15 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
             ) : <p className="p-5 text-sm text-[var(--muted)]">{text.noQuotes}</p>}
           </section>
 
-          <section className="surface overflow-hidden">
-            <div className="border-b border-[var(--line)] p-5">
+          <section className="customer-detail-history-section">
+            <div className="customer-detail-history-head">
               <div className="upload-v2-section-label">{text.rfqHistory}</div>
-              <h2 className="mt-1 text-xl font-bold">{rfqs?.length ?? 0} {text.requests}</h2>
+              <h2>{rfqs?.length ?? 0} {text.requests}</h2>
             </div>
             {(rfqs ?? []).length ? (
-              <div className="divide-y divide-[var(--line)]">
+              <div className="customer-detail-history-rows">
                 {(rfqs ?? []).map((rfq) => (
-                  <Link key={rfq.id} href={`/app/rfq/${rfq.id}`} className="grid gap-3 p-4 hover:bg-black/[.025] md:grid-cols-[1fr_120px_120px_30px] md:items-center">
+                  <Link key={rfq.id} href={`/app/rfq/${rfq.id}`} className="customer-detail-history-row customer-detail-rfq-row">
                     <div><strong>{rfq.reference || text.untitledRfq}</strong><p className="text-xs text-[var(--muted)]">{new Date(rfq.received_at).toLocaleString(displayLocale)}</p></div>
                     <span className="text-sm uppercase">{rfq.source_type}</span>
                     <span className="text-sm capitalize">{statusLabel(rfq.status, fi)}</span>
@@ -186,17 +186,17 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
             ) : <p className="p-5 text-sm text-[var(--muted)]">{text.noRfqs}</p>}
           </section>
 
-          <section className="surface overflow-hidden">
-            <div className="border-b border-[var(--line)] p-5">
+          <section className="customer-detail-history-section">
+            <div className="customer-detail-history-head">
               <div className="upload-v2-section-label">{text.memory}</div>
-              <h2 className="mt-1 text-xl font-bold">{mappings?.length ?? 0} {text.mappings}</h2>
+              <h2>{mappings?.length ?? 0} {text.mappings}</h2>
             </div>
             {(mappings ?? []).length ? (
-              <div className="divide-y divide-[var(--line)]">
+              <div className="customer-detail-history-rows">
                 {(mappings ?? []).map((mapping: any) => {
                   const product = Array.isArray(mapping.products) ? mapping.products[0] : mapping.products;
                   return (
-                    <div key={mapping.id} className="grid gap-4 p-4 md:grid-cols-[1fr_30px_1fr_100px] md:items-center">
+                    <div key={mapping.id} className="customer-detail-memory-row">
                       <div><span className="text-xs text-[var(--muted)]">{text.customerLanguage}</span><strong className="block">{mapping.customer_sku || text.noSku}</strong><p className="text-sm text-[var(--muted)]">{mapping.customer_description || text.noDescription}</p></div>
                       <span>→</span>
                       <div><span className="text-xs text-[var(--muted)]">{text.canonical}</span><strong className="block">{product?.sku || text.unavailable}</strong><p className="text-sm text-[var(--muted)]">{product?.name || ""}</p></div>
