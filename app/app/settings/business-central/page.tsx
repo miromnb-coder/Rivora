@@ -119,7 +119,7 @@ export default async function BusinessCentralSettingsPage({
             <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[#858a86]">
               Company ID
             </span>
-            <strong className="mt-1 block break-all text-[13px] font-semibold leading-[18px] text-[#3b403c]">
+            <strong className="mt-1 block break-words text-[12px] font-semibold leading-[18px] tracking-[-.01em] text-[#3b403c]">
               {config.companyId || "—"}
             </strong>
           </div>
