@@ -48,7 +48,7 @@ export default async function ProductDetailPage({
 
       <header className="mb-7 max-w-[760px]">
         <div className="app-kicker-v2">{fi ? "Tuote" : "Product"}</div>
-        <h1 className="mt-2 break-words !text-[34px] !font-semibold !leading-10 tracking-[-.035em] max-lg:!text-[30px] max-lg:!leading-9">
+        <h1 className="mt-2 break-words !text-[30px] !font-semibold !leading-9 tracking-[-.035em] lg:!text-[34px] lg:!leading-10">
           {product.sku}
         </h1>
         <p className="mt-2 break-words text-[13px] leading-5 text-[var(--muted)]">{product.name}</p>
@@ -61,7 +61,7 @@ export default async function ProductDetailPage({
       ) : null}
 
       <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <section className="surface p-[22px] max-sm:p-[18px]">
+        <section className="surface p-[18px] sm:p-[22px]">
           <div className="mb-[18px]">
             <div className="upload-v2-section-label">{fi ? "Tuotetiedot" : "Product details"}</div>
             <h2 className="mt-1 text-lg font-semibold leading-6 tracking-[-.018em]">
@@ -121,7 +121,7 @@ export default async function ProductDetailPage({
             </label>
 
             <div className="sm:col-span-2">
-              <button className="btn-primary max-sm:w-full">
+              <button className="btn-primary w-full sm:w-auto">
                 {fi ? "Tallenna tuote" : "Save product"}
               </button>
             </div>
@@ -156,7 +156,7 @@ export default async function ProductDetailPage({
             </p>
           )}
 
-          <Link href="/app/settings/business-central" className="btn-secondary mt-4 max-sm:w-full">
+          <Link href="/app/settings/business-central" className="btn-secondary mt-4 w-full sm:w-auto">
             {fi ? "Hallitse vastineita" : "Manage mappings"} →
           </Link>
         </aside>
