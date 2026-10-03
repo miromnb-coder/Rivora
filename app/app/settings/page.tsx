@@ -191,7 +191,7 @@ export default async function SettingsPage({
               <input name="logo" type="file" accept="image/png,image/jpeg" className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm" />
               <small className="mt-2 block text-xs text-[var(--muted)]">PNG / JPEG · max 2 MB</small>
             </label>
-            <div className="settings-brand-preview">
+            <div className="flex min-h-32 flex-col justify-center gap-3 rounded-2xl border border-[var(--line)] bg-[#fafaf8] p-5">
               {logoDataUrl ? (
                 <Image
                   src={logoDataUrl}
@@ -224,7 +224,7 @@ export default async function SettingsPage({
         </form>
       ) : null}
 
-      <section id="business-central" className="surface settings-secondary-section mt-5 scroll-mt-5">
+      <section id="business-central" className="surface mt-5 scroll-mt-5 p-6">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="upload-v2-section-label">Business Central</div>
@@ -243,7 +243,7 @@ export default async function SettingsPage({
             {config.configured ? (fi ? "Yhdistetty" : "Connected") : (fi ? "Vaatii huomiota" : "Needs attention")}
           </span>
         </div>
-        <div className="settings-p1-connection-strip">
+        <div className="grid overflow-hidden rounded-2xl border border-[var(--line)] sm:grid-cols-3">
           <div className="p-4"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</span><strong className="mt-2 block text-sm">{config.environment || "—"}</strong></div>
           <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Company ID</span><strong className="mt-2 block break-all text-sm">{config.companyId || "—"}</strong></div>
           <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Työtila" : "Workspace"}</span><strong className="mt-2 block text-sm">{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
@@ -255,7 +255,7 @@ export default async function SettingsPage({
         </div>
       </section>
 
-      <section id="users" className="surface settings-secondary-section mt-5 scroll-mt-5">
+      <section id="users" className="surface mt-5 scroll-mt-5 p-6">
         <div className="mb-5">
           <div>
             <div className="upload-v2-section-label">{fi ? "Käyttäjät" : "Users"}</div>
@@ -265,7 +265,7 @@ export default async function SettingsPage({
         </div>
 
         {canManage ? (
-          <form action={inviteWorkspaceMember} className="settings-invite-row">
+          <form action={inviteWorkspaceMember} className="my-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_auto]">
             <input name="email" type="email" required placeholder={fi ? "käyttäjä@yritys.fi" : "user@company.com"} className="block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm" />
             <select name="role" defaultValue="member" className="block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm">
               <option value="member">{fi ? "Jäsen" : "Member"}</option>
@@ -276,9 +276,9 @@ export default async function SettingsPage({
           </form>
         ) : null}
 
-        <div className="settings-members">
+        <div className="divide-y divide-[var(--line)] border-t border-[var(--line)]">
           {memberRows.map((member: any) => (
-            <div key={member.user_id} className="settings-member-row">
+            <div key={member.user_id} className="grid min-h-16 gap-3 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
               <div>
                 <strong>{member.isCurrent ? (fi ? "Sinä" : "You") : member.email || String(member.user_id).slice(0, 8)}</strong>
                 <span>{member.email || (fi ? "Käyttäjä" : "User")}</span>
