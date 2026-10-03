@@ -5656,6 +5656,15 @@ button, input, select { font: inherit; }
   gap: 28px;
 }
 
+.rfq-review-v2 .upload-v2-section-label {
+  color: #858a86;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
 .rfq-review-v2-status {
   flex: 0 0 auto;
   border-radius: 999px;
@@ -6044,6 +6053,7 @@ button, input, select { font: inherit; }
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
+  overflow-wrap: anywhere;
 }
 
 .rfq-review-v2-candidates span,
