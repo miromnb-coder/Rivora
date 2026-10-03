@@ -69,7 +69,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
 
       <header className="mb-7 max-w-[760px]">
         <div className="app-kicker-v2">{text.profile}</div>
-        <h1 className="mt-2 break-words !text-[34px] !font-semibold !leading-10 tracking-[-.035em] max-lg:!text-[30px] max-lg:!leading-9">
+        <h1 className="mt-2 break-words !text-[30px] !font-semibold !leading-9 tracking-[-.035em] lg:!text-[34px] lg:!leading-10">
           {customer.name}
         </h1>
         <p className="mt-2 break-words text-[13px] leading-5 text-[var(--muted)]">
@@ -83,7 +83,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
         </div>
       ) : null}
 
-      <section className="mb-[30px] border-y border-[var(--app-line)] py-5 max-sm:mb-[26px] max-sm:py-[18px]">
+      <section className="mb-[26px] border-y border-[var(--app-line)] py-[18px] sm:mb-[30px] sm:py-5">
         <div className="mb-3.5">
           <div className="upload-v2-section-label">{text.details}</div>
           <h2 className="mt-1 text-lg font-semibold leading-6 tracking-[-.018em]">{text.details}</h2>
@@ -111,7 +111,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
             </span>
             <input name="emailDomain" defaultValue={customer.email_domain || ""} placeholder="customer.com" />
           </label>
-          <button className="btn-primary max-sm:w-full md:justify-self-start lg:justify-self-auto">
+          <button className="btn-primary w-full sm:w-auto md:justify-self-start lg:justify-self-auto">
             {text.save}
           </button>
         </form>
@@ -181,12 +181,12 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                 <input type="checkbox" name="isPrimary" className="mt-0.5" />
                 {text.primaryRecipient}
               </label>
-              <button className="btn-primary max-sm:w-full">{text.addContact}</button>
+              <button className="btn-primary w-full sm:w-auto">{text.addContact}</button>
             </form>
           </section>
         </aside>
 
-        <main className="grid min-w-0 gap-8 max-sm:gap-7">
+        <main className="grid min-w-0 gap-7 sm:gap-8">
           <section className="min-w-0">
             <div className="border-b border-[var(--app-line)] pb-3">
               <div className="upload-v2-section-label">{text.quoteHistory}</div>
