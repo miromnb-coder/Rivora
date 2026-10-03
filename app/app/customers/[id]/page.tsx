@@ -60,13 +60,19 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
   ]);
 
   return (
-    <div className="app-page-v2">
-      <div className="mb-5"><Link href="/app/customers" className="text-sm font-semibold">← {text.customers}</Link></div>
+    <div className="app-page-v2 customer-detail-page">
+      <div className="mb-5">
+        <Link href="/app/customers" className="text-[13px] font-semibold text-[#5f645f] hover:text-[var(--app-ink)]">
+          ← {text.customers}
+        </Link>
+      </div>
 
-      <header className="mb-8">
+      <header className="mb-7 max-w-[760px]">
         <div className="app-kicker-v2">{text.profile}</div>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-[-.04em]">{customer.name}</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
+        <h1 className="mt-2 break-words !text-[30px] !font-semibold !leading-9 tracking-[-.035em] lg:!text-[34px] lg:!leading-10">
+          {customer.name}
+        </h1>
+        <p className="mt-2 break-words text-[13px] leading-5 text-[var(--muted)]">
           {customer.external_id || text.noExternal}{customer.email_domain ? ` · ${customer.email_domain}` : ""}
         </p>
       </header>
@@ -77,135 +83,240 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
         </div>
       ) : null}
 
-      <section className="surface mb-6 p-5">
-        <div className="mb-4">
+      <section className="mb-[26px] border-y border-[var(--app-line)] py-[18px] sm:mb-[30px] sm:py-5">
+        <div className="mb-3.5">
           <div className="upload-v2-section-label">{text.details}</div>
-          <h2 className="mt-1 text-lg font-bold">{text.details}</h2>
+          <h2 className="mt-1 text-lg font-semibold leading-6 tracking-[-.018em]">{text.details}</h2>
         </div>
-        <form action={updateCustomer} className="grid gap-3 md:grid-cols-[1.5fr_1fr_1fr_auto] md:items-end">
+        <form
+          action={updateCustomer}
+          className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end"
+        >
           <input type="hidden" name="customerId" value={customer.id} />
           <label>
-            <span className="settings-field-label">{fi ? "Asiakasyrityksen nimi" : "Customer company name"}</span>
+            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[#6e736f]">
+              {fi ? "Asiakasyrityksen nimi" : "Customer company name"}
+            </span>
             <input name="name" required defaultValue={customer.name} />
           </label>
           <label>
-            <span className="settings-field-label">{text.externalId}</span>
+            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[#6e736f]">
+              {text.externalId}
+            </span>
             <input name="externalId" defaultValue={customer.external_id || ""} />
           </label>
           <label>
-            <span className="settings-field-label">{text.domain}</span>
+            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[#6e736f]">
+              {text.domain}
+            </span>
             <input name="emailDomain" defaultValue={customer.email_domain || ""} placeholder="customer.com" />
           </label>
-          <button className="btn-primary">{text.save}</button>
+          <button className="btn-primary w-full sm:w-auto md:justify-self-start lg:justify-self-auto">
+            {text.save}
+          </button>
         </form>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-        <aside className="space-y-6">
-          <section className="surface p-6">
+      <div className="grid items-start gap-[30px] xl:grid-cols-[360px_minmax(0,1fr)]">
+        <aside>
+          <section className="min-w-0 border-t border-[var(--app-line)] pt-[18px]">
             <div className="upload-v2-section-label">{text.contacts}</div>
-            <div className="mt-4 space-y-3">
+            <div className="mt-2.5">
               {(contacts ?? []).map((contact) => (
-                <article key={contact.id} className="rounded-xl border border-[var(--line)] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <strong>{contact.name}</strong>
-                      {contact.is_primary ? <span className="ml-2 rounded-full bg-[var(--green-soft)] px-2 py-1 text-[10px] font-bold text-[var(--green)]">{text.primary}</span> : null}
-                      <p className="mt-1 text-sm text-[var(--muted)]">{contact.title || text.contact}</p>
-                    </div>
+                <article key={contact.id} className="border-t border-[#ecede9] py-3.5 first:border-t-0">
+                  <div className="min-w-0">
+                    <strong className="break-words text-sm font-semibold leading-5 text-[var(--app-ink)]">
+                      {contact.name}
+                    </strong>
+                    {contact.is_primary ? (
+                      <span className="ml-2 rounded-full bg-[var(--green-soft)] px-2 py-1 text-[10px] font-bold text-[var(--green)]">
+                        {text.primary}
+                      </span>
+                    ) : null}
+                    <p className="mt-0.5 break-words text-[11px] leading-4 text-[var(--muted)]">
+                      {contact.title || text.contact}
+                    </p>
                   </div>
-                  <a href={`mailto:${contact.email}`} className="mt-3 block text-sm font-semibold">{contact.email}</a>
-                  {contact.phone ? <p className="mt-1 text-sm text-[var(--muted)]">{contact.phone}</p> : null}
-                  <div className="mt-3 flex gap-2">
+
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="mt-2 block break-words text-xs font-semibold leading-[18px] text-[#3b403c]"
+                  >
+                    {contact.email}
+                  </a>
+
+                  {contact.phone ? (
+                    <p className="mt-0.5 break-words text-[11px] leading-4 text-[var(--muted)]">{contact.phone}</p>
+                  ) : null}
+
+                  <div className="mt-2.5 flex flex-wrap gap-2.5">
                     {!contact.is_primary ? (
                       <form action={setPrimaryContact}>
                         <input type="hidden" name="customerId" value={customer.id} />
                         <input type="hidden" name="contactId" value={contact.id} />
-                        <button className="text-xs font-semibold">{text.makePrimary}</button>
+                        <button className="text-[11px] font-semibold">{text.makePrimary}</button>
                       </form>
                     ) : null}
                     <form action={deleteCustomerContact}>
                       <input type="hidden" name="customerId" value={customer.id} />
                       <input type="hidden" name="contactId" value={contact.id} />
-                      <button className="text-xs font-semibold text-[var(--red)]">{text.remove}</button>
+                      <button className="text-[11px] font-semibold text-[var(--red)]">{text.remove}</button>
                     </form>
                   </div>
                 </article>
               ))}
-              {!(contacts ?? []).length ? <p className="text-sm text-[var(--muted)]">{text.noContacts}</p> : null}
+
+              {!(contacts ?? []).length ? (
+                <p className="py-3 text-xs text-[var(--muted)]">{text.noContacts}</p>
+              ) : null}
             </div>
 
-            <form action={addCustomerContact} className="mt-6 grid gap-3 border-t border-[var(--line)] pt-5">
+            <form action={addCustomerContact} className="mt-1.5 grid gap-2.5 border-t border-[var(--app-line)] pt-[18px]">
               <input type="hidden" name="customerId" value={customer.id} />
-              <input name="name" required placeholder={text.contactName} className="rounded-xl border border-[var(--line)] px-3 py-3" />
-              <input name="email" type="email" required placeholder={text.email} className="rounded-xl border border-[var(--line)] px-3 py-3" />
-              <input name="title" placeholder={text.titleRole} className="rounded-xl border border-[var(--line)] px-3 py-3" />
-              <input name="phone" placeholder={text.phone} className="rounded-xl border border-[var(--line)] px-3 py-3" />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isPrimary" /> {text.primaryRecipient}</label>
-              <button className="btn-primary">{text.addContact}</button>
+              <input name="name" required placeholder={text.contactName} className="w-full min-w-0" />
+              <input name="email" type="email" required placeholder={text.email} className="w-full min-w-0" />
+              <input name="title" placeholder={text.titleRole} className="w-full min-w-0" />
+              <input name="phone" placeholder={text.phone} className="w-full min-w-0" />
+              <label className="flex items-start gap-2 text-[11px] leading-4 text-[var(--muted)]">
+                <input type="checkbox" name="isPrimary" className="mt-0.5" />
+                {text.primaryRecipient}
+              </label>
+              <button className="btn-primary w-full sm:w-auto">{text.addContact}</button>
             </form>
           </section>
         </aside>
 
-        <main className="space-y-6">
-          <section className="surface overflow-hidden">
-            <div className="border-b border-[var(--line)] p-5">
+        <main className="grid min-w-0 gap-7 sm:gap-8">
+          <section className="min-w-0">
+            <div className="border-b border-[var(--app-line)] pb-3">
               <div className="upload-v2-section-label">{text.quoteHistory}</div>
-              <h2 className="mt-1 text-xl font-bold">{quotes?.length ?? 0} {text.quotes}</h2>
+              <h2 className="mt-1 text-lg font-semibold leading-6 tracking-[-.018em]">
+                {quotes?.length ?? 0} {text.quotes}
+              </h2>
             </div>
+
             {(quotes ?? []).length ? (
-              <div className="divide-y divide-[var(--line)]">
+              <div className="min-w-0">
                 {(quotes ?? []).map((quote) => (
-                  <Link key={quote.id} href={`/app/quotes/${quote.id}`} className="grid gap-3 p-4 hover:bg-black/[.025] md:grid-cols-[1fr_120px_140px_30px] md:items-center">
-                    <div><strong>{quote.quote_number || text.draftQuote}</strong><p className="text-xs text-[var(--muted)]">{new Date(quote.created_at).toLocaleDateString(displayLocale)}</p></div>
-                    <span className="text-sm capitalize">{statusLabel(quote.status, fi)}</span>
-                    <span className="text-sm capitalize">{quote.delivery_status ? statusLabel(quote.delivery_status, fi)  : text.notSent}</span>
-                    <span>→</span>
+                  <Link
+                    key={quote.id}
+                    href={`/app/quotes/${quote.id}`}
+                    className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[#ecede9] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_120px_140px_20px] md:gap-4"
+                  >
+                    <div className="min-w-0">
+                      <strong className="block truncate text-sm font-semibold leading-5 text-[var(--app-ink)]">
+                        {quote.quote_number || text.draftQuote}
+                      </strong>
+                      <p className="mt-0.5 text-[11px] leading-4 text-[var(--muted)]">
+                        {new Date(quote.created_at).toLocaleDateString(displayLocale)}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium leading-[18px] text-[#686d69] capitalize">
+                      {statusLabel(quote.status, fi)}
+                    </span>
+                    <span className="text-xs font-medium leading-[18px] text-[#686d69] capitalize">
+                      {quote.delivery_status ? statusLabel(quote.delivery_status, fi) : text.notSent}
+                    </span>
+                    <span className="justify-self-end text-[#8e938f] transition group-hover:translate-x-0.5 group-hover:text-[var(--app-ink)]">
+                      →
+                    </span>
                   </Link>
                 ))}
               </div>
-            ) : <p className="p-5 text-sm text-[var(--muted)]">{text.noQuotes}</p>}
+            ) : (
+              <p className="px-0.5 py-4 text-xs text-[var(--muted)]">{text.noQuotes}</p>
+            )}
           </section>
 
-          <section className="surface overflow-hidden">
-            <div className="border-b border-[var(--line)] p-5">
+          <section className="min-w-0">
+            <div className="border-b border-[var(--app-line)] pb-3">
               <div className="upload-v2-section-label">{text.rfqHistory}</div>
-              <h2 className="mt-1 text-xl font-bold">{rfqs?.length ?? 0} {text.requests}</h2>
+              <h2 className="mt-1 text-lg font-semibold leading-6 tracking-[-.018em]">
+                {rfqs?.length ?? 0} {text.requests}
+              </h2>
             </div>
+
             {(rfqs ?? []).length ? (
-              <div className="divide-y divide-[var(--line)]">
+              <div className="min-w-0">
                 {(rfqs ?? []).map((rfq) => (
-                  <Link key={rfq.id} href={`/app/rfq/${rfq.id}`} className="grid gap-3 p-4 hover:bg-black/[.025] md:grid-cols-[1fr_120px_120px_30px] md:items-center">
-                    <div><strong>{rfq.reference || text.untitledRfq}</strong><p className="text-xs text-[var(--muted)]">{new Date(rfq.received_at).toLocaleString(displayLocale)}</p></div>
-                    <span className="text-sm uppercase">{rfq.source_type}</span>
-                    <span className="text-sm capitalize">{statusLabel(rfq.status, fi)}</span>
-                    <span>→</span>
+                  <Link
+                    key={rfq.id}
+                    href={`/app/rfq/${rfq.id}`}
+                    className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[#ecede9] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_110px_120px_20px] md:gap-4"
+                  >
+                    <div className="min-w-0">
+                      <strong className="block truncate text-sm font-semibold leading-5 text-[var(--app-ink)]">
+                        {rfq.reference || text.untitledRfq}
+                      </strong>
+                      <p className="mt-0.5 text-[11px] leading-4 text-[var(--muted)]">
+                        {new Date(rfq.received_at).toLocaleString(displayLocale)}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium uppercase leading-[18px] text-[#686d69]">
+                      {rfq.source_type}
+                    </span>
+                    <span className="text-xs font-medium leading-[18px] text-[#686d69] capitalize">
+                      {statusLabel(rfq.status, fi)}
+                    </span>
+                    <span className="justify-self-end text-[#8e938f] transition group-hover:translate-x-0.5 group-hover:text-[var(--app-ink)]">→</span>
                   </Link>
                 ))}
               </div>
-            ) : <p className="p-5 text-sm text-[var(--muted)]">{text.noRfqs}</p>}
+            ) : (
+              <p className="px-0.5 py-4 text-xs text-[var(--muted)]">{text.noRfqs}</p>
+            )}
           </section>
 
-          <section className="surface overflow-hidden">
-            <div className="border-b border-[var(--line)] p-5">
+          <section className="min-w-0">
+            <div className="border-b border-[var(--app-line)] pb-3">
               <div className="upload-v2-section-label">{text.memory}</div>
-              <h2 className="mt-1 text-xl font-bold">{mappings?.length ?? 0} {text.mappings}</h2>
+              <h2 className="mt-1 text-lg font-semibold leading-6 tracking-[-.018em]">
+                {mappings?.length ?? 0} {text.mappings}
+              </h2>
             </div>
+
             {(mappings ?? []).length ? (
-              <div className="divide-y divide-[var(--line)]">
+              <div className="min-w-0">
                 {(mappings ?? []).map((mapping: any) => {
                   const product = Array.isArray(mapping.products) ? mapping.products[0] : mapping.products;
                   return (
-                    <div key={mapping.id} className="grid gap-4 p-4 md:grid-cols-[1fr_30px_1fr_100px] md:items-center">
-                      <div><span className="text-xs text-[var(--muted)]">{text.customerLanguage}</span><strong className="block">{mapping.customer_sku || text.noSku}</strong><p className="text-sm text-[var(--muted)]">{mapping.customer_description || text.noDescription}</p></div>
-                      <span>→</span>
-                      <div><span className="text-xs text-[var(--muted)]">{text.canonical}</span><strong className="block">{product?.sku || text.unavailable}</strong><p className="text-sm text-[var(--muted)]">{product?.name || ""}</p></div>
-                      <div><span className="text-xs text-[var(--muted)]">{text.uses}</span><strong className="block text-xl">{Number(mapping.times_used ?? 0)}</strong></div>
+                    <div
+                      key={mapping.id}
+                      className="grid min-h-[72px] grid-cols-[1fr_auto] items-center gap-x-3.5 gap-y-2.5 border-b border-[#ecede9] px-0.5 py-[13px] md:grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)_80px] md:gap-4"
+                    >
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.customerLanguage}</span>
+                        <strong className="mt-0.5 block break-words text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
+                          {mapping.customer_sku || text.noSku}
+                        </strong>
+                        <p className="mt-0.5 break-words text-[11px] leading-4 text-[var(--muted)]">
+                          {mapping.customer_description || text.noDescription}
+                        </p>
+                      </div>
+
+                      <span className="justify-self-end text-[#8e938f]">→</span>
+
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.canonical}</span>
+                        <strong className="mt-0.5 block break-words text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
+                          {product?.sku || text.unavailable}
+                        </strong>
+                        <p className="mt-0.5 break-words text-[11px] leading-4 text-[var(--muted)]">{product?.name || ""}</p>
+                      </div>
+
+                      <div className="text-right md:text-left">
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.uses}</span>
+                        <strong className="mt-0.5 block text-[18px] font-semibold leading-6 text-[var(--app-ink)]">
+                          {Number(mapping.times_used ?? 0)}
+                        </strong>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            ) : <p className="p-5 text-sm text-[var(--muted)]">{text.noMappings}</p>}
+            ) : (
+              <p className="px-0.5 py-4 text-xs text-[var(--muted)]">{text.noMappings}</p>
+            )}
           </section>
         </main>
       </div>

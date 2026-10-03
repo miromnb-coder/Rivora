@@ -11161,6 +11161,21 @@ textarea:focus-visible {
 }
 
 
+/* P2.1 Product detail form labels */
+.product-detail-form label > span {
+  color: #6e736f !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 14px;
+  letter-spacing: .035em !important;
+  text-transform: uppercase;
+}
+
+.product-detail-form label.flex > span {
+  letter-spacing: 0 !important;
+  text-transform: none;
+}
+
 /* Customer self-service */
 .settings-section-nav {
   margin-bottom: 20px;

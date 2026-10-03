@@ -39,17 +39,19 @@ export default async function ProductDetailPage({
   if (!product) notFound();
 
   return (
-    <div className="app-page-v2">
+    <div className="app-page-v2 product-detail-page">
       <div className="mb-5">
-        <Link href="/app/products" className="text-sm font-semibold">
+        <Link href="/app/products" className="text-[13px] font-semibold text-[#5f645f] hover:text-[var(--app-ink)]">
           ← {fi ? "Tuotteet" : "Products"}
         </Link>
       </div>
 
-      <header className="mb-7">
+      <header className="mb-7 max-w-[760px]">
         <div className="app-kicker-v2">{fi ? "Tuote" : "Product"}</div>
-        <h1>{product.sku}</h1>
-        <p>{product.name}</p>
+        <h1 className="mt-2 break-words !text-[30px] !font-semibold !leading-9 tracking-[-.035em] lg:!text-[34px] lg:!leading-10">
+          {product.sku}
+        </h1>
+        <p className="mt-2 break-words text-[13px] leading-5 text-[var(--muted)]">{product.name}</p>
       </header>
 
       {query.saved ? (
@@ -58,16 +60,16 @@ export default async function ProductDetailPage({
         </div>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
-        <section className="surface p-6">
-          <div className="mb-5">
+      <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <section className="surface p-[18px] sm:p-[22px]">
+          <div className="mb-[18px]">
             <div className="upload-v2-section-label">{fi ? "Tuotetiedot" : "Product details"}</div>
-            <h2 className="mt-1 text-xl font-bold">
+            <h2 className="mt-1 text-lg font-semibold leading-6 tracking-[-.018em]">
               {fi ? "Muokkaa katalogitietoja" : "Edit catalogue data"}
             </h2>
           </div>
 
-          <form action={updateProduct} className="settings-form-grid">
+          <form action={updateProduct} className="settings-form-grid product-detail-form gap-3.5">
             <input type="hidden" name="productId" value={product.id} />
 
             <label>
@@ -87,10 +89,7 @@ export default async function ProductDetailPage({
 
             <label>
               <span>MPN</span>
-              <input
-                name="manufacturerPartNumber"
-                defaultValue={product.manufacturer_part_number || ""}
-              />
+              <input name="manufacturerPartNumber" defaultValue={product.manufacturer_part_number || ""} />
             </label>
 
             <label>
@@ -118,42 +117,46 @@ export default async function ProductDetailPage({
 
             <label className="flex items-center gap-2 self-end pb-2">
               <input type="checkbox" name="active" defaultChecked={Boolean(product.active)} />
-              <span>{fi ? "Tuote aktiivinen" : "Product active"}</span>
+              <span className="!mb-0 !normal-case !tracking-normal">{fi ? "Tuote aktiivinen" : "Product active"}</span>
             </label>
 
             <div className="sm:col-span-2">
-              <button className="btn-primary">
+              <button className="btn-primary w-full sm:w-auto">
                 {fi ? "Tallenna tuote" : "Save product"}
               </button>
             </div>
           </form>
         </section>
 
-        <aside className="surface p-5">
+        <aside className="min-w-0 border-y border-[var(--app-line)] py-[18px]">
           <div className="upload-v2-section-label">Business Central</div>
-          <h2 className="mt-1 text-lg font-bold">
+          <h2 className="mt-1 text-lg font-semibold leading-6 tracking-[-.018em]">
             {fi ? "ERP-vastine" : "ERP mapping"}
           </h2>
 
           {mapping?.external_number ? (
-            <div className="mt-4 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-4">
-              <span className="text-xs text-[var(--muted)]">BC item no.</span>
-              <strong className="mt-1 block">{mapping.external_number}</strong>
+            <div className="mt-3.5 border-y border-[#ecede9] py-3.5">
+              <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.045em] text-[#858a86]">
+                BC item no.
+              </span>
+              <strong className="mt-1 block break-words text-sm font-semibold leading-5 text-[var(--app-ink)]">
+                {mapping.external_number}
+              </strong>
               {mapping?.metadata?.businessCentralDisplayName ? (
-                <p className="mt-1 text-xs text-[var(--muted)]">
+                <p className="mt-0.5 break-words text-[11px] leading-4 text-[var(--muted)]">
                   {String(mapping.metadata.businessCentralDisplayName)}
                 </p>
               ) : null}
             </div>
           ) : (
-            <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
+            <p className="mt-3.5 text-xs leading-[18px] text-[var(--muted)]">
               {fi
                 ? "Tälle tuotteelle ei ole vielä tallennettua Business Central -vastinetta."
                 : "This product does not have a saved Business Central mapping yet."}
             </p>
           )}
 
-          <Link href="/app/settings/business-central" className="btn-secondary mt-4">
+          <Link href="/app/settings/business-central" className="btn-secondary mt-4 w-full sm:w-auto">
             {fi ? "Hallitse vastineita" : "Manage mappings"} →
           </Link>
         </aside>
