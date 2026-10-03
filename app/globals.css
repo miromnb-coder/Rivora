@@ -11176,6 +11176,16 @@ textarea:focus-visible {
   text-transform: none;
 }
 
+@media (max-width: 900px) {
+  .product-detail-form {
+    grid-template-columns: 1fr;
+  }
+
+  .product-detail-form .sm\:col-span-2 {
+    grid-column: auto;
+  }
+}
+
 /* Customer self-service */
 .settings-section-nav {
   margin-bottom: 20px;
