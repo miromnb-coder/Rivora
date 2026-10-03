@@ -23,7 +23,7 @@ export function FilePicker({
   const fi = locale === "fi";
 
   return (
-    <div className="mt-4">
+    <div className="file-picker mt-4">
       <input
         id={id}
         name={name}
