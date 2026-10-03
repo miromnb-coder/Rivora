@@ -7,8 +7,17 @@ function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
 }
 
+function normalizedKey(...parts: Array<string | null | undefined>) {
+  return parts
+    .map((part) => String(part || "").trim().toLowerCase())
+    .filter(Boolean)
+    .join("::");
+}
+
 type Task = {
   key: string;
+  caseKey: string;
+  stageRank: number;
   eyebrow: string;
   title: string;
   detail: string;
@@ -103,11 +112,15 @@ export default async function AppHome() {
   for (const rfq of rfqs ?? []) {
     if (rfq.status !== "needs_review") continue;
     const customer = relationOne<any>((rfq as any).customers);
+    const customerName = customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer");
+    const reference = rfq.reference || "RFQ";
     tasks.push({
       key: `rfq-${rfq.id}`,
+      caseKey: normalizedKey(customerName, reference),
+      stageRank: 1,
       eyebrow: fi ? "Tarjouspyyntö" : "RFQ",
       title: fi ? "Tarjouspyyntö odottaa tarkistusta" : "RFQ needs review",
-      detail: `${customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")} · ${rfq.reference || "RFQ"}`,
+      detail: `${customerName} · ${reference}`,
       href: `/app/orders/case/rfq/${rfq.id}`,
       action: fi ? "Tarkista tarjouspyyntö" : "Review RFQ",
       priority: 10,
@@ -144,11 +157,15 @@ export default async function AppHome() {
               priority: 8,
             };
 
+    const customerName = customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer");
+    const reference = rfq?.reference || quote.quote_number || "Quote";
     tasks.push({
       key: `quote-${quote.id}`,
+      caseKey: normalizedKey(customerName, reference),
+      stageRank: 2,
       eyebrow: fi ? "Tarjous" : "Quote",
       title: state.title,
-      detail: `${customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")} · ${rfq?.reference || quote.quote_number || "Quote"} · ${money.format(total)}`,
+      detail: `${customerName} · ${reference} · ${money.format(total)}`,
       href: `/app/orders/case/quote/${quote.id}`,
       action: state.action,
       priority: state.priority,
@@ -173,11 +190,15 @@ export default async function AppHome() {
             priority: 11,
           };
 
+    const customerName = customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer");
+    const reference = quote?.quote_number || po.po_number || "PO";
     tasks.push({
       key: `po-${po.id}`,
+      caseKey: normalizedKey(customerName, reference),
+      stageRank: 3,
       eyebrow: fi ? "Ostotilaus" : "Purchase order",
       title: state.title,
-      detail: `${customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")} · ${po.po_number || "PO"}${quote?.quote_number ? ` · ${quote.quote_number}` : ""}`,
+      detail: `${customerName} · ${po.po_number || "PO"}${quote?.quote_number ? ` · ${quote.quote_number}` : ""}`,
       href: `/app/orders/case/po/${po.id}`,
       action: state.action,
       priority: state.priority,
@@ -197,8 +218,12 @@ export default async function AppHome() {
       currency: "EUR",
     });
 
+    const customerName = customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer");
+    const reference = order.customer_po_number || "PO";
     tasks.push({
       key: `sales-${order.id}`,
+      caseKey: normalizedKey(customerName, reference),
+      stageRank: 4,
       eyebrow: "Business Central",
       title:
         order.status === "erp_failed"
@@ -208,7 +233,7 @@ export default async function AppHome() {
           : fi
             ? "Tilaus on valmis Business Centraliin"
             : "Order is ready for Business Central",
-      detail: `${customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")} · ${order.customer_po_number || "PO"} · ${money.format(total)}`,
+      detail: `${customerName} · ${reference} · ${money.format(total)}`,
       href: `/app/orders/case/sales/${order.id}`,
       action: order.status === "erp_failed"
         ? fi ? "Tarkista ERP-vienti" : "Review ERP export"
@@ -218,41 +243,108 @@ export default async function AppHome() {
     });
   }
 
-  const attention = tasks
-    .sort((a, b) => b.priority - a.priority || new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 4);
+  const taskCases = new Map<string, Task>();
+  for (const task of tasks) {
+    const existing = taskCases.get(task.caseKey);
+    if (
+      !existing ||
+      task.stageRank > existing.stageRank ||
+      (task.stageRank === existing.stageRank &&
+        (task.priority > existing.priority ||
+          new Date(task.updatedAt).getTime() > new Date(existing.updatedAt).getTime()))
+    ) {
+      taskCases.set(task.caseKey, task);
+    }
+  }
 
-  const openRfqs = (rfqs ?? []).filter((item: any) => !["ready", "quoted"].includes(String(item.status))).length;
-  const sentQuotes = (quotes ?? []).filter((item: any) => item.status === "sent").length;
-  const activePos = (purchaseOrders ?? []).filter((item: any) => !["erp_created", "failed"].includes(String(item.status))).length;
-  const erpReady = (salesOrders ?? []).filter((item: any) => ["draft", "erp_failed"].includes(String(item.status))).length;
+  const dedupedTasks = [...taskCases.values()].sort(
+    (a, b) =>
+      b.priority - a.priority ||
+      b.stageRank - a.stageRank ||
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  );
+  const attention = dedupedTasks.slice(0, 4);
 
-  const recentCases = [
-    ...(salesOrders ?? []).slice(0, 4).map((item: any) => ({
+  const uniqueCount = (items: any[], keyFor: (item: any) => string, include: (item: any) => boolean) =>
+    new Set(items.filter(include).map(keyFor).filter(Boolean)).size;
+
+  const openRfqs = uniqueCount(
+    rfqs ?? [],
+    (item) => normalizedKey(relationOne<any>(item.customers)?.name, item.reference || item.id),
+    (item) => !["ready", "quoted"].includes(String(item.status)),
+  );
+  const sentQuotes = uniqueCount(
+    quotes ?? [],
+    (item) => normalizedKey(relationOne<any>(item.customers)?.name, relationOne<any>(item.rfqs)?.reference || item.quote_number || item.id),
+    (item) => item.status === "sent",
+  );
+  const activePos = uniqueCount(
+    purchaseOrders ?? [],
+    (item) => normalizedKey(relationOne<any>(item.customers)?.name, item.po_number || item.id),
+    (item) => !["erp_created", "failed"].includes(String(item.status)),
+  );
+  const erpReady = uniqueCount(
+    salesOrders ?? [],
+    (item) => normalizedKey(relationOne<any>(item.customers)?.name, item.customer_po_number || item.id),
+    (item) => ["draft", "erp_failed"].includes(String(item.status)),
+  );
+
+  const recentCandidates = [
+    ...(salesOrders ?? []).slice(0, 8).map((item: any) => ({
       key: `sales-${item.id}`,
+      caseKey: normalizedKey(
+        relationOne<any>(item.customers)?.name,
+        item.customer_po_number || relationOne<any>(item.purchase_orders)?.po_number || item.id,
+      ),
+      stageRank: 4,
       customer: relationOne<any>(item.customers)?.name || (fi ? "Tuntematon asiakas" : "Unknown customer"),
       reference: item.customer_po_number || relationOne<any>(item.purchase_orders)?.po_number || "Sales order",
       stage: item.status === "erp_created" ? (fi ? "Valmis" : "Complete") : "ERP",
       href: `/app/orders/case/sales/${item.id}`,
       updatedAt: item.updated_at,
     })),
-    ...(purchaseOrders ?? []).slice(0, 4).map((item: any) => ({
+    ...(purchaseOrders ?? []).slice(0, 8).map((item: any) => ({
       key: `po-${item.id}`,
+      caseKey: normalizedKey(
+        relationOne<any>(item.customers)?.name,
+        item.po_number || item.id,
+      ),
+      stageRank: 3,
       customer: relationOne<any>(item.customers)?.name || (fi ? "Tuntematon asiakas" : "Unknown customer"),
       reference: item.po_number || "PO",
       stage: fi ? "Ostotilaus" : "Purchase order",
       href: `/app/orders/case/po/${item.id}`,
       updatedAt: item.updated_at,
     })),
-    ...(quotes ?? []).slice(0, 4).map((item: any) => ({
+    ...(quotes ?? []).slice(0, 8).map((item: any) => ({
       key: `quote-${item.id}`,
+      caseKey: normalizedKey(
+        relationOne<any>(item.customers)?.name,
+        relationOne<any>(item.rfqs)?.reference || item.quote_number || item.id,
+      ),
+      stageRank: 2,
       customer: relationOne<any>(item.customers)?.name || (fi ? "Tuntematon asiakas" : "Unknown customer"),
       reference: item.quote_number || relationOne<any>(item.rfqs)?.reference || "Quote",
       stage: fi ? "Tarjous" : "Quote",
       href: `/app/orders/case/quote/${item.id}`,
       updatedAt: item.updated_at,
     })),
-  ]
+  ];
+
+  const recentMap = new Map<string, (typeof recentCandidates)[number]>();
+  for (const item of recentCandidates) {
+    const existing = recentMap.get(item.caseKey);
+    if (
+      !existing ||
+      item.stageRank > existing.stageRank ||
+      (item.stageRank === existing.stageRank &&
+        new Date(item.updatedAt).getTime() > new Date(existing.updatedAt).getTime())
+    ) {
+      recentMap.set(item.caseKey, item);
+    }
+  }
+
+  const recentCases = [...recentMap.values()]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 6);
 
@@ -261,18 +353,17 @@ export default async function AppHome() {
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <div className="app-kicker-v2">{fi ? "Työpöytä" : "Workspace"}</div>
-          <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-[-0.045em] text-[#171a18] md:text-6xl">
-            {attention.length
-              ? fi
-                ? `${attention.length} asiaa tarvitsee huomiotasi.`
-                : `${attention.length} things need your attention.`
-              : fi
-                ? "Kaikki tärkeä on ajan tasalla."
-                : "Everything important is up to date."}
-          </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-[#202320] md:text-4xl">
+              {fi ? "Vaatii huomiota" : "Needs attention"}
+            </h1>
+            <span className="inline-flex min-w-8 items-center justify-center rounded-full bg-[#f1f2ef] px-2.5 py-1 text-sm font-bold text-[#343834]">
+              {dedupedTasks.length}
+            </span>
+          </div>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
             {fi
-              ? "Averomira näyttää ensin työn, joka tarvitsee ihmisen päätöksen. Muu etenee taustalla."
+              ? "Näet ensin caset, jotka tarvitsevat päätöksen juuri nyt."
               : "Averomira puts the work needing a human decision first. Everything else stays in the background."}
           </p>
         </div>
@@ -281,26 +372,25 @@ export default async function AppHome() {
         </Link>
       </header>
 
-      <section className="mt-10 grid gap-3 md:grid-cols-4">
+      <section className="mt-7 grid gap-2 md:grid-cols-4">
         {[
           [fi ? "Avoimet RFQ:t" : "Open RFQs", openRfqs],
           [fi ? "Lähetetyt tarjoukset" : "Sent quotes", sentQuotes],
           [fi ? "Aktiiviset PO:t" : "Active POs", activePos],
           [fi ? "ERP-toimet" : "ERP actions", erpReady],
         ].map(([label, value]) => (
-          <div key={String(label)} className="rounded-2xl border border-[var(--line)] bg-white px-5 py-4">
+          <div key={String(label)} className="rounded-xl border border-[var(--line)] bg-white px-4 py-3">
             <span className="text-xs font-semibold text-[var(--muted)]">{label}</span>
-            <strong className="mt-2 block text-2xl font-semibold">{value}</strong>
+            <strong className="mt-1.5 block text-xl font-semibold">{value}</strong>
           </div>
         ))}
       </section>
 
-      <section className="mt-10">
+      <section className="mt-8">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <div className="upload-v2-section-label">{fi ? "Vaatii toimintaa" : "Needs action"}</div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
-              {fi ? "Seuraavaksi hoidettavat asiat" : "What to do next"}
+            <h2 className="text-xl font-semibold tracking-[-0.025em]">
+              {fi ? "Seuraavat tehtävät" : "Next tasks"}
             </h2>
           </div>
           <Link href="/app/orders?view=attention" className="text-sm font-semibold">
@@ -309,24 +399,22 @@ export default async function AppHome() {
         </div>
 
         {attention.length ? (
-          <div className="mt-5 grid gap-3 lg:grid-cols-2">
+          <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--line)] bg-white divide-y divide-[var(--line)]">
             {attention.map((task) => (
               <Link
                 key={task.key}
                 href={task.href}
-                className="group rounded-3xl border border-[var(--line)] bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(23,33,28,.07)]"
+                className="group grid gap-3 px-5 py-4 transition hover:bg-[#fafaf8] md:grid-cols-[120px_minmax(0,1fr)_190px_24px] md:items-center"
               >
-                <div className="flex items-start justify-between gap-5">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-[.12em] text-[var(--muted)]">
-                      {task.eyebrow}
-                    </span>
-                    <h3 className="mt-3 text-xl font-semibold tracking-[-0.025em]">{task.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{task.detail}</p>
-                  </div>
-                  <span className="text-lg transition group-hover:translate-x-1">→</span>
+                <span className="text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted)]">
+                  {task.eyebrow}
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-[15px] font-semibold tracking-[-0.015em]">{task.title}</h3>
+                  <p className="mt-1 truncate text-xs text-[var(--muted)]">{task.detail}</p>
                 </div>
-                <div className="mt-6 text-sm font-semibold">{task.action}</div>
+                <div className="text-sm font-semibold">{task.action}</div>
+                <span className="text-base transition group-hover:translate-x-1">→</span>
               </Link>
             ))}
           </div>
@@ -340,12 +428,11 @@ export default async function AppHome() {
         )}
       </section>
 
-      <section className="mt-12 overflow-hidden rounded-3xl border border-[var(--line)] bg-white">
-        <div className="flex items-end justify-between gap-4 border-b border-[var(--line)] p-6">
+      <section className="mt-8 overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
+        <div className="flex items-end justify-between gap-4 border-b border-[var(--line)] px-5 py-4">
           <div>
-            <div className="upload-v2-section-label">{fi ? "Viimeisimmät" : "Recent"}</div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
-              {fi ? "Viimeisimmät tilaukset" : "Recent orders"}
+            <h2 className="text-xl font-semibold tracking-[-0.025em]">
+              {fi ? "Viimeisimmät tilauscaset" : "Recent order cases"}
             </h2>
           </div>
           <Link href="/app/orders" className="text-sm font-semibold">
@@ -357,7 +444,7 @@ export default async function AppHome() {
             <Link
               key={item.key}
               href={item.href}
-              className="grid gap-2 px-6 py-5 transition hover:bg-[#fafaf7] md:grid-cols-[1.4fr_1fr_.7fr_auto] md:items-center"
+              className="grid gap-2 px-5 py-4 transition hover:bg-[#fafaf8] md:grid-cols-[1.4fr_1fr_.7fr_auto] md:items-center"
             >
               <strong>{item.customer}</strong>
               <span className="text-sm text-[var(--muted)]">{item.reference}</span>

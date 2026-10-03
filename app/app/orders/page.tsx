@@ -24,6 +24,17 @@ function newest(left: string, right: string) {
   return new Date(left).getTime() >= new Date(right).getTime() ? left : right;
 }
 
+function normalizedKey(...parts: Array<string | null | undefined>) {
+  return parts
+    .map((part) => String(part || "").trim().toLowerCase())
+    .filter(Boolean)
+    .join("::");
+}
+
+function stageRank(stage: CaseRow["stage"]) {
+  return { rfq: 1, quote: 2, po: 3, erp: 4, done: 5 }[stage];
+}
+
 export default async function OrdersPage({
   searchParams,
 }: {
@@ -223,7 +234,24 @@ export default async function OrdersPage({
     });
   }
 
-  const allCases = [...rows.values()].sort(
+  const displayCases = new Map<string, CaseRow>();
+  for (const row of rows.values()) {
+    const businessKey = normalizedKey(
+      row.customer,
+      row.rfqReference || row.quoteNumber || row.poNumber || row.key,
+    );
+    const existing = displayCases.get(businessKey);
+    if (
+      !existing ||
+      stageRank(row.stage) > stageRank(existing.stage) ||
+      (stageRank(row.stage) === stageRank(existing.stage) &&
+        new Date(row.updatedAt).getTime() > new Date(existing.updatedAt).getTime())
+    ) {
+      displayCases.set(businessKey, row);
+    }
+  }
+
+  const allCases = [...displayCases.values()].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
   );
 
@@ -251,12 +279,12 @@ export default async function OrdersPage({
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <div className="app-kicker-v2">{fi ? "Tilaukset" : "Orders"}</div>
-          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.045em] md:text-6xl">
-            {fi ? "Yksi näkymä koko tilauspolulle." : "One view for the whole order journey."}
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[#202320] md:text-4xl">
+            {fi ? "Tilaukset" : "Orders"}
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
             {fi
-              ? "Tarjouspyyntö, tarjous, asiakkaan PO ja ERP-vaihe näkyvät yhtenä jatkumona."
+              ? "Yksi rivi per case koko RFQ → tarjous → PO → ERP -polulle."
               : "RFQ, quote, customer PO and ERP stage stay together as one continuous case."}
           </p>
         </div>
@@ -265,7 +293,7 @@ export default async function OrdersPage({
         </Link>
       </header>
 
-      <nav className="mt-8 flex gap-2 overflow-x-auto pb-2" aria-label={fi ? "Tilaussuodattimet" : "Order filters"}>
+      <nav className="mt-6 flex gap-2 overflow-x-auto pb-2" aria-label={fi ? "Tilaussuodattimet" : "Order filters"}>
         {filters.map(([id, label]) => (
           <Link
             key={id}
@@ -282,7 +310,7 @@ export default async function OrdersPage({
         ))}
       </nav>
 
-      <section className="mt-5 overflow-hidden rounded-3xl border border-[var(--line)] bg-white">
+      <section className="mt-4 overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
         <div className="hidden grid-cols-[1.35fr_1fr_.8fr_1fr_auto] gap-4 border-b border-[var(--line)] bg-[#fafaf7] px-6 py-3 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted)] md:grid">
           <span>{fi ? "Asiakas" : "Customer"}</span>
           <span>{fi ? "Viite" : "Reference"}</span>
@@ -299,10 +327,10 @@ export default async function OrdersPage({
                 <Link
                   key={row.key}
                   href={row.href}
-                  className="group grid gap-3 px-6 py-5 transition hover:bg-[#fafaf7] md:grid-cols-[1.35fr_1fr_.8fr_1fr_auto] md:items-center md:gap-4"
+                  className="group grid gap-3 px-5 py-4 transition hover:bg-[#fafaf8] md:grid-cols-[1.35fr_1fr_.8fr_1fr_auto] md:items-center md:gap-4"
                 >
                   <div>
-                    <strong className="block text-[15px]">{row.customer}</strong>
+                    <strong className="block text-sm">{row.customer}</strong>
                     <span className="mt-1 block text-xs text-[var(--muted)] md:hidden">{reference}</span>
                   </div>
                   <span className="hidden text-sm text-[var(--muted)] md:block">{reference}</span>
