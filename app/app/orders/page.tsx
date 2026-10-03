@@ -273,7 +273,7 @@ export default async function OrdersPage({
             className={
               "whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition " +
               (view === id
-                ? "border-[#171a18] bg-[#171a18] text-white"
+                ? "border-[#dedfdb] bg-[#f3f3f0] text-[#202320]"
                 : "border-[var(--line)] bg-white text-[var(--muted)] hover:text-[#171a18]")
             }
           >
