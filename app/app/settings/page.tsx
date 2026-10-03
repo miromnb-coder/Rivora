@@ -110,95 +110,95 @@ export default async function SettingsPage({
         </div>
       ) : null}
 
-      <nav className="settings-section-nav" aria-label={fi ? "Asetusosiot" : "Settings sections"}>
-        <a href="#company">{fi ? "Yritystiedot" : "Company"}</a>
-        <a href="#quote-settings">{fi ? "Tarjousasetukset" : "Quote settings"}</a>
-        <a href="#brand">{fi ? "Brändi / PDF" : "Brand / PDF"}</a>
-        <a href="#business-central">Business Central</a>
-        <a href="#users">{fi ? "Käyttäjät" : "Users"}</a>
+      <nav className="mb-5 flex flex-wrap gap-2" aria-label={fi ? "Asetusosiot" : "Settings sections"}>
+        <a href="#company" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">{fi ? "Yritystiedot" : "Company"}</a>
+        <a href="#quote-settings" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">{fi ? "Tarjousasetukset" : "Quote settings"}</a>
+        <a href="#brand" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">{fi ? "Brändi / PDF" : "Brand / PDF"}</a>
+        <a href="#business-central" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">Business Central</a>
+        <a href="#users" className="inline-flex min-h-9 items-center rounded-full border border-[var(--line)] bg-white px-3 text-[10px] font-bold text-[#676c68]">{fi ? "Käyttäjät" : "Users"}</a>
       </nav>
 
       <form action={updateWorkspaceSettings} className="grid gap-5">
-        <section id="company" className="surface settings-self-section">
-          <div className="settings-self-head">
+        <section id="company" className="surface scroll-mt-5 p-6">
+          <div className="mb-5">
             <div>
               <div className="upload-v2-section-label">{fi ? "Yritystiedot" : "Company"}</div>
-              <h2>{fi ? "Yrityksen perustiedot" : "Company details"}</h2>
-              <p>{fi ? "Näitä tietoja käytetään tarjouksissa ja asiakas-PDF:issä." : "These details are used in quotes and customer PDFs."}</p>
+              <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "Yrityksen perustiedot" : "Company details"}</h2>
+              <p className="mt-2 text-sm text-[var(--muted)]">{fi ? "Näitä tietoja käytetään tarjouksissa ja asiakas-PDF:issä." : "These details are used in quotes and customer PDFs."}</p>
             </div>
           </div>
 
-          <div className="settings-form-grid">
+          <div className="grid gap-4 sm:grid-cols-2">
             <label className="sm:col-span-2">
               <span>{copy.company}</span>
-              <input name="name" required maxLength={200} defaultValue={organization?.name || workspace.name} />
+              <input name="name" required maxLength={200} defaultValue={organization?.name || workspace.name} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
             <label>
               <span>{copy.businessId} <em>{copy.optional}</em></span>
-              <input name="businessId" maxLength={64} defaultValue={organization?.business_id || ""} />
+              <input name="businessId" maxLength={64} defaultValue={organization?.business_id || ""} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
             <label>
               <span>{copy.email}</span>
-              <input name="email" type="email" maxLength={320} defaultValue={organization?.email || ""} />
+              <input name="email" type="email" maxLength={320} defaultValue={organization?.email || ""} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
             <label>
               <span>{copy.phone}</span>
-              <input name="phone" maxLength={80} defaultValue={organization?.phone || ""} />
+              <input name="phone" maxLength={80} defaultValue={organization?.phone || ""} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
             <label className="sm:col-span-2">
               <span>{copy.address}</span>
-              <input name="addressLine1" maxLength={200} defaultValue={organization?.address_line1 || ""} placeholder={copy.street} />
-              <input name="addressLine2" maxLength={200} defaultValue={organization?.address_line2 || ""} placeholder={copy.address2} />
+              <input name="addressLine1" maxLength={200} defaultValue={organization?.address_line1 || ""} placeholder={copy.street} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
+              <input name="addressLine2" maxLength={200} defaultValue={organization?.address_line2 || ""} placeholder={copy.address2} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
             <label>
               <span>{copy.postal}</span>
-              <input name="postalCode" maxLength={32} defaultValue={organization?.postal_code || ""} />
+              <input name="postalCode" maxLength={32} defaultValue={organization?.postal_code || ""} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
             <label>
               <span>{copy.city}</span>
-              <input name="city" maxLength={120} defaultValue={organization?.city || ""} />
+              <input name="city" maxLength={120} defaultValue={organization?.city || ""} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
             <label>
               <span>{copy.country}</span>
-              <input name="country" maxLength={120} defaultValue={organization?.country || "Finland"} />
+              <input name="country" maxLength={120} defaultValue={organization?.country || "Finland"} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
           </div>
         </section>
 
-        <section id="quote-settings" className="surface settings-self-section">
-          <div className="settings-self-head">
+        <section id="quote-settings" className="surface scroll-mt-5 p-6">
+          <div className="mb-5">
             <div>
               <div className="upload-v2-section-label">{fi ? "Tarjousasetukset" : "Quote settings"}</div>
-              <h2>{fi ? "Uusien tarjousten oletukset" : "Defaults for new quotes"}</h2>
+              <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "Uusien tarjousten oletukset" : "Defaults for new quotes"}</h2>
             </div>
           </div>
-          <div className="settings-form-grid">
+          <div className="grid gap-4 sm:grid-cols-2">
             <label>
               <span>{copy.vat}</span>
-              <input name="defaultTaxRate" type="number" min="0" max="100" step="0.01" required defaultValue={Number(organization?.default_tax_rate ?? 25.5)} />
+              <input name="defaultTaxRate" type="number" min="0" max="100" step="0.01" required defaultValue={Number(organization?.default_tax_rate ?? 25.5)} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
             <label>
               <span>{copy.validity}</span>
-              <input name="defaultQuoteValidityDays" type="number" min="1" max="365" step="1" required defaultValue={Number(organization?.default_quote_validity_days ?? 14)} />
+              <input name="defaultQuoteValidityDays" type="number" min="1" max="365" step="1" required defaultValue={Number(organization?.default_quote_validity_days ?? 14)} className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm outline-none" />
             </label>
           </div>
         </section>
 
-        <section id="brand" className="surface settings-self-section">
-          <div className="settings-self-head">
+        <section id="brand" className="surface scroll-mt-5 p-6">
+          <div className="mb-5">
             <div>
               <div className="upload-v2-section-label">{fi ? "Brändi / PDF" : "Brand / PDF"}</div>
-              <h2>{fi ? "Tarjouksen visuaalinen identiteetti" : "Quote identity"}</h2>
+              <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "Tarjouksen visuaalinen identiteetti" : "Quote identity"}</h2>
             </div>
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
             <label>
               <span className="settings-field-label">{copy.logo}</span>
-              <input name="logo" type="file" accept="image/png,image/jpeg" />
+              <input name="logo" type="file" accept="image/png,image/jpeg" className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm" />
               <small className="mt-2 block text-xs text-[var(--muted)]">PNG / JPEG · max 2 MB</small>
             </label>
-            <div className="settings-brand-preview">
+            <div className="flex min-h-32 flex-col justify-center gap-3 rounded-2xl border border-[var(--line)] bg-[#fafaf8] p-5">
               {logoDataUrl ? (
                 <Image
                   src={logoDataUrl}
@@ -216,7 +216,7 @@ export default async function SettingsPage({
           </div>
         </section>
 
-        <div className="settings-save-row">
+        <div className="flex justify-start">
           {canManage ? (
             <button className="btn-primary">{copy.save}</button>
           ) : (
@@ -231,11 +231,11 @@ export default async function SettingsPage({
         </form>
       ) : null}
 
-      <section id="business-central" className="surface settings-self-section mt-5">
-        <div className="settings-self-head settings-self-head-row">
+      <section id="business-central" className="surface mt-5 scroll-mt-5 p-6">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="upload-v2-section-label">Business Central</div>
-            <h2>{fi ? "ERP-yhteys" : "ERP connection"}</h2>
+            <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "ERP-yhteys" : "ERP connection"}</h2>
             <p>
               {config.configured
                 ? fi
@@ -250,10 +250,10 @@ export default async function SettingsPage({
             {config.configured ? (fi ? "Yhdistetty" : "Connected") : (fi ? "Vaatii huomiota" : "Needs attention")}
           </span>
         </div>
-        <div className="settings-connection-grid">
-          <div><span>{fi ? "Ympäristö" : "Environment"}</span><strong>{config.environment || "—"}</strong></div>
-          <div><span>Company ID</span><strong>{config.companyId || "—"}</strong></div>
-          <div><span>{fi ? "Työtila" : "Workspace"}</span><strong>{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
+        <div className="grid overflow-hidden rounded-2xl border border-[var(--line)] sm:grid-cols-3">
+          <div className="p-4"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</span><strong className="mt-2 block text-sm">{config.environment || "—"}</strong></div>
+          <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Company ID</span><strong className="mt-2 block break-all text-sm">{config.companyId || "—"}</strong></div>
+          <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Työtila" : "Workspace"}</span><strong className="mt-2 block text-sm">{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
         </div>
         <div className="mt-4">
           <Link href="/app/settings/business-central" className="btn-secondary">
@@ -262,19 +262,19 @@ export default async function SettingsPage({
         </div>
       </section>
 
-      <section id="users" className="surface settings-self-section mt-5">
-        <div className="settings-self-head">
+      <section id="users" className="surface mt-5 scroll-mt-5 p-6">
+        <div className="mb-5">
           <div>
             <div className="upload-v2-section-label">{fi ? "Käyttäjät" : "Users"}</div>
-            <h2>{fi ? "Työtilan käyttäjät ja roolit" : "Workspace users and roles"}</h2>
-            <p>{fi ? "Adminit voivat kutsua käyttäjiä ja hallita käyttöoikeuksia." : "Admins can invite users and manage access."}</p>
+            <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "Työtilan käyttäjät ja roolit" : "Workspace users and roles"}</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">{fi ? "Adminit voivat kutsua käyttäjiä ja hallita käyttöoikeuksia." : "Admins can invite users and manage access."}</p>
           </div>
         </div>
 
         {canManage ? (
-          <form action={inviteWorkspaceMember} className="settings-invite-row">
-            <input name="email" type="email" required placeholder={fi ? "käyttäjä@yritys.fi" : "user@company.com"} />
-            <select name="role" defaultValue="member">
+          <form action={inviteWorkspaceMember} className="my-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_auto]">
+            <input name="email" type="email" required placeholder={fi ? "käyttäjä@yritys.fi" : "user@company.com"} className="block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm" />
+            <select name="role" defaultValue="member" className="block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm">
               <option value="member">{fi ? "Jäsen" : "Member"}</option>
               <option value="reviewer">{fi ? "Tarkistaja" : "Reviewer"}</option>
               <option value="admin">Admin</option>
@@ -283,9 +283,9 @@ export default async function SettingsPage({
           </form>
         ) : null}
 
-        <div className="settings-members">
+        <div className="divide-y divide-[var(--line)] border-t border-[var(--line)]">
           {memberRows.map((member: any) => (
-            <div key={member.user_id} className="settings-member-row">
+            <div key={member.user_id} className="grid min-h-16 gap-3 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
               <div>
                 <strong>{member.isCurrent ? (fi ? "Sinä" : "You") : member.email || String(member.user_id).slice(0, 8)}</strong>
                 <span>{member.email || (fi ? "Käyttäjä" : "User")}</span>
@@ -293,7 +293,7 @@ export default async function SettingsPage({
               {canManage && !member.isCurrent ? (
                 <form action={updateWorkspaceMemberRole}>
                   <input type="hidden" name="userId" value={member.user_id} />
-                  <select name="role" defaultValue={member.role}>
+                  <select name="role" defaultValue={member.role} className="rounded-[10px] border border-[var(--line)] bg-white px-3 py-2 text-sm">
                     {workspace.role === "owner" ? <option value="owner">{fi ? "Omistaja" : "Owner"}</option> : null}
                     <option value="admin">Admin</option>
                     <option value="member">{fi ? "Jäsen" : "Member"}</option>
