@@ -160,6 +160,8 @@ export async function inviteWorkspaceMember(formData: FormData) {
     redirect(settingsUrl("Valitse sallittu käyttäjärooli.", "error", "users"));
   }
 
+  let failure: string | null = null;
+
   try {
     const admin = createAdminClient();
     const { data: listed, error: listError } = await admin.auth.admin.listUsers({
@@ -218,16 +220,18 @@ export async function inviteWorkspaceMember(formData: FormData) {
     if (upsertError) throw upsertError;
 
     revalidatePath("/app/settings");
-    redirect(settingsUrl("Käyttäjä kutsuttiin työtilaan.", "ok", "users"));
   } catch (error) {
-    redirect(
-      settingsUrl(
-        error instanceof Error ? error.message : "Käyttäjän kutsuminen epäonnistui.",
-        "error",
-        "users",
-      ),
-    );
+    failure =
+      error instanceof Error ? error.message : "Käyttäjän kutsuminen epäonnistui.";
   }
+
+  redirect(
+    settingsUrl(
+      failure ?? "Käyttäjä kutsuttiin työtilaan.",
+      failure ? "error" : "ok",
+      "users",
+    ),
+  );
 }
 
 export async function updateWorkspaceMemberRole(formData: FormData) {
@@ -249,6 +253,8 @@ export async function updateWorkspaceMemberRole(formData: FormData) {
       ),
     );
   }
+
+  let failure: string | null = null;
 
   try {
     const admin = createAdminClient();
@@ -278,14 +284,16 @@ export async function updateWorkspaceMemberRole(formData: FormData) {
     if (error) throw error;
 
     revalidatePath("/app/settings");
-    redirect(settingsUrl("Käyttäjän rooli päivitettiin.", "ok", "users"));
   } catch (error) {
-    redirect(
-      settingsUrl(
-        error instanceof Error ? error.message : "Roolin päivitys epäonnistui.",
-        "error",
-        "users",
-      ),
-    );
+    failure =
+      error instanceof Error ? error.message : "Roolin päivitys epäonnistui.";
   }
+
+  redirect(
+    settingsUrl(
+      failure ?? "Käyttäjän rooli päivitettiin.",
+      failure ? "error" : "ok",
+      "users",
+    ),
+  );
 }
