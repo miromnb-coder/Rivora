@@ -7428,12 +7428,20 @@ button, input, select { font: inherit; }
   line-height: 18px;
   text-decoration: none;
   cursor: pointer;
+  transition: background .14s ease, border-color .14s ease;
+}
+
+.rfq-review-v2-quote-cta:hover,
+.rfq-review-v2-actions button:hover {
+  background: #0e100e;
+  border-color: #0e100e;
 }
 
 .rfq-review-v2-quote-note {
-  margin-top: 18px;
-  color: #969c97;
-  font-size: 9px;
+  margin-top: 16px;
+  color: var(--app-muted);
+  font-size: 11px;
+  line-height: 16px;
 }
 
 @media (max-width: 960px) {
@@ -10800,6 +10808,13 @@ textarea:focus-visible {
   margin-top: 8px !important;
   font-size: 13px !important;
   line-height: 20px !important;
+}
+
+@media (max-width: 620px) {
+  .app-page-v2 > header.rfq-review-v2-head h1 {
+    font-size: 30px !important;
+    line-height: 36px !important;
+  }
 }
 
 .app-kicker-v2,
