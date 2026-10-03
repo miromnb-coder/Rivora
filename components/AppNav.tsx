@@ -133,8 +133,15 @@ export function AppNav({
 
   useEffect(() => {
     setPendingHref(null);
-    if (ordersActive && orderSubItems.length) setOrdersOpen(true);
-    if (settingsActive && settingsSubItems.length) setSettingsOpen(true);
+
+    if (ordersActive && orderSubItems.length) {
+      setOrdersOpen(true);
+      setSettingsOpen(false);
+    } else if (settingsActive && settingsSubItems.length) {
+      setSettingsOpen(true);
+      setOrdersOpen(false);
+    }
+
     setActiveSubHref(currentLocationKey(pathname));
   }, [pathname, ordersActive, settingsActive, orderSubItems.length, settingsSubItems.length]);
 
@@ -143,6 +150,45 @@ export function AppNav({
     window.addEventListener("hashchange", syncHash);
     return () => window.removeEventListener("hashchange", syncHash);
   }, [pathname]);
+
+  useEffect(() => {
+    if (pathname !== "/app/settings" || !settingsSubItems.length) return;
+
+    const ids = ["company", "quote-settings", "brand", "business-central", "users"];
+    let frame = 0;
+
+    const syncSectionFromScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const anchorLine = Math.min(window.innerHeight * 0.34, 260);
+        let activeId = ids[0];
+
+        for (const id of ids) {
+          const element = document.getElementById(id);
+          if (!element) continue;
+          const top = element.getBoundingClientRect().top;
+          if (top <= anchorLine) activeId = id;
+        }
+
+        const nearBottom =
+          window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 12;
+        if (nearBottom) activeId = ids[ids.length - 1];
+
+        setActiveSubHref(`/app/settings#${activeId}`);
+      });
+    };
+
+    syncSectionFromScroll();
+    window.addEventListener("scroll", syncSectionFromScroll, { passive: true });
+    window.addEventListener("resize", syncSectionFromScroll);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", syncSectionFromScroll);
+      window.removeEventListener("resize", syncSectionFromScroll);
+    };
+  }, [pathname, settingsSubItems.length]);
 
   return (
     <nav className={"app-sidebar-v2-nav" + (compact ? " is-compact" : "")} aria-label="Application navigation">
@@ -190,7 +236,21 @@ export function AppNav({
                   className="app-sidebar-v2-chevron"
                   aria-label={open ? `Collapse ${label} menu` : `Expand ${label} menu`}
                   aria-expanded={open}
-                  onClick={() => setOpen((value) => !value)}
+                  onClick={() => {
+                    if (id === "orders") {
+                      setOrdersOpen((value) => {
+                        const next = !value;
+                        if (next) setSettingsOpen(false);
+                        return next;
+                      });
+                    } else {
+                      setSettingsOpen((value) => {
+                        const next = !value;
+                        if (next) setOrdersOpen(false);
+                        return next;
+                      });
+                    }
+                  }}
                 >
                   <Chevron open={open} />
                 </button>
