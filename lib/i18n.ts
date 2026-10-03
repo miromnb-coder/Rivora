@@ -7,7 +7,7 @@ const dictionaries = {
       inbox: "Inbox", quotes: "Quotes", purchaseOrders: "Purchase orders", salesOrders: "Sales orders", customers: "Customers", leads: "Leads",
       processRfq: "Process RFQ", products: "Products", memory: "Customer memory",
       settings: "Settings", setup: "Setup", workspace: "Workspace", signOut: "Sign out",
-      product: "RFQ intelligence desk", language: "Language",
+      product: "Sales workspace", language: "Language",
     },
     common: {
       open: "Open", review: "Review", ready: "Ready", total: "total", notSet: "Not set",
@@ -72,7 +72,7 @@ const dictionaries = {
       inbox: "Saapuneet", quotes: "Tarjoukset", purchaseOrders: "Ostotilaukset", salesOrders: "Myyntitilaukset", customers: "Asiakkaat", leads: "Liidit",
       processRfq: "Käsittele tarjouspyyntö", products: "Tuotteet", memory: "Asiakaskohtainen muisti",
       settings: "Asetukset", setup: "Käyttöönotto", workspace: "Työtila", signOut: "Kirjaudu ulos",
-      product: "Tarjouspyyntöjen työpöytä", language: "Kieli",
+      product: "Myynnin työtila", language: "Kieli",
     },
     common: {
       open: "Avaa", review: "Tarkista", ready: "Valmis", total: "yhteensä", notSet: "Ei asetettu",
