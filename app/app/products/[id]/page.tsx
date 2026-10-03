@@ -39,14 +39,14 @@ export default async function ProductDetailPage({
   if (!product) notFound();
 
   return (
-    <div className="app-page-v2">
-      <div className="mb-5">
-        <Link href="/app/products" className="text-sm font-semibold">
+    <div className="app-page-v2 product-detail-page">
+      <div className="product-detail-back">
+        <Link href="/app/products">
           ← {fi ? "Tuotteet" : "Products"}
         </Link>
       </div>
 
-      <header className="mb-7">
+      <header className="product-detail-head">
         <div className="app-kicker-v2">{fi ? "Tuote" : "Product"}</div>
         <h1>{product.sku}</h1>
         <p>{product.name}</p>
@@ -58,16 +58,16 @@ export default async function ProductDetailPage({
         </div>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
-        <section className="surface p-6">
-          <div className="mb-5">
+      <div className="product-detail-layout">
+        <section className="surface product-detail-form-panel">
+          <div className="product-detail-section-head">
             <div className="upload-v2-section-label">{fi ? "Tuotetiedot" : "Product details"}</div>
-            <h2 className="mt-1 text-xl font-bold">
+            <h2>
               {fi ? "Muokkaa katalogitietoja" : "Edit catalogue data"}
             </h2>
           </div>
 
-          <form action={updateProduct} className="settings-form-grid">
+          <form action={updateProduct} className="settings-form-grid product-detail-form">
             <input type="hidden" name="productId" value={product.id} />
 
             <label>
@@ -129,31 +129,31 @@ export default async function ProductDetailPage({
           </form>
         </section>
 
-        <aside className="surface p-5">
+        <aside className="product-detail-erp">
           <div className="upload-v2-section-label">Business Central</div>
-          <h2 className="mt-1 text-lg font-bold">
+          <h2>
             {fi ? "ERP-vastine" : "ERP mapping"}
           </h2>
 
           {mapping?.external_number ? (
-            <div className="mt-4 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-4">
-              <span className="text-xs text-[var(--muted)]">BC item no.</span>
-              <strong className="mt-1 block">{mapping.external_number}</strong>
+            <div className="product-detail-erp-data">
+              <span>BC item no.</span>
+              <strong>{mapping.external_number}</strong>
               {mapping?.metadata?.businessCentralDisplayName ? (
-                <p className="mt-1 text-xs text-[var(--muted)]">
+                <p>
                   {String(mapping.metadata.businessCentralDisplayName)}
                 </p>
               ) : null}
             </div>
           ) : (
-            <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
+            <p className="product-detail-erp-empty">
               {fi
                 ? "Tälle tuotteelle ei ole vielä tallennettua Business Central -vastinetta."
                 : "This product does not have a saved Business Central mapping yet."}
             </p>
           )}
 
-          <Link href="/app/settings/business-central" className="btn-secondary mt-4">
+          <Link href="/app/settings/business-central" className="btn-secondary product-detail-erp-cta">
             {fi ? "Hallitse vastineita" : "Manage mappings"} →
           </Link>
         </aside>
