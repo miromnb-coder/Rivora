@@ -98,6 +98,7 @@ export default async function UploadPage({
 
         <form action={importCatalogue} className="upload-v2-catalogue-form">
           <FilePicker
+            variant="compact"
             name="catalogue"
             accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             title={productsReady ? copy.replaceCatalogue : copy.chooseCatalogue}
@@ -134,7 +135,7 @@ export default async function UploadPage({
           </div>
 
           <div className="upload-v2-picker">
-            <FilePicker name="pdfRfq" accept="*/*" title={copy.choosePdf} hint={copy.pdfHint} required locale={locale} />
+            <FilePicker variant="compact" name="pdfRfq" accept="*/*" title={copy.choosePdf} hint={copy.pdfHint} required locale={locale} />
           </div>
 
           <div className="upload-v2-submit-row">
@@ -159,6 +160,7 @@ export default async function UploadPage({
             <label><span>{copy.rfqRef} <em>{copy.optional}</em></span><input name="reference" placeholder={copy.rfqRef} /></label>
           </div>
           <FilePicker
+            variant="compact"
             name="rfq"
             accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             title={copy.chooseFile}
