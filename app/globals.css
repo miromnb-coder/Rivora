@@ -13046,24 +13046,24 @@ textarea:focus-visible {
   margin-top: 14px !important;
 }
 
-.nodra-file-picker {
+.file-picker--compact .nodra-file-picker {
   border-color: #d6d8d4 !important;
   border-radius: 12px !important;
   background: #fbfbfa !important;
   outline: none;
 }
 
-.nodra-file-picker:hover {
+.file-picker--compact .nodra-file-picker:hover {
   border-color: #b9bdb9 !important;
   background: #f8f8f6 !important;
 }
 
-.upload-file-input:focus-visible + .nodra-file-picker {
+.file-picker--compact .upload-file-input:focus-visible + .nodra-file-picker {
   border-color: var(--app-brand) !important;
   box-shadow: 0 0 0 3px rgba(54,90,73,.18) !important;
 }
 
-.nodra-file-picker-icon {
+.file-picker--compact .nodra-file-picker-icon {
   width: 32px !important;
   height: 32px !important;
   background: #f0f1ef !important;
@@ -13072,7 +13072,7 @@ textarea:focus-visible {
   font-weight: 700 !important;
 }
 
-.nodra-file-picker-button {
+.file-picker--compact .nodra-file-picker-button {
   min-height: 36px !important;
   margin-top: 12px !important;
   border-color: var(--app-line-strong) !important;
@@ -13083,7 +13083,7 @@ textarea:focus-visible {
   font-weight: 600 !important;
 }
 
-.upload-v2-primary .nodra-file-picker {
+.upload-v2-primary .file-picker--compact .nodra-file-picker {
   background: #fafaf8 !important;
 }
 
