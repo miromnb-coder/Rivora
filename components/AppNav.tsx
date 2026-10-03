@@ -203,7 +203,6 @@ export function AppNav({
               : [];
         const expandable = subItems.length > 0;
         const open = id === "orders" ? ordersOpen : settingsOpen;
-        const setOpen = id === "orders" ? setOrdersOpen : setSettingsOpen;
 
         if (expandable) {
           return (
