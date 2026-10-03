@@ -6121,8 +6121,9 @@ button, input, select { font: inherit; }
 }
 
 .rfq-review-v2-state {
-  justify-self: end;
-  align-self: start;
+  position: absolute;
+  top: 25px;
+  right: 0;
   border-radius: 999px;
   padding: 6px 8px;
   font-size: 10px;
@@ -6210,18 +6211,24 @@ button, input, select { font: inherit; }
 
   .rfq-review-v2-line {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 20px;
   }
 
   .rfq-review-v2-state {
-    justify-self: start;
+    position: static;
+    width: fit-content;
+    margin-top: 14px;
   }
 }
 
 @media (max-width: 620px) {
-  .inbox-v2-head h1,
-  .rfq-review-v2-head h1 {
+  .inbox-v2-head h1 {
     font-size: clamp(38px,11.4vw,52px);
+  }
+
+  .app-page-v2 > header.rfq-review-v2-head h1 {
+    font-size: 30px !important;
+    line-height: 36px !important;
   }
 
   .inbox-v2-primary {
@@ -6268,9 +6275,14 @@ button, input, select { font: inherit; }
     grid-template-columns: 1fr;
   }
 
+  .rfq-review-v2-extraction > div {
+    padding: 13px 0 14px;
+  }
+
   .rfq-review-v2-extraction > div + div {
     border-left: 0;
-    border-top: 1px solid #e5e7e3;
+    border-top: 1px solid #e5e6e2;
+    padding-left: 0;
   }
 
   .rfq-review-v2-decision-top,
@@ -6292,9 +6304,14 @@ button, input, select { font: inherit; }
     width: 100%;
   }
 
+  .rfq-review-v2-quote-cta {
+    width: 100%;
+    justify-content: center;
+  }
+
   .rfq-review-v2-ready {
-    padding: 24px;
-    border-radius: 20px;
+    padding: 18px;
+    border-radius: 14px;
   }
 }
 
