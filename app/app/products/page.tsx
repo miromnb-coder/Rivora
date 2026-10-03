@@ -55,7 +55,7 @@ export default async function ProductsPage() {
               const tone = stockTone(stock);
               const stockLabel = tone === "ready" ? copy.inStock : tone === "low" ? copy.lowStock : tone === "out" ? copy.outStock : copy.noStock;
               return (
-                <article key={product.id} className="products-v2-row">
+                <Link key={product.id} href={`/app/products/${product.id}`} className="products-v2-row">
                   <div className="products-v2-identity">
                     <div className="products-v2-meta">
                       <span>{product.manufacturer || copy.manufacturerMissing}</span>
@@ -66,7 +66,8 @@ export default async function ProductsPage() {
                   <div className="products-v2-commercial"><span>{copy.unitPrice}</span><strong>{product.unit_price == null ? getDictionary(locale).common.notSet : money.format(Number(product.unit_price))}</strong><small>{product.unit || copy.unitMissing}</small></div>
                   <div className="products-v2-commercial"><span>{copy.stock}</span><strong>{stock == null ? getDictionary(locale).common.notSet : stock.toLocaleString(numberLocale)}</strong><small>{product.unit || copy.units}</small></div>
                   <div className={`products-v2-stock ${tone}`}>{stockLabel}</div>
-                </article>
+                  <span className="products-v2-row-arrow" aria-hidden="true">→</span>
+                </Link>
               );
             })}
           </div>
