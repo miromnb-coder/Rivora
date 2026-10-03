@@ -11547,3 +11547,17 @@ textarea:focus-visible {
     margin-top: auto !important;
   }
 }
+
+
+/* Fix sidebar grid rows stretching when accordion groups are toggled */
+@media (min-width: 1024px) {
+  .app-sidebar-v2-nav {
+    align-content: start !important;
+    grid-auto-rows: max-content !important;
+  }
+
+  .app-sidebar-v2-order-group,
+  .app-sidebar-v2-link {
+    align-self: start;
+  }
+}
