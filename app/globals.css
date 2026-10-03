@@ -11177,11 +11177,11 @@ textarea:focus-visible {
 }
 
 @media (max-width: 900px) {
-  .product-detail-form {
+  .product-detail-page .product-detail-form {
     grid-template-columns: 1fr;
   }
 
-  .product-detail-form .sm\:col-span-2 {
+  .product-detail-page .product-detail-form .sm\:col-span-2 {
     grid-column: auto;
   }
 }
