@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
-import { addCustomerContact, deleteCustomerContact, setPrimaryContact } from "../actions";
+import { addCustomerContact, deleteCustomerContact, setPrimaryContact, updateCustomer } from "../actions";
 import { formatLocale, getLocale } from "@/lib/locale";
 
 function statusLabel(value: string, fi: boolean) {
@@ -14,8 +14,8 @@ function statusLabel(value: string, fi: boolean) {
   return labels[value]?.[fi ? 0 : 1] ?? value.replaceAll("_", " ");
 }
 
-export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const [{ id }, locale, context] = await Promise.all([params, getLocale(), requireWorkspace()]);
+export default async function CustomerDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
+  const [{ id }, query, locale, context] = await Promise.all([params, searchParams, getLocale(), requireWorkspace()]);
   const { supabase, workspace } = context;
   const fi = locale === "fi";
   const displayLocale = formatLocale(locale);
@@ -38,6 +38,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     noDescription: fi ? "Ei kuvausta" : "No description", canonical: fi ? "Kanoninen tuote" : "Canonical product",
     unavailable: fi ? "Ei saatavilla" : "Unavailable", uses: fi ? "Käytöt" : "Uses",
     noMappings: fi ? "Ei opittuja tuotevastineita vielä." : "No learned product mappings yet.",
+    details: fi ? "Asiakastiedot" : "Customer details", save: fi ? "Tallenna tiedot" : "Save details",
+    saved: fi ? "Asiakastiedot tallennettiin." : "Customer details saved.",
+    externalId: fi ? "ERP-/asiakastunnus" : "ERP / customer ID", domain: fi ? "Sähköpostidomain" : "Email domain",
   };
 
   const { data: customer } = await supabase
@@ -67,6 +70,35 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           {customer.external_id || text.noExternal}{customer.email_domain ? ` · ${customer.email_domain}` : ""}
         </p>
       </header>
+
+      {query.saved ? (
+        <div className="mb-5 rounded-xl border border-[#dfe7df] bg-[#f7faf7] p-4 text-sm text-[#426048]">
+          {text.saved}
+        </div>
+      ) : null}
+
+      <section className="surface mb-6 p-5">
+        <div className="mb-4">
+          <div className="upload-v2-section-label">{text.details}</div>
+          <h2 className="mt-1 text-lg font-bold">{text.details}</h2>
+        </div>
+        <form action={updateCustomer} className="grid gap-3 md:grid-cols-[1.5fr_1fr_1fr_auto] md:items-end">
+          <input type="hidden" name="customerId" value={customer.id} />
+          <label>
+            <span className="settings-field-label">{fi ? "Asiakasyrityksen nimi" : "Customer company name"}</span>
+            <input name="name" required defaultValue={customer.name} />
+          </label>
+          <label>
+            <span className="settings-field-label">{text.externalId}</span>
+            <input name="externalId" defaultValue={customer.external_id || ""} />
+          </label>
+          <label>
+            <span className="settings-field-label">{text.domain}</span>
+            <input name="emailDomain" defaultValue={customer.email_domain || ""} placeholder="customer.com" />
+          </label>
+          <button className="btn-primary">{text.save}</button>
+        </form>
+      </section>
 
       <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
         <aside className="space-y-6">
