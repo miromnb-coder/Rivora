@@ -201,7 +201,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                   <Link
                     key={quote.id}
                     href={`/app/quotes/${quote.id}`}
-                    className="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[#ecede9] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_120px_140px_20px] md:gap-4"
+                    className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[#ecede9] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_120px_140px_20px] md:gap-4"
                   >
                     <div className="min-w-0">
                       <strong className="block truncate text-sm font-semibold leading-5 text-[var(--app-ink)]">
@@ -242,7 +242,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                   <Link
                     key={rfq.id}
                     href={`/app/rfq/${rfq.id}`}
-                    className="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[#ecede9] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_110px_120px_20px] md:gap-4"
+                    className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[#ecede9] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_110px_120px_20px] md:gap-4"
                   >
                     <div className="min-w-0">
                       <strong className="block truncate text-sm font-semibold leading-5 text-[var(--app-ink)]">
@@ -258,7 +258,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                     <span className="text-xs font-medium leading-[18px] text-[#686d69] capitalize">
                       {statusLabel(rfq.status, fi)}
                     </span>
-                    <span className="justify-self-end text-[#8e938f]">→</span>
+                    <span className="justify-self-end text-[#8e938f] transition group-hover:translate-x-0.5 group-hover:text-[var(--app-ink)]">→</span>
                   </Link>
                 ))}
               </div>
@@ -285,7 +285,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                       className="grid min-h-[72px] grid-cols-[1fr_auto] items-center gap-x-3.5 gap-y-2.5 border-b border-[#ecede9] px-0.5 py-[13px] md:grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)_80px] md:gap-4"
                     >
                       <div className="min-w-0">
-                        <span className="block text-[10px] font-semibold leading-3.5 text-[#858a86]">{text.customerLanguage}</span>
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.customerLanguage}</span>
                         <strong className="mt-0.5 block break-words text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
                           {mapping.customer_sku || text.noSku}
                         </strong>
@@ -297,7 +297,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                       <span className="justify-self-end text-[#8e938f]">→</span>
 
                       <div className="min-w-0">
-                        <span className="block text-[10px] font-semibold leading-3.5 text-[#858a86]">{text.canonical}</span>
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.canonical}</span>
                         <strong className="mt-0.5 block break-words text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
                           {product?.sku || text.unavailable}
                         </strong>
@@ -305,7 +305,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                       </div>
 
                       <div className="text-right md:text-left">
-                        <span className="block text-[10px] font-semibold leading-3.5 text-[#858a86]">{text.uses}</span>
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.uses}</span>
                         <strong className="mt-0.5 block text-[18px] font-semibold leading-6 text-[var(--app-ink)]">
                           {Number(mapping.times_used ?? 0)}
                         </strong>
