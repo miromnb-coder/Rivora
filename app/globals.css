@@ -6195,6 +6195,11 @@ button, input, select { font: inherit; }
     flex-direction: column;
   }
 
+  .app-page-v2 > header.rfq-review-v2-head h1 {
+    font-size: 30px !important;
+    line-height: 36px !important;
+  }
+
   .inbox-v2-summary,
   .rfq-review-v2-summary {
     grid-template-columns: 1fr 1fr;
