@@ -34,7 +34,7 @@ export default async function UploadPage({
 
   return (
     <div className="app-page-v2 upload-v2">
-      <header className="upload-v2-hero">
+      <header className="upload-v2-hero product-page-head">
         <div className="app-kicker-v2">{copy.kicker}</div>
         <h1>{copy.title}</h1>
         <p>{copy.description}</p>
