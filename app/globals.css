@@ -12959,6 +12959,10 @@ textarea:focus-visible {
   margin-bottom: 30px;
 }
 
+.upload-v2 .product-page-head + .upload-v2-alert {
+  margin-top: 0;
+}
+
 .upload-v2-setup {
   margin-top: 0 !important;
   padding: 18px 0 !important;
