@@ -185,6 +185,17 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
             const primaryProduct = Array.isArray(primaryCandidate?.products)
               ? primaryCandidate?.products?.[0]
               : primaryCandidate?.products;
+            const stateLabel =
+              line.review_status === "confirmed"
+                ? (fi ? "Vahvistettu" : "Confirmed")
+                : line.review_status === "needs_review"
+                  ? text.needsReview
+                  : String(line.review_status).replaceAll("_", " ");
+            const lineState = (
+              <div className={`rfq-review-v2-state ${tone}`}>
+                {stateLabel}
+              </div>
+            );
 
             return (
               <article key={line.id} className={`rfq-review-v2-line ${tone}`}>
@@ -282,6 +293,8 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                         })}
                       </div>
 
+                      {lineState}
+
                       <div className="rfq-review-v2-actions">
                         <label className="rfq-review-v2-remember">
                           <input name="remember" type="checkbox" defaultChecked />
@@ -294,17 +307,16 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                       </div>
                     </form>
                   ) : (
-                    <div className="rfq-review-v2-no-candidate">
-                      <div className="upload-v2-section-label">{text.manual}</div>
-                      <p>
-                        No catalogue candidate cleared the fuzzy threshold. The extracted source line remains preserved.
-                      </p>
-                    </div>
+                    <>
+                      <div className="rfq-review-v2-no-candidate">
+                        <div className="upload-v2-section-label">{text.manual}</div>
+                        <p>
+                          No catalogue candidate cleared the fuzzy threshold. The extracted source line remains preserved.
+                        </p>
+                      </div>
+                      {lineState}
+                    </>
                   )}
-                </div>
-
-                <div className={`rfq-review-v2-state ${tone}`}>
-                  {line.review_status === "confirmed" ? (fi ? "Vahvistettu" : "Confirmed") : line.review_status === "needs_review" ? text.needsReview : String(line.review_status).replaceAll("_", " ")}
                 </div>
               </article>
             );
