@@ -25,14 +25,14 @@ export default async function CustomersPage() {
   }));
 
   return (
-    <div className="app-page-v2">
-      <header className="nodra-page-head">
+    <div className="app-page-v2 customers-page">
+      <header className="product-page-head">
         <div><div className="app-kicker-v2">{copy.kicker}</div><h1>{copy.title}</h1><p>{copy.description}</p></div>
       </header>
 
-      <section className="surface nodra-section">
+      <section className="customers-create-section">
         <div className="upload-v2-section-label">{copy.add}</div>
-        <form action={createCustomer} className="nodra-inline-form">
+        <form action={createCustomer} className="nodra-inline-form customers-create-form">
           <input name="name" required placeholder={copy.companyPlaceholder} className="nodra-input" />
           <input name="externalId" placeholder={copy.externalPlaceholder} className="nodra-input" />
           <input name="emailDomain" placeholder="customer.com" className="nodra-input" />
@@ -40,8 +40,8 @@ export default async function CustomersPage() {
         </form>
       </section>
 
-      <section className="surface nodra-data-surface">
-        <div className="nodra-section-head">
+      <section className="customers-data-section">
+        <div className="nodra-section-head customers-list-head">
           <div><div className="upload-v2-section-label">{copy.customers}</div><h2>{rows.length} {rows.length === 1 ? copy.customer : copy.customers.toLowerCase()}</h2></div>
         </div>
         {rows.length ? (
