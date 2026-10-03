@@ -243,7 +243,7 @@ export default async function SettingsPage({
             {config.configured ? (fi ? "Yhdistetty" : "Connected") : (fi ? "Vaatii huomiota" : "Needs attention")}
           </span>
         </div>
-        <div className="grid overflow-hidden rounded-2xl border border-[var(--line)] sm:grid-cols-3">
+        <div className="settings-p1-connection-strip">
           <div className="p-4"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</span><strong className="mt-2 block text-sm">{config.environment || "—"}</strong></div>
           <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Company ID</span><strong className="mt-2 block break-all text-sm">{config.companyId || "—"}</strong></div>
           <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Työtila" : "Workspace"}</span><strong className="mt-2 block text-sm">{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
