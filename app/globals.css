@@ -12955,6 +12955,7 @@ textarea:focus-visible {
 
 /* Upload workspace */
 .upload-v2 .product-page-head {
+  display: block;
   margin-bottom: 30px;
 }
 
