@@ -137,3 +137,14 @@ test("duplicate identifiers are paired one-to-one using quantity as tie breaker"
   assert.equal(p1?.quoteLineId, "q2");
   assert.equal(p2?.quoteLineId, "q1");
 });
+
+
+test("reconciliation accepts gross PO unit price when line total proves the same discounted net value", () => {
+  const result = reconcilePurchaseOrder(
+    [poLine({ unitPrice: 12, lineTotal: 108 })],
+    [quoteLine()]
+  );
+
+  assert.ok(!result.lines[0]?.exceptionCodes.includes("unit_price_mismatch"));
+  assert.ok(!result.lines[0]?.exceptionCodes.includes("line_total_mismatch"));
+});
