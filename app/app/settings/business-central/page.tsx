@@ -7,7 +7,7 @@ import { saveBusinessCentralMapping } from "./actions";
 export default async function BusinessCentralSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; verified?: string }>;
 }) {
   const [query, locale, { supabase, workspace }] = await Promise.all([
     searchParams,
@@ -34,7 +34,7 @@ export default async function BusinessCentralSettingsPage({
       .limit(500),
     supabase
       .from("erp_entity_mappings")
-      .select("entity_type,local_entity_id,external_number,metadata,updated_at")
+      .select("entity_type,local_entity_id,external_number,external_id,metadata,updated_at")
       .eq("organization_id", workspace.id)
       .eq("provider", "business_central"),
   ]);
@@ -46,11 +46,18 @@ export default async function BusinessCentralSettingsPage({
     ]),
   );
 
+  const mappingVerified = (mapping: any) =>
+    Boolean(
+      mapping?.external_id &&
+        mapping?.external_number &&
+        (mapping?.metadata?.autoMatched === true || mapping?.metadata?.bcValidated === true),
+    );
+
   const mappedCustomers = (customers ?? []).filter((customer: any) =>
-    mappingByEntity.has(`customer:${customer.id}`),
+    mappingVerified(mappingByEntity.get(`customer:${customer.id}`)),
   ).length;
   const mappedProducts = (products ?? []).filter((product: any) =>
-    mappingByEntity.has(`product:${product.id}`),
+    mappingVerified(mappingByEntity.get(`product:${product.id}`)),
   ).length;
 
   return (
@@ -76,9 +83,17 @@ export default async function BusinessCentralSettingsPage({
         </p>
       </header>
 
+      {query.error ? (
+        <div className="mb-5 rounded-xl border border-[#f0d2d2] bg-[#fff6f6] p-4 text-sm text-[#8a2f2f]">
+          {query.error}
+        </div>
+      ) : null}
+
       {query.saved ? (
         <div className="mb-5 rounded-xl border border-[#dfe7df] bg-[#f7faf7] p-4 text-sm text-[#426048]">
-          {fi ? "Business Central -vastine tallennettiin." : "Business Central mapping saved."}
+          {fi
+            ? `Business Central -vastine tarkistettiin ja tallennettiin${query.verified ? `: ${query.verified}` : "."}`
+            : `Business Central mapping verified and saved${query.verified ? `: ${query.verified}` : "."}`}
         </div>
       ) : null}
 
@@ -169,9 +184,11 @@ export default async function BusinessCentralSettingsPage({
                       {customer.external_id || (fi ? "Ei ERP-tunnusta" : "No ERP ID")}
                     </span>
                     <span>
-                      {mapping?.external_number
-                        ? (fi ? "BC-vastine tallennettu" : "BC mapping saved")
-                        : (fi ? "Ei BC-vastinetta" : "No BC mapping")}
+                      {mappingVerified(mapping)
+                        ? (fi ? "BC-vastine tarkistettu" : "BC mapping verified")
+                        : mapping?.external_number
+                          ? (fi ? "BC-tarkistus vaaditaan" : "BC verification required")
+                          : (fi ? "Ei BC-vastinetta" : "No BC mapping")}
                     </span>
                   </div>
                 </div>
@@ -192,7 +209,7 @@ export default async function BusinessCentralSettingsPage({
                   />
                   {canManage ? (
                     <button className="btn-secondary w-full sm:w-auto">
-                      {fi ? "Tallenna" : "Save"}
+                      {fi ? "Tarkista BC:stä ja tallenna" : "Verify in BC and save"}
                     </button>
                   ) : null}
                 </form>
@@ -239,6 +256,12 @@ export default async function BusinessCentralSettingsPage({
                   {mapping?.external_number ? (
                     <p className="mt-0.5 break-words text-[11px] leading-4 text-[#686d69]">
                       {fi ? "Nykyinen BC item" : "Current BC item"}: {mapping.external_number}
+                      {mapping?.metadata?.businessCentralDisplayName
+                        ? ` · ${String(mapping.metadata.businessCentralDisplayName)}`
+                        : ""}
+                      {!mappingVerified(mapping)
+                        ? (fi ? " · tarkistus vaaditaan" : " · verification required")
+                        : ""}
                     </p>
                   ) : null}
                 </div>
@@ -259,7 +282,7 @@ export default async function BusinessCentralSettingsPage({
                   />
                   {canManage ? (
                     <button className="btn-secondary w-full sm:w-auto">
-                      {fi ? "Tallenna" : "Save"}
+                      {fi ? "Tarkista BC:stä ja tallenna" : "Verify in BC and save"}
                     </button>
                   ) : null}
                 </form>
