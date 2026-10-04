@@ -215,8 +215,8 @@ function money(value: number, currency: string) {
   return `${formatNumber(value)} ${currency}`;
 }
 
-function dateLabel(value: string | null) {
-  if (!value) return "Not set";
+function dateLabel(value: string | null, locale: "fi" | "en") {
+  if (!value) return locale === "fi" ? "Ei asetettu" : "Not set";
   const date = value.includes("T") ? new Date(value) : new Date(`${value}T12:00:00Z`);
   return new Intl.DateTimeFormat("fi-FI", {
     year: "numeric",
@@ -226,13 +226,64 @@ function dateLabel(value: string | null) {
   }).format(date);
 }
 
-function buildPageHeader(data: QuoteDocumentData, continuation: boolean) {
+function pdfLabels(locale: "fi" | "en") {
+  return locale === "fi"
+    ? {
+        businessId: "Y-tunnus",
+        quote: "TARJOUS",
+        continued: "jatkuu",
+        details: "TARJOUKSEN TIEDOT",
+        quoteDate: "Tarjouksen päiväys",
+        validUntil: "Voimassa asti",
+        reference: "Viite",
+        customer: "ASIAKAS",
+        draft: "LUONNOS - EI HYVÄKSYTTY",
+        item: "TUOTE",
+        description: "KUVAUS",
+        qty: "MÄÄRÄ",
+        unitPrice: "YKSIKKÖHINTA",
+        discount: "ALENNUS",
+        total: "YHTEENSÄ",
+        line: "Rivi",
+        product: "Tuote",
+        subtotal: "Välisumma",
+        vat: "ALV",
+        notes: "HUOMAUTUKSET",
+        page: "Sivu",
+      }
+    : {
+        businessId: "Business ID",
+        quote: "QUOTE",
+        continued: "continued",
+        details: "QUOTE DETAILS",
+        quoteDate: "Quote date",
+        validUntil: "Valid until",
+        reference: "Reference",
+        customer: "CUSTOMER",
+        draft: "DRAFT - NOT APPROVED",
+        item: "ITEM",
+        description: "DESCRIPTION",
+        qty: "QTY",
+        unitPrice: "UNIT PRICE",
+        discount: "DISC.",
+        total: "TOTAL",
+        line: "Line",
+        product: "Product",
+        subtotal: "Subtotal",
+        vat: "VAT",
+        notes: "NOTES",
+        page: "Page",
+      };
+}
+
+function buildPageHeader(data: QuoteDocumentData, continuation: boolean, locale: "fi" | "en") {
+  const labels = pdfLabels(locale);
   let content = "";
   const sellerX = data.logoBytes ? 132 : 44;
 
   content += pdfText(data.sellerName, sellerX, 796, 18, "F2", 0.07);
   const sellerMeta = [
-    data.sellerBusinessId ? `Business ID ${data.sellerBusinessId}` : "",
+    data.sellerBusinessId ? `${labels.businessId} ${data.sellerBusinessId}` : "",
     data.sellerEmail || "",
     data.sellerPhone || "",
   ].filter(Boolean).join(" | ");
@@ -244,45 +295,46 @@ function buildPageHeader(data: QuoteDocumentData, continuation: boolean) {
   }
   if (sellerMeta) content += pdfText(sellerMeta, sellerX, 758, 7.3, "F1", 0.36);
 
-  content += pdfText("QUOTE", 471, 798, 16, "F2", 0.08);
+  content += pdfText(labels.quote, 471, 798, 16, "F2", 0.08);
   content += pdfText(data.quoteNumber, 471, 779, 9, "F1", 0.28);
   content += line(44, 742, 551, 742, 0.80, 0.8);
 
   if (continuation) {
-    content += pdfText(`${data.quoteNumber} - continued`, 44, 714, 10, "F2", 0.18);
+    content += pdfText(`${data.quoteNumber} - ${labels.continued}`, 44, 714, 10, "F2", 0.18);
     return { content, tableY: 684 };
   }
 
-  content += pdfText("QUOTE DETAILS", 44, 716, 7, "F2", 0.48);
-  content += pdfText("Quote date", 44, 694, 7, "F2", 0.50);
-  content += pdfText(dateLabel(data.createdAt), 44, 678, 10, "F1", 0.14);
-  content += pdfText("Valid until", 180, 694, 7, "F2", 0.50);
-  content += pdfText(dateLabel(data.validUntil), 180, 678, 10, "F1", 0.14);
-  content += pdfText("Reference", 316, 694, 7, "F2", 0.50);
+  content += pdfText(labels.details, 44, 716, 7, "F2", 0.48);
+  content += pdfText(labels.quoteDate, 44, 694, 7, "F2", 0.50);
+  content += pdfText(dateLabel(data.createdAt, locale), 44, 678, 10, "F1", 0.14);
+  content += pdfText(labels.validUntil, 180, 694, 7, "F2", 0.50);
+  content += pdfText(dateLabel(data.validUntil, locale), 180, 678, 10, "F1", 0.14);
+  content += pdfText(labels.reference, 316, 694, 7, "F2", 0.50);
   content += pdfText(data.customerReference || data.rfqReference || "-", 316, 678, 10, "F1", 0.14);
 
   content += fillRect(44, 593, 507, 64, 0.965);
-  content += pdfText("CUSTOMER", 56, 640, 7, "F2", 0.48);
+  content += pdfText(labels.customer, 56, 640, 7, "F2", 0.48);
   content += pdfText(data.customerName, 56, 619, 12, "F2", 0.09);
   if (data.recipientName) content += pdfText(data.recipientName, 300, 621, 8.5, "F1", 0.30);
   if (data.recipientEmail) content += pdfText(data.recipientEmail, 300, 606, 8.5, "F1", 0.30);
 
   if (!["approved", "sent"].includes(data.status)) {
     content += fillRect(424, 669, 127, 25, 0.93);
-    content += pdfText("DRAFT - NOT APPROVED", 434, 678, 8, "F2", 0.34);
+    content += pdfText(labels.draft, 434, 678, 8, "F2", 0.34);
   }
 
   return { content, tableY: 557 };
 }
 
-function tableHeader(y: number) {
+function tableHeader(y: number, locale: "fi" | "en") {
+  const labels = pdfLabels(locale);
   let content = fillRect(44, y - 4, 507, 25, 0.92);
-  content += pdfText("ITEM", 50, y + 4, 7, "F2", 0.30);
-  content += pdfText("DESCRIPTION", 175, y + 4, 7, "F2", 0.30);
-  content += pdfText("QTY", 354, y + 4, 7, "F2", 0.30);
-  content += pdfText("UNIT PRICE", 398, y + 4, 7, "F2", 0.30);
-  content += pdfText("DISC.", 463, y + 4, 7, "F2", 0.30);
-  content += pdfText("TOTAL", 505, y + 4, 7, "F2", 0.30);
+  content += pdfText(labels.item, 50, y + 4, 7, "F2", 0.30);
+  content += pdfText(labels.description, 175, y + 4, 7, "F2", 0.30);
+  content += pdfText(labels.qty, 354, y + 4, 7, "F2", 0.30);
+  content += pdfText(labels.unitPrice, 398, y + 4, 7, "F2", 0.30);
+  content += pdfText(labels.discount, 463, y + 4, 7, "F2", 0.30);
+  content += pdfText(labels.total, 505, y + 4, 7, "F2", 0.30);
   return content;
 }
 
@@ -332,15 +384,16 @@ function buildPdfObjects(pageStreams: string[]) {
   return Buffer.from(pdf, "latin1");
 }
 
-function renderBaseQuotePdf(data: QuoteDocumentData) {
+function renderBaseQuotePdf(data: QuoteDocumentData, locale: "fi" | "en") {
+  const labels = pdfLabels(locale);
   const pages: string[] = [];
   let page = "";
   let y = 0;
   let continuation = false;
 
   const startPage = () => {
-    const header = buildPageHeader(data, continuation);
-    page = header.content + tableHeader(header.tableY);
+    const header = buildPageHeader(data, continuation, locale);
+    page = header.content + tableHeader(header.tableY, locale);
     y = header.tableY - 28;
     continuation = true;
   };
@@ -363,11 +416,11 @@ function renderBaseQuotePdf(data: QuoteDocumentData) {
     const discount = Number(lineItem.discount_percent ?? 0);
     const total = Number(lineItem.line_total);
     const skuLines = wrapText(
-      lineItem.sku_snapshot || `Line ${lineItem.line_number}`,
+      lineItem.sku_snapshot || `${labels.line} ${lineItem.line_number}`,
       22,
       2,
     );
-    const descriptions = wrapText(lineItem.description_snapshot || "Product", 30, 2);
+    const descriptions = wrapText(lineItem.description_snapshot || labels.product, 30, 2);
 
     page += line(44, y + 11, 551, y + 11, 0.90, 0.45);
     skuLines.forEach((sku, index) => {
@@ -394,18 +447,18 @@ function renderBaseQuotePdf(data: QuoteDocumentData) {
 
   page += fillRect(340, y - 82, 211, 92, 0.97);
   page += line(340, y + 10, 551, y + 10, 0.78, 0.8);
-  page += pdfText("Subtotal", 356, y - 11, 8.5, "F1", 0.34);
+  page += pdfText(labels.subtotal, 356, y - 11, 8.5, "F1", 0.34);
   page += pdfText(money(subtotal, data.currency), 474, y - 11, 8.8, "F2", 0.12);
-  page += pdfText(`VAT ${formatNumber(data.taxRate)}%`, 356, y - 31, 8.5, "F1", 0.34);
+  page += pdfText(`${labels.vat} ${formatNumber(data.taxRate)}%`, 356, y - 31, 8.5, "F1", 0.34);
   page += pdfText(money(tax, data.currency), 474, y - 31, 8.8, "F2", 0.12);
   page += line(356, y - 43, 535, y - 43, 0.83, 0.6);
-  page += pdfText("TOTAL", 356, y - 66, 10, "F2", 0.08);
+  page += pdfText(labels.total, 356, y - 66, 10, "F2", 0.08);
   page += pdfText(money(grandTotal, data.currency), 464, y - 66, 10.5, "F2", 0.08);
 
   if (data.notes) {
     const noteLines = wrapText(data.notes, 84, 5);
     const noteY = y - 105;
-    page += pdfText("NOTES", 44, noteY, 7, "F2", 0.48);
+    page += pdfText(labels.notes, 44, noteY, 7, "F2", 0.48);
     noteLines.forEach((note, index) => {
       page += pdfText(note, 44, noteY - 18 - index * 12, 8.5, "F1", 0.22);
     });
@@ -418,19 +471,19 @@ function renderBaseQuotePdf(data: QuoteDocumentData) {
     let footer = line(44, 46, 551, 46, 0.87, 0.45);
     const identity = [
       data.sellerName,
-      data.sellerBusinessId ? `Business ID ${data.sellerBusinessId}` : "",
+      data.sellerBusinessId ? `${labels.businessId} ${data.sellerBusinessId}` : "",
       data.sellerEmail || "",
     ].filter(Boolean).join(" | ");
     footer += pdfText(identity, 44, 28, 7.1, "F1", 0.48);
-    footer += pdfText(`Page ${index + 1} / ${totalPages}`, 500, 28, 7.1, "F1", 0.48);
+    footer += pdfText(`${labels.page} ${index + 1} / ${totalPages}`, 500, 28, 7.1, "F1", 0.48);
     return content + footer;
   });
 
   return buildPdfObjects(finalized);
 }
 
-export async function renderQuotePdf(data: QuoteDocumentData) {
-  const base = renderBaseQuotePdf(data);
+export async function renderQuotePdf(data: QuoteDocumentData, locale: "fi" | "en" = "en") {
+  const base = renderBaseQuotePdf(data, locale);
   if (!data.logoBytes || !data.logoMime) return base;
 
   try {
