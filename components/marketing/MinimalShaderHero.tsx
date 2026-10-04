@@ -56,36 +56,6 @@ export function MinimalShaderHero({ locale }: { locale: Locale }) {
             <span>ERP</span>
           </div>
         </div>
-
-        <div className="hero-proof hero-order-proof" aria-label="Averomira order workflow example">
-          <div className="hero-proof-topline">
-            <span>{fi ? "Tilauscase" : "Order case"}</span>
-            <b>Nordic Flow Systems Oy</b>
-          </div>
-
-          <div className="hero-order-stages">
-            <div className="is-done"><i>✓</i><span>RFQ</span><b>RFQ-2026-001</b></div>
-            <div className="is-done"><i>✓</i><span>{fi ? "Tarjous" : "Quote"}</span><b>Q-2026-9421E3</b></div>
-            <div className="is-done"><i>✓</i><span>PO</span><b>PO-2026-1001</b></div>
-            <div className="is-current"><i>4</i><span>ERP</span><b>{fi ? "Valmis vientiin" : "Ready to export"}</b></div>
-          </div>
-
-          <div className="hero-order-summary">
-            <div>
-              <span>{fi ? "Quote ↔ PO" : "Quote ↔ PO"}</span>
-              <strong>{fi ? "7/7 riviä täsmää" : "7/7 lines match"}</strong>
-            </div>
-            <em>{fi ? "Ei poikkeamia" : "No exceptions"}</em>
-          </div>
-
-          <div className="hero-order-action">
-            <div>
-              <span>Business Central</span>
-              <strong>{fi ? "8/8 vastinetta tunnistettu" : "8/8 mappings identified"}</strong>
-            </div>
-            <b>{fi ? "Luo myyntitilaus" : "Create sales order"} →</b>
-          </div>
-        </div>
       </div>
     </section>
   );
