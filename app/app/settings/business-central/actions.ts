@@ -85,3 +85,38 @@ export async function saveBusinessCentralMapping(formData: FormData) {
       encodeURIComponent(displayName),
   );
 }
+
+
+export async function removeBusinessCentralMapping(formData: FormData) {
+  const context = await requireWorkspace();
+  if (!["owner", "admin"].includes(context.workspace.role)) {
+    throw new Error("Owner or admin access is required.");
+  }
+
+  const entityType = String(formData.get("entityType") ?? "").trim();
+  const localEntityId = String(formData.get("localEntityId") ?? "").trim();
+
+  if (!["customer", "product"].includes(entityType) || !localEntityId) {
+    redirect(
+      "/app/settings/business-central?error=" +
+        encodeURIComponent("Business Central mapping could not be removed."),
+    );
+  }
+
+  const { error } = await context.supabase.rpc("remove_erp_entity_mapping", {
+    target_entity_type: entityType,
+    target_local_entity_id: localEntityId,
+  });
+
+  if (error) {
+    redirect(
+      "/app/settings/business-central?error=" +
+        encodeURIComponent(error.message),
+    );
+  }
+
+  revalidatePath("/app/settings/business-central");
+  revalidatePath("/app");
+  revalidatePath("/app/orders");
+  redirect("/app/settings/business-central?removed=1");
+}
