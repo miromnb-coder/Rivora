@@ -179,7 +179,7 @@ export function getQuoteDetailCopy(locale: Locale) {
     downloadPdf: fi ? "Lataa PDF" : "Download PDF",
     uploadPurchaseOrder: fi ? "Lataa ostotilaus" : "Upload purchase order",
     sourceRfq: fi ? "Lähdepyyntö" : "Source RFQ",
-    builder: "Quote Builder",
+    builder: fi ? "Tarjouksen muokkaus" : "Quote Builder",
     draftQuote: fi ? "Tarjousluonnos" : "Draft quote",
     unknownCustomer: fi ? "Tuntematon asiakas" : "Unknown customer",
     source: fi ? "lähde" : "source",
