@@ -4,7 +4,6 @@ import { formatLocale, getLocale } from "@/lib/locale";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import {
   processPdfPurchaseOrder,
-  processStructuredPurchaseOrder,
 } from "./actions";
 
 function statusLabel(status: string, fi: boolean) {
@@ -199,7 +198,7 @@ export default async function PurchaseOrdersPage({
               : "Skip AI and persist already structured PO lines directly."}
           </p>
 
-          <form action={processStructuredPurchaseOrder} className="mt-6 space-y-4">
+          <form action="/api/purchase-orders/structured" method="post" encType="multipart/form-data" className="mt-6 space-y-4">
             <label className="block">
               <span className="text-sm font-semibold">
                 {fi ? "Linkitä tarjoukseen" : "Link to quote"}{" "}
