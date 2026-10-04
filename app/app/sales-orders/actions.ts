@@ -9,6 +9,8 @@ import {
   getBusinessCentralConfigurationStatus,
   sanitizedBusinessCentralRequest,
   suggestBusinessCentralMappings,
+  validateBusinessCentralManualMapping,
+  businessCentralMappingIsVerified,
   type BusinessCentralSalesOrderInput,
 } from "@/lib/rivora/erp/business-central";
 
@@ -275,6 +277,36 @@ export async function saveErpMappingAction(formData: FormData) {
   try {
     const { supabase, workspace, claims } = await requireSalesOrderAdmin();
 
+    let localUnit: string | null = null;
+    if (entityType === "product") {
+      const { data: product, error: productError } = await supabase
+        .from("products")
+        .select("id,unit")
+        .eq("id", localEntityId)
+        .eq("organization_id", workspace.id)
+        .eq("active", true)
+        .maybeSingle();
+      if (productError) throw productError;
+      if (!product) throw new Error("Averomira product was not found.");
+      localUnit = product.unit ? String(product.unit) : null;
+    } else {
+      const { data: customer, error: customerError } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("id", localEntityId)
+        .eq("organization_id", workspace.id)
+        .maybeSingle();
+      if (customerError) throw customerError;
+      if (!customer) throw new Error("Averomira customer was not found.");
+    }
+
+    const validated = await validateBusinessCentralManualMapping({
+      workspaceId: workspace.id,
+      entityType: entityType as "customer" | "product",
+      externalNumber,
+      localUnit,
+    });
+
     const { error } = await supabase
       .from("erp_entity_mappings")
       .upsert(
@@ -283,12 +315,9 @@ export async function saveErpMappingAction(formData: FormData) {
           provider: "business_central",
           entity_type: entityType,
           local_entity_id: localEntityId,
-          external_number: externalNumber,
-          metadata: {
-            autoMatched: false,
-            confidence: 100,
-            matchMethod: "manual_confirmation",
-          },
+          external_id: validated.externalId,
+          external_number: validated.externalNumber,
+          metadata: validated.metadata,
           updated_by: String(claims.sub),
         },
         {
@@ -374,7 +403,7 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
 
     const { data: mappings, error: mappingError } = await supabase
       .from("erp_entity_mappings")
-      .select("entity_type,local_entity_id,external_number,external_id")
+      .select("entity_type,local_entity_id,external_number,external_id,metadata")
       .eq("organization_id", workspace.id)
       .eq("provider", "business_central")
       .in("local_entity_id", entityIds);
@@ -386,13 +415,16 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
         mapping.entity_type === "customer" &&
         String(mapping.local_entity_id) === String(draft.customer_id),
     );
-    if (!customerMapping?.external_number) {
-      throw new Error("Business Central customer number is missing.");
+    if (!businessCentralMappingIsVerified(customerMapping as any)) {
+      throw new Error("Business Central customer mapping must be verified against Business Central before export.");
     }
 
     const productMappings = new Map<string, string>();
     for (const mapping of mappings ?? []) {
-      if (mapping.entity_type === "product" && mapping.external_number) {
+      if (
+        mapping.entity_type === "product" &&
+        businessCentralMappingIsVerified(mapping as any)
+      ) {
         productMappings.set(String(mapping.local_entity_id), String(mapping.external_number));
       }
     }
