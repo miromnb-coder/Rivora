@@ -2,12 +2,12 @@ import Link from "next/link";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { getBusinessCentralConfigurationStatus } from "@/lib/rivora/erp/business-central";
-import { saveBusinessCentralMapping } from "./actions";
+import { removeBusinessCentralMapping, saveBusinessCentralMapping } from "./actions";
 
 export default async function BusinessCentralSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string; verified?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; verified?: string; removed?: string }>;
 }) {
   const [query, locale, { supabase, workspace }] = await Promise.all([
     searchParams,
@@ -86,6 +86,14 @@ export default async function BusinessCentralSettingsPage({
       {query.error ? (
         <div className="mb-5 rounded-xl border border-[#f0d2d2] bg-[#fff6f6] p-4 text-sm text-[#8a2f2f]">
           {query.error}
+        </div>
+      ) : null}
+
+      {query.removed ? (
+        <div className="mb-5 rounded-xl border border-[#dfe7df] bg-[#f7faf7] p-4 text-sm text-[#426048]">
+          {fi
+            ? "Business Central -vastine poistettiin. Sitä käyttävät luonnokset vaativat uuden tarkistuksen ennen vientiä."
+            : "Business Central mapping removed. Drafts that used it require re-verification before export."}
         </div>
       ) : null}
 
@@ -213,6 +221,15 @@ export default async function BusinessCentralSettingsPage({
                     </button>
                   ) : null}
                 </form>
+                {canManage && mapping?.external_number ? (
+                  <form action={removeBusinessCentralMapping} className="lg:col-start-2">
+                    <input type="hidden" name="entityType" value="customer" />
+                    <input type="hidden" name="localEntityId" value={customer.id} />
+                    <button className="text-xs font-semibold text-[#8a3b2f] underline underline-offset-4">
+                      {fi ? "Poista vastine" : "Remove mapping"}
+                    </button>
+                  </form>
+                ) : null}
               </div>
             );
           })}
@@ -286,6 +303,15 @@ export default async function BusinessCentralSettingsPage({
                     </button>
                   ) : null}
                 </form>
+                {canManage && mapping?.external_number ? (
+                  <form action={removeBusinessCentralMapping} className="lg:col-start-2">
+                    <input type="hidden" name="entityType" value="product" />
+                    <input type="hidden" name="localEntityId" value={product.id} />
+                    <button className="text-xs font-semibold text-[#8a3b2f] underline underline-offset-4">
+                      {fi ? "Poista vastine" : "Remove mapping"}
+                    </button>
+                  </form>
+                ) : null}
               </div>
             );
           })}
