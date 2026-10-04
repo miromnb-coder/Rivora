@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  businessCentralCustomerIsBlocked,
+  businessCentralMappingIsVerified,
   businessCentralSalesOrderHeader,
   businessCentralSalesOrderLinePayload,
   businessCentralUnitsCompatible,
@@ -69,4 +71,39 @@ test("sanitized Business Central request never includes OAuth credentials", () =
   assert.equal(serialized.includes("clientSecret"), false);
   assert.equal(serialized.includes("access_token"), false);
   assert.equal(serialized.includes("tenantId"), false);
+});
+
+
+test("Business Central blank customer blocked enum is not treated as blocked", () => {
+  assert.equal(businessCentralCustomerIsBlocked(undefined), false);
+  assert.equal(businessCentralCustomerIsBlocked(""), false);
+  assert.equal(businessCentralCustomerIsBlocked(" "), false);
+  assert.equal(businessCentralCustomerIsBlocked("_x0020_"), false);
+  assert.equal(businessCentralCustomerIsBlocked("All"), true);
+});
+
+test("Business Central export only trusts mappings verified against BC", () => {
+  assert.equal(
+    businessCentralMappingIsVerified({
+      externalId: "bc-id",
+      externalNumber: "1896-S",
+      metadata: { autoMatched: true },
+    }),
+    true,
+  );
+  assert.equal(
+    businessCentralMappingIsVerified({
+      externalId: "bc-id",
+      externalNumber: "1896-S",
+      metadata: { bcValidated: true },
+    }),
+    true,
+  );
+  assert.equal(
+    businessCentralMappingIsVerified({
+      externalNumber: "1896-S",
+      metadata: { matchMethod: "manual_confirmation" },
+    }),
+    false,
+  );
 });
