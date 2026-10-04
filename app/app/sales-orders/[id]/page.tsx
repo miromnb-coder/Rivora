@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatLocale, getLocale } from "@/lib/locale";
 import { requireWorkspace } from "@/lib/rivora/workspace";
-import { getBusinessCentralConfigurationStatus } from "@/lib/rivora/erp/business-central";
+import {
+  businessCentralMappingIsVerified,
+  getBusinessCentralConfigurationStatus,
+} from "@/lib/rivora/erp/business-central";
 import {
   autoMapBusinessCentralAction,
   saveErpMappingAction,
@@ -110,18 +113,22 @@ export default async function SalesOrderDraftDetailPage({
   }
 
   const missingProductMappings = (lines ?? []).filter(
-    (line: any) => !productMappings.get(String(line.product_id))?.external_number,
+    (line: any) =>
+      !businessCentralMappingIsVerified(
+        productMappings.get(String(line.product_id)),
+      ),
   );
 
   const config = getBusinessCentralConfigurationStatus(workspace.id);
+  const customerMappingVerified = businessCentralMappingIsVerified(customerMapping);
   const adapterReady =
     config.configured &&
-    Boolean(customerMapping?.external_number) &&
+    customerMappingVerified &&
     missingProductMappings.length === 0;
 
   const mappedProductCount = (lines ?? []).length - missingProductMappings.length;
   const mappedEntityCount =
-    (customerMapping?.external_number ? 1 : 0) + mappedProductCount;
+    (customerMappingVerified ? 1 : 0) + mappedProductCount;
   const mappingEntityTotal = 1 + (lines ?? []).length;
 
   const mappingMethodLabel = (mapping: any) => {
@@ -131,7 +138,11 @@ export default async function SalesOrderDraftDetailPage({
     if (method === "product_sku_exact") return "SKU";
     if (method === "product_mpn_exact") return "MPN";
     if (method === "product_name_exact") return fi ? "Nimi täsmää" : "Name match";
-    if (method === "manual_confirmation") return fi ? "Vahvistettu käsin" : "Confirmed manually";
+    if (method === "manual_confirmation") {
+      return businessCentralMappingIsVerified(mapping)
+        ? (fi ? "BC-tarkistettu käsin" : "Manually verified in BC")
+        : (fi ? "BC-tarkistus vaaditaan" : "BC verification required");
+    }
     return mapping?.external_number ? (fi ? "Tallennettu" : "Saved") : "";
   };
 
@@ -265,7 +276,7 @@ export default async function SalesOrderDraftDetailPage({
                       {money.format(Number(line.line_total))}
                     </td>
                     <td className="px-5 py-4">
-                      {mapping?.external_number ? (
+                      {businessCentralMappingIsVerified(mapping) ? (
                         <div className="min-w-[210px]">
                           <div className="flex flex-wrap items-center gap-2">
                             <strong>{mapping.external_number}</strong>
@@ -280,21 +291,31 @@ export default async function SalesOrderDraftDetailPage({
                           ) : null}
                         </div>
                       ) : canAdmin && ["draft", "erp_failed"].includes(String(draft.status)) ? (
-                        <form action={saveErpMappingAction} className="flex min-w-[220px] gap-2">
-                          <input type="hidden" name="salesOrderDraftId" value={draft.id} />
-                          <input type="hidden" name="entityType" value="product" />
-                          <input type="hidden" name="localEntityId" value={line.product_id} />
-                          <input
-                            name="externalNumber"
-                            required
-                            maxLength={120}
-                            className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-3 py-2 text-sm"
-                            placeholder="BC item no."
-                          />
-                          <button className="rounded-lg border border-[var(--line)] px-3 py-2 font-semibold">
-                            {fi ? "Vahvista" : "Confirm"}
-                          </button>
-                        </form>
+                        <div className="min-w-[260px]">
+                          {mapping?.external_number ? (
+                            <p className="mb-2 text-xs text-[#8a5a18]">
+                              {fi
+                                ? `Tallennettu numero ${mapping.external_number} pitää tarkistaa Business Centralista ennen vientiä.`
+                                : `Saved number ${mapping.external_number} must be verified in Business Central before export.`}
+                            </p>
+                          ) : null}
+                          <form action={saveErpMappingAction} className="flex min-w-[220px] gap-2">
+                            <input type="hidden" name="salesOrderDraftId" value={draft.id} />
+                            <input type="hidden" name="entityType" value="product" />
+                            <input type="hidden" name="localEntityId" value={line.product_id} />
+                            <input
+                              name="externalNumber"
+                              required
+                              maxLength={120}
+                              defaultValue={mapping?.external_number || ""}
+                              className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-3 py-2 text-sm"
+                              placeholder="BC item no."
+                            />
+                            <button className="rounded-lg border border-[var(--line)] px-3 py-2 font-semibold">
+                              {fi ? "Tarkista BC:stä" : "Verify in BC"}
+                            </button>
+                          </form>
+                        </div>
                       ) : (
                         <strong>—</strong>
                       )}
@@ -330,7 +351,7 @@ export default async function SalesOrderDraftDetailPage({
                     {mappedEntityCount}/{mappingEntityTotal} {fi ? "tunnistettu" : "identified"}
                   </strong>
                   <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                    {missingProductMappings.length === 0 && customerMapping?.external_number
+                    {missingProductMappings.length === 0 && customerMappingVerified
                       ? fi
                         ? "Asiakas ja kaikki tuotteet on yhdistetty Business Centraliin."
                         : "The customer and all products are mapped to Business Central."
@@ -354,7 +375,7 @@ export default async function SalesOrderDraftDetailPage({
               <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
                 {fi ? "Asiakasnumero Business Centralissa" : "Business Central customer number"}
               </span>
-              {customerMapping?.external_number ? (
+              {customerMappingVerified ? (
                 <div className="mt-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <strong>{customerMapping.external_number}</strong>
@@ -369,21 +390,31 @@ export default async function SalesOrderDraftDetailPage({
                   ) : null}
                 </div>
               ) : canAdmin && ["draft", "erp_failed"].includes(String(draft.status)) ? (
-                <form action={saveErpMappingAction} className="mt-3 flex gap-2">
-                  <input type="hidden" name="salesOrderDraftId" value={draft.id} />
-                  <input type="hidden" name="entityType" value="customer" />
-                  <input type="hidden" name="localEntityId" value={draft.customer_id} />
-                  <input
-                    name="externalNumber"
-                    required
-                    maxLength={120}
-                    className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-3 py-2 text-sm"
-                    placeholder="10000"
-                  />
-                  <button className="rounded-lg border border-[var(--line)] px-3 py-2 font-semibold">
-                    {fi ? "Vahvista" : "Confirm"}
-                  </button>
-                </form>
+                <div className="mt-3">
+                  {customerMapping?.external_number ? (
+                    <p className="mb-2 text-xs text-[#8a5a18]">
+                      {fi
+                        ? `Tallennettu asiakasnumero ${customerMapping.external_number} pitää tarkistaa Business Centralista ennen vientiä.`
+                        : `Saved customer number ${customerMapping.external_number} must be verified in Business Central before export.`}
+                    </p>
+                  ) : null}
+                  <form action={saveErpMappingAction} className="flex gap-2">
+                    <input type="hidden" name="salesOrderDraftId" value={draft.id} />
+                    <input type="hidden" name="entityType" value="customer" />
+                    <input type="hidden" name="localEntityId" value={draft.customer_id} />
+                    <input
+                      name="externalNumber"
+                      required
+                      maxLength={120}
+                      defaultValue={customerMapping?.external_number || ""}
+                      className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-3 py-2 text-sm"
+                      placeholder="10000"
+                    />
+                    <button className="rounded-lg border border-[var(--line)] px-3 py-2 font-semibold">
+                      {fi ? "Tarkista BC:stä" : "Verify in BC"}
+                    </button>
+                  </form>
+                </div>
               ) : (
                 <strong className="mt-2 block">—</strong>
               )}
