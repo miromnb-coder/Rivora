@@ -13,8 +13,25 @@ test("catalogue parser normalizes Finnish decimal prices and keeps missing price
 
   assert.equal(rows[0].unitPrice, 1234.5);
   assert.equal(rows[0].stockQuantity, 7);
+  assert.equal(rows[0].stockQuantityProvided, true);
   assert.equal(rows[1].unitPrice, null);
   assert.equal(rows[1].stockQuantity, null);
+  assert.equal(rows[1].stockQuantityProvided, true);
+});
+
+test("catalogue parser accepts stock_qty without silently dropping stock", () => {
+  const [row] = toCatalogueRows([
+    { sku: "ABC-3", name: "Pump", stock_qty: "20" },
+  ]);
+
+  assert.equal(row.stockQuantity, 20);
+  assert.equal(row.stockQuantityProvided, true);
+
+  const [withoutStock] = toCatalogueRows([
+    { sku: "ABC-4", name: "Valve" },
+  ]);
+  assert.equal(withoutStock.stockQuantity, null);
+  assert.equal(withoutStock.stockQuantityProvided, false);
 });
 
 test("catalogue parser rejects unsafe commercial rows", () => {
