@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { loadQuoteDocumentData, quotePdfFilename, renderQuotePdf } from "@/lib/rivora/quote-document";
+import { getLocale } from "@/lib/locale";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,7 +9,7 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const [{ id }, locale] = await Promise.all([params, getLocale()]);
   const supabase = await createClient();
   const { data: claimsResult } = await supabase.auth.getClaims();
   const claims = claimsResult?.claims;
@@ -34,7 +35,7 @@ export async function GET(
     return new Response("Quote not found", { status: 404 });
   }
 
-  const pdf = await renderQuotePdf(document);
+  const pdf = await renderQuotePdf(document, locale === "fi" ? "fi" : "en");
 
   return new Response(new Uint8Array(pdf), {
     status: 200,
