@@ -9,7 +9,7 @@ export default async function ProductDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
   const [{ id }, query, locale, { supabase, workspace }] = await Promise.all([
     params,
@@ -53,6 +53,12 @@ export default async function ProductDetailPage({
         </h1>
         <p className="mt-2 break-words text-[13px] leading-5 text-[var(--muted)]">{product.name}</p>
       </header>
+
+      {query.error ? (
+        <div className="mb-5 rounded-xl border border-[#f0d2d2] bg-[#fff6f6] p-4 text-sm text-[#8a2f2f]">
+          {query.error}
+        </div>
+      ) : null}
 
       {query.saved ? (
         <div className="mb-5 rounded-xl border border-[#dfe7df] bg-[#f7faf7] p-4 text-sm text-[#426048]">
@@ -101,6 +107,9 @@ export default async function ProductDetailPage({
               <span>{fi ? "Yksikköhinta" : "Unit price"}</span>
               <input
                 name="unitPrice"
+                type="number"
+                min="0"
+                step="any"
                 inputMode="decimal"
                 defaultValue={product.unit_price == null ? "" : String(product.unit_price)}
               />
@@ -110,6 +119,9 @@ export default async function ProductDetailPage({
               <span>{fi ? "Varasto" : "Stock"}</span>
               <input
                 name="stockQuantity"
+                type="number"
+                min="0"
+                step="any"
                 inputMode="decimal"
                 defaultValue={product.stock_quantity == null ? "" : String(product.stock_quantity)}
               />
