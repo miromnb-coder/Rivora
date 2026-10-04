@@ -21,6 +21,9 @@ export function AppShell({
   const copy = getDictionary(locale).nav;
   const nav: Array<readonly [string, string, string]> = [
     [copy.dashboard, "/app", "dashboard"],
+    ...(["owner", "admin"].includes(workspaceRole)
+      ? ([[copy.leads, "/app/leads", "leads"]] as Array<readonly [string, string, string]>)
+      : []),
     [copy.orders, "/app/orders", "orders"],
     [copy.customers, "/app/customers", "customers"],
     [copy.products, "/app/products", "products"],
