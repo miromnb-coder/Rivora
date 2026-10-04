@@ -30,6 +30,7 @@ test("toPurchaseOrderRows parses English purchase order columns", () => {
       quantity: 12,
       unit: "pcs",
       unitPrice: 48.5,
+      discountPercent: 0,
       lineTotal: 582,
     },
   ]);
@@ -52,6 +53,7 @@ test("toPurchaseOrderRows parses Finnish decimal comma columns", () => {
   assert.equal(rows[0]?.quantity, 2);
   assert.equal(rows[0]?.unit, "kpl");
   assert.equal(rows[0]?.unitPrice, 19.9);
+  assert.equal(rows[0]?.discountPercent, 0);
   assert.equal(rows[0]?.lineTotal, 39.8);
 });
 
@@ -139,5 +141,41 @@ test("validatePurchaseOrderExtraction rejects invalid extracted quantities", () 
         ],
       }),
     /invalid quantity/i
+  );
+});
+
+
+test("toPurchaseOrderRows normalizes gross unit price plus discount to net price", () => {
+  const [row] = toPurchaseOrderRows([
+    {
+      SKU: "PUMP-1",
+      Description: "Pump",
+      Quantity: "2",
+      Unit: "pcs",
+      "Unit Price": "125.50",
+      discount_percent: "10",
+      "Line Total": "225.90",
+    },
+  ]);
+
+  assert.equal(row.unitPrice, 112.95);
+  assert.equal(row.discountPercent, 10);
+  assert.equal(row.lineTotal, 225.9);
+});
+
+test("toPurchaseOrderRows rejects inconsistent discounted commercial values", () => {
+  assert.throws(
+    () =>
+      toPurchaseOrderRows([
+        {
+          SKU: "PUMP-1",
+          Description: "Pump",
+          Quantity: "2",
+          "Unit Price": "125.50",
+          discount_percent: "10",
+          "Line Total": "250.00",
+        },
+      ]),
+    /inconsistent unit price, discount and line total/i,
   );
 });
