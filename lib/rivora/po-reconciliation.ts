@@ -132,6 +132,17 @@ function quoteNetUnitPrice(line: QuoteLineInput) {
   return line.unitPrice * (1 - line.discountPercent / 100);
 }
 
+function purchaseOrderNetUnitPrice(line: PurchaseOrderLineInput) {
+  if (
+    line.lineTotal != null &&
+    line.quantity > 0 &&
+    Number.isFinite(line.lineTotal)
+  ) {
+    return line.lineTotal / line.quantity;
+  }
+  return line.unitPrice;
+}
+
 type Candidate = {
   poIndex: number;
   quoteIndex: number;
@@ -220,9 +231,10 @@ function comparePair(
     exceptions.push("unit_mismatch");
   }
 
-  if (po.unitPrice != null) {
+  const poNetUnitPrice = purchaseOrderNetUnitPrice(po);
+  if (poNetUnitPrice != null) {
     const expected = quoteNetUnitPrice(quote);
-    if (!nearlyEqual(po.unitPrice, expected, 0.01)) {
+    if (!nearlyEqual(poNetUnitPrice, expected, 0.01)) {
       exceptions.push("unit_price_mismatch");
     }
   }
