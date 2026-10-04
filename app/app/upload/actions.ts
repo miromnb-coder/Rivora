@@ -182,7 +182,15 @@ export async function processRfq(formData: FormData) {
     revalidatePath("/app/inbox");
     redirect(`/app/rfq/${rfqId}`);
   }
-  if (failure) redirect(`/app/upload?rfqError=${encodeURIComponent(failure)}`);
+  if (failure) {
+    const params = new URLSearchParams({
+      rfqError: failure,
+      customerName,
+      reference,
+      retryFile: "rfq",
+    });
+    redirect(`/app/upload?${params.toString()}`);
+  }
   if (!rfqId) redirect("/app/upload?rfqError=RFQ%20creation%20failed");
 
   revalidatePath("/app/inbox");
@@ -300,7 +308,15 @@ export async function processPdfRfq(formData: FormData) {
     revalidatePath("/app/inbox");
     redirect(`/app/rfq/${rfqId}`);
   }
-  if (failure) redirect(`/app/upload?pdfError=${encodeURIComponent(failure)}`);
+  if (failure) {
+    const params = new URLSearchParams({
+      pdfError: failure,
+      pdfCustomerName: customerOverride,
+      pdfReference: referenceOverride,
+      retryFile: "pdf",
+    });
+    redirect(`/app/upload?${params.toString()}`);
+  }
   if (!rfqId) redirect("/app/upload?pdfError=PDF%20extraction%20failed");
 
   revalidatePath("/app/inbox");
