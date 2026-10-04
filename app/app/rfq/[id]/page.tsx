@@ -4,6 +4,10 @@ import { requireWorkspace } from "@/lib/rivora/workspace";
 import { confirmRfqMatch, retryRfqProcessing } from "./actions";
 import { createQuoteFromRfq } from "@/app/app/quotes/actions";
 import { formatLocale, getLocale } from "@/lib/locale";
+import {
+  extractionConfidenceLabel,
+  extractionConfidenceNeedsReview,
+} from "@/lib/rivora/confidence";
 
 function lineTone(confidence: number, reviewStatus: string) {
   if (reviewStatus === "confirmed") return "ready";
@@ -151,7 +155,8 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
           </div>
           <div>
             <span>{text.extractionConfidence}</span>
-            <b>{Math.round(Number(rfq.extraction_confidence ?? 0))}%</b>
+            <b>{extractionConfidenceLabel(rfq.extraction_confidence) ?? "—"}</b>
+            <small>{text.extractionHelp}</small>
           </div>
           <div>
             <span>{text.warnings}</span>
@@ -170,6 +175,13 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
               <button className="btn-secondary">{text.retry}</button>
             </form>
           ) : null}
+        </section>
+      ) : null}
+
+      {extractionConfidenceNeedsReview(rfq.extraction_confidence) ? (
+        <section className="rfq-review-v2-warning">
+          <div className="upload-v2-section-label">{text.extractionConfidence}</div>
+          <p>{text.lowExtraction}</p>
         </section>
       ) : null}
 
@@ -256,7 +268,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                       {extractionConfidence != null ? (
                         <div>
                           <span>{text.extraction}</span>
-                          <strong>{Math.round(extractionConfidence)}%</strong>
+                          <strong>{extractionConfidenceLabel(extractionConfidence) ?? "—"}</strong>
                         </div>
                       ) : null}
                     </div>
