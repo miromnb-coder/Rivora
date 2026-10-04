@@ -16,6 +16,11 @@ export default async function UploadPage({
     catalogueError?: string;
     rfqError?: string;
     pdfError?: string;
+    customerName?: string;
+    reference?: string;
+    pdfCustomerName?: string;
+    pdfReference?: string;
+    retryFile?: string;
   }>;
 }) {
   const [params, locale, context] = await Promise.all([searchParams, getLocale(), requireWorkspace()]);
@@ -49,7 +54,16 @@ export default async function UploadPage({
       ) : null}
 
       {params.catalogueError || params.rfqError || params.pdfError ? (
-        <div className="upload-v2-alert error">{params.catalogueError ?? params.rfqError ?? params.pdfError}</div>
+        <div className="upload-v2-alert error">
+          <div>{params.catalogueError ?? params.rfqError ?? params.pdfError}</div>
+          {params.retryFile ? (
+            <div className="mt-2 text-xs">
+              {locale === "fi"
+                ? "Muut lomakearvot säilytettiin. Selain ei voi palauttaa tiedostovalintaa turvallisuussyistä, joten valitse tiedosto uudelleen."
+                : "Other form values were preserved. Browsers cannot restore a file selection for security reasons, so choose the file again."}
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {firstRfq ? (
@@ -126,11 +140,11 @@ export default async function UploadPage({
           <div className="upload-v2-fields">
             <label>
               <span>{copy.customerOverride} <em>{copy.optional}</em></span>
-              <input name="pdfCustomerName" placeholder={copy.ambiguous} />
+              <input name="pdfCustomerName" defaultValue={params.pdfCustomerName ?? ""} placeholder={copy.ambiguous} />
             </label>
             <label>
               <span>{copy.rfqRef} <em>{copy.optional}</em></span>
-              <input name="pdfReference" placeholder="RFQ-2026-1048" />
+              <input name="pdfReference" defaultValue={params.pdfReference ?? ""} placeholder="RFQ-2026-1048" />
             </label>
           </div>
 
@@ -156,8 +170,8 @@ export default async function UploadPage({
 
         <form action={processRfq} className="upload-v2-structured-form">
           <div className="upload-v2-fields">
-            <label><span>{copy.customer}</span><input name="customerName" required placeholder={copy.customerName} /></label>
-            <label><span>{copy.rfqRef} <em>{copy.optional}</em></span><input name="reference" placeholder={copy.rfqRef} /></label>
+            <label><span>{copy.customer}</span><input name="customerName" required defaultValue={params.customerName ?? ""} placeholder={copy.customerName} /></label>
+            <label><span>{copy.rfqRef} <em>{copy.optional}</em></span><input name="reference" defaultValue={params.reference ?? ""} placeholder={copy.rfqRef} /></label>
           </div>
           <FilePicker
             variant="compact"
