@@ -6,6 +6,13 @@ import {
   processPdfPurchaseOrder,
 } from "./actions";
 
+function quoteStatusLabel(status: string, fi: boolean) {
+  const labels: Record<string, string> = fi
+    ? { draft: "Luonnos", ready: "Valmis", approved: "Hyväksytty", sent: "Lähetetty", expired: "Vanhentunut" }
+    : { draft: "Draft", ready: "Ready", approved: "Approved", sent: "Sent", expired: "Expired" };
+  return labels[status] ?? status;
+}
+
 function statusLabel(status: string, fi: boolean) {
   const labels: Record<string, string> = fi
     ? {
@@ -87,8 +94,8 @@ export default async function PurchaseOrdersPage({
         </h1>
         <p className="mt-3 max-w-3xl text-[var(--muted)]">
           {fi
-            ? "Sprintti 1 tallentaa lähdetiedoston, poimii tilauksen metadatan ja rivit sekä voi linkittää PO:n jo lähetettyyn tarjoukseen. Quote ↔ PO -vertailu tulee seuraavassa sprintissä."
-            : "Sprint 1 stores the source file, extracts purchase-order metadata and lines, and can anchor the PO to an approved or sent quote. Quote ↔ PO reconciliation comes next."}
+            ? "Tuo asiakkaan ostotilaus PDF-, CSV- tai XLSX-muodossa ja linkitä se tarvittaessa hyväksyttyyn tai lähetettyyn tarjoukseen. Averomira vertaa Quote ↔ PO -rivit, nostaa poikkeamat tarkistettaviksi ja sallii hyväksynnän vasta tarkistuksen jälkeen."
+            : "Import a customer purchase order as PDF, CSV or XLSX and optionally link it to an approved or sent quote. Averomira reconciles Quote ↔ PO lines, surfaces exceptions for review, and allows approval after review."}
         </p>
       </header>
 
@@ -135,7 +142,7 @@ export default async function PurchaseOrdersPage({
                   const customer = Array.isArray(quote.customers) ? quote.customers[0] : quote.customers;
                   return (
                     <option key={quote.id} value={quote.id}>
-                      {quote.quote_number || (fi ? "Tarjous" : "Quote")} · {customer?.name || "—"} · {quote.status}
+                      {quote.quote_number || (fi ? "Tarjous" : "Quote")} · {customer?.name || "—"} · {quoteStatusLabel(String(quote.status), fi)}
                     </option>
                   );
                 })}
