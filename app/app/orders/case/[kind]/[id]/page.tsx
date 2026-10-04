@@ -2,6 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatLocale, getLocale } from "@/lib/locale";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import {
+  businessCentralMappingIsVerified,
+  getBusinessCentralConfigurationStatus,
+} from "@/lib/rivora/erp/business-central";
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
@@ -200,7 +204,7 @@ export default async function OrderCasePage({
     salesOrderId
       ? supabase
           .from("sales_order_drafts")
-          .select("id,status,customer_po_number,currency,updated_at,external_order_number,erp_error,sales_order_draft_lines(line_total)")
+          .select("id,status,customer_id,customer_po_number,currency,updated_at,external_order_number,erp_error,sales_order_draft_lines(line_total,product_id)")
           .eq("id", salesOrderId)
           .eq("organization_id", workspace.id)
           .maybeSingle()
@@ -259,6 +263,49 @@ export default async function OrderCasePage({
   );
   const total = salesTotal || quoteTotal;
   const currency = sales?.currency || po?.currency || quote?.currency || "EUR";
+
+  let bcExportReady = false;
+  let bcMissingMappings = 0;
+  let bcMappingTotal = 0;
+
+  if (sales?.status === "draft") {
+    const productIds = [
+      ...new Set(
+        salesLines
+          .map((line: any) => String(line.product_id || ""))
+          .filter(Boolean),
+      ),
+    ];
+
+    const { data: mappings } = await supabase
+      .from("erp_entity_mappings")
+      .select("entity_type,local_entity_id,external_id,external_number,metadata")
+      .eq("organization_id", workspace.id)
+      .eq("provider", "business_central");
+
+    const byEntity = new Map(
+      (mappings ?? []).map((mapping: any) => [
+        `${mapping.entity_type}:${mapping.local_entity_id}`,
+        mapping,
+      ]),
+    );
+
+    const customerVerified = businessCentralMappingIsVerified(
+      byEntity.get(`customer:${sales.customer_id}`) as any,
+    );
+    const missingProducts = productIds.filter(
+      (productId) =>
+        !businessCentralMappingIsVerified(
+          byEntity.get(`product:${productId}`) as any,
+        ),
+    );
+
+    bcMappingTotal = 1 + productIds.length;
+    bcMissingMappings = (customerVerified ? 0 : 1) + missingProducts.length;
+    bcExportReady =
+      getBusinessCentralConfigurationStatus(workspace.id).configured &&
+      bcMissingMappings === 0;
+  }
 
   const currentStage = sales ? "erp" : po ? "po" : quote ? "quote" : "rfq";
 
@@ -385,14 +432,23 @@ export default async function OrderCasePage({
       href: `/app/purchase-orders/${po.id}`,
     };
   } else if (sales && sales.status === "draft") {
-    primary = {
-      title: fi ? "Valmis Business Centraliin" : "Ready for Business Central",
-      body: fi
-        ? "Tarkista Business Central -vastineet ja luo Draft-order."
-        : "Review Business Central mappings and create the Draft order.",
-      action: fi ? "Jatka Business Centraliin" : "Continue to Business Central",
-      href: `/app/sales-orders/${sales.id}`,
-    };
+    primary = bcExportReady
+      ? {
+          title: fi ? "Valmis Business Centraliin" : "Ready for Business Central",
+          body: fi
+            ? "Kaikki vientiehdot ja Business Central -vastineet ovat valmiit."
+            : "All export requirements and Business Central mappings are ready.",
+          action: fi ? "Jatka Business Centraliin" : "Continue to Business Central",
+          href: `/app/sales-orders/${sales.id}`,
+        }
+      : {
+          title: fi ? "Täydennä Business Central -vastineet" : "Complete Business Central mappings",
+          body: fi
+            ? `${bcMissingMappings}/${bcMappingTotal} vastinetta puuttuu tai vaatii tarkistuksen ennen vientiä.`
+            : `${bcMissingMappings}/${bcMappingTotal} mappings are missing or require verification before export.`,
+          action: fi ? "Tarkista vastineet" : "Review mappings",
+          href: `/app/sales-orders/${sales.id}`,
+        };
   } else if (sales && ["erp_failed", "erp_partial"].includes(String(sales.status))) {
     primary = {
       title: fi ? "ERP-vienti tarvitsee huomiota" : "ERP export needs attention",
