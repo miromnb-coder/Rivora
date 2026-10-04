@@ -9,6 +9,39 @@ import {
   extractionConfidenceNeedsReview,
 } from "@/lib/rivora/confidence";
 
+function rfqMethodLabel(method: string | null | undefined, fi: boolean) {
+  const key = String(method || "").toLowerCase();
+  const labels: Record<string, [string, string]> = {
+    exact_sku: ["Tarkka SKU-osuma", "Exact SKU match"],
+    customer_memory: ["Asiakaskohtainen muistivastine", "Customer memory match"],
+    exact_mpn: ["Tarkka valmistajan tuotenumero", "Exact manufacturer part number"],
+    fuzzy: ["Samankaltaisuuteen perustuva osuma", "Fuzzy match"],
+    manual: ["Manuaalinen valinta", "Manual selection"],
+    unmatched: ["Ei osumaa", "Unmatched"],
+  };
+  return labels[key]?.[fi ? 0 : 1] ?? (method ? String(method).replaceAll("_", " ") : (fi ? "Ei menetelmää" : "No method"));
+}
+
+function rfqReviewStatusLabel(status: string, fi: boolean) {
+  const labels: Record<string, [string, string]> = {
+    confirmed: ["Vahvistettu", "Confirmed"],
+    needs_review: ["Vaatii tarkistuksen", "Needs review"],
+    matched: ["Ehdotettu osuma", "Suggested match"],
+    unmatched: ["Ei osumaa", "Unmatched"],
+  };
+  return labels[status]?.[fi ? 0 : 1] ?? status.replaceAll("_", " ");
+}
+
+function rfqStatusLabel(status: string, fi: boolean) {
+  const labels: Record<string, [string, string]> = {
+    processing: ["Käsittelyssä", "Processing"],
+    needs_review: ["Vaatii tarkistuksen", "Needs review"],
+    ready: ["Valmis", "Ready"],
+    failed: ["Epäonnistui", "Failed"],
+  };
+  return labels[status]?.[fi ? 0 : 1] ?? status.replaceAll("_", " ");
+}
+
 function lineTone(confidence: number, reviewStatus: string) {
   if (reviewStatus === "confirmed") return "ready";
   if (reviewStatus === "matched") return "review";
@@ -120,7 +153,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
         </div>
 
         <div className={`rfq-review-v2-status ${rfq.status === "ready" ? "ready" : "review"}`}>
-          {String(rfq.status).replaceAll("_", " ")}
+          {rfqStatusLabel(String(rfq.status), fi)}
         </div>
       </header>
 
@@ -219,7 +252,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                 ? (fi ? "Vahvistettu" : "Confirmed")
                 : line.review_status === "needs_review"
                   ? text.needsReview
-                  : String(line.review_status).replaceAll("_", " ");
+                  : rfqReviewStatusLabel(String(line.review_status), fi);
             const lineState = (
               <div className={`rfq-review-v2-state ${tone}`}>
                 {stateLabel}
@@ -244,7 +277,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
                   <div className="rfq-review-v2-method">
                     <span>{text.method}</span>
-                    <b>{line.match_method || text.noMethod}</b>
+                    <b>{rfqMethodLabel(line.match_method, fi)}</b>
                   </div>
 
                   {line.extraction_notes ? (
@@ -309,7 +342,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                             <div key={candidate.product_id}>
                               <div>
                                 <b>{product?.sku}</b>
-                                <span>{candidate.method}</span>
+                                <span>{rfqMethodLabel(candidate.method, fi)}</span>
                               </div>
                               <div>
                                 <strong>{Math.round(Number(candidate.confidence))}%</strong>
@@ -400,10 +433,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
         <section className="rfq-review-v2-ready">
           <div className="upload-v2-section-label">{text.readyForQuote}</div>
           <h2>{text.readyTitle}</h2>
-          <p>
-            Freeze the human-confirmed products into a commercial draft, then edit pricing,
-            discounts, VAT and approval state in Quote Builder.
-          </p>
+          <p>{text.readyBody}</p>
 
           {existingQuote ? (
             <Link href={`/app/quotes/${existingQuote.id}`} className="rfq-review-v2-quote-cta">
