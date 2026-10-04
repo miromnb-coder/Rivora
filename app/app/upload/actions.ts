@@ -46,6 +46,27 @@ export async function importCatalogue(formData: FormData) {
     }
 
     const rows = toCatalogueRows(await parseTabularFile(file));
+
+    // A catalogue import is allowed to omit stock entirely. In that case keep
+    // the existing value instead of silently replacing it with null.
+    const existingStock = new Map<string, number | null>();
+    const skus = [...new Set(rows.map((row) => row.sku))];
+    for (let index = 0; index < skus.length; index += 200) {
+      const batch = skus.slice(index, index + 200);
+      const { data: existingProducts, error: existingError } = await supabase
+        .from("products")
+        .select("sku,stock_quantity")
+        .eq("organization_id", workspace.id)
+        .in("sku", batch);
+      if (existingError) throw existingError;
+      for (const product of existingProducts ?? []) {
+        existingStock.set(
+          String(product.sku).toLowerCase(),
+          product.stock_quantity == null ? null : Number(product.stock_quantity),
+        );
+      }
+    }
+
     const payload = rows.map((row) => ({
       sku: row.sku,
       name: row.name,
@@ -53,7 +74,9 @@ export async function importCatalogue(formData: FormData) {
       manufacturer_part_number: row.manufacturerPartNumber,
       unit: row.unit,
       unit_price: row.unitPrice,
-      stock_quantity: row.stockQuantity,
+      stock_quantity: row.stockQuantityProvided
+        ? row.stockQuantity
+        : existingStock.get(row.sku.toLowerCase()) ?? null,
     }));
 
     const { data, error } = await supabase.rpc("import_catalogue_rows", {
