@@ -418,6 +418,10 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
     if (!businessCentralMappingIsVerified(customerMapping as any)) {
       throw new Error("Business Central customer mapping must be verified against Business Central before export.");
     }
+    const customerNumber = String(customerMapping?.external_number || "");
+    if (!customerNumber) {
+      throw new Error("Business Central customer number is missing.");
+    }
 
     const productMappings = new Map<string, string>();
     for (const mapping of mappings ?? []) {
@@ -443,7 +447,7 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
 
     const input: BusinessCentralSalesOrderInput = {
       workspaceId: workspace.id,
-      customerNumber: String(customerMapping.external_number),
+      customerNumber,
       customerPoNumber: String(draft.customer_po_number),
       orderDate: String(draft.order_date),
       currency: String(draft.currency),
