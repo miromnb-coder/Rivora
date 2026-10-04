@@ -58,6 +58,17 @@ function NavIcon({ id }: { id: string }) {
     );
   }
 
+  if (id === "leads") {
+    return (
+      <svg {...common}>
+        <path d="M5 6.5h14" />
+        <path d="M5 11.5h9" />
+        <path d="M5 16.5h7" />
+        <circle cx="18" cy="16.5" r="2" />
+      </svg>
+    );
+  }
+
   if (id === "customers") {
     return (
       <svg {...common}>
