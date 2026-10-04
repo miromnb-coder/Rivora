@@ -29,6 +29,7 @@ export type PurchaseOrderImportRow = {
   quantity: number;
   unit: string;
   unitPrice: number | null;
+  discountPercent: number;
   lineTotal: number | null;
 };
 
@@ -216,9 +217,24 @@ export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
       pick(row, ["manufacturer part number", "mpn", "manufacturer sku", "valmistajan tuotenumero"]) || null;
     const quantity = parseNumber(pick(row, ["quantity", "qty", "amount", "ordered quantity", "määrä", "kpl"]));
     const unit = pick(row, ["unit", "uom", "yksikkö"]) || "pcs";
-    const unitPrice = parseNumber(
-      pick(row, ["unit price", "price", "net price", "hinta", "yksikköhinta"])
+    const explicitNetUnitPrice = parseNumber(
+      pick(row, ["net unit price", "net price", "nettohinta", "netto yksikköhinta"])
     );
+    const grossUnitPrice = parseNumber(
+      pick(row, ["unit price", "price", "gross unit price", "hinta", "yksikköhinta", "bruttohinta"])
+    );
+    const discountPercent =
+      parseNumber(
+        pick(row, [
+          "discount percent",
+          "discount %",
+          "discount_percent",
+          "discount",
+          "alennusprosentti",
+          "alennus %",
+          "alennus",
+        ])
+      ) ?? 0;
     const lineTotal = parseNumber(
       pick(row, ["line total", "total", "row total", "sum", "rivisumma"])
     );
@@ -233,11 +249,39 @@ export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
         `Purchase order row ${index + 2} has a missing or invalid quantity.`
       );
     }
-    if (unitPrice != null && unitPrice < 0) {
+    if (grossUnitPrice != null && grossUnitPrice < 0) {
       throw new Error(`Purchase order row ${index + 2} has a negative unit price.`);
+    }
+    if (explicitNetUnitPrice != null && explicitNetUnitPrice < 0) {
+      throw new Error(`Purchase order row ${index + 2} has a negative net unit price.`);
+    }
+    if (discountPercent < 0 || discountPercent > 100) {
+      throw new Error(`Purchase order row ${index + 2} has an invalid discount percent.`);
     }
     if (lineTotal != null && lineTotal < 0) {
       throw new Error(`Purchase order row ${index + 2} has a negative line total.`);
+    }
+
+    const discountedGross =
+      grossUnitPrice == null
+        ? null
+        : grossUnitPrice * (1 - discountPercent / 100);
+    let unitPrice =
+      explicitNetUnitPrice ??
+      (discountedGross == null ? null : Number(discountedGross.toFixed(4)));
+
+    if (unitPrice == null && lineTotal != null) {
+      unitPrice = Number((lineTotal / quantity).toFixed(4));
+    }
+
+    if (
+      lineTotal != null &&
+      unitPrice != null &&
+      Math.abs(quantity * unitPrice - lineTotal) > 0.02
+    ) {
+      throw new Error(
+        `Purchase order row ${index + 2} has inconsistent unit price, discount and line total.`
+      );
     }
 
     return {
@@ -248,6 +292,7 @@ export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
       quantity,
       unit,
       unitPrice,
+      discountPercent,
       lineTotal,
     };
   });
