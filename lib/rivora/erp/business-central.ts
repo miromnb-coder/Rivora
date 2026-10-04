@@ -337,13 +337,17 @@ async function firstCustomerMatch({
   field: "number" | "displayName";
   value: string;
 }) {
-  if (!value.trim()) return null;
+  const normalized = value.trim();
+  if (!normalized) return null;
+  // Business Central Customer No. is Code[20]. Avoid sending an invalid
+  // OData filter when a local identifier is longer; fall back to name matching.
+  if (field === "number" && normalized.length > 20) return null;
   const result = await requestJson<ODataCollection<BcCustomer>>({
     token,
     url: collectionUrl(
       root,
       "customers",
-      `${field} eq '${odataString(value.trim())}'`,
+      `${field} eq '${odataString(normalized)}'`,
       "id,number,displayName,blocked",
     ),
   });
@@ -366,13 +370,18 @@ async function firstItemMatch({
   value: string;
   localUnit?: string | null;
 }) {
-  if (!value.trim()) return null;
+  const normalized = value.trim();
+  if (!normalized) return null;
+  // Business Central Item No. is Code[20]. Long local SKUs / MPNs are valid
+  // in Averomira, but they must not be sent as an invalid No. filter.
+  // In that case continue to the next safe matching strategy (MPN/name).
+  if (field === "number" && normalized.length > 20) return null;
   const result = await requestJson<ODataCollection<BcItem>>({
     token,
     url: collectionUrl(
       root,
       "items",
-      `${field} eq '${odataString(value.trim())}'`,
+      `${field} eq '${odataString(normalized)}'`,
       "id,number,displayName,blocked,baseUnitOfMeasureCode",
     ),
   });
