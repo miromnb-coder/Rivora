@@ -11,6 +11,7 @@ export type CatalogueImportRow = {
   unit: string;
   unitPrice: number | null;
   stockQuantity: number | null;
+  stockQuantityProvided: boolean;
 };
 
 export type RfqImportRow = {
@@ -43,6 +44,11 @@ function pick(row: RawRow, aliases: string[]) {
     if (hit && hit[1]?.trim()) return hit[1].trim();
   }
   return "";
+}
+
+function hasHeader(row: RawRow, aliases: string[]) {
+  const targets = new Set(aliases.map(normalizeHeader));
+  return Object.keys(row).some((key) => targets.has(normalizeHeader(key)));
 }
 
 function parseNumber(value: string): number | null {
@@ -139,6 +145,23 @@ export function toCatalogueRows(rows: RawRow[]): CatalogueImportRow[] {
       throw new Error(`Catalogue row ${index + 2} has a negative unit price.`);
     }
 
+    const stockAliases = [
+      "stock",
+      "stock quantity",
+      "stock qty",
+      "stock_qty",
+      "available",
+      "inventory",
+      "saldo",
+      "varasto",
+      "varastomäärä",
+    ];
+    const stockQuantityProvided = hasHeader(row, stockAliases);
+    const stockQuantity = parseNumber(pick(row, stockAliases));
+    if (stockQuantity != null && stockQuantity < 0) {
+      throw new Error(`Catalogue row ${index + 2} has a negative stock quantity.`);
+    }
+
     return {
       sku,
       name,
@@ -147,7 +170,8 @@ export function toCatalogueRows(rows: RawRow[]): CatalogueImportRow[] {
         pick(row, ["manufacturer part number", "mpn", "manufacturer sku", "valmistajan tuotenumero"]) || null,
       unit: pick(row, ["unit", "uom", "yksikkö"]) || "pcs",
       unitPrice,
-      stockQuantity: parseNumber(pick(row, ["stock", "stock quantity", "available", "saldo"])),
+      stockQuantity,
+      stockQuantityProvided,
     };
   });
 }
