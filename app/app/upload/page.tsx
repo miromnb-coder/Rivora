@@ -2,7 +2,7 @@ import { FilePicker } from "@/components/FilePicker";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { formatLocale, getLocale } from "@/lib/locale";
 import { getUploadCopy } from "@/lib/i18n/extra";
-import { importCatalogue, processPdfRfq, processRfq } from "./actions";
+import { processPdfRfq, processRfq } from "./actions";
 
 export default async function UploadPage({
   searchParams,
@@ -96,7 +96,7 @@ export default async function UploadPage({
           <span className={productsReady ? "is-ready" : "is-waiting"}>{productsReady ? copy.ready : copy.setupRequired}</span>
         </div>
 
-        <form action={importCatalogue} className="upload-v2-catalogue-form">
+        <form action="/api/catalogue/import" method="post" encType="multipart/form-data" className="upload-v2-catalogue-form">
           <FilePicker
             variant="compact"
             name="catalogue"
