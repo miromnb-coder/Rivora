@@ -13838,3 +13838,248 @@ textarea:focus-visible {
   }
 }
 
+/* Homepage hero refinement — centered copy, lighter navigation, no hero case card */
+.minimal-direction > .marketing-shell:first-child {
+  position: relative;
+  z-index: 50;
+  background: transparent;
+}
+
+.minimal-direction .nav-v2 {
+  top: 10px;
+  min-height: 64px;
+  margin-top: 10px;
+  padding: 0 12px 0 18px;
+  border: 1px solid rgba(218, 222, 218, .82);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 10px 34px rgba(23, 28, 24, .055);
+  backdrop-filter: blur(20px) saturate(145%);
+}
+
+.minimal-direction .nav-v2-signin {
+  min-height: 38px;
+  padding-inline: 14px;
+  background: rgba(255, 255, 255, .82);
+}
+
+.minimal-direction .nav-v2-cta {
+  min-height: 40px;
+  padding-inline: 16px;
+}
+
+.minimal-direction .v2-hero {
+  min-height: clamp(650px, 78vh, 820px);
+}
+
+.minimal-direction .v2-hero-inner {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding-top: clamp(112px, 12vw, 164px);
+  padding-bottom: clamp(104px, 11vw, 150px);
+}
+
+.minimal-direction .minimal-hero-copy {
+  width: min(100%, 1040px);
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.minimal-direction .minimal-kicker {
+  justify-content: center;
+}
+
+.minimal-direction .minimal-hero-copy h1 {
+  max-width: 1020px;
+  margin-top: 24px;
+  font-size: clamp(58px, 7vw, 104px);
+  line-height: .93;
+  letter-spacing: -.064em;
+  text-wrap: balance;
+}
+
+.minimal-direction .minimal-hero-copy > p {
+  max-width: 760px;
+  margin-top: 28px;
+  font-size: 18px;
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.minimal-direction .minimal-hero-actions,
+.minimal-direction .hero-conversion-note,
+.minimal-direction .minimal-flow {
+  justify-content: center;
+}
+
+.minimal-direction .minimal-hero-actions {
+  margin-top: 34px;
+}
+
+.minimal-direction .hero-conversion-note {
+  width: 100%;
+}
+
+.minimal-direction .minimal-flow {
+  width: 100%;
+}
+
+.minimal-direction .minimal-hero {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(91, 139, 255, .105), transparent 29rem),
+    radial-gradient(circle at 82% 46%, rgba(116, 155, 255, .07), transparent 25rem),
+    #ffffff;
+}
+
+.minimal-direction .minimal-hero-shader {
+  opacity: .76;
+  filter: blur(82px);
+}
+
+.minimal-direction .shader-a {
+  width: 48vw;
+  height: 42vw;
+  left: 52%;
+  top: -10%;
+  background: rgba(96, 143, 255, .13);
+}
+
+.minimal-direction .shader-b {
+  width: 40vw;
+  height: 36vw;
+  left: 3%;
+  top: 38%;
+  background: rgba(161, 187, 255, .08);
+}
+
+.minimal-direction .shader-c {
+  background: rgba(17, 19, 17, .018);
+}
+
+@media (max-width: 980px) {
+  .minimal-direction .v2-hero-inner {
+    grid-template-columns: 1fr;
+    padding-top: 94px;
+    padding-bottom: 92px;
+  }
+
+  .minimal-direction .minimal-hero-copy h1 {
+    max-width: 820px;
+  }
+}
+
+@media (max-width: 720px) {
+  .minimal-direction > .marketing-shell:first-child {
+    width: 100%;
+    padding-inline: 12px;
+  }
+
+  .minimal-direction .nav-v2 {
+    top: 7px;
+    min-height: 58px;
+    margin-top: 7px;
+    padding: 0 9px 0 12px;
+    border: 1px solid rgba(222, 225, 221, .88);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, .9);
+    box-shadow: 0 7px 24px rgba(23, 28, 24, .05);
+  }
+
+  .minimal-direction .nav-v2-brand .nodra-logo-lockup-image {
+    width: 104px;
+  }
+
+  .minimal-direction .nav-v2-signin {
+    min-height: 34px;
+    padding-inline: 9px;
+    font-size: 9px;
+  }
+
+  .minimal-direction .nav-v2-cta {
+    min-height: 34px;
+    padding-inline: 10px;
+    font-size: 9px;
+    gap: 5px;
+  }
+
+  .minimal-direction .v2-hero {
+    min-height: auto;
+  }
+
+  .minimal-direction .v2-hero-inner {
+    padding-top: 92px;
+    padding-bottom: 78px;
+  }
+
+  .minimal-direction .minimal-hero-copy h1 {
+    max-width: 100%;
+    margin-top: 21px;
+    font-size: clamp(45px, 12.4vw, 62px);
+    line-height: .94;
+    letter-spacing: -.058em;
+  }
+
+  .minimal-direction .minimal-hero-copy > p {
+    max-width: 38rem;
+    margin-top: 22px;
+    font-size: 15px;
+    line-height: 1.58;
+  }
+
+  .minimal-direction .minimal-hero-actions {
+    width: 100%;
+    max-width: 390px;
+    margin-top: 28px;
+    justify-content: center;
+  }
+
+  .minimal-direction .hero-conversion-note {
+    margin-top: 24px;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .minimal-direction .minimal-flow {
+    margin-top: 28px;
+    flex-wrap: wrap;
+    row-gap: 9px;
+  }
+
+  .minimal-direction .shader-a {
+    width: 96vw;
+    height: 84vw;
+    left: 22%;
+    top: 2%;
+  }
+
+  .minimal-direction .shader-b {
+    width: 82vw;
+    height: 72vw;
+    left: -22%;
+    top: 50%;
+  }
+}
+
+@media (max-width: 390px) {
+  .minimal-direction > .marketing-shell:first-child {
+    padding-inline: 8px;
+  }
+
+  .minimal-direction .nav-v2 {
+    padding-left: 10px;
+    gap: 4px;
+  }
+
+  .minimal-direction .nav-v2-brand .nodra-logo-lockup-image {
+    width: 96px;
+  }
+
+  .minimal-direction .nav-v2-signin,
+  .minimal-direction .nav-v2-cta {
+    padding-inline: 7px;
+    font-size: 8.5px;
+  }
+}
