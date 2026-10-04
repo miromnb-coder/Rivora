@@ -337,6 +337,119 @@ export type BusinessCentralMappingLookupInput = {
   }>;
 };
 
+
+export type BusinessCentralValidatedMapping = {
+  externalId: string;
+  externalNumber: string;
+  displayName: string | null;
+  metadata: Record<string, unknown>;
+};
+
+export function businessCentralMappingIsVerified(mapping: {
+  externalId?: string | null;
+  externalNumber?: string | null;
+  metadata?: Record<string, unknown> | null;
+} | null | undefined) {
+  if (!mapping?.externalId || !mapping?.externalNumber) return false;
+  return mapping.metadata?.autoMatched === true || mapping.metadata?.bcValidated === true;
+}
+
+export async function validateBusinessCentralManualMapping({
+  workspaceId,
+  entityType,
+  externalNumber,
+  localUnit,
+}: {
+  workspaceId: string;
+  entityType: "customer" | "product";
+  externalNumber: string;
+  localUnit?: string | null;
+}): Promise<BusinessCentralValidatedMapping> {
+  const normalized = externalNumber.trim();
+  if (!normalized) {
+    throw new Error("Business Central number is required.");
+  }
+  if (normalized.length > 20) {
+    throw new Error("Business Central customer and item numbers can be at most 20 characters.");
+  }
+
+  const config = requireConfig(workspaceId);
+  const token = await accessToken(config);
+  const root = baseUrl(config);
+
+  if (entityType === "customer") {
+    const result = await requestJson<ODataCollection<BcCustomer>>({
+      token,
+      url: collectionUrl(
+        root,
+        "customers",
+        `number eq '${odataString(normalized)}'`,
+        "id,number,displayName,blocked",
+      ),
+    });
+    const customer = result.value?.find((candidate) => candidate.number === normalized);
+    if (!customer) {
+      throw new Error(`Business Central customer ${normalized} was not found.`);
+    }
+    if (businessCentralCustomerIsBlocked(customer.blocked)) {
+      throw new Error(`Business Central customer ${normalized} is blocked (${customer.blocked}).`);
+    }
+
+    return {
+      externalId: customer.id,
+      externalNumber: customer.number,
+      displayName: customer.displayName || null,
+      metadata: {
+        autoMatched: false,
+        bcValidated: true,
+        confidence: 100,
+        matchMethod: "manual_confirmation",
+        businessCentralDisplayName: customer.displayName || null,
+      },
+    };
+  }
+
+  const result = await requestJson<ODataCollection<BcItem>>({
+    token,
+    url: collectionUrl(
+      root,
+      "items",
+      `number eq '${odataString(normalized)}'`,
+      "id,number,displayName,blocked,baseUnitOfMeasureCode",
+    ),
+  });
+  const item = result.value?.find((candidate) => candidate.number === normalized);
+  if (!item) {
+    throw new Error(`Business Central item ${normalized} was not found.`);
+  }
+  if (item.blocked) {
+    throw new Error(`Business Central item ${normalized} is blocked.`);
+  }
+  if (
+    localUnit &&
+    item.baseUnitOfMeasureCode &&
+    !businessCentralUnitsCompatible(localUnit, item.baseUnitOfMeasureCode)
+  ) {
+    throw new Error(
+      `Unit mismatch for Business Central item ${normalized}: Averomira uses ${localUnit}, Business Central base unit is ${item.baseUnitOfMeasureCode}.`,
+    );
+  }
+
+  return {
+    externalId: item.id,
+    externalNumber: item.number,
+    displayName: item.displayName || null,
+    metadata: {
+      autoMatched: false,
+      bcValidated: true,
+      confidence: 100,
+      matchMethod: "manual_confirmation",
+      businessCentralDisplayName: item.displayName || null,
+      businessCentralBaseUnit: item.baseUnitOfMeasureCode || null,
+    },
+  };
+}
+
 async function firstCustomerMatch({
   token,
   root,
