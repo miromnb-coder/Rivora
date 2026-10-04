@@ -70,9 +70,9 @@ export default async function QuoteDetailPage({
   const canManage = ["owner", "admin"].includes(workspace.role);
   const editable = canManage && ["draft", "ready"].includes(quote.status);
   const deliveryEditable = canManage && !["sent", "expired"].includes(quote.status);
-  const emailConfigured = Boolean(
-    process.env.RESEND_API_KEY?.trim() && (process.env.NODRA_QUOTE_FROM ?? process.env.RIVORA_QUOTE_FROM)?.trim()
-  );
+  const quoteFrom =
+    process.env.AVEROMIRA_QUOTE_FROM?.trim() || "Averomira <miro@averomira.com>";
+  const emailConfigured = Boolean(process.env.RESEND_API_KEY?.trim() && quoteFrom);
   const money = moneyFormatter(quote.currency || "EUR", displayLocale);
   const pricingRequiredCount = (lines ?? []).filter((line: any) => Boolean(line.pricing_required)).length;
   const subtotal = (lines ?? []).reduce((sum: number, line: any) => sum + Number(line.line_total ?? 0), 0);
