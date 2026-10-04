@@ -15,12 +15,6 @@ export function MinimalShaderHero({ locale }: { locale: Locale }) {
 
       <div className="marketing-shell minimal-hero-inner v2-hero-inner">
         <div className="minimal-hero-copy">
-          <div className="minimal-kicker">
-            {fi
-              ? "RFQ:sta ERP-valmiiksi tilaukseksi"
-              : "From RFQ to ERP-ready order"}
-          </div>
-
           <h1>
             {fi
               ? "Vähemmän käsityötä tarjouspyynnön ja ERP:n välissä."
