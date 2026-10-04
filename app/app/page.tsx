@@ -2,6 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { formatLocale, getLocale } from "@/lib/locale";
+import {
+  businessCentralMappingIsVerified,
+  getBusinessCentralConfigurationStatus,
+} from "@/lib/rivora/erp/business-central";
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
@@ -80,6 +84,7 @@ export default async function AppHome() {
     { data: quotes },
     { data: purchaseOrders },
     { data: salesOrders },
+    { data: erpMappings },
   ] = await Promise.all([
     supabase
       .from("rfqs")
@@ -101,13 +106,25 @@ export default async function AppHome() {
       .limit(40),
     supabase
       .from("sales_order_drafts")
-      .select("id,status,customer_po_number,updated_at,customers(name),quotes(quote_number),purchase_orders(po_number),sales_order_draft_lines(line_total)")
+      .select("id,status,customer_id,customer_po_number,updated_at,customers(name),quotes(quote_number),purchase_orders(po_number),sales_order_draft_lines(line_total,product_id)")
       .eq("organization_id", workspace.id)
       .order("updated_at", { ascending: false })
       .limit(40),
+    supabase
+      .from("erp_entity_mappings")
+      .select("entity_type,local_entity_id,external_id,external_number,metadata")
+      .eq("organization_id", workspace.id)
+      .eq("provider", "business_central"),
   ]);
 
   const tasks: Task[] = [];
+  const bcConfig = getBusinessCentralConfigurationStatus(workspace.id);
+  const erpMappingByEntity = new Map(
+    (erpMappings ?? []).map((mapping: any) => [
+      `${mapping.entity_type}:${mapping.local_entity_id}`,
+      mapping,
+    ]),
+  );
 
   for (const rfq of rfqs ?? []) {
     if (rfq.status !== "needs_review") continue;
@@ -220,6 +237,20 @@ export default async function AppHome() {
 
     const customerName = customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer");
     const reference = order.customer_po_number || "PO";
+    const productIds = [...new Set(lines.map((line: any) => String(line.product_id)).filter(Boolean))];
+    const customerVerified = businessCentralMappingIsVerified(
+      erpMappingByEntity.get(`customer:${order.customer_id}`) as any,
+    );
+    const missingProducts = productIds.filter(
+      (productId) =>
+        !businessCentralMappingIsVerified(
+          erpMappingByEntity.get(`product:${productId}`) as any,
+        ),
+    );
+    const missingMappings = (customerVerified ? 0 : 1) + missingProducts.length;
+    const mappingTotal = 1 + productIds.length;
+    const exportReady = bcConfig.configured && missingMappings === 0;
+
     tasks.push({
       key: `sales-${order.id}`,
       caseKey: normalizedKey(customerName, reference),
@@ -230,14 +261,23 @@ export default async function AppHome() {
           ? fi
             ? "ERP-vienti vaatii huomiota"
             : "ERP export needs attention"
-          : fi
-            ? "Tilaus on valmis Business Centraliin"
-            : "Order is ready for Business Central",
-      detail: `${customerName} · ${reference} · ${money.format(total)}`,
+          : exportReady
+            ? fi
+              ? "Tilaus on valmis Business Centraliin"
+              : "Order is ready for Business Central"
+            : fi
+              ? "Täydennä Business Central -vastineet"
+              : "Complete Business Central mappings",
+      detail:
+        order.status === "draft" && !exportReady
+          ? `${customerName} · ${reference} · ${money.format(total)} · ${missingMappings}/${mappingTotal} ${fi ? "vastinetta puuttuu" : "mappings missing"}`
+          : `${customerName} · ${reference} · ${money.format(total)}`,
       href: `/app/orders/case/sales/${order.id}`,
       action: order.status === "erp_failed"
         ? fi ? "Tarkista ERP-vienti" : "Review ERP export"
-        : fi ? "Luo myyntitilaus" : "Create sales order",
+        : exportReady
+          ? fi ? "Luo myyntitilaus" : "Create sales order"
+          : fi ? "Täydennä vastineet" : "Complete mappings",
       priority: 12,
       updatedAt: order.updated_at,
     });
