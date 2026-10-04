@@ -169,6 +169,17 @@ export function businessCentralUnitsCompatible(localUnit: string, bcUnitCode: st
   return Boolean(left && right && left === right);
 }
 
+export function businessCentralCustomerIsBlocked(blocked: string | null | undefined) {
+  const normalized = String(blocked ?? "").trim();
+  if (!normalized) return false;
+
+  // Business Central can serialize the blank enum member as the XML-escaped
+  // space token "_x0020_". That value means "not blocked", not a real block.
+  if (/^(?:_x0020_)+$/i.test(normalized)) return false;
+
+  return true;
+}
+
 function baseUrl(config: BusinessCentralConfig) {
   const tenant = encodeURIComponent(config.tenantId);
   const environment = encodeURIComponent(config.environment);
@@ -352,7 +363,7 @@ async function firstCustomerMatch({
     ),
   });
   const candidates = (result.value ?? []).filter(
-    (customer) => !(customer.blocked && customer.blocked.trim()),
+    (customer) => !businessCentralCustomerIsBlocked(customer.blocked),
   );
   return candidates.length === 1 ? candidates[0] : null;
 }
@@ -539,7 +550,7 @@ export async function createBusinessCentralSalesOrder(
   if (!customer) {
     throw new Error(`Business Central customer ${input.customerNumber} was not found.`);
   }
-  if (customer.blocked && customer.blocked.trim()) {
+  if (businessCentralCustomerIsBlocked(customer.blocked)) {
     throw new Error(
       `Business Central customer ${input.customerNumber} is blocked (${customer.blocked}).`,
     );
