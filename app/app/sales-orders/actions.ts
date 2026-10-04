@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { getLocale } from "@/lib/locale";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   createBusinessCentralSalesOrder,
@@ -164,12 +165,13 @@ async function autoMapSalesOrderDraft({
 }
 
 export async function createSalesOrderDraftAction(formData: FormData) {
+  const fi = (await getLocale()) === "fi";
   const purchaseOrderId = clean(formData.get("purchaseOrderId"), 80);
   if (!purchaseOrderId) throw new Error("Purchase order ID is required.");
 
   let draftId = "";
   let failure: string | null = null;
-  let success = "Sales order draft created.";
+  let success = fi ? "Myyntitilausluonnos luotiin." : "Sales order draft created.";
 
   try {
     const context = await requireSalesOrderAdmin();
@@ -190,12 +192,17 @@ export async function createSalesOrderDraftAction(formData: FormData) {
       if (mappingResult.configured) {
         success =
           mappingResult.created > 0
-            ? `Sales order draft created. ${mappingResult.created} Business Central mapping(s) found automatically.`
-            : "Sales order draft created. Existing Business Central mappings were preserved.";
+            ? (fi
+                ? `Myyntitilausluonnos luotiin. ${mappingResult.created} Business Central -vastinetta löytyi automaattisesti.`
+                : `Sales order draft created. ${mappingResult.created} Business Central mapping(s) found automatically.`)
+            : (fi
+                ? "Myyntitilausluonnos luotiin. Aiemmat Business Central -vastineet säilytettiin."
+                : "Sales order draft created. Existing Business Central mappings were preserved.");
       }
     } catch {
-      success =
-        "Sales order draft created. Business Central automatic mapping can be retried from the draft.";
+      success = fi
+        ? "Myyntitilausluonnos luotiin. Business Central -vastineiden automaattisen haun voi yrittää uudelleen luonnoksesta."
+        : "Sales order draft created. Business Central automatic mapping can be retried from the draft.";
     }
   } catch (error) {
     failure = error instanceof Error ? error.message : "Sales order draft creation failed.";
@@ -214,11 +221,12 @@ export async function createSalesOrderDraftAction(formData: FormData) {
 }
 
 export async function autoMapBusinessCentralAction(formData: FormData) {
+  const fi = (await getLocale()) === "fi";
   const salesOrderDraftId = clean(formData.get("salesOrderDraftId"), 80);
   if (!salesOrderDraftId) throw new Error("Sales order draft ID is required.");
 
   let failure: string | null = null;
-  let success = "Business Central mapping search completed.";
+  let success = fi ? "Business Central -vastineiden haku valmistui." : "Business Central mapping search completed.";
 
   try {
     const context = await requireSalesOrderAdmin();
@@ -235,10 +243,16 @@ export async function autoMapBusinessCentralAction(formData: FormData) {
 
     success =
       result.created > 0
-        ? `${result.created} new Business Central mapping(s) found automatically.`
+        ? (fi
+            ? `${result.created} uutta Business Central -vastinetta löytyi automaattisesti.`
+            : `${result.created} new Business Central mapping(s) found automatically.`)
         : result.total > 0
-          ? "Automatic matches were already saved. No existing mapping was overwritten."
-          : "No safe exact Business Central matches were found. Review the remaining mappings manually.";
+          ? (fi
+              ? "Automaattiset vastineet oli jo tallennettu. Olemassa olevia vastineita ei ylikirjoitettu."
+              : "Automatic matches were already saved. No existing mapping was overwritten.")
+          : (fi
+              ? "Turvallisia täsmäosumia ei löytynyt Business Centralista. Tarkista puuttuvat vastineet käsin."
+              : "No safe exact Business Central matches were found. Review the remaining mappings manually.");
   } catch (error) {
     failure =
       error instanceof Error
@@ -260,6 +274,7 @@ export async function autoMapBusinessCentralAction(formData: FormData) {
 }
 
 export async function saveErpMappingAction(formData: FormData) {
+  const fi = (await getLocale()) === "fi";
   const salesOrderDraftId = clean(formData.get("salesOrderDraftId"), 80);
   const entityType = clean(formData.get("entityType"), 30);
   const localEntityId = clean(formData.get("localEntityId"), 80);
@@ -335,7 +350,7 @@ export async function saveErpMappingAction(formData: FormData) {
   redirect(
     draftUrl(
       salesOrderDraftId,
-      failure ?? "Business Central mapping saved.",
+      failure ?? (fi ? "Business Central -vastine tallennettiin." : "Business Central mapping saved."),
       failure ? "error" : "ok",
     ),
   );
