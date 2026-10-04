@@ -83,6 +83,7 @@ export default async function OrdersPage({
   const rows = new Map<string, CaseRow>();
   const quoteToCase = new Map<string, string>();
   const poToCase = new Map<string, string>();
+  const quotesWithPurchaseOrders = new Set<string>();
 
   for (const rfq of rfqs ?? []) {
     const customer = relationOne<any>((rfq as any).customers);
@@ -157,10 +158,13 @@ export default async function OrdersPage({
   for (const po of purchaseOrders ?? []) {
     const quote = relationOne<any>((po as any).quotes);
     const customer = relationOne<any>((po as any).customers);
-    const key = quote?.id && quoteToCase.has(String(quote.id))
-      ? quoteToCase.get(String(quote.id))!
-      : `po:${po.id}`;
-    const existing = rows.get(key);
+    const upstreamKey =
+      quote?.id && quoteToCase.has(String(quote.id))
+        ? quoteToCase.get(String(quote.id))!
+        : null;
+    const key = `po:${po.id}`;
+    const existing = upstreamKey ? rows.get(upstreamKey) : undefined;
+    if (quote?.id) quotesWithPurchaseOrders.add(String(quote.id));
     const attention = ["extracted", "needs_review", "matched"].includes(String(po.status));
     const stageLabel =
       po.status === "matched"
@@ -200,10 +204,10 @@ export default async function OrdersPage({
     const po = relationOne<any>((order as any).purchase_orders);
     const customer = relationOne<any>((order as any).customers);
     const key =
-      quote?.id && quoteToCase.has(String(quote.id))
-        ? quoteToCase.get(String(quote.id))!
-        : po?.id && poToCase.has(String(po.id))
-          ? poToCase.get(String(po.id))!
+      po?.id && poToCase.has(String(po.id))
+        ? poToCase.get(String(po.id))!
+        : quote?.id && quoteToCase.has(String(quote.id))
+          ? quoteToCase.get(String(quote.id))!
           : `sales:${order.id}`;
     const existing = rows.get(key);
     const done = order.status === "erp_created";
@@ -234,12 +238,24 @@ export default async function OrdersPage({
     });
   }
 
+  for (const quoteId of quotesWithPurchaseOrders) {
+    const upstreamKey = quoteToCase.get(quoteId);
+    if (upstreamKey) {
+      const upstream = rows.get(upstreamKey);
+      if (upstream && (upstream.stage === "rfq" || upstream.stage === "quote")) {
+        rows.delete(upstreamKey);
+      }
+    }
+  }
+
   const displayCases = new Map<string, CaseRow>();
   for (const row of rows.values()) {
-    const businessKey = normalizedKey(
-      row.customer,
-      row.rfqReference || row.quoteNumber || row.poNumber || row.key,
-    );
+    const businessKey = row.poNumber
+      ? normalizedKey(row.customer, row.quoteNumber, row.poNumber)
+      : normalizedKey(
+          row.customer,
+          row.rfqReference || row.quoteNumber || row.key,
+        );
     const existing = displayCases.get(businessKey);
     if (
       !existing ||
