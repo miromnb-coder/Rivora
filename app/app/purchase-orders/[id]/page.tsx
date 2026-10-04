@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatLocale, getLocale } from "@/lib/locale";
+import {
+  extractionConfidenceLabel,
+  extractionConfidenceNeedsReview,
+} from "@/lib/rivora/confidence";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { ReconciliationPanel } from "./ReconciliationPanel";
 import { createSalesOrderDraftAction } from "../../sales-orders/actions";
@@ -188,6 +192,19 @@ export default async function PurchaseOrderDetailPage({
         </section>
       ) : null}
 
+      {extractionConfidenceNeedsReview(purchaseOrder.extraction_confidence) ? (
+        <section className="surface mt-6 border border-[#edd7a8] bg-[#fffaf0] p-5">
+          <div className="upload-v2-section-label">
+            {fi ? "Matala poiminnan varmuus" : "Low extraction confidence"}
+          </div>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            {fi
+              ? "AI:n varmuus on alle 60 %. Tarkista lähdedokumentti ja rivit erityisen huolellisesti ennen hyväksyntää."
+              : "AI confidence is below 60%. Review the source document and extracted lines carefully before approval."}
+          </p>
+        </section>
+      ) : null}
+
       {warnings.length ? (
         <section className="surface mt-6 p-5">
           <div className="upload-v2-section-label">
@@ -231,7 +248,7 @@ export default async function PurchaseOrderDetailPage({
               ? fi
                 ? "Rakenteinen tuonti"
                 : "Structured import"
-              : `${Math.round(Number(purchaseOrder.extraction_confidence))}%`}
+              : extractionConfidenceLabel(purchaseOrder.extraction_confidence) ?? "—"}
           </strong>
         </div>
       </section>
@@ -311,7 +328,7 @@ export default async function PurchaseOrderDetailPage({
                       {line.source_page ? `${fi ? "Sivu" : "Page"} ${line.source_page}` : "—"}
                       {line.extraction_confidence != null ? (
                         <span className="mt-1 block">
-                          {Math.round(Number(line.extraction_confidence))}%{" "}
+                          {extractionConfidenceLabel(line.extraction_confidence)}{" "}
                           {fi ? "varmuus" : "confidence"}
                         </span>
                       ) : null}
