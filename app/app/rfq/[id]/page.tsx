@@ -28,7 +28,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
     resolution: fi ? "Tuotteiden ratkaisu" : "Product resolution", reviewLine: fi ? "Tarkista rivi kerrallaan." : "Review line by line.", lines: fi ? "riviä" : "lines", line: fi ? "Rivi" : "Line", page: fi ? "PDF-sivu" : "PDF page",
     noSku: fi ? "Ei asiakkaan SKU:ta" : "No customer SKU", noDescription: fi ? "Ei kuvausta" : "No description", pcs: fi ? "kpl" : "pcs", method: fi ? "Osumamenetelmä" : "Match method", noMethod: fi ? "Ei menetelmää" : "No method",
     suggested: fi ? "Ehdotettu tuote" : "Suggested product", noCandidate: fi ? "Ei ehdokasta" : "No candidate", noCandidateBody: fi ? "Yksikään katalogituote ei ylittänyt nykyistä kynnystä." : "No catalogue product cleared the current threshold.", match: fi ? "Osuma" : "Match", productCandidate: fi ? "Tuote-ehdokas" : "Product candidate",
-    remember: fi ? "Muista tämä vastine tälle asiakkaalle" : "Remember this mapping for this customer", confirm: fi ? "Vahvista osuma" : "Confirm match", manual: fi ? "Manuaalinen käsittely vaaditaan" : "Manual handling required", manualBody: fi ? "Yksikään katalogiehdokas ei ylittänyt fuzzy-kynnystä. Poimittu lähderivi säilytetään muuttumattomana." : "No catalogue candidate cleared the fuzzy threshold. The extracted source line remains preserved.",
+    remember: fi ? "Muista tämä vastine tälle asiakkaalle" : "Remember this mapping for this customer", confirm: fi ? "Vahvista osuma" : "Confirm match", manual: fi ? "Manuaalinen käsittely vaaditaan" : "Manual handling required", manualBody: fi ? "Automaattista ehdokasta ei löytynyt. Valitse oikea aktiivinen tuote katalogista ja vahvista se tälle riville." : "No automatic candidate was found. Select the correct active catalogue product and confirm it for this line.", manualSelect: fi ? "Valitse katalogituote" : "Select catalogue product", manualPlaceholder: fi ? "Valitse tuote…" : "Select product…", manualRefresh: fi ? "Jos lisäsit tuotteen juuri katalogiin, päivitä tämä sivu ja valitse se tästä." : "If you just added the product to the catalogue, refresh this page and select it here.", noProducts: fi ? "Katalogissa ei ole aktiivisia tuotteita. Lisää tuote ensin Tuotteet-näkymästä." : "There are no active catalogue products. Add a product first from Products.",
     readyForQuote: fi ? "Valmis tarjoukseen" : "Ready for quote", readyTitle: fi ? "Jokainen tarjouspyynnön rivi on ihmisen erikseen vahvistama." : "Every RFQ line has been explicitly confirmed by a person.", readyBody: fi ? "Lukitse vahvistetut tuotteet tarjousluonnokseen ja muokkaa sitten hinnoittelua, alennuksia, ALV:tä ja hyväksyntää Quote Builderissa." : "Freeze the human-confirmed products into a commercial draft, then edit pricing, discounts, VAT and approval state in Quote Builder.",
     openQuote: fi ? "Avaa" : "Open", createQuote: fi ? "Luo tarjous" : "Create quote", permission: fi ? "Tarjouksen luominen vaatii owner- tai admin-oikeuden." : "Owner or admin access is required to create the commercial quote.", quoteExists: fi ? "Tarjous on jo olemassa" : "Quote exists", quoteExistsTitle: fi ? "Tällä tarjouspyynnöllä on jo kaupallinen tarjous." : "This RFQ already has a commercial quote.", quote: fi ? "tarjous" : "quote",
   };
@@ -68,6 +68,23 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
     list.push(candidate);
     byLine.set((candidate as any).rfq_line_id, list);
   }
+
+
+  const hasManualLines = (lines ?? []).some(
+    (line: any) =>
+      line.review_status !== "confirmed" &&
+      (byLine.get(String(line.id)) ?? []).length === 0,
+  );
+
+  const { data: manualProducts } = hasManualLines
+    ? await supabase
+        .from("products")
+        .select("id,sku,name,manufacturer,unit,unit_price,stock_quantity")
+        .eq("organization_id", workspace.id)
+        .eq("active", true)
+        .order("sku")
+        .limit(500)
+    : { data: [] as any[] };
 
   const customer = Array.isArray((rfq as any).customers)
     ? (rfq as any).customers[0]
@@ -310,11 +327,54 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                     <>
                       <div className="rfq-review-v2-no-candidate">
                         <div className="upload-v2-section-label">{text.manual}</div>
-                        <p>
-                          No catalogue candidate cleared the fuzzy threshold. The extracted source line remains preserved.
-                        </p>
+                        <p>{text.manualBody}</p>
                       </div>
-                      {lineState}
+
+                      {["owner", "admin", "member"].includes(workspace.role) &&
+                      (manualProducts ?? []).length ? (
+                        <form action={confirmRfqMatch} className="rfq-review-v2-form">
+                          <input type="hidden" name="rfqId" value={id} />
+                          <input type="hidden" name="lineId" value={line.id} />
+
+                          <label>
+                            <span>{text.manualSelect}</span>
+                            <select name="productId" required defaultValue="">
+                              <option value="" disabled>
+                                {text.manualPlaceholder}
+                              </option>
+                              {(manualProducts ?? []).map((product: any) => (
+                                <option key={product.id} value={product.id}>
+                                  {product.sku} — {product.name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <p className="text-xs leading-5 text-[var(--muted)]">
+                            {text.manualRefresh}
+                          </p>
+
+                          {lineState}
+
+                          <div className="rfq-review-v2-actions">
+                            <label className="rfq-review-v2-remember">
+                              <input name="remember" type="checkbox" defaultChecked />
+                              <span>{text.remember}</span>
+                            </label>
+
+                            <button>
+                              {text.confirm} <span aria-hidden="true">→</span>
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          {lineState}
+                          <p className="mt-3 text-sm text-[var(--muted)]">
+                            {text.noProducts}
+                          </p>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
