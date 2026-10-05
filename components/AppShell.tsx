@@ -4,7 +4,6 @@ import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/locale";
 import { AppNav } from "@/components/AppNav";
-import { RivoraMark } from "@/components/marketing/RivoraMark";
 
 export function AppShell({
   children,
@@ -53,8 +52,8 @@ export function AppShell({
     <div className="app-shell-v2 min-h-screen">
       <aside className="app-sidebar-v2">
         <div className="app-sidebar-v2-top">
-          <Link href="/app" className="app-sidebar-v2-brand" aria-label="Averomira">
-            <RivoraMark withSymbol />
+          <Link href="/app" className="app-sidebar-v2-brand nodra-wordmark" aria-label="Averomira">
+            Averomira
           </Link>
           <div className="app-sidebar-v2-product">{copy.product}</div>
         </div>
@@ -75,8 +74,8 @@ export function AppShell({
       </aside>
 
       <header className="app-mobile-topbar">
-        <Link href="/app" className="app-mobile-brand" aria-label="Averomira">
-          <RivoraMark withSymbol />
+        <Link href="/app" className="app-mobile-brand nodra-wordmark" aria-label="Averomira">
+          Averomira
         </Link>
         <span>{workspaceName}</span>
       </header>
