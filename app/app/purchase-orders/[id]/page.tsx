@@ -411,9 +411,17 @@ export default async function PurchaseOrderDetailPage({
             </div>
           )}
           <div className="mt-4 rounded-xl bg-[var(--green-soft)] p-4 text-sm text-[var(--green-dark)]">
-            {fi
-              ? "Business Central -adapteri luo vain Draft-orderin. Se ei postaa, toimita tai laskuta tilausta."
-              : "The Business Central adapter creates a Draft order only. It does not post, ship or invoice the order."}
+            {workspace.erpProvider === "business_central"
+              ? (fi
+                  ? "Business Central -adapteri luo vain Draft-orderin. Se ei postaa, toimita tai laskuta tilausta."
+                  : "The Business Central adapter creates a Draft order only. It does not post, ship or invoice the order.")
+              : workspace.erpProvider === "custom"
+                ? (fi
+                    ? "Muu ERP on valittu. Sales Order Draft voidaan luoda nyt, mutta automaattinen ERP-vienti aktivoidaan vasta integraation valmistuttua."
+                    : "Another ERP is selected. The Sales Order Draft can be created now, but automatic ERP export is enabled only after the integration is ready.")
+                : (fi
+                    ? "ERP-integraatio ei ole käytössä. Sales Order Draft voidaan silti luoda ja käsitellä Averomirassa."
+                    : "ERP integration is disabled. The Sales Order Draft can still be created and handled in Averomira.")}
           </div>
         </section>
       </div>
