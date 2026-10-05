@@ -97,6 +97,15 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
             ? "Yksi sopimus, koko nykyinen Averomira ja selkeä kolmen kuukauden pilotti. Ei pakettivertailua, setup-maksua tai käyttäjäkohtaista hinnoittelua pilotin aikana."
             : "One agreement, the full Averomira product and a clear three-month pilot. No package comparison, setup fee or per-user pricing during the pilot."}
         </p>
+
+        <div className="pricing-fit">
+          <span>{fi ? "Pilotti sopii parhaiten, kun" : "The pilot is a strong fit when"}</span>
+          <div className="pricing-fit-grid">
+            <p>{fi ? "Tarjouspyyntöjä tulee toistuvasti PDF-, XLSX- tai CSV-muodossa." : "RFQs arrive repeatedly as PDF, XLSX or CSV files."}</p>
+            <p>{fi ? "Tuoterivit pitää yhdistää omaan katalogiin ennen tarjousta." : "Line items need to be resolved against your own catalogue before quoting."}</p>
+            <p>{fi ? "Tarjouksen jälkeen PO ja ERP-siirto vaativat vielä manuaalista tarkistusta." : "Customer POs and ERP handoff still require manual review after quoting."}</p>
+          </div>
+        </div>
       </div>
 
       <div className="pricing-lead-grid pricing-lead-grid-single">
