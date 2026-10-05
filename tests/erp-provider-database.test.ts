@@ -45,7 +45,7 @@ test("ERP delivery finish audits the provider from the actual attempt", () => {
 test("ERP mapping removal has a provider-aware RPC", () => {
   assert.match(
     migration,
-    /remove_erp_entity_mapping\(\s*target_provider text,\s*target_entity_type text,\s*target_local_entity_id uuid/s,
+    /remove_erp_entity_mapping\([\s\S]*?target_provider text,[\s\S]*?target_entity_type text,[\s\S]*?target_local_entity_id uuid/,
   );
   assert.match(
     migration,
