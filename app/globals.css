@@ -14455,3 +14455,43 @@ textarea:focus-visible {
     border-bottom: 0;
   }
 }
+
+
+/* Targeted QA fixes — RFQ review status spacing + Settings current-user identity */
+@media (min-width: 901px) {
+  .rfq-review-v2-line {
+    grid-template-columns: minmax(210px,.72fr) minmax(0,1.42fr) 152px;
+  }
+
+  .rfq-review-v2-state {
+    min-width: max-content;
+    white-space: nowrap;
+  }
+}
+
+#users .divide-y > div > div:first-child {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  row-gap: 3px;
+}
+
+#users .divide-y > div > div:first-child > strong,
+#users .divide-y > div > div:first-child > span {
+  min-width: 0;
+}
+
+#users .divide-y > div > div:first-child > span {
+  color: var(--app-muted);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 620px) {
+  #users .divide-y > div > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
