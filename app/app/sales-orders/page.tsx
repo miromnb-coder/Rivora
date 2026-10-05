@@ -46,9 +46,17 @@ export default async function SalesOrdersPage() {
             : "From approved PO to ERP-ready sales order draft."}
         </h1>
         <p className="mt-3 max-w-3xl text-[var(--muted)]">
-          {fi
-            ? "Averomira lukitsee hyväksytyn reconciliationin kaupallisen tilannekuvan ennen ERP-vientiä. Business Central -vienti luo vain Draft-tilauksen."
-            : "Averomira locks the approved reconciliation snapshot before ERP export. Business Central export creates a Draft order only."}
+          {workspace.erpProvider === "business_central"
+            ? (fi
+                ? "Averomira lukitsee hyväksytyn reconciliationin kaupallisen tilannekuvan ennen ERP-vientiä. Business Central -vienti luo vain Draft-tilauksen."
+                : "Averomira locks the approved reconciliation snapshot before ERP export. Business Central export creates a Draft order only.")
+            : workspace.erpProvider === "custom"
+              ? (fi
+                  ? "Averomira muodostaa ERP-riippumattoman Sales Order Draftin. Muu ERP on valittu, mutta automaattinen vienti odottaa integraatiota."
+                  : "Averomira creates an ERP-independent Sales Order Draft. Another ERP is selected, but automatic export is awaiting integration.")
+              : (fi
+                  ? "Averomira muodostaa ERP-riippumattoman Sales Order Draftin. ERP-yhteyttä ei tarvita luonnoksen muodostamiseen."
+                  : "Averomira creates an ERP-independent Sales Order Draft. An ERP connection is not required to create the draft.")}
         </p>
       </header>
 
