@@ -41,6 +41,13 @@ async function autoMapSalesOrderDraft({
   context: Awaited<ReturnType<typeof requireSalesOrderAdmin>>;
 }) {
   const { supabase, workspace, claims } = context;
+  if (workspace.erpProvider !== "business_central") {
+    return {
+      configured: false,
+      created: 0,
+      total: 0,
+    };
+  }
   const config = getBusinessCentralConfigurationStatus(workspace.id);
   if (!config.configured) {
     return {
@@ -184,25 +191,27 @@ export async function createSalesOrderDraftAction(formData: FormData) {
     draftId = String(data ?? "");
     if (!draftId) throw new Error("Sales order draft creation returned no ID.");
 
-    try {
-      const mappingResult = await autoMapSalesOrderDraft({
-        salesOrderDraftId: draftId,
-        context,
-      });
-      if (mappingResult.configured) {
-        success =
-          mappingResult.created > 0
-            ? (fi
-                ? `Myyntitilausluonnos luotiin. ${mappingResult.created} Business Central -vastinetta löytyi automaattisesti.`
-                : `Sales order draft created. ${mappingResult.created} Business Central mapping(s) found automatically.`)
-            : (fi
-                ? "Myyntitilausluonnos luotiin. Aiemmat Business Central -vastineet säilytettiin."
-                : "Sales order draft created. Existing Business Central mappings were preserved.");
+    if (context.workspace.erpProvider === "business_central") {
+      try {
+        const mappingResult = await autoMapSalesOrderDraft({
+          salesOrderDraftId: draftId,
+          context,
+        });
+        if (mappingResult.configured) {
+          success =
+            mappingResult.created > 0
+              ? (fi
+                  ? `Myyntitilausluonnos luotiin. ${mappingResult.created} Business Central -vastinetta löytyi automaattisesti.`
+                  : `Sales order draft created. ${mappingResult.created} Business Central mapping(s) found automatically.`)
+              : (fi
+                  ? "Myyntitilausluonnos luotiin. Aiemmat Business Central -vastineet säilytettiin."
+                  : "Sales order draft created. Existing Business Central mappings were preserved.");
+        }
+      } catch {
+        success = fi
+          ? "Myyntitilausluonnos luotiin. Business Central -vastineiden automaattisen haun voi yrittää uudelleen luonnoksesta."
+          : "Sales order draft created. Business Central automatic mapping can be retried from the draft.";
       }
-    } catch {
-      success = fi
-        ? "Myyntitilausluonnos luotiin. Business Central -vastineiden automaattisen haun voi yrittää uudelleen luonnoksesta."
-        : "Sales order draft created. Business Central automatic mapping can be retried from the draft.";
     }
   } catch (error) {
     failure = error instanceof Error ? error.message : "Sales order draft creation failed.";
@@ -230,6 +239,9 @@ export async function autoMapBusinessCentralAction(formData: FormData) {
 
   try {
     const context = await requireSalesOrderAdmin();
+    if (context.workspace.erpProvider !== "business_central") {
+      throw new Error("Business Central is not the selected ERP for this workspace.");
+    }
     const result = await autoMapSalesOrderDraft({
       salesOrderDraftId,
       context,
@@ -291,6 +303,9 @@ export async function saveErpMappingAction(formData: FormData) {
 
   try {
     const { supabase, workspace, claims } = await requireSalesOrderAdmin();
+    if (workspace.erpProvider !== "business_central") {
+      throw new Error("Business Central is not the selected ERP for this workspace.");
+    }
 
     let localUnit: string | null = null;
     if (entityType === "product") {
@@ -368,6 +383,9 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
   try {
     context = await requireSalesOrderAdmin();
     const { supabase, workspace, claims } = context;
+    if (workspace.erpProvider !== "business_central") {
+      throw new Error("Business Central is not the selected ERP for this workspace.");
+    }
     const admin = createAdminClient();
     const actorId = String(claims.sub);
 

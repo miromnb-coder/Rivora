@@ -4,6 +4,7 @@ import { requireWorkspace } from "@/lib/rivora/workspace";
 import {
   inviteWorkspaceMember,
   removeWorkspaceLogo,
+  updateWorkspaceErpProvider,
   updateWorkspaceMemberRole,
   updateWorkspaceSettings,
 } from "./actions";
@@ -32,7 +33,7 @@ export default async function SettingsPage({
     supabase
       .from("organizations")
       .select(
-        "name,business_id,address_line1,address_line2,postal_code,city,country,email,phone,logo_path,default_tax_rate,default_quote_validity_days,onboarding_completed_at",
+        "name,business_id,address_line1,address_line2,postal_code,city,country,email,phone,logo_path,default_tax_rate,default_quote_validity_days,onboarding_completed_at,erp_provider",
       )
       .eq("id", workspace.id)
       .maybeSingle(),
@@ -78,6 +79,7 @@ export default async function SettingsPage({
     }),
   );
 
+  const erpProvider = String(organization?.erp_provider || workspace.erpProvider || "none");
   const message = params.saved ? copy.saved : params.message;
   const tone = params.tone === "error" ? "error" : "ok";
 
@@ -91,8 +93,8 @@ export default async function SettingsPage({
           </h1>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
             {fi
-              ? "Hallitse yritystä, tarjouksia, Business Centralia ja käyttäjiä samasta paikasta."
-              : "Manage company details, quoting, Business Central and users from one place."}
+              ? "Hallitse yritystä, tarjouksia, ERP-yhteyttä ja käyttäjiä samasta paikasta."
+              : "Manage company details, quoting, the ERP connection and users from one place."}
           </p>
         </div>
       </header>
@@ -224,35 +226,90 @@ export default async function SettingsPage({
         </form>
       ) : null}
 
-      <section id="business-central" className="surface mt-5 scroll-mt-5 p-6">
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="upload-v2-section-label">Business Central</div>
-            <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">{fi ? "ERP-yhteys" : "ERP connection"}</h2>
-            <p>
-              {config.configured
-                ? fi
-                  ? "Business Central on yhdistetty tähän työtilaan."
-                  : "Business Central is connected to this workspace."
-                : fi
-                  ? "Yhteys vaatii vielä määrityksiä ennen ERP-vientiä."
-                  : "The connection still needs configuration before ERP export."}
+      <section id="erp" className="surface mt-5 scroll-mt-5 p-6">
+        <div className="mb-5">
+          <div className="upload-v2-section-label">{fi ? "ERP-järjestelmä" : "ERP system"}</div>
+          <h2 className="mt-1 text-xl font-bold tracking-[-.02em]">
+            {fi ? "ERP-yhteys" : "ERP connection"}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+            {fi
+              ? "Valitse työtilan ERP. Valinta ei estä RFQ-, tarjous-, PO- tai Sales Order Draft -työskentelyä."
+              : "Choose the workspace ERP. This choice does not block RFQ, quote, PO or Sales Order Draft work."}
+          </p>
+        </div>
+
+        <form action={updateWorkspaceErpProvider} className="grid gap-3 border-y border-[var(--line)] py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <label>
+            <span className="settings-field-label">{fi ? "Käytössä oleva ERP" : "ERP in use"}</span>
+            <select
+              name="erpProvider"
+              defaultValue={erpProvider}
+              disabled={!canManage}
+              className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm"
+            >
+              <option value="business_central">Microsoft Business Central</option>
+              <option value="custom">{fi ? "Muu ERP" : "Other ERP"}</option>
+              <option value="none">{fi ? "Ei ERP-integraatiota" : "No ERP integration"}</option>
+            </select>
+          </label>
+          {canManage ? (
+            <button className="btn-secondary">{fi ? "Tallenna ERP-valinta" : "Save ERP choice"}</button>
+          ) : null}
+        </form>
+
+        {erpProvider === "business_central" ? (
+          <div className="mt-5">
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="upload-v2-section-label">Microsoft Business Central</div>
+                <h3 className="mt-1 text-lg font-bold tracking-[-.02em]">
+                  {fi ? "Natiivi ERP-integraatio" : "Native ERP integration"}
+                </h3>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  {config.configured
+                    ? fi
+                      ? "Business Central on yhdistetty tähän työtilaan."
+                      : "Business Central is connected to this workspace."
+                    : fi
+                      ? "Yhteys vaatii vielä määrityksiä ennen ERP-vientiä."
+                      : "The connection still needs configuration before ERP export."}
+                </p>
+              </div>
+              <span className={config.configured ? "settings-status is-ready" : "settings-status is-warning"}>
+                {config.configured ? (fi ? "Yhdistetty" : "Connected") : (fi ? "Vaatii huomiota" : "Needs attention")}
+              </span>
+            </div>
+            <div className="settings-p1-connection-strip">
+              <div className="p-4"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</span><strong className="mt-2 block text-sm">{config.environment || "—"}</strong></div>
+              <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Company ID</span><strong className="mt-2 block break-all text-sm">{config.companyId || "—"}</strong></div>
+              <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Työtila" : "Workspace"}</span><strong className="mt-2 block text-sm">{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
+            </div>
+            <div className="mt-4">
+              <Link href="/app/settings/business-central" className="btn-secondary">
+                {fi ? "Hallitse BC-vastineita" : "Manage BC mappings"} →
+              </Link>
+            </div>
+          </div>
+        ) : erpProvider === "custom" ? (
+          <div className="mt-5 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-5">
+            <strong className="block">{fi ? "Muu ERP valittu" : "Other ERP selected"}</strong>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+              {fi
+                ? "Averomiran RFQ-, tarjous-, PO- ja Sales Order Draft -työnkulku toimii normaalisti. Automaattinen ERP-vienti aktivoidaan vasta, kun tälle ERP:lle on toteutettu ja testattu integraatio."
+                : "Averomira's RFQ, quote, PO and Sales Order Draft workflow remains available. Automatic ERP export is enabled only after this ERP has a built and tested integration."}
             </p>
           </div>
-          <span className={config.configured ? "settings-status is-ready" : "settings-status is-warning"}>
-            {config.configured ? (fi ? "Yhdistetty" : "Connected") : (fi ? "Vaatii huomiota" : "Needs attention")}
-          </span>
-        </div>
-        <div className="settings-p1-connection-strip">
-          <div className="p-4"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</span><strong className="mt-2 block text-sm">{config.environment || "—"}</strong></div>
-          <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Company ID</span><strong className="mt-2 block break-all text-sm">{config.companyId || "—"}</strong></div>
-          <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Työtila" : "Workspace"}</span><strong className="mt-2 block text-sm">{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
-        </div>
-        <div className="mt-4">
-          <Link href="/app/settings/business-central" className="btn-secondary">
-            {fi ? "Hallitse BC-vastineita" : "Manage BC mappings"} →
-          </Link>
-        </div>
+        ) : (
+          <div className="mt-5 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-5">
+            <strong className="block">{fi ? "ERP-vienti ei ole käytössä" : "ERP export is disabled"}</strong>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+              {fi
+                ? "ERP-yhteyttä ei vaadita Averomiran muuhun työnkulkuun. Sales Order Draft voidaan silti muodostaa hyväksytystä PO:sta."
+                : "An ERP connection is not required for the rest of Averomira. A Sales Order Draft can still be created from an approved PO."}
+            </p>
+          </div>
+        )}
       </section>
 
       <section id="users" className="surface mt-5 scroll-mt-5 p-6">

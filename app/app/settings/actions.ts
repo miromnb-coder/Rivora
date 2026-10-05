@@ -119,6 +119,30 @@ export async function updateWorkspaceSettings(formData: FormData) {
   redirect("/app/settings?saved=1");
 }
 
+export async function updateWorkspaceErpProvider(formData: FormData) {
+  const { supabase, workspace } = await requireSettingsAdmin();
+  const erpProvider = clean(formData.get("erpProvider"), 40);
+
+  if (!["business_central", "custom", "none"].includes(erpProvider)) {
+    throw new Error("Unsupported ERP provider.");
+  }
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      erp_provider: erpProvider,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", workspace.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/app/settings");
+  revalidatePath("/app/sales-orders");
+  revalidatePath("/app/orders");
+  redirect("/app/settings?saved=1#erp");
+}
+
 export async function removeWorkspaceLogo() {
   const { supabase, workspace } = await requireSettingsAdmin();
   const { data: organization } = await supabase

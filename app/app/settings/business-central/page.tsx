@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { getBusinessCentralConfigurationStatus } from "@/lib/rivora/erp/business-central";
@@ -16,6 +17,9 @@ export default async function BusinessCentralSettingsPage({
   ]);
   const fi = locale === "fi";
   const canManage = ["owner", "admin"].includes(workspace.role);
+  if (workspace.erpProvider !== "business_central") {
+    redirect("/app/settings#erp");
+  }
   const config = getBusinessCentralConfigurationStatus(workspace.id);
 
   const [{ data: customers }, { data: products }, { data: mappings }] = await Promise.all([
@@ -64,7 +68,7 @@ export default async function BusinessCentralSettingsPage({
     <div className="app-page-v2 bc-mappings-page">
       <div className="mb-5">
         <Link
-          href="/app/settings#business-central"
+          href="/app/settings#erp"
           className="text-[13px] font-semibold text-[#5f645f] hover:text-[var(--app-ink)]"
         >
           ← {fi ? "Asetukset" : "Settings"}

@@ -10,6 +10,9 @@ export async function saveBusinessCentralMapping(formData: FormData) {
   if (!["owner", "admin"].includes(context.workspace.role)) {
     throw new Error("Owner or admin access is required.");
   }
+  if (context.workspace.erpProvider !== "business_central") {
+    throw new Error("Business Central is not the selected ERP for this workspace.");
+  }
 
   const { supabase, workspace, claims } = context;
   const entityType = String(formData.get("entityType") ?? "").trim();
@@ -91,6 +94,9 @@ export async function removeBusinessCentralMapping(formData: FormData) {
   const context = await requireWorkspace();
   if (!["owner", "admin"].includes(context.workspace.role)) {
     throw new Error("Owner or admin access is required.");
+  }
+  if (context.workspace.erpProvider !== "business_central") {
+    throw new Error("Business Central is not the selected ERP for this workspace.");
   }
 
   const entityType = String(formData.get("entityType") ?? "").trim();
