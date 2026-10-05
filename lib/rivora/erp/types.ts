@@ -86,6 +86,8 @@ export type ErpCreateResult =
 export type ErpMappingRecord = {
   externalId?: string | null;
   externalNumber?: string | null;
+  external_id?: string | null;
+  external_number?: string | null;
   metadata?: Record<string, unknown> | null;
 } | null | undefined;
 

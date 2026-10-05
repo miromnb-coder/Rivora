@@ -348,10 +348,15 @@ export type BusinessCentralValidatedMapping = {
 export function businessCentralMappingIsVerified(mapping: {
   externalId?: string | null;
   externalNumber?: string | null;
+  external_id?: string | null;
+  external_number?: string | null;
   metadata?: Record<string, unknown> | null;
 } | null | undefined) {
-  if (!mapping?.externalId || !mapping?.externalNumber) return false;
-  return mapping.metadata?.autoMatched === true || mapping.metadata?.bcValidated === true;
+  const externalId = mapping?.externalId ?? mapping?.external_id;
+  const externalNumber = mapping?.externalNumber ?? mapping?.external_number;
+
+  if (!externalId || !externalNumber) return false;
+  return mapping?.metadata?.autoMatched === true || mapping?.metadata?.bcValidated === true;
 }
 
 export async function validateBusinessCentralManualMapping({

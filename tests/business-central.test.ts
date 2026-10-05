@@ -106,4 +106,20 @@ test("Business Central export only trusts mappings verified against BC", () => {
     }),
     false,
   );
+  assert.equal(
+    businessCentralMappingIsVerified({
+      external_id: "bc-id",
+      external_number: "1896-S",
+      metadata: { bcValidated: true },
+    }),
+    true,
+  );
+  assert.equal(
+    businessCentralMappingIsVerified({
+      external_id: "bc-id",
+      external_number: "1896-S",
+      metadata: { autoMatched: true },
+    }),
+    true,
+  );
 });
