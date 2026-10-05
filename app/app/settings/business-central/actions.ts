@@ -19,10 +19,6 @@ export async function saveBusinessCentralMapping(formData: FormData) {
   if (adapter.provider !== "business_central") {
     throw new Error("Business Central is not the selected ERP for this workspace.");
   }
-  const adapter = requireErpAdapter(context.workspace.erpProvider);
-  if (adapter.provider !== "business_central") {
-    throw new Error("Business Central is not the selected ERP for this workspace.");
-  }
 
   const entityType = String(formData.get("entityType") ?? "").trim();
   const localEntityId = String(formData.get("localEntityId") ?? "").trim();
