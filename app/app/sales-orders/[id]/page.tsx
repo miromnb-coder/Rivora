@@ -2,14 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatLocale, getLocale } from "@/lib/locale";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { getErpAdapter } from "@/lib/rivora/erp";
 import {
-  businessCentralMappingIsVerified,
-  getBusinessCentralConfigurationStatus,
-} from "@/lib/rivora/erp/business-central";
-import {
-  autoMapBusinessCentralAction,
+  autoMapErpAction,
   saveErpMappingAction,
-  sendBusinessCentralSalesOrderAction,
+  sendErpSalesOrderAction,
 } from "../actions";
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
@@ -53,7 +50,9 @@ export default async function SalesOrderDraftDetailPage({
   const fi = locale === "fi";
   const displayLocale = formatLocale(locale);
   const canAdmin = ["owner", "admin"].includes(workspace.role);
-  const isBusinessCentral = workspace.erpProvider === "business_central";
+  const adapter = getErpAdapter(workspace.erpProvider);
+  const isBusinessCentral = adapter?.provider === "business_central";
+  const mappingVerified = (mapping: any) => adapter?.isMappingVerified(mapping) ?? false;
 
   const { data: draft, error: draftError } = await supabase
     .from("sales_order_drafts")
@@ -116,14 +115,20 @@ export default async function SalesOrderDraftDetailPage({
   const missingProductMappings = isBusinessCentral
     ? (lines ?? []).filter(
         (line: any) =>
-          !businessCentralMappingIsVerified(
+          !mappingVerified(
             productMappings.get(String(line.product_id)),
           ),
       )
     : [];
 
-  const config = getBusinessCentralConfigurationStatus(workspace.id);
-  const customerMappingVerified = businessCentralMappingIsVerified(customerMapping);
+  const config = adapter?.getConfigurationStatus(workspace.id) ?? {
+    configured: false,
+    workspaceMatches: false,
+    missing: [],
+    environment: null,
+    companyId: null,
+  };
+  const customerMappingVerified = mappingVerified(customerMapping);
   const adapterReady =
     isBusinessCentral &&
     config.configured &&
@@ -143,7 +148,7 @@ export default async function SalesOrderDraftDetailPage({
     if (method === "product_mpn_exact") return "MPN";
     if (method === "product_name_exact") return fi ? "Nimi täsmää" : "Name match";
     if (method === "manual_confirmation") {
-      return businessCentralMappingIsVerified(mapping)
+      return mappingVerified(mapping)
         ? (fi ? "BC-tarkistettu käsin" : "Manually verified in BC")
         : (fi ? "BC-tarkistus vaaditaan" : "BC verification required");
     }
@@ -281,7 +286,7 @@ export default async function SalesOrderDraftDetailPage({
                     </td>
                     {isBusinessCentral ? (
                     <td className="px-5 py-4">
-                      {businessCentralMappingIsVerified(mapping) ? (
+                      {mappingVerified(mapping) ? (
                         <div className="min-w-[210px]">
                           <div className="flex flex-wrap items-center gap-2">
                             <strong>{mapping.external_number}</strong>
@@ -368,7 +373,7 @@ export default async function SalesOrderDraftDetailPage({
                     </p>
                   </div>
                   {canAdmin && config.configured && ["draft", "erp_failed"].includes(String(draft.status)) ? (
-                    <form action={autoMapBusinessCentralAction}>
+                    <form action={autoMapErpAction}>
                       <input type="hidden" name="salesOrderDraftId" value={draft.id} />
                       <button className="upload-v2-secondary-btn">
                         {fi ? "Etsi vastineet automaattisesti" : "Find mappings automatically"}
@@ -486,7 +491,7 @@ export default async function SalesOrderDraftDetailPage({
               {canAdmin &&
               adapterReady &&
               ["draft", "erp_failed"].includes(String(draft.status)) ? (
-                <form action={sendBusinessCentralSalesOrderAction} className="mt-5">
+                <form action={sendErpSalesOrderAction} className="mt-5">
                   <input type="hidden" name="salesOrderDraftId" value={draft.id} />
                   <button className="upload-v2-primary-btn">
                     {fi ? "Luo Draft-order Business Centraliin" : "Create Draft order in Business Central"} →
