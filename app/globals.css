@@ -14495,3 +14495,48 @@ textarea:focus-visible {
     gap: 4px;
   }
 }
+
+
+/* Averomira brand symbol — marketing top bar */
+.nav-v2-brand .nodra-wordmark.with-symbol {
+  gap: 9px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.nav-v2-brand .averomira-brand-symbol {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111111;
+  line-height: 0;
+}
+
+.nav-v2-brand .averomira-brand-symbol svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.nav-v2-brand .averomira-wordmark-text {
+  font-size: 17px;
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -.025em;
+  text-transform: none;
+}
+
+@media (max-width: 720px) {
+  .nav-v2-brand .averomira-brand-symbol {
+    width: 21px;
+    height: 21px;
+    flex-basis: 21px;
+  }
+
+  .nav-v2-brand .averomira-wordmark-text {
+    font-size: 15px;
+  }
+}
