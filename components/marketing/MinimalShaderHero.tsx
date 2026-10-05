@@ -5,20 +5,38 @@ import type { Locale } from "@/lib/locale";
 export function MinimalShaderHero({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
 
+  const stages = fi
+    ? [
+        ["RFQ", "7 riviä", "Poimittu"],
+        ["Tuotteet", "7 / 7", "Vahvistettu"],
+        ["Tarjous", "Q-2026-9421E3", "Hyväksytty"],
+        ["PO", "7 / 7", "Täsmää"],
+      ]
+    : [
+        ["RFQ", "7 lines", "Extracted"],
+        ["Products", "7 / 7", "Confirmed"],
+        ["Quote", "Q-2026-9421E3", "Approved"],
+        ["PO", "7 / 7", "Matched"],
+      ];
+
   return (
     <section className="minimal-hero v2-hero" id="product">
       <div className="marketing-shell minimal-hero-inner v2-hero-inner">
         <div className="minimal-hero-copy">
+          <span className="minimal-kicker">
+            {fi ? "RFQ → tarjous → PO → ERP" : "RFQ → quote → PO → ERP"}
+          </span>
+
           <h1>
             {fi
-              ? "Vähemmän käsityötä tarjouspyynnön ja ERP:n välissä."
-              : "Less manual work between customer request and ERP."}
+              ? "Tarjouspyynnöstä tarkistetuksi tilaukseksi — ilman käsin yhdistelyä."
+              : "From customer RFQ to verified order — without manual stitching."}
           </h1>
 
           <p>
             {fi
-              ? "Averomira poimii tarjouspyynnön, ratkaisee tuotteet, auttaa rakentamaan tarjouksen, vertaa asiakkaan PO:n ja valmistaa hyväksytyn myyntitilauksen Business Centraliin."
-              : "Averomira extracts the RFQ, resolves products, helps build the quote, reconciles the customer PO and prepares the approved sales order for Business Central."}
+              ? "Averomira tunnistaa tarjouspyynnön rivit, ehdottaa oikeat katalogituotteet, ohjaa epävarmat osumat tarkistukseen, rakentaa tarjouksen ja vertaa asiakkaan PO:n ennen Business Centralia."
+              : "Averomira extracts RFQ lines, resolves them to your catalogue, routes uncertain matches for review, builds the quote and reconciles the customer PO before Business Central."}
           </p>
 
           <div className="minimal-hero-actions">
@@ -42,6 +60,47 @@ export function MinimalShaderHero({ locale }: { locale: Locale }) {
             <span>PO</span><i />
             <span>{fi ? "Tarkistus" : "Review"}</span><i />
             <span>ERP</span>
+          </div>
+        </div>
+
+        <div className="hero-product-preview" aria-label={fi ? "Esimerkki Averomiran tilauscasesta" : "Example Averomira order case"}>
+          <div className="hero-product-preview-head">
+            <div>
+              <span>{fi ? "Tilauscase" : "Order case"}</span>
+              <strong>Nordic Flow Systems Oy</strong>
+            </div>
+            <em>{fi ? "Valmis ERP:iin" : "ERP ready"}</em>
+          </div>
+
+          <div className="hero-product-preview-grid">
+            {stages.map(([label, value, status], index) => (
+              <div key={label} className="hero-product-preview-stage">
+                <div className="hero-product-preview-stage-top">
+                  <span>{String(index + 1).padStart(2, "0")} · {label}</span>
+                  <i aria-hidden="true">✓</i>
+                </div>
+                <strong>{value}</strong>
+                <small>{status}</small>
+              </div>
+            ))}
+          </div>
+
+          <div className="hero-product-preview-footer">
+            <div>
+              <span>{fi ? "Tuoteosumat" : "Product matches"}</span>
+              <b>7 / 7</b>
+              <small>{fi ? "ihmisen vahvistama" : "human confirmed"}</small>
+            </div>
+            <div>
+              <span>{fi ? "Quote ↔ PO" : "Quote ↔ PO"}</span>
+              <b>7 / 7</b>
+              <small>{fi ? "riviä täsmää" : "lines match"}</small>
+            </div>
+            <div>
+              <span>Business Central</span>
+              <b>8 / 8</b>
+              <small>{fi ? "vastinetta tunnistettu" : "mappings identified"}</small>
+            </div>
           </div>
         </div>
       </div>

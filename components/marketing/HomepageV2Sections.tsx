@@ -359,8 +359,8 @@ export function FinalCtaV2({ locale }: { locale: Locale }) {
             <a href="#pricing" className="final-cta-v2-primary">
               {fi ? "Aloita Averomira Pilot" : "Start Averomira Pilot"} <span aria-hidden="true">→</span>
             </a>
-            <a href="#demo" className="final-cta-v2-secondary">
-              {fi ? "Pyydä demo" : "Request a demo"}
+            <a href="#how-it-works" className="final-cta-v2-secondary">
+              {fi ? "Katso työnkulku" : "See the workflow"}
             </a>
           </div>
 
