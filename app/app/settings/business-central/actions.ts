@@ -104,6 +104,7 @@ export async function removeBusinessCentralMapping(formData: FormData) {
     throw new Error("Business Central is not the selected ERP for this workspace.");
   }
 
+  const adapter = requireErpAdapter(context.workspace.erpProvider);
   const entityType = String(formData.get("entityType") ?? "").trim();
   const localEntityId = String(formData.get("localEntityId") ?? "").trim();
 
@@ -115,6 +116,7 @@ export async function removeBusinessCentralMapping(formData: FormData) {
   }
 
   const { error } = await context.supabase.rpc("remove_erp_entity_mapping", {
+    target_provider: adapter.provider,
     target_entity_type: entityType,
     target_local_entity_id: localEntityId,
   });
