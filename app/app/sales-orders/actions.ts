@@ -6,14 +6,10 @@ import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  createBusinessCentralSalesOrder,
-  getBusinessCentralConfigurationStatus,
-  sanitizedBusinessCentralRequest,
-  suggestBusinessCentralMappings,
-  validateBusinessCentralManualMapping,
-  businessCentralMappingIsVerified,
-  type BusinessCentralSalesOrderInput,
-} from "@/lib/rivora/erp/business-central";
+  getErpAdapter,
+  requireErpAdapter,
+  type ErpSalesOrderInput,
+} from "@/lib/rivora/erp";
 
 function clean(value: FormDataEntryValue | null, max = 500) {
   return String(value ?? "").trim().slice(0, max);
@@ -41,14 +37,17 @@ async function autoMapSalesOrderDraft({
   context: Awaited<ReturnType<typeof requireSalesOrderAdmin>>;
 }) {
   const { supabase, workspace, claims } = context;
-  if (workspace.erpProvider !== "business_central") {
+  const adapter = getErpAdapter(workspace.erpProvider);
+  if (!adapter) {
     return {
       configured: false,
       created: 0,
       total: 0,
+      provider: null,
+      displayName: null,
     };
   }
-  const config = getBusinessCentralConfigurationStatus(workspace.id);
+  const config = adapter.getConfigurationStatus(workspace.id);
   if (!config.configured) {
     return {
       configured: false,
@@ -111,7 +110,7 @@ async function autoMapSalesOrderDraft({
     .from("erp_entity_mappings")
     .select("entity_type,local_entity_id,external_number")
     .eq("organization_id", workspace.id)
-    .eq("provider", "business_central")
+    .eq("provider", adapter.provider)
     .in("local_entity_id", entityIds);
 
   if (existingError) throw existingError;
@@ -125,7 +124,7 @@ async function autoMapSalesOrderDraft({
       ),
   );
 
-  const suggestions = await suggestBusinessCentralMappings({
+  const suggestions = await adapter.suggestMappings({
     workspaceId: workspace.id,
     customer: {
       id: String(draft.customer_id),
@@ -148,7 +147,7 @@ async function autoMapSalesOrderDraft({
       .upsert(
         toCreate.map((suggestion) => ({
           organization_id: workspace.id,
-          provider: "business_central",
+          provider: adapter.provider,
           entity_type: suggestion.entityType,
           local_entity_id: suggestion.localEntityId,
           external_id: suggestion.externalId,
@@ -168,6 +167,8 @@ async function autoMapSalesOrderDraft({
     configured: true,
     created: toCreate.length,
     total: suggestions.length,
+    provider: adapter.provider,
+    displayName: adapter.displayName,
   };
 }
 
@@ -191,7 +192,8 @@ export async function createSalesOrderDraftAction(formData: FormData) {
     draftId = String(data ?? "");
     if (!draftId) throw new Error("Sales order draft creation returned no ID.");
 
-    if (context.workspace.erpProvider === "business_central") {
+    const adapter = getErpAdapter(context.workspace.erpProvider);
+    if (adapter) {
       try {
         const mappingResult = await autoMapSalesOrderDraft({
           salesOrderDraftId: draftId,
@@ -201,16 +203,16 @@ export async function createSalesOrderDraftAction(formData: FormData) {
           success =
             mappingResult.created > 0
               ? (fi
-                  ? `Myyntitilausluonnos luotiin. ${mappingResult.created} Business Central -vastinetta löytyi automaattisesti.`
-                  : `Sales order draft created. ${mappingResult.created} Business Central mapping(s) found automatically.`)
+                  ? `Myyntitilausluonnos luotiin. ${mappingResult.created} ${adapter.displayName} -vastinetta löytyi automaattisesti.`
+                  : `Sales order draft created. ${mappingResult.created} ${adapter.displayName} mapping(s) found automatically.`)
               : (fi
-                  ? "Myyntitilausluonnos luotiin. Aiemmat Business Central -vastineet säilytettiin."
-                  : "Sales order draft created. Existing Business Central mappings were preserved.");
+                  ? `Myyntitilausluonnos luotiin. Aiemmat ${adapter.displayName} -vastineet säilytettiin.`
+                  : `Sales order draft created. Existing ${adapter.displayName} mappings were preserved.`);
         }
       } catch {
         success = fi
-          ? "Myyntitilausluonnos luotiin. Business Central -vastineiden automaattisen haun voi yrittää uudelleen luonnoksesta."
-          : "Sales order draft created. Business Central automatic mapping can be retried from the draft.";
+          ? `Myyntitilausluonnos luotiin. ${adapter.displayName} -vastineiden automaattisen haun voi yrittää uudelleen luonnoksesta.`
+          : `Sales order draft created. ${adapter.displayName} automatic mapping can be retried from the draft.`;
       }
     }
   } catch (error) {
@@ -229,19 +231,17 @@ export async function createSalesOrderDraftAction(formData: FormData) {
   redirect(draftUrl(draftId, success, "ok"));
 }
 
-export async function autoMapBusinessCentralAction(formData: FormData) {
+export async function autoMapErpAction(formData: FormData) {
   const fi = (await getLocale()) === "fi";
   const salesOrderDraftId = clean(formData.get("salesOrderDraftId"), 80);
   if (!salesOrderDraftId) throw new Error("Sales order draft ID is required.");
 
   let failure: string | null = null;
-  let success = fi ? "Business Central -vastineiden haku valmistui." : "Business Central mapping search completed.";
+  let success = fi ? "ERP-vastineiden haku valmistui." : "ERP mapping search completed.";
 
   try {
     const context = await requireSalesOrderAdmin();
-    if (context.workspace.erpProvider !== "business_central") {
-      throw new Error("Business Central is not the selected ERP for this workspace.");
-    }
+    const adapter = requireErpAdapter(context.workspace.erpProvider);
     const result = await autoMapSalesOrderDraft({
       salesOrderDraftId,
       context,
@@ -249,27 +249,27 @@ export async function autoMapBusinessCentralAction(formData: FormData) {
 
     if (!result.configured) {
       throw new Error(
-        "Business Central server credentials are not configured for this workspace.",
+        `${adapter.displayName} server credentials are not configured for this workspace.`,
       );
     }
 
     success =
       result.created > 0
         ? (fi
-            ? `${result.created} uutta Business Central -vastinetta löytyi automaattisesti.`
-            : `${result.created} new Business Central mapping(s) found automatically.`)
+            ? `${result.created} uutta ${adapter.displayName} -vastinetta löytyi automaattisesti.`
+            : `${result.created} new ${adapter.displayName} mapping(s) found automatically.`)
         : result.total > 0
           ? (fi
               ? "Automaattiset vastineet oli jo tallennettu. Olemassa olevia vastineita ei ylikirjoitettu."
               : "Automatic matches were already saved. No existing mapping was overwritten.")
           : (fi
-              ? "Turvallisia täsmäosumia ei löytynyt Business Centralista. Tarkista puuttuvat vastineet käsin."
-              : "No safe exact Business Central matches were found. Review the remaining mappings manually.");
+              ? `Turvallisia täsmäosumia ei löytynyt järjestelmästä ${adapter.displayName}. Tarkista puuttuvat vastineet käsin.`
+              : `No safe exact matches were found in ${adapter.displayName}. Review the remaining mappings manually.`);
   } catch (error) {
     failure =
       error instanceof Error
         ? error.message
-        : "Business Central automatic mapping failed.";
+        : "ERP automatic mapping failed.";
   }
 
   revalidatePath("/app/sales-orders");
@@ -300,12 +300,12 @@ export async function saveErpMappingAction(formData: FormData) {
   }
 
   let failure: string | null = null;
+  let adapterDisplayName = "ERP";
 
   try {
     const { supabase, workspace, claims } = await requireSalesOrderAdmin();
-    if (workspace.erpProvider !== "business_central") {
-      throw new Error("Business Central is not the selected ERP for this workspace.");
-    }
+    const adapter = requireErpAdapter(workspace.erpProvider);
+    adapterDisplayName = adapter.displayName;
 
     let localUnit: string | null = null;
     if (entityType === "product") {
@@ -330,7 +330,7 @@ export async function saveErpMappingAction(formData: FormData) {
       if (!customer) throw new Error("Averomira customer was not found.");
     }
 
-    const validated = await validateBusinessCentralManualMapping({
+    const validated = await adapter.validateManualMapping({
       workspaceId: workspace.id,
       entityType: entityType as "customer" | "product",
       externalNumber,
@@ -342,7 +342,7 @@ export async function saveErpMappingAction(formData: FormData) {
       .upsert(
         {
           organization_id: workspace.id,
-          provider: "business_central",
+          provider: adapter.provider,
           entity_type: entityType,
           local_entity_id: localEntityId,
           external_id: validated.externalId,
@@ -365,37 +365,35 @@ export async function saveErpMappingAction(formData: FormData) {
   redirect(
     draftUrl(
       salesOrderDraftId,
-      failure ?? (fi ? "Business Central -vastine tallennettiin." : "Business Central mapping saved."),
+      failure ?? (fi ? `${adapterDisplayName} -vastine tallennettiin.` : `${adapterDisplayName} mapping saved.`),
       failure ? "error" : "ok",
     ),
   );
 }
 
-export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
+export async function sendErpSalesOrderAction(formData: FormData) {
   const salesOrderDraftId = clean(formData.get("salesOrderDraftId"), 80);
   if (!salesOrderDraftId) throw new Error("Sales order draft ID is required.");
 
   let failure: string | null = null;
-  let success = "Business Central sales order created.";
+  let success = "ERP sales order created.";
   let attemptId: string | null = null;
   let context: Awaited<ReturnType<typeof requireSalesOrderAdmin>> | null = null;
 
   try {
     context = await requireSalesOrderAdmin();
     const { supabase, workspace, claims } = context;
-    if (workspace.erpProvider !== "business_central") {
-      throw new Error("Business Central is not the selected ERP for this workspace.");
-    }
+    const adapter = requireErpAdapter(workspace.erpProvider);
     const admin = createAdminClient();
     const actorId = String(claims.sub);
 
-    const config = getBusinessCentralConfigurationStatus(workspace.id);
+    const config = adapter.getConfigurationStatus(workspace.id);
     if (!config.configured) {
       if (!config.workspaceMatches && !config.missing.includes("workspaceId")) {
-        throw new Error("Business Central configuration belongs to a different workspace.");
+        throw new Error(`${adapter.displayName} configuration belongs to a different workspace.`);
       }
       throw new Error(
-        "Business Central server credentials are not configured for this workspace.",
+        `${adapter.displayName} server credentials are not configured for this workspace.`,
       );
     }
 
@@ -411,7 +409,7 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
     if (draftError) throw draftError;
     if (!draft) throw new Error("Sales order draft not found.");
     if (!["draft", "erp_failed"].includes(String(draft.status))) {
-      throw new Error("Sales order draft is not eligible for Business Central export.");
+      throw new Error(`Sales order draft is not eligible for ${adapter.displayName} export.`);
     }
     if (draft.external_order_id) {
       throw new Error("Sales order draft already has an external ERP order.");
@@ -438,7 +436,7 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
       .from("erp_entity_mappings")
       .select("entity_type,local_entity_id,external_number,external_id,metadata")
       .eq("organization_id", workspace.id)
-      .eq("provider", "business_central")
+      .eq("provider", adapter.provider)
       .in("local_entity_id", entityIds);
 
     if (mappingError) throw mappingError;
@@ -448,19 +446,19 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
         mapping.entity_type === "customer" &&
         String(mapping.local_entity_id) === String(draft.customer_id),
     );
-    if (!businessCentralMappingIsVerified(customerMapping as any)) {
-      throw new Error("Business Central customer mapping must be verified against Business Central before export.");
+    if (!adapter.isMappingVerified(customerMapping as any)) {
+      throw new Error(`${adapter.displayName} customer mapping must be verified before export.`);
     }
     const customerNumber = String(customerMapping?.external_number || "");
     if (!customerNumber) {
-      throw new Error("Business Central customer number is missing.");
+      throw new Error(`${adapter.displayName} customer number is missing.`);
     }
 
     const productMappings = new Map<string, string>();
     for (const mapping of mappings ?? []) {
       if (
         mapping.entity_type === "product" &&
-        businessCentralMappingIsVerified(mapping as any)
+        adapter.isMappingVerified(mapping as any)
       ) {
         productMappings.set(String(mapping.local_entity_id), String(mapping.external_number));
       }
@@ -471,14 +469,14 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
     );
     if (missingProducts.length) {
       throw new Error(
-        `Business Central item mapping is missing for ${missingProducts
+        `${adapter.displayName} item mapping is missing for ${missingProducts
           .slice(0, 5)
           .map((line: any) => line.sku)
           .join(", ")}${missingProducts.length > 5 ? "…" : ""}.`,
       );
     }
 
-    const input: BusinessCentralSalesOrderInput = {
+    const input: ErpSalesOrderInput = {
       workspaceId: workspace.id,
       customerNumber,
       customerPoNumber: String(draft.customer_po_number),
@@ -494,12 +492,12 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
       })),
     };
 
-    const requestPayload = sanitizedBusinessCentralRequest(input);
+    const requestPayload = adapter.sanitizeSalesOrderRequest(input);
     const { data: startedAttempt, error: startError } = await admin.rpc(
       "begin_erp_delivery_attempt_server",
       {
         target_sales_order_draft_id: salesOrderDraftId,
-        target_provider: "business_central",
+        target_provider: adapter.provider,
         target_request_payload: requestPayload,
         target_actor_id: actorId,
       },
@@ -510,7 +508,7 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
     if (!attemptId) throw new Error("ERP attempt could not be started.");
 
     try {
-      const result = await createBusinessCentralSalesOrder(input);
+      const result = await adapter.createSalesOrder(input);
 
       const attemptStatus =
         result.status === "created"
@@ -532,16 +530,16 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
 
       if (result.status === "existing") {
         failure =
-          "An existing Business Central order with this customer PO number was detected. No duplicate was created; review the existing ERP order.";
+          `An existing ${adapter.displayName} order with this customer PO number was detected. No duplicate was created; review the existing ERP order.`;
       } else if (result.status === "partial") {
         failure =
-          `Business Central created order ${result.externalOrderNumber || result.externalOrderId}, but a line failed. Automatic retry is locked to prevent duplicates. ${result.error}`;
+          `${adapter.displayName} created order ${result.externalOrderNumber || result.externalOrderId}, but a line failed. Automatic retry is locked to prevent duplicates. ${result.error}`;
       } else {
-        success = `Business Central Draft order ${result.externalOrderNumber || result.externalOrderId} created.`;
+        success = `${adapter.displayName} Draft order ${result.externalOrderNumber || result.externalOrderId} created.`;
       }
     } catch (adapterError) {
       const message =
-        adapterError instanceof Error ? adapterError.message : "Business Central export failed.";
+        adapterError instanceof Error ? adapterError.message : "ERP export failed.";
 
       const { error: finishError } = await admin.rpc("finish_erp_delivery_attempt_server", {
         target_attempt_id: attemptId,
@@ -560,7 +558,7 @@ export async function sendBusinessCentralSalesOrderAction(formData: FormData) {
       failure = message;
     }
   } catch (error) {
-    failure = error instanceof Error ? error.message : "Business Central export failed.";
+    failure = error instanceof Error ? error.message : "ERP export failed.";
   }
 
   revalidatePath("/app/sales-orders");
