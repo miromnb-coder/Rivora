@@ -5,8 +5,8 @@ import {
   sanitizedBusinessCentralRequest,
   suggestBusinessCentralMappings,
   validateBusinessCentralManualMapping,
-} from "./business-central";
-import type { ErpAdapter } from "./types";
+} from "./business-central.ts";
+import type { ErpAdapter } from "./types.ts";
 
 export const businessCentralAdapter: ErpAdapter = {
   provider: "business_central",
