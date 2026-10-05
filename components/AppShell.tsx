@@ -44,7 +44,7 @@ export function AppShell({
     [copy.companySettings, "/app/settings#company"],
     [copy.quoteSettings, "/app/settings#quote-settings"],
     [copy.brandSettings, "/app/settings#brand"],
-    [copy.businessCentralSettings, "/app/settings#business-central"],
+    [copy.businessCentralSettings, "/app/settings#erp"],
     [copy.userSettings, "/app/settings#users"],
   ];
 
