@@ -14370,3 +14370,88 @@ textarea:focus-visible {
     border-bottom: 0;
   }
 }
+
+
+/* Homepage polish P2 — section rhythm and pricing fit */
+.minimal-direction .memory-v2,
+.minimal-direction .confidence-v2,
+.minimal-direction .before-after-v2 {
+  position: relative;
+  isolation: isolate;
+}
+
+.minimal-direction .memory-v2::before,
+.minimal-direction .confidence-v2::before,
+.minimal-direction .before-after-v2::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 18px -28px;
+  border: 1px solid rgba(23, 26, 24, .045);
+  border-radius: 28px;
+  background: #fafaf8;
+}
+
+.minimal-direction .memory-v2,
+.minimal-direction .confidence-v2,
+.minimal-direction .before-after-v2 {
+  padding-top: clamp(82px, 8vw, 118px);
+  padding-bottom: clamp(82px, 8vw, 118px);
+}
+
+.minimal-direction .pricing-fit {
+  width: min(100%, 900px);
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(23, 26, 24, .08);
+}
+
+.minimal-direction .pricing-fit > span {
+  display: block;
+  color: rgba(23, 26, 24, .56);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+
+.minimal-direction .pricing-fit-grid {
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.minimal-direction .pricing-fit-grid p {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 1px solid rgba(23, 26, 24, .1);
+  color: rgba(23, 26, 24, .72);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .minimal-direction .memory-v2::before,
+  .minimal-direction .confidence-v2::before,
+  .minimal-direction .before-after-v2::before {
+    inset: 10px -12px;
+    border-radius: 22px;
+  }
+
+  .minimal-direction .pricing-fit-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .minimal-direction .pricing-fit-grid p {
+    padding: 0 0 10px;
+    border-left: 0;
+    border-bottom: 1px solid rgba(23, 26, 24, .08);
+  }
+
+  .minimal-direction .pricing-fit-grid p:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+}

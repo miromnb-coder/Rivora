@@ -29,7 +29,7 @@ export function MarketingFooter({ locale }: { locale: Locale }) {
             </div>
             <div>
               <span>{fi ? "Yritys" : "Company"}</span>
-              <a href="#pricing">{fi ? "Yhteys" : "Contact"}</a>
+              <a href="#demo">{fi ? "Yhteys" : "Contact"}</a>
               <a href="#pricing">{fi ? "Aloita pilotti" : "Start pilot"}</a>
             </div>
           </div>

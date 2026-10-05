@@ -31,8 +31,8 @@ export function ProductResolutionV2({ locale }: { locale: Locale }) {
     <section className="marketing-shell v2-section" id="resolution">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Tuotteiden ratkaisu" : "Product resolution"}</SectionLabel>
-        <h2>{fi ? "Asiakkaan kieli sisään. Oma katalogisi ulos." : "Customer language in. Your catalogue out."}</h2>
-        <p>{fi ? "Asiakaskohtaiset SKU:t, vanhat tuotenimet ja valmistajakoodit ratkaistaan tuotteiksi, joita tiimisi oikeasti myy." : "Customer-specific SKUs, old product names and manufacturer codes are resolved into the products your team actually sells."}</p>
+        <h2>{fi ? "Löydä asiakkaan tuoteriville oikea myytävä tuote nopeammin." : "Resolve each customer line to the product you actually sell."}</h2>
+        <p>{fi ? "Averomira vertaa asiakkaan SKU:t, vanhat tuotenimet ja valmistajakoodit omaan katalogiisi. Epävarmat osumat jäävät tarkistettaviksi ennen tarjousta." : "Averomira compares customer SKUs, legacy names and manufacturer codes against your catalogue. Uncertain matches stay visible for review before quoting."}</p>
       </div>
 
       <div className="resolution-proof">
@@ -180,8 +180,8 @@ export function ConfidenceSystemV2({ locale }: { locale: Locale }) {
     <section className="marketing-shell v2-section confidence-v2" id="confidence">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Varmuusjärjestelmä" : "Confidence system"}</SectionLabel>
-        <h2>{fi ? "Automaatio siellä missä se on turvallista. Ihminen siellä missä sillä on merkitystä." : "Automation where it’s safe. Humans where it matters."}</h2>
-        <p>{fi ? "Averomira ehdottaa korkean varmuuden deterministiset osumat nopeasti, mutta tuotevalinta vahvistetaan silti ennen tarjousta. Epävarmat tapaukset nostetaan selvästi tarkistukseen." : "Averomira surfaces high-confidence deterministic matches quickly, while product selection is still confirmed before quoting. Uncertain cases are clearly routed to review."}</p>
+        <h2>{fi ? "Nopeat ehdotukset, mutta kaupallinen päätös pysyy ihmisellä." : "Fast suggestions, while the commercial decision stays with your team."}</h2>
+        <p>{fi ? "Averomira näyttää vahvat tuoteosumat nopeasti ja nostaa epävarmat tapaukset tarkistukseen. Tuotevalinta vahvistetaan ennen tarjousta, joten automaatio ei piilota päätöstä käyttäjältä." : "Averomira surfaces strong product matches quickly and routes uncertain cases for review. Product selection is confirmed before quoting, so automation never hides the decision from the user."}</p>
       </div>
 
       <div className="confidence-v2-proof">
@@ -359,8 +359,8 @@ export function FinalCtaV2({ locale }: { locale: Locale }) {
             <a href="#pricing" className="final-cta-v2-primary">
               {fi ? "Aloita Averomira Pilot" : "Start Averomira Pilot"} <span aria-hidden="true">→</span>
             </a>
-            <a href="#how-it-works" className="final-cta-v2-secondary">
-              {fi ? "Katso työnkulku" : "See the workflow"}
+            <a href="#demo" className="final-cta-v2-secondary">
+              {fi ? "Keskustele pilotista" : "Discuss the pilot"}
             </a>
           </div>
 
