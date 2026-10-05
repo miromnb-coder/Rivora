@@ -35,8 +35,8 @@ export function MinimalShaderHero({ locale }: { locale: Locale }) {
 
           <p>
             {fi
-              ? "Averomira tunnistaa tarjouspyynnön rivit, ehdottaa oikeat katalogituotteet, ohjaa epävarmat osumat tarkistukseen, rakentaa tarjouksen ja vertaa asiakkaan PO:n ennen Business Centralia."
-              : "Averomira extracts RFQ lines, resolves them to your catalogue, routes uncertain matches for review, builds the quote and reconciles the customer PO before Business Central."}
+              ? "Averomira tunnistaa tarjouspyynnön rivit, ehdottaa oikeat katalogituotteet, ohjaa epävarmat osumat tarkistukseen, rakentaa tarjouksen ja vertaa asiakkaan PO:n ennen ERP-vientiä."
+              : "Averomira extracts RFQ lines, resolves them to your catalogue, routes uncertain matches for review, builds the quote and reconciles the customer PO before ERP handoff."}
           </p>
 
           <div className="minimal-hero-actions">
@@ -51,7 +51,7 @@ export function MinimalShaderHero({ locale }: { locale: Locale }) {
           <div className="hero-conversion-note">
             <span>{fi ? "Ihminen hyväksyy tärkeät päätökset" : "Humans approve the important decisions"}</span>
             <i />
-            <span>{fi ? "Business Central -valmis" : "Business Central ready"}</span>
+            <span>{fi ? "ERP-valmis" : "ERP ready"}</span>
           </div>
 
           <div className="minimal-flow" aria-label="Averomira workflow">
@@ -97,9 +97,9 @@ export function MinimalShaderHero({ locale }: { locale: Locale }) {
               <small>{fi ? "riviä täsmää" : "lines match"}</small>
             </div>
             <div>
-              <span>Business Central</span>
-              <b>8 / 8</b>
-              <small>{fi ? "vastinetta tunnistettu" : "mappings identified"}</small>
+              <span>{fi ? "ERP-integraatio" : "ERP integration"}</span>
+              <b>{fi ? "BC natiivisti" : "Native BC"}</b>
+              <small>{fi ? "Microsoft Business Central tuettu" : "Microsoft Business Central supported"}</small>
             </div>
           </div>
         </div>
