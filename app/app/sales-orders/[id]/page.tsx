@@ -53,6 +53,7 @@ export default async function SalesOrderDraftDetailPage({
   const fi = locale === "fi";
   const displayLocale = formatLocale(locale);
   const canAdmin = ["owner", "admin"].includes(workspace.role);
+  const isBusinessCentral = workspace.erpProvider === "business_central";
 
   const { data: draft, error: draftError } = await supabase
     .from("sales_order_drafts")
@@ -90,7 +91,7 @@ export default async function SalesOrderDraftDetailPage({
     ...(lines ?? []).map((line: any) => String(line.product_id)),
   ];
 
-  const { data: mappings } = localIds.length
+  const { data: mappings } = isBusinessCentral && localIds.length
     ? await supabase
         .from("erp_entity_mappings")
         .select("entity_type,local_entity_id,external_number,external_id,metadata")
@@ -112,16 +113,19 @@ export default async function SalesOrderDraftDetailPage({
     }
   }
 
-  const missingProductMappings = (lines ?? []).filter(
-    (line: any) =>
-      !businessCentralMappingIsVerified(
-        productMappings.get(String(line.product_id)),
-      ),
-  );
+  const missingProductMappings = isBusinessCentral
+    ? (lines ?? []).filter(
+        (line: any) =>
+          !businessCentralMappingIsVerified(
+            productMappings.get(String(line.product_id)),
+          ),
+      )
+    : [];
 
   const config = getBusinessCentralConfigurationStatus(workspace.id);
   const customerMappingVerified = businessCentralMappingIsVerified(customerMapping);
   const adapterReady =
+    isBusinessCentral &&
     config.configured &&
     customerMappingVerified &&
     missingProductMappings.length === 0;
@@ -257,7 +261,7 @@ export default async function SalesOrderDraftDetailPage({
                 <th className="px-5 py-3">{fi ? "Määrä" : "Quantity"}</th>
                 <th className="px-5 py-3">{fi ? "Yksikköhinta" : "Unit price"}</th>
                 <th className="px-5 py-3">{fi ? "Rivisumma" : "Line total"}</th>
-                <th className="px-5 py-3">Business Central</th>
+                {isBusinessCentral ? <th className="px-5 py-3">Business Central</th> : null}
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--line)]">
@@ -275,6 +279,7 @@ export default async function SalesOrderDraftDetailPage({
                     <td className="px-5 py-4 font-semibold">
                       {money.format(Number(line.line_total))}
                     </td>
+                    {isBusinessCentral ? (
                     <td className="px-5 py-4">
                       {businessCentralMappingIsVerified(mapping) ? (
                         <div className="min-w-[210px]">
@@ -320,6 +325,7 @@ export default async function SalesOrderDraftDetailPage({
                         <strong>—</strong>
                       )}
                     </td>
+                    ) : null}
                   </tr>
                 );
               })}
@@ -328,175 +334,200 @@ export default async function SalesOrderDraftDetailPage({
         </div>
       </section>
 
-      <section className="surface mt-6 p-6">
-        <div className="upload-v2-section-label">Microsoft Dynamics 365 Business Central</div>
-        <div className="mt-3 grid gap-5 lg:grid-cols-[1fr_1fr]">
-          <div>
-            <h2 className="text-2xl font-bold">
-              {fi ? "ERP-mäppäys" : "ERP mapping"}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              {fi
-                ? "Averomira etsii turvalliset täsmäosumat automaattisesti ja muistaa vahvistetut vastineet seuraavia tilauksia varten. Vain puuttuvat vastineet vaativat käsityötä."
-                : "Averomira finds safe exact matches automatically and remembers confirmed mappings for future orders. Only missing mappings require manual work."}
-            </p>
-
-            <div className="mt-4 rounded-2xl border border-[var(--line)] bg-[#fafbfa] p-5">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                    {fi ? "Automaattinen mäppäys" : "Automatic mapping"}
-                  </span>
-                  <strong className="mt-2 block text-2xl">
-                    {mappedEntityCount}/{mappingEntityTotal} {fi ? "tunnistettu" : "identified"}
-                  </strong>
-                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                    {missingProductMappings.length === 0 && customerMappingVerified
-                      ? fi
-                        ? "Asiakas ja kaikki tuotteet on yhdistetty Business Centraliin."
-                        : "The customer and all products are mapped to Business Central."
-                      : fi
-                        ? "Averomira käyttää aiemmin vahvistettuja vastineita ja etsii uudet vain turvallisilla täsmäosumilla."
-                        : "Averomira reuses confirmed mappings and only creates new mappings from safe exact matches."}
-                  </p>
-                </div>
-                {canAdmin && config.configured && ["draft", "erp_failed"].includes(String(draft.status)) ? (
-                  <form action={autoMapBusinessCentralAction}>
-                    <input type="hidden" name="salesOrderDraftId" value={draft.id} />
-                    <button className="upload-v2-secondary-btn">
-                      {fi ? "Etsi vastineet automaattisesti" : "Find mappings automatically"}
-                    </button>
-                  </form>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-xl border border-[var(--line)] p-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
-                {fi ? "Asiakasnumero Business Centralissa" : "Business Central customer number"}
-              </span>
-              {customerMappingVerified ? (
-                <div className="mt-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <strong>{customerMapping.external_number}</strong>
-                    <span className="rounded-full bg-[#edf0ec] px-2 py-1 text-[10px] font-bold text-[#445047]">
-                      {mappingMethodLabel(customerMapping)}
-                    </span>
-                  </div>
-                  {customerMapping?.metadata?.businessCentralDisplayName ? (
-                    <p className="mt-1 text-xs text-[var(--muted)]">
-                      {String(customerMapping.metadata.businessCentralDisplayName)}
-                    </p>
-                  ) : null}
-                </div>
-              ) : canAdmin && ["draft", "erp_failed"].includes(String(draft.status)) ? (
-                <div className="mt-3">
-                  {customerMapping?.external_number ? (
-                    <p className="mb-2 text-xs text-[#8a5a18]">
-                      {fi
-                        ? `Tallennettu asiakasnumero ${customerMapping.external_number} pitää tarkistaa Business Centralista ennen vientiä.`
-                        : `Saved customer number ${customerMapping.external_number} must be verified in Business Central before export.`}
-                    </p>
-                  ) : null}
-                  <form action={saveErpMappingAction} className="flex gap-2">
-                    <input type="hidden" name="salesOrderDraftId" value={draft.id} />
-                    <input type="hidden" name="entityType" value="customer" />
-                    <input type="hidden" name="localEntityId" value={draft.customer_id} />
-                    <input
-                      name="externalNumber"
-                      required
-                      maxLength={120}
-                      defaultValue={customerMapping?.external_number || ""}
-                      className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-3 py-2 text-sm"
-                      placeholder="10000"
-                    />
-                    <button className="rounded-lg border border-[var(--line)] px-3 py-2 font-semibold">
-                      {fi ? "Tarkista BC:stä" : "Verify in BC"}
-                    </button>
-                  </form>
-                </div>
-              ) : (
-                <strong className="mt-2 block">—</strong>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-[var(--line)] bg-[#fafbfa] p-5">
-            <div className="flex items-center justify-between gap-3">
-              <strong>{fi ? "Adapterin tila" : "Adapter status"}</strong>
-              <span
-                className={
-                  "rounded-full px-3 py-1 text-xs font-bold " +
-                  (config.configured
-                    ? "bg-[var(--green-soft)] text-[var(--green-dark)]"
-                    : "bg-[#fff0f0] text-[#9a2d2d]")
-                }
-              >
-                {config.configured ? (fi ? "Konfiguroitu" : "Configured") : (fi ? "Ei valmis" : "Not ready")}
-              </span>
-            </div>
-            <dl className="mt-4 space-y-3 text-sm">
-              <div>
-                <dt className="text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</dt>
-                <dd className="font-semibold">{config.environment || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-[var(--muted)]">{fi ? "Company ID" : "Company ID"}</dt>
-                <dd className="font-mono text-xs">{config.companyId || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-[var(--muted)]">{fi ? "Puuttuvat item-mäppäykset" : "Missing item mappings"}</dt>
-                <dd className="font-semibold">{missingProductMappings.length}</dd>
-              </div>
-            </dl>
-
-            {!config.configured ? (
-              <div className="mt-4 rounded-xl bg-white p-4 text-xs leading-5 text-[var(--muted)]">
+      {isBusinessCentral ? (
+        <section className="surface mt-6 p-6">
+          <div className="upload-v2-section-label">Microsoft Dynamics 365 Business Central</div>
+          <div className="mt-3 grid gap-5 lg:grid-cols-[1fr_1fr]">
+            <div>
+              <h2 className="text-2xl font-bold">
+                {fi ? "ERP-mäppäys" : "ERP mapping"}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
                 {fi
-                  ? "Palvelinpuolen Business Central OAuth -asetukset pitää lisätä Vercelin ympäristömuuttujiin ennen ensimmäistä vientiä."
-                  : "Server-side Business Central OAuth settings must be added to Vercel environment variables before the first export."}
-              </div>
-            ) : null}
-
-            {draft.status === "erp_created" ? (
-              <div className="mt-4 rounded-xl bg-[var(--green-soft)] p-4 text-sm text-[var(--green-dark)]">
-                <strong className="block">{fi ? "Luotu Business Centraliin" : "Created in Business Central"}</strong>
-                <span className="mt-1 block">
-                  {draft.external_order_number || draft.external_order_id || "—"}
-                </span>
-              </div>
-            ) : draft.status === "erp_partial" ? (
-              <div className="mt-4 rounded-xl bg-[#fff8ed] p-4 text-sm text-[#7f5719]">
-                <strong className="block">{fi ? "Automaattinen retry lukittu" : "Automatic retry locked"}</strong>
-                <span className="mt-1 block">
-                  {fi
-                    ? "Business Centralissa voi jo olla order. Tarkista ERP ennen jatkoa."
-                    : "An order may already exist in Business Central. Review ERP before continuing."}
-                </span>
-              </div>
-            ) : null}
-
-            {canAdmin &&
-            adapterReady &&
-            ["draft", "erp_failed"].includes(String(draft.status)) ? (
-              <form action={sendBusinessCentralSalesOrderAction} className="mt-5">
-                <input type="hidden" name="salesOrderDraftId" value={draft.id} />
-                <button className="upload-v2-primary-btn">
-                  {fi ? "Luo Draft-order Business Centraliin" : "Create Draft order in Business Central"} →
-                </button>
-              </form>
-            ) : null}
-
-            {["draft", "erp_failed"].includes(String(draft.status)) && !adapterReady ? (
-              <p className="mt-4 text-sm text-[var(--muted)]">
-                {fi
-                  ? "Vienti aktivoituu, kun Business Central -yhteys ja kaikki vastineet ovat valmiit. Kokeile ensin automaattista hakua; täytä käsin vain puuttuvat."
-                  : "Export becomes available when the Business Central connection and all mappings are ready. Try automatic matching first; only fill missing mappings manually."}
+                  ? "Averomira etsii turvalliset täsmäosumat automaattisesti ja muistaa vahvistetut vastineet seuraavia tilauksia varten. Vain puuttuvat vastineet vaativat käsityötä."
+                  : "Averomira finds safe exact matches automatically and remembers confirmed mappings for future orders. Only missing mappings require manual work."}
               </p>
-            ) : null}
+
+              <div className="mt-4 rounded-2xl border border-[var(--line)] bg-[#fafbfa] p-5">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+                      {fi ? "Automaattinen mäppäys" : "Automatic mapping"}
+                    </span>
+                    <strong className="mt-2 block text-2xl">
+                      {mappedEntityCount}/{mappingEntityTotal} {fi ? "tunnistettu" : "identified"}
+                    </strong>
+                    <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                      {missingProductMappings.length === 0 && customerMappingVerified
+                        ? fi
+                          ? "Asiakas ja kaikki tuotteet on yhdistetty Business Centraliin."
+                          : "The customer and all products are mapped to Business Central."
+                        : fi
+                          ? "Averomira käyttää aiemmin vahvistettuja vastineita ja etsii uudet vain turvallisilla täsmäosumilla."
+                          : "Averomira reuses confirmed mappings and only creates new mappings from safe exact matches."}
+                    </p>
+                  </div>
+                  {canAdmin && config.configured && ["draft", "erp_failed"].includes(String(draft.status)) ? (
+                    <form action={autoMapBusinessCentralAction}>
+                      <input type="hidden" name="salesOrderDraftId" value={draft.id} />
+                      <button className="upload-v2-secondary-btn">
+                        {fi ? "Etsi vastineet automaattisesti" : "Find mappings automatically"}
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-[var(--line)] p-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+                  {fi ? "Asiakasnumero Business Centralissa" : "Business Central customer number"}
+                </span>
+                {customerMappingVerified ? (
+                  <div className="mt-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <strong>{customerMapping.external_number}</strong>
+                      <span className="rounded-full bg-[#edf0ec] px-2 py-1 text-[10px] font-bold text-[#445047]">
+                        {mappingMethodLabel(customerMapping)}
+                      </span>
+                    </div>
+                    {customerMapping?.metadata?.businessCentralDisplayName ? (
+                      <p className="mt-1 text-xs text-[var(--muted)]">
+                        {String(customerMapping.metadata.businessCentralDisplayName)}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : canAdmin && ["draft", "erp_failed"].includes(String(draft.status)) ? (
+                  <div className="mt-3">
+                    {customerMapping?.external_number ? (
+                      <p className="mb-2 text-xs text-[#8a5a18]">
+                        {fi
+                          ? `Tallennettu asiakasnumero ${customerMapping.external_number} pitää tarkistaa Business Centralista ennen vientiä.`
+                          : `Saved customer number ${customerMapping.external_number} must be verified in Business Central before export.`}
+                      </p>
+                    ) : null}
+                    <form action={saveErpMappingAction} className="flex gap-2">
+                      <input type="hidden" name="salesOrderDraftId" value={draft.id} />
+                      <input type="hidden" name="entityType" value="customer" />
+                      <input type="hidden" name="localEntityId" value={draft.customer_id} />
+                      <input
+                        name="externalNumber"
+                        required
+                        maxLength={120}
+                        defaultValue={customerMapping?.external_number || ""}
+                        className="min-w-0 flex-1 rounded-lg border border-[var(--line)] px-3 py-2 text-sm"
+                        placeholder="10000"
+                      />
+                      <button className="rounded-lg border border-[var(--line)] px-3 py-2 font-semibold">
+                        {fi ? "Tarkista BC:stä" : "Verify in BC"}
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <strong className="mt-2 block">—</strong>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[var(--line)] bg-[#fafbfa] p-5">
+              <div className="flex items-center justify-between gap-3">
+                <strong>{fi ? "Adapterin tila" : "Adapter status"}</strong>
+                <span
+                  className={
+                    "rounded-full px-3 py-1 text-xs font-bold " +
+                    (config.configured
+                      ? "bg-[var(--green-soft)] text-[var(--green-dark)]"
+                      : "bg-[#fff0f0] text-[#9a2d2d]")
+                  }
+                >
+                  {config.configured ? (fi ? "Konfiguroitu" : "Configured") : (fi ? "Ei valmis" : "Not ready")}
+                </span>
+              </div>
+              <dl className="mt-4 space-y-3 text-sm">
+                <div>
+                  <dt className="text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</dt>
+                  <dd className="font-semibold">{config.environment || "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-[var(--muted)]">{fi ? "Company ID" : "Company ID"}</dt>
+                  <dd className="font-mono text-xs">{config.companyId || "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-[var(--muted)]">{fi ? "Puuttuvat item-mäppäykset" : "Missing item mappings"}</dt>
+                  <dd className="font-semibold">{missingProductMappings.length}</dd>
+                </div>
+              </dl>
+
+              {!config.configured ? (
+                <div className="mt-4 rounded-xl bg-white p-4 text-xs leading-5 text-[var(--muted)]">
+                  {fi
+                    ? "Palvelinpuolen Business Central OAuth -asetukset pitää lisätä Vercelin ympäristömuuttujiin ennen ensimmäistä vientiä."
+                    : "Server-side Business Central OAuth settings must be added to Vercel environment variables before the first export."}
+                </div>
+              ) : null}
+
+              {draft.status === "erp_created" ? (
+                <div className="mt-4 rounded-xl bg-[var(--green-soft)] p-4 text-sm text-[var(--green-dark)]">
+                  <strong className="block">{fi ? "Luotu Business Centraliin" : "Created in Business Central"}</strong>
+                  <span className="mt-1 block">
+                    {draft.external_order_number || draft.external_order_id || "—"}
+                  </span>
+                </div>
+              ) : draft.status === "erp_partial" ? (
+                <div className="mt-4 rounded-xl bg-[#fff8ed] p-4 text-sm text-[#7f5719]">
+                  <strong className="block">{fi ? "Automaattinen retry lukittu" : "Automatic retry locked"}</strong>
+                  <span className="mt-1 block">
+                    {fi
+                      ? "Business Centralissa voi jo olla order. Tarkista ERP ennen jatkoa."
+                      : "An order may already exist in Business Central. Review ERP before continuing."}
+                  </span>
+                </div>
+              ) : null}
+
+              {canAdmin &&
+              adapterReady &&
+              ["draft", "erp_failed"].includes(String(draft.status)) ? (
+                <form action={sendBusinessCentralSalesOrderAction} className="mt-5">
+                  <input type="hidden" name="salesOrderDraftId" value={draft.id} />
+                  <button className="upload-v2-primary-btn">
+                    {fi ? "Luo Draft-order Business Centraliin" : "Create Draft order in Business Central"} →
+                  </button>
+                </form>
+              ) : null}
+
+              {["draft", "erp_failed"].includes(String(draft.status)) && !adapterReady ? (
+                <p className="mt-4 text-sm text-[var(--muted)]">
+                  {fi
+                    ? "Vienti aktivoituu, kun Business Central -yhteys ja kaikki vastineet ovat valmiit. Kokeile ensin automaattista hakua; täytä käsin vain puuttuvat."
+                    : "Export becomes available when the Business Central connection and all mappings are ready. Try automatic matching first; only fill missing mappings manually."}
+                </p>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section className="surface mt-6 p-6">
+          <div className="upload-v2-section-label">{fi ? "ERP-yhteys" : "ERP connection"}</div>
+          <h2 className="mt-2 text-2xl font-bold">
+            {workspace.erpProvider === "custom"
+              ? (fi ? "Muu ERP odottaa integraatiota" : "Other ERP is awaiting integration")
+              : (fi ? "ERP-vienti ei ole käytössä" : "ERP export is disabled")}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+            {workspace.erpProvider === "custom"
+              ? (fi
+                  ? "Sales Order Draft on valmis, mutta automaattista ERP-vientiä ei tehdä ennen kuin tälle ERP:lle on rakennettu ja testattu integraatio."
+                  : "The Sales Order Draft is ready, but automatic ERP export stays unavailable until this ERP has a built and tested integration.")
+              : (fi
+                  ? "Sales Order Draft voidaan muodostaa normaalisti ilman ERP-yhteyttä. ERP-vientiä ei yritetä tässä työtilassa."
+                  : "Sales Order Drafts can be created normally without an ERP connection. ERP export is not attempted in this workspace.")}
+          </p>
+          {canAdmin ? (
+            <Link href="/app/settings#erp" className="btn-secondary mt-5 inline-flex">
+              {fi ? "Avaa ERP-asetukset" : "Open ERP settings"} →
+            </Link>
+          ) : null}
+        </section>
+      )}
 
       <section className="surface mt-6 overflow-hidden">
         <div className="border-b border-[var(--line)] p-6">
