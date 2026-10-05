@@ -7,12 +7,6 @@ export function MinimalShaderHero({ locale }: { locale: Locale }) {
 
   return (
     <section className="minimal-hero v2-hero" id="product">
-      <div className="minimal-hero-shader" aria-hidden="true">
-        <span className="shader-blob shader-a" />
-        <span className="shader-blob shader-b" />
-        <span className="shader-blob shader-c" />
-      </div>
-
       <div className="marketing-shell minimal-hero-inner v2-hero-inner">
         <div className="minimal-hero-copy">
           <h1>
