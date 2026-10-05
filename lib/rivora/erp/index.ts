@@ -1,5 +1,5 @@
-import { businessCentralAdapter } from "./business-central-adapter";
-import type { ErpAdapter, ErpProvider } from "./types";
+import { businessCentralAdapter } from "./business-central-adapter.ts";
+import type { ErpAdapter, ErpProvider } from "./types.ts";
 
 const adapters: Partial<Record<ErpProvider, ErpAdapter>> = {
   business_central: businessCentralAdapter,
@@ -32,4 +32,4 @@ export type {
   ErpSalesOrderInput,
   ErpSalesOrderLine,
   ErpValidatedMapping,
-} from "./types";
+} from "./types.ts";
