@@ -10,7 +10,7 @@ import {
 } from "./actions";
 import { getLocale } from "@/lib/locale";
 import { getSettingsCopy } from "@/lib/i18n/extra";
-import { getBusinessCentralConfigurationStatus } from "@/lib/rivora/erp/business-central";
+import { getErpAdapter } from "@/lib/rivora/erp";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function SettingsPage({
@@ -27,7 +27,14 @@ export default async function SettingsPage({
   const copy = getSettingsCopy(locale);
   const fi = locale === "fi";
   const canManage = ["owner", "admin"].includes(workspace.role);
-  const config = getBusinessCentralConfigurationStatus(workspace.id);
+  const erpAdapter = getErpAdapter(workspace.erpProvider);
+  const config = erpAdapter?.getConfigurationStatus(workspace.id) ?? {
+    configured: false,
+    workspaceMatches: false,
+    missing: [],
+    environment: null,
+    companyId: null,
+  };
 
   const [{ data: organization }, { data: memberships }] = await Promise.all([
     supabase

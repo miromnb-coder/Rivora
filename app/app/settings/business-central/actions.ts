@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
-import { validateBusinessCentralManualMapping } from "@/lib/rivora/erp/business-central";
+import { requireErpAdapter } from "@/lib/rivora/erp";
 
 export async function saveBusinessCentralMapping(formData: FormData) {
   const context = await requireWorkspace();
@@ -15,6 +15,11 @@ export async function saveBusinessCentralMapping(formData: FormData) {
   }
 
   const { supabase, workspace, claims } = context;
+  const adapter = requireErpAdapter(workspace.erpProvider);
+  if (adapter.provider !== "business_central") {
+    throw new Error("Business Central is not the selected ERP for this workspace.");
+  }
+
   const entityType = String(formData.get("entityType") ?? "").trim();
   const localEntityId = String(formData.get("localEntityId") ?? "").trim();
   const externalNumber = String(formData.get("externalNumber") ?? "").trim().slice(0, 120);
@@ -50,7 +55,7 @@ export async function saveBusinessCentralMapping(formData: FormData) {
       if (!customer) throw new Error("Averomira customer was not found.");
     }
 
-    const validated = await validateBusinessCentralManualMapping({
+    const validated = await adapter.validateManualMapping({
       workspaceId: workspace.id,
       entityType: entityType as "customer" | "product",
       externalNumber,
@@ -63,7 +68,7 @@ export async function saveBusinessCentralMapping(formData: FormData) {
       .upsert(
         {
           organization_id: workspace.id,
-          provider: "business_central",
+          provider: adapter.provider,
           entity_type: entityType,
           local_entity_id: localEntityId,
           external_id: validated.externalId,

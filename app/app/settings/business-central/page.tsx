@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
-import { getBusinessCentralConfigurationStatus } from "@/lib/rivora/erp/business-central";
+import { requireErpAdapter } from "@/lib/rivora/erp";
 import { removeBusinessCentralMapping, saveBusinessCentralMapping } from "./actions";
 
 export default async function BusinessCentralSettingsPage({
@@ -20,7 +20,8 @@ export default async function BusinessCentralSettingsPage({
   if (workspace.erpProvider !== "business_central") {
     redirect("/app/settings#erp");
   }
-  const config = getBusinessCentralConfigurationStatus(workspace.id);
+  const adapter = requireErpAdapter(workspace.erpProvider);
+  const config = adapter.getConfigurationStatus(workspace.id);
 
   const [{ data: customers }, { data: products }, { data: mappings }] = await Promise.all([
     supabase
@@ -40,7 +41,7 @@ export default async function BusinessCentralSettingsPage({
       .from("erp_entity_mappings")
       .select("entity_type,local_entity_id,external_number,external_id,metadata,updated_at")
       .eq("organization_id", workspace.id)
-      .eq("provider", "business_central"),
+      .eq("provider", adapter.provider),
   ]);
 
   const mappingByEntity = new Map(
@@ -54,7 +55,7 @@ export default async function BusinessCentralSettingsPage({
     Boolean(
       mapping?.external_id &&
         mapping?.external_number &&
-        (mapping?.metadata?.autoMatched === true || mapping?.metadata?.bcValidated === true),
+        adapter.isMappingVerified(mapping),
     );
 
   const mappedCustomers = (customers ?? []).filter((customer: any) =>
