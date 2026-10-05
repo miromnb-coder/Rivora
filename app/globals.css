@@ -13928,16 +13928,7 @@ textarea:focus-visible {
 }
 
 .minimal-direction .minimal-hero {
-  background:
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      #ffffff 25%,
-      rgba(242, 251, 252, .92) 43%,
-      rgba(219, 247, 250, .78) 57%,
-      rgba(237, 250, 251, .58) 72%,
-      #ffffff 92%
-    );
+  background: #ffffff;
 }
 
 .minimal-direction .minimal-hero-shader {
