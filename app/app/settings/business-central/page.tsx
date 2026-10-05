@@ -41,7 +41,7 @@ export default async function BusinessCentralSettingsPage({
       .from("erp_entity_mappings")
       .select("entity_type,local_entity_id,external_number,external_id,metadata,updated_at")
       .eq("organization_id", workspace.id)
-      .eq("provider", "business_central"),
+      .eq("provider", adapter.provider),
   ]);
 
   const mappingByEntity = new Map(
