@@ -10,7 +10,7 @@ export function ProofStripV2({ locale }: { locale: Locale }) {
     [fi ? "Syöte" : "Input", "PDF / XLSX / CSV"],
     [fi ? "Tarjous" : "Quote", fi ? "Tuotteet ratkaistu ja tarkistettu" : "Products resolved and reviewed"],
     [fi ? "Ostotilaus" : "Purchase order", fi ? "Quote ↔ PO -vertailu" : "Quote ↔ PO reconciliation"],
-    [fi ? "ERP" : "ERP", fi ? "Business Central -valmis myyntitilaus" : "Business Central-ready sales order"],
+    [fi ? "ERP" : "ERP", fi ? "ERP-valmis myyntitilaus" : "ERP-ready sales order"],
   ];
 
   return (
@@ -128,12 +128,12 @@ export function HowItWorksV2({ locale }: { locale: Locale }) {
     { n: "01", title: "Poimi RFQ", body: "PDF:t ja taulukot muuttuvat rakenteisiksi tuoteriveiksi, joiden lähde säilyy.", meta: "RFQ → tuoterivit" },
     { n: "02", title: "Rakenna tarjous", body: "Asiakkaan tuotekieli ratkaistaan katalogiisi ja epävarmat osumat nostetaan tarkistukseen.", meta: "Tuotemuisti + hyväksyntä" },
     { n: "03", title: "Tarkista PO", body: "Asiakkaan ostotilaus verrataan hyväksyttyyn tarjoukseen ja vain poikkeamat vaativat päätöksen.", meta: "Quote ↔ PO" },
-    { n: "04", title: "Vie ERP:iin", body: "Hyväksytty tilaus valmistellaan myyntitilausluonnokseksi ja Business Central -vastineet muistetaan.", meta: "Sales Order → ERP" },
+    { n: "04", title: "Vie ERP:iin", body: "Hyväksytty tilaus valmistellaan myyntitilausluonnokseksi ja ERP-vastineet voidaan säilyttää seuraavia tilauksia varten.", meta: "Sales Order → ERP" },
   ] : [
     { n: "01", title: "Extract RFQ", body: "PDFs and spreadsheets become structured line items while preserving their source.", meta: "RFQ → line items" },
     { n: "02", title: "Build quote", body: "Customer product language is resolved to your catalogue and uncertain matches are routed to review.", meta: "Product memory + approval" },
     { n: "03", title: "Check PO", body: "The customer purchase order is reconciled with the approved quote and only exceptions need a decision.", meta: "Quote ↔ PO" },
-    { n: "04", title: "Send to ERP", body: "The approved order becomes a sales order draft and Business Central mappings are remembered.", meta: "Sales Order → ERP" },
+    { n: "04", title: "Send to ERP", body: "The approved order becomes a sales order draft and ERP mappings can be retained for future orders.", meta: "Sales Order → ERP" },
   ];
 
   return (
@@ -296,9 +296,9 @@ export function BeforeAfterV2({ locale }: { locale: Locale }) {
   ];
 
   const after = fi ? [
-    "Lataa RFQ", "Tarkista vain epävarmat tuotteet", "Lähetä tarjous", "Lataa PO", "Ratkaise vain poikkeamat", "Luo myyntitilaus Business Centraliin",
+    "Lataa RFQ", "Tarkista vain epävarmat tuotteet", "Lähetä tarjous", "Lataa PO", "Ratkaise vain poikkeamat", "Luo myyntitilaus ERP:iin",
   ] : [
-    "Upload RFQ", "Review only uncertain products", "Send quote", "Upload PO", "Resolve only exceptions", "Create the sales order in Business Central",
+    "Upload RFQ", "Review only uncertain products", "Send quote", "Upload PO", "Resolve only exceptions", "Create the sales order in ERP",
   ];
 
   return (
