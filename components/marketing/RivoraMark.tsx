@@ -1,10 +1,31 @@
-export function RivoraMark({ className = "" }: { className?: string }) {
+export function RivoraMark({
+  className = "",
+  withSymbol = false,
+}: {
+  className?: string;
+  withSymbol?: boolean;
+}) {
   return (
     <span
-      className={`nodra-wordmark ${className}`.trim()}
+      className={`nodra-wordmark ${withSymbol ? "with-symbol" : ""} ${className}`.trim()}
       aria-label="Averomira"
     >
-      Averomira
+      {withSymbol ? (
+        <span className="averomira-brand-symbol" aria-hidden="true">
+          <svg viewBox="0 0 256 256" focusable="false">
+            <path
+              fill="currentColor"
+              d="M42 105.5h70.4L65.8 44.9c-4.9-6.4-3.7-15.6 2.7-20.5 2.5-1.9 5.6-3 8.8-3h41.9c4.6 0 8.9 2.2 11.7 5.9l35.6 46.3 35.6-46.3c2.8-3.7 7.1-5.9 11.7-5.9h41.9c8.1 0 14.6 6.5 14.6 14.6 0 3.2-1.1 6.3-3 8.8l-46.6 60.7H214c7.8 0 14.1 6.3 14.1 14.1v29.7c0 7.8-6.3 14.1-14.1 14.1h-60.7l41.7 54.3c4.9 6.4 3.7 15.6-2.7 20.5-2.5 1.9-5.6 3-8.8 3h-41.9c-4.6 0-8.9-2.2-11.7-5.9l-31.4-40.9-31.4 40.9c-2.8 3.7-7.1 5.9-11.7 5.9H13.5c-8.1 0-14.6-6.5-14.6-14.6 0-3.2 1.1-6.3 3-8.8l41.7-54.3H42c-7.8 0-14.1-6.3-14.1-14.1v-29.7c0-7.8 6.3-14.2 14.1-14.2Z"
+              transform="translate(14 0) scale(.89 1)"
+            />
+            <path
+              fill="#fff"
+              d="M126.5 93.5 148 65.6l-18.7 42.7c-2.7 6.2 1.8 13.2 8.6 13.2h33.9l-31.7 6.5c-7.2 1.5-10 10.1-5.1 15.5l14.3 15.9-25.4-17c-5.8-3.9-13.7-.2-14.4 6.8l-2.2 20.2-4.9-29.8c-1.1-6.6 4.4-12.5 11.1-11.7l16.4 1.8-14.7-10.7c-5.7-4.2-6.6-12.4-1.9-17.6l13.2-14.9Z"
+            />
+          </svg>
+        </span>
+      ) : null}
+      <span className="averomira-wordmark-text">Averomira</span>
     </span>
   );
 }
