@@ -12,6 +12,11 @@ import { getLocale } from "@/lib/locale";
 import { getSettingsCopy } from "@/lib/i18n/extra";
 import { getErpAdapter } from "@/lib/rivora/erp";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  disconnectBusinessCentralConnectionAction,
+  saveBusinessCentralConnectionAction,
+  verifyBusinessCentralConnectionAction,
+} from "./erp-actions";
 
 export default async function SettingsPage({
   searchParams,
@@ -28,13 +33,22 @@ export default async function SettingsPage({
   const fi = locale === "fi";
   const canManage = ["owner", "admin"].includes(workspace.role);
   const erpAdapter = getErpAdapter(workspace.erpProvider);
-  const config = erpAdapter?.getConfigurationStatus(workspace.id) ?? {
-    configured: false,
-    workspaceMatches: false,
-    missing: [],
-    environment: null,
-    companyId: null,
-  };
+  const config = erpAdapter
+    ? await erpAdapter.getConfigurationStatus(workspace.id)
+    : {
+        configured: false,
+        workspaceMatches: false,
+        missing: [],
+        environment: null,
+        companyId: null,
+        source: null,
+        connectionStatus: null,
+        verifiedAt: null,
+        verifiedCompanyName: null,
+        lastError: null,
+        tenantId: null,
+        clientId: null,
+      };
 
   const [{ data: organization }, { data: memberships }] = await Promise.all([
     supabase
@@ -271,28 +285,145 @@ export default async function SettingsPage({
               <div>
                 <div className="upload-v2-section-label">Microsoft Business Central</div>
                 <h3 className="mt-1 text-lg font-bold tracking-[-.02em]">
-                  {fi ? "Natiivi ERP-integraatio" : "Native ERP integration"}
+                  {fi ? "Asiakaskohtainen ERP-yhteys" : "Workspace ERP connection"}
                 </h3>
-                <p className="mt-2 text-sm text-[var(--muted)]">
-                  {config.configured
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                  {config.source === "legacy_env"
                     ? fi
-                      ? "Business Central on yhdistetty tähän työtilaan."
-                      : "Business Central is connected to this workspace."
-                    : fi
-                      ? "Yhteys vaatii vielä määrityksiä ennen ERP-vientiä."
-                      : "The connection still needs configuration before ERP export."}
+                      ? "Nykyinen production-yhteys käyttää vielä palvelimen legacy-määritystä. Sen voi siirtää turvallisesti tämän työtilan omaksi yhteydeksi tallentamalla alla olevan lomakkeen."
+                      : "The current production connection still uses the legacy server configuration. Save the form below to migrate it securely to this workspace."
+                    : config.configured
+                      ? fi
+                        ? "Business Central -tunnukset on tallennettu tälle työtilalle ja yhteys on tarkistettu."
+                        : "Business Central credentials are stored for this workspace and the connection is verified."
+                      : fi
+                        ? "Tallenna tämän asiakkaan Microsoft-tunnukset ja tarkista yhteys ennen ERP-vientiä."
+                        : "Save this customer's Microsoft credentials and verify the connection before ERP export."}
                 </p>
               </div>
               <span className={config.configured ? "settings-status is-ready" : "settings-status is-warning"}>
-                {config.configured ? (fi ? "Yhdistetty" : "Connected") : (fi ? "Vaatii huomiota" : "Needs attention")}
+                {config.configured
+                  ? config.source === "legacy_env"
+                    ? (fi ? "Yhdistetty · legacy" : "Connected · legacy")
+                    : (fi ? "Yhdistetty" : "Connected")
+                  : config.connectionStatus === "error"
+                    ? (fi ? "Tarkistus epäonnistui" : "Verification failed")
+                    : config.connectionStatus === "disconnected"
+                      ? (fi ? "Katkaistu" : "Disconnected")
+                      : (fi ? "Vaatii tarkistuksen" : "Needs verification")}
               </span>
             </div>
+
             <div className="settings-p1-connection-strip">
-              <div className="p-4"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</span><strong className="mt-2 block text-sm">{config.environment || "—"}</strong></div>
-              <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Company ID</span><strong className="mt-2 block break-all text-sm">{config.companyId || "—"}</strong></div>
-              <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0"><span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Työtila" : "Workspace"}</span><strong className="mt-2 block text-sm">{config.workspaceMatches ? (fi ? "Täsmää" : "Matched") : (fi ? "Ei täsmää" : "Mismatch")}</strong></div>
+              <div className="p-4">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Ympäristö" : "Environment"}</span>
+                <strong className="mt-2 block text-sm">{config.environment || "—"}</strong>
+              </div>
+              <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Company ID</span>
+                <strong className="mt-2 block break-all text-sm">{config.companyId || "—"}</strong>
+              </div>
+              <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Yritys" : "Company"}</span>
+                <strong className="mt-2 block text-sm">{config.verifiedCompanyName || "—"}</strong>
+              </div>
+              <div className="border-t border-[var(--line)] p-4 sm:border-l sm:border-t-0">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">{fi ? "Viimeksi tarkistettu" : "Last verified"}</span>
+                <strong className="mt-2 block text-sm">
+                  {config.verifiedAt ? new Date(config.verifiedAt).toLocaleString(fi ? "fi-FI" : "en-US") : "—"}
+                </strong>
+              </div>
             </div>
-            <div className="mt-4">
+
+            {config.lastError ? (
+              <div className="mt-4 rounded-xl border border-[#ead7d5] bg-[#fff8f7] p-4 text-sm text-[#8c3f38]">
+                {config.lastError}
+              </div>
+            ) : null}
+
+            {canManage ? (
+              <form action={saveBusinessCentralConnectionAction} className="mt-5 grid gap-4 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-5 sm:grid-cols-2">
+                <label className="sm:col-span-2">
+                  <span className="settings-field-label">Microsoft tenant ID</span>
+                  <input
+                    name="tenantId"
+                    required
+                    maxLength={240}
+                    defaultValue={config.tenantId || ""}
+                    className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm"
+                    autoComplete="off"
+                  />
+                </label>
+                <label>
+                  <span className="settings-field-label">Application (client) ID</span>
+                  <input
+                    name="clientId"
+                    required
+                    maxLength={240}
+                    defaultValue={config.clientId || ""}
+                    className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm"
+                    autoComplete="off"
+                  />
+                </label>
+                <label>
+                  <span className="settings-field-label">Client secret</span>
+                  <input
+                    name="clientSecret"
+                    type="password"
+                    maxLength={4000}
+                    placeholder={config.source === "workspace" && config.connectionStatus !== "disconnected" ? "••••••••" : fi ? "Syötä client secret" : "Enter client secret"}
+                    className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm"
+                    autoComplete="new-password"
+                  />
+                  <small className="mt-1.5 block text-xs leading-5 text-[var(--muted)]">
+                    {fi
+                      ? "Salaisuutta ei koskaan näytetä takaisin. Jätä tyhjäksi, jos haluat säilyttää jo tallennetun salaisuuden."
+                      : "The secret is never shown again. Leave blank to keep an already stored secret."}
+                  </small>
+                </label>
+                <label>
+                  <span className="settings-field-label">Environment</span>
+                  <input
+                    name="environment"
+                    required
+                    maxLength={120}
+                    defaultValue={config.environment || "Production"}
+                    className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm"
+                    autoComplete="off"
+                  />
+                </label>
+                <label>
+                  <span className="settings-field-label">Company ID</span>
+                  <input
+                    name="companyId"
+                    required
+                    maxLength={120}
+                    defaultValue={config.companyId || ""}
+                    className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm"
+                    autoComplete="off"
+                  />
+                </label>
+                <div className="sm:col-span-2 flex flex-wrap gap-2">
+                  <button className="btn-primary">
+                    {config.source === "legacy_env"
+                      ? fi ? "Siirrä työtilakohtaiseksi ja tarkista" : "Migrate to workspace and verify"
+                      : fi ? "Tallenna ja tarkista yhteys" : "Save and verify connection"}
+                  </button>
+                </div>
+              </form>
+            ) : null}
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {canManage && config.source === "workspace" && config.connectionStatus !== "disconnected" ? (
+                <form action={verifyBusinessCentralConnectionAction}>
+                  <button className="btn-secondary">{fi ? "Tarkista uudelleen" : "Verify again"}</button>
+                </form>
+              ) : null}
+              {canManage && (config.source || config.connectionStatus === "disconnected") ? (
+                <form action={disconnectBusinessCentralConnectionAction}>
+                  <button className="btn-secondary">{fi ? "Katkaise yhteys" : "Disconnect"}</button>
+                </form>
+              ) : null}
               <Link href="/app/settings/business-central" className="btn-secondary">
                 {fi ? "Hallitse BC-vastineita" : "Manage BC mappings"} →
               </Link>
