@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function updateCustomerMemoryMapping(formData: FormData) {
   const mappingId = String(formData.get("mappingId") ?? "");
@@ -33,17 +34,12 @@ export async function updateCustomerMemoryMapping(formData: FormData) {
   if (!mapping) throw new Error("Customer Memory mapping not found.");
   if (!product) throw new Error("Active catalogue product with that SKU was not found.");
 
-  const { error } = await supabase
-    .from("customer_product_mappings")
-    .update({
-      product_id: product.id,
-      confidence: 100,
-      source: "user_confirmed",
-      confirmed_by_user_id: claims.sub,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id",mapping.id)
-    .eq("organization_id",workspace.id);
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("update_customer_product_memory_server", {
+    target_mapping_id: mapping.id,
+    target_product_id: product.id,
+    target_actor_id: claims.sub,
+  });
 
   if (error) throw new Error(error.message);
 
@@ -57,7 +53,7 @@ export async function deleteCustomerMemoryMapping(formData: FormData) {
   if (!mappingId) throw new Error("Mapping is required.");
   if (!confirmed) throw new Error("Confirm Customer Memory deletion before continuing.");
 
-  const { supabase, workspace } = await requireWorkspace();
+  const { supabase, workspace, claims } = await requireWorkspace();
   if (!["owner","admin"].includes(workspace.role)) {
     throw new Error("Owner or admin access is required to delete Customer Memory.");
   }
@@ -71,11 +67,11 @@ export async function deleteCustomerMemoryMapping(formData: FormData) {
 
   if (!mapping) throw new Error("Customer Memory mapping not found.");
 
-  const { error } = await supabase
-    .from("customer_product_mappings")
-    .delete()
-    .eq("id",mapping.id)
-    .eq("organization_id",workspace.id);
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("disable_customer_product_memory_server", {
+    target_mapping_id: mapping.id,
+    target_actor_id: claims.sub,
+  });
 
   if (error) throw new Error(error.message);
 
