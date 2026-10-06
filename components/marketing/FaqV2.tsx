@@ -202,19 +202,20 @@ export function FaqV2({ locale }: { locale: Locale }) {
           })}
 
           <div className="faq-v2-ask">
-            <div className="faq-v2-ask-heading">
-              <div>
-                <span>{fi ? "Kysy jotain muuta" : "Ask something else"}</span>
-                <p>
-                  {fi
-                    ? "AI vastaa vain Averomiran tämänhetkisen julkisen tuotetiedon perusteella."
-                    : "AI answers only from Averomira's current public product knowledge."}
-                </p>
+            <div className="faq-v2-ask-card">
+              <div className="faq-v2-ask-heading">
+                <div>
+                  <span className="faq-v2-ask-eyebrow">AVEROMIRA AI</span>
+                  <strong>{fi ? "Kysy jotain muuta" : "Ask something else"}</strong>
+                  <p>
+                    {fi
+                      ? "Kysy tuotteesta, työnkulusta tai integraatioista. Vastaus perustuu vain Averomiran julkiseen tuotetietoon."
+                      : "Ask about the product, workflow or integrations. Answers use only Averomira's public product knowledge."}
+                  </p>
+                </div>
               </div>
-              <span className="faq-v2-ai-badge">AI</span>
-            </div>
 
-            <form className="faq-v2-ask-form" onSubmit={askAveromira}>
+              <form className="faq-v2-ask-form" onSubmit={askAveromira}>
               <label className="sr-only" htmlFor="faq-v2-question">
                 {fi ? "Kysy Averomirasta" : "Ask about Averomira"}
               </label>
@@ -249,9 +250,9 @@ export function FaqV2({ locale }: { locale: Locale }) {
                 <span>{asking ? (fi ? "Haetaan" : "Thinking") : fi ? "Kysy" : "Ask"}</span>
                 <i aria-hidden="true">→</i>
               </button>
-            </form>
+              </form>
 
-            <div className="faq-v2-ask-status" aria-live="polite">
+              <div className="faq-v2-ask-status" aria-live="polite">
               {askError ? <p className="faq-v2-ask-error">{askError}</p> : null}
 
               {askResult ? (
@@ -263,6 +264,7 @@ export function FaqV2({ locale }: { locale: Locale }) {
                   </a>
                 </div>
               ) : null}
+              </div>
             </div>
           </div>
         </div>
