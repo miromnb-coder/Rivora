@@ -121,13 +121,15 @@ export default async function SalesOrderDraftDetailPage({
       )
     : [];
 
-  const config = adapter?.getConfigurationStatus(workspace.id) ?? {
-    configured: false,
-    workspaceMatches: false,
-    missing: [],
-    environment: null,
-    companyId: null,
-  };
+  const config = adapter
+    ? await adapter.getConfigurationStatus(workspace.id)
+    : {
+        configured: false,
+        workspaceMatches: false,
+        missing: [],
+        environment: null,
+        companyId: null,
+      };
   const customerMappingVerified = mappingVerified(customerMapping);
   const adapterReady =
     isBusinessCentral &&
