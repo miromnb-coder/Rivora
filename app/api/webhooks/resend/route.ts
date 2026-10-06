@@ -1,16 +1,26 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  operationalLog,
+  requestIdFor,
+  requestIdHeaders,
+} from "@/lib/rivora/observability";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  const requestId = requestIdFor(request);
   const payload = await request.text();
   const svixId = request.headers.get("svix-id");
   const svixTimestamp = request.headers.get("svix-timestamp");
   const svixSignature = request.headers.get("svix-signature");
 
   if (!payload || !svixId || !svixTimestamp || !svixSignature) {
-    return Response.json({ error: "Missing webhook signature." }, { status: 400 });
+    operationalLog("warn", "resend_webhook_signature_missing", { requestId });
+    return Response.json(
+      { error: "Missing webhook signature.", requestId },
+      { status: 400, headers: requestIdHeaders(requestId) },
+    );
   }
 
   const supabase = createAdminClient();
@@ -23,9 +33,19 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    console.error("Resend webhook rejected:", error.message);
-    return Response.json({ error: "Webhook rejected." }, { status: 400 });
+    operationalLog("warn", "resend_webhook_rejected", {
+      requestId,
+      message: error.message,
+    });
+    return Response.json(
+      { error: "Webhook rejected.", requestId },
+      { status: 400, headers: requestIdHeaders(requestId) },
+    );
   }
 
-  return Response.json(data ?? { status: "ok" });
+  operationalLog("info", "resend_webhook_processed", { requestId });
+  return Response.json(
+    data ?? { status: "ok" },
+    { headers: requestIdHeaders(requestId) },
+  );
 }
