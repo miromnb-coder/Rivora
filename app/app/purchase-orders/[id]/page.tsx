@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContextHelpTrigger } from "@/components/support/ContextHelpTrigger";
 import { notFound } from "next/navigation";
 import { formatLocale, getLocale } from "@/lib/locale";
 import {
@@ -164,9 +165,15 @@ export default async function PurchaseOrderDetailPage({
           <div className="app-kicker-v2">
             {fi ? "Purchase Order" : "Purchase order"}
           </div>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight">
-            {purchaseOrder.po_number}
-          </h1>
+          <div className="support-heading-with-help mt-2">
+            <h1 className="text-4xl font-bold tracking-tight">
+              {purchaseOrder.po_number}
+            </h1>
+            <ContextHelpTrigger
+              articleId="po-exceptions"
+              label={fi ? "Ohje: ostotilauksen poikkeamat" : "Help: purchase-order exceptions"}
+            />
+          </div>
           <p className="mt-3 text-[var(--muted)]">
             {customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer")}
             {quote?.quote_number ? ` · ${fi ? "Tarjous" : "Quote"} ${quote.quote_number}` : ""}
