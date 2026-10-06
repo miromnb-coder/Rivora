@@ -252,9 +252,9 @@ begin
       target_product_id,
       100,
       'user_confirmed',
-      1,
+      0,
       target_actor_id,
-      now()
+      null
     )
     on conflict (organization_id, customer_id, normalized_customer_sku)
     do update set
@@ -263,9 +263,7 @@ begin
       product_id = excluded.product_id,
       confidence = 100,
       source = 'user_confirmed',
-      times_used = public.customer_product_mappings.times_used + 1,
       confirmed_by_user_id = target_actor_id,
-      last_used_at = now(),
       updated_at = now();
   end if;
 
