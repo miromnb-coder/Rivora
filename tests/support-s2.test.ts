@@ -85,9 +85,9 @@ test("S2 places contextual help only in high-value decision areas", () => {
   assert.match(quotePage, /articleId="quote-locking"/);
 });
 
-test("S2 remains help-only and does not introduce AI actions or ticket tracking", () => {
+test("S2 contextual-help layer remains passive as S3 adds AI beside it", () => {
   assert.equal(contextTrigger.includes("fetch("), false);
   assert.equal(supportContext.includes("openai"), false);
+  assert.match(supportCenter, /Ohjeet tähän näkymään/);
   assert.equal(supportCenter.includes("Omat tukipyynnöt"), false);
-  assert.equal(supportCenter.includes("Kysy Averomira AI:lta"), false);
 });
