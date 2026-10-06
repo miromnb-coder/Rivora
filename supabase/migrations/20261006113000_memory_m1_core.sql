@@ -307,7 +307,7 @@ begin
 
   return null;
 end;
-$;
+$$;
 
 revoke all on function private.audit_workspace_memory_entry() from public;
 revoke all on function private.audit_workspace_memory_entry() from anon;
