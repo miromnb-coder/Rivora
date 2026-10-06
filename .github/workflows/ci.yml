@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, memory-m2-freeze-hardening]
+    branches: [main]
   pull_request:
 
 jobs:
