@@ -10,6 +10,13 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const provenanceMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20261006151500_memory_m3_usage_provenance.sql",
+  ),
+  "utf8",
+);
 const m2Migration = readFileSync(
   join(
     process.cwd(),
@@ -165,4 +172,58 @@ test("Smart Memory appears under Settings navigation", () => {
 test("M3 does not relax the M2 verified-only reuse rule", () => {
   assert.match(m2Migration, /mem\.verification_state = 'verified'/);
   assert.match(m2Migration, /review_status = 'needs_review'/);
+});
+
+
+test("M3 snapshots Product Memory meaning at usage time", () => {
+  assert.match(
+    provenanceMigration,
+    /create trigger workspace_memory_usage_events_snapshot/,
+  );
+  assert.match(
+    provenanceMigration,
+    /'memory_target_entity_id', mem\.target_entity_id/,
+  );
+  assert.match(
+    provenanceMigration,
+    /'memory_source_value', mem\.source_value/,
+  );
+  assert.match(
+    provenanceMigration,
+    /'memory_verification_state', mem\.verification_state/,
+  );
+  assert.match(
+    provenanceMigration,
+    /Memory usage event workspace mismatch/,
+  );
+});
+
+test("M3 explainability prefers immutable usage provenance over mutable current memory", () => {
+  assert.match(
+    provenanceMigration,
+    /usage\.metadata ->> 'memory_target_entity_id'/,
+  );
+  assert.match(
+    provenanceMigration,
+    /usage\.metadata ->> 'memory_source_value'/,
+  );
+  assert.match(
+    provenanceMigration,
+    /usage\.metadata ->> 'memory_verified_at'/,
+  );
+  assert.match(
+    provenanceMigration,
+    /memory_target_entity_id'[\s\S]*= l\.selected_product_id/,
+  );
+});
+
+test("M3 provenance hardening keeps explain RPC service-role-only", () => {
+  assert.match(
+    provenanceMigration,
+    /revoke all on function public\.get_rfq_product_memory_explanations_server\(uuid,uuid\) from authenticated/,
+  );
+  assert.match(
+    provenanceMigration,
+    /grant execute on function public\.get_rfq_product_memory_explanations_server\(uuid,uuid\) to service_role/,
+  );
 });
