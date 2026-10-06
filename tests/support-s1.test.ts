@@ -10,6 +10,13 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const hardening = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20261006184500_harden_support_s1.sql",
+  ),
+  "utf8",
+);
 const supportCenter = readFileSync(
   join(process.cwd(), "components/support/SupportCenter.tsx"),
   "utf8",
@@ -45,22 +52,30 @@ test("S1 creates workspace-scoped support entities and a private attachment buck
   assert.match(migration, /false,\s*5242880/);
 });
 
-test("S1 support ticket creation is actor-bound and atomic through an RPC", () => {
+test("S1 support ticket creation is atomic and hardened behind the server role", () => {
   assert.match(
-    migration,
-    /create or replace function public\.create_support_ticket/,
+    hardening,
+    /create or replace function public\.create_support_ticket_server/,
   );
-  assert.match(migration, /uid uuid := \(select auth\.uid\(\)\)/);
+  assert.match(hardening, /target_actor_id uuid/);
   assert.match(
-    migration,
-    /private\.has_org_role\([\s\S]*array\['owner','admin','member'\]/,
+    hardening,
+    /m\.user_id = target_actor_id[\s\S]*m\.role in \('owner','admin','member'\)/,
   );
-  assert.match(migration, /insert into public\.support_tickets/);
-  assert.match(migration, /insert into public\.support_messages/);
-  assert.match(migration, /insert into public\.support_events/);
+  assert.match(hardening, /insert into public\.support_tickets/);
+  assert.match(hardening, /insert into public\.support_messages/);
+  assert.match(hardening, /insert into public\.support_events/);
   assert.match(
-    migration,
-    /grant execute on function public\.create_support_ticket[\s\S]*to authenticated/,
+    hardening,
+    /revoke all on function public\.create_support_ticket_server[\s\S]*from authenticated/,
+  );
+  assert.match(
+    hardening,
+    /grant execute on function public\.create_support_ticket_server[\s\S]*to service_role/,
+  );
+  assert.match(
+    hardening,
+    /drop function if exists public\.create_support_ticket\(uuid,text,text,text,text,text\)/,
   );
 });
 
@@ -98,6 +113,8 @@ test("support endpoint is authenticated, rate-limited and records safe app conte
   assert.match(supportRoute, /limit: 10/);
   assert.match(supportRoute, /rawContextPath\.startsWith\("\/app"\)/);
   assert.match(supportRoute, /target_request_id: requestId/);
+  assert.match(supportRoute, /create_support_ticket_server/);
+  assert.match(supportRoute, /target_actor_id: context\.claims\.sub/);
 });
 
 test("S1 Help Center is mounted globally in the authenticated app shell", () => {
@@ -112,4 +129,20 @@ test("S1 Help Center is mounted globally in the authenticated app shell", () => 
 test("S1 intentionally keeps AI support and ticket tracking out of the panel", () => {
   assert.equal(supportCenter.includes("Kysy Averomira AI:lta"), false);
   assert.equal(supportCenter.includes("Omat tukipyynnöt"), false);
+});
+
+
+test("S1 hardening gives the audit table an explicit browser-deny policy and covers support FKs", () => {
+  assert.match(hardening, /create policy support_events_deny_browser_access/);
+  for (const index of [
+    "support_messages_org_idx",
+    "support_messages_author_idx",
+    "support_attachments_org_idx",
+    "support_attachments_message_idx",
+    "support_attachments_uploaded_by_idx",
+    "support_events_org_idx",
+    "support_events_actor_idx",
+  ]) {
+    assert.match(hardening, new RegExp(`create index if not exists ${index}`));
+  }
 });
