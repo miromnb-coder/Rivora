@@ -20,6 +20,14 @@ type PanelView =
   | { kind: "contact" }
   | { kind: "success"; ticketNumber: number; attachmentUploaded: boolean };
 
+type SupportAiMessage = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  supported?: boolean;
+  articleIds?: string[];
+};
+
 const helpArticles: Record<Locale, HelpArticle[]> = {
   fi: [
     {
@@ -327,7 +335,13 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [aiQuestion, setAiQuestion] = useState("");
+  const [aiMessages, setAiMessages] = useState<SupportAiMessage[]>([]);
+  const [aiAsking, setAiAsking] = useState(false);
+  const [aiError, setAiError] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const aiInputRef = useRef<HTMLInputElement>(null);
+  const previousPathRef = useRef(pathname);
 
   const filteredArticles = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase(locale === "fi" ? "fi-FI" : "en-US");
@@ -345,6 +359,14 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     view.kind === "article"
       ? articles.find((article) => article.id === view.articleId) ?? null
       : null;
+
+  useEffect(() => {
+    if (previousPathRef.current === pathname) return;
+    previousPathRef.current = pathname;
+    setAiQuestion("");
+    setAiMessages([]);
+    setAiError("");
+  }, [pathname]);
 
   useEffect(() => {
     const handleContextHelp = (event: Event) => {
@@ -372,7 +394,10 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     document.body.classList.add("support-center-open");
 
     const timer = window.setTimeout(() => {
-      if (view.kind === "home") searchRef.current?.focus();
+      if (view.kind === "home") {
+        if (aiMessages.length === 0) aiInputRef.current?.focus();
+        else searchRef.current?.focus();
+      }
     }, 80);
 
     return () => {
@@ -380,11 +405,123 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       document.removeEventListener("keydown", onKeyDown);
       document.body.classList.remove("support-center-open");
     };
-  }, [open, view.kind]);
+  }, [open, view.kind, aiMessages.length]);
 
   function openContact() {
     setView({ kind: "contact" });
     setFormError("");
+  }
+
+  function openContactFromAi() {
+    const lastUser = [...aiMessages].reverse().find((item) => item.role === "user");
+    const conversation = aiMessages
+      .slice(-6)
+      .map((item) =>
+        `${item.role === "user" ? (fi ? "Käyttäjä" : "User") : "Averomira AI"}: ${item.text}`,
+      )
+      .join("\n\n");
+
+    if (pathname.includes("business-central")) setCategory("integration");
+    else setCategory("product");
+
+    const fallbackSubject = fi
+      ? "Support AI -kysymys vaatii tarkistuksen"
+      : "Support AI question needs review";
+    setSubject(
+      lastUser?.text
+        ? `${fi ? "Support AI" : "Support AI"}: ${lastUser.text}`.slice(0, 160)
+        : fallbackSubject,
+    );
+    setMessage(
+      [
+        fi
+          ? "Haluan tukea seuraavaan Support AI -keskusteluun:"
+          : "I need support with the following Support AI conversation:",
+        conversation,
+      ]
+        .filter(Boolean)
+        .join("\n\n")
+        .slice(0, 5000),
+    );
+    setScreenshot(null);
+    setFormError("");
+    setView({ kind: "contact" });
+  }
+
+  async function askSupportAi(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const question = aiQuestion.trim();
+    if (question.length < 3 || aiAsking) return;
+
+    const userMessage: SupportAiMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      text: question,
+    };
+
+    const previousMessages = aiMessages;
+    setAiMessages([...previousMessages, userMessage]);
+    setAiQuestion("");
+    setAiError("");
+    setAiAsking(true);
+
+    try {
+      const currentPath =
+        typeof window === "undefined"
+          ? pathname
+          : `${window.location.pathname}${window.location.search}`;
+
+      const response = await fetch("/api/support/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          locale,
+          question,
+          contextPath: currentPath,
+          history: previousMessages.slice(-6).map((item) => ({
+            role: item.role,
+            text: item.text,
+          })),
+        }),
+      });
+
+      const data = (await response.json()) as {
+        supported?: boolean;
+        answer?: string;
+        articleIds?: string[];
+        error?: string;
+      };
+
+      if (!response.ok || !data.answer) {
+        throw new Error(
+          data.error ||
+            (fi
+              ? "Support AI ei pystynyt vastaamaan juuri nyt."
+              : "Support AI could not answer right now."),
+        );
+      }
+
+      setAiMessages((current) => [
+        ...current,
+        {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          text: data.answer || "",
+          supported: data.supported === true,
+          articleIds: Array.isArray(data.articleIds) ? data.articleIds : [],
+        },
+      ]);
+    } catch (error) {
+      setAiError(
+        error instanceof Error
+          ? error.message
+          : fi
+            ? "Support AI ei pystynyt vastaamaan juuri nyt."
+            : "Support AI could not answer right now.",
+      );
+    } finally {
+      setAiAsking(false);
+    }
   }
 
   function resetContact() {
@@ -527,9 +664,150 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                 <>
                   <p className="support-center-intro">
                     {fi
-                      ? "Hae ohjeista tai lähetä tukipyyntö suoraan Averomirasta."
-                      : "Search the help articles or send a support request directly from Averomira."}
+                      ? "Kysy Support AI:lta, hae ohjeista tai lähetä tukipyyntö suoraan Averomirasta."
+                      : "Ask Support AI, search the help articles or send a support request directly from Averomira."}
                   </p>
+
+                  <section className="support-ai-card" aria-labelledby="support-ai-title">
+                    <div className="support-ai-head">
+                      <div>
+                        <span>AVEROMIRA AI</span>
+                        <strong id="support-ai-title">
+                          {fi ? "Kysy Averomira AI:lta" : "Ask Averomira AI"}
+                        </strong>
+                        <p>
+                          {routeContext
+                            ? fi
+                              ? `AI tietää, että olet näkymässä: ${routeContext.title}.`
+                              : `AI knows you are in: ${routeContext.title}.`
+                            : fi
+                              ? "AI käyttää vain hyväksyttyä Averomira-tukitietoa."
+                              : "AI uses only approved Averomira support knowledge."}
+                        </p>
+                      </div>
+                      <span className="support-ai-readonly">
+                        {fi ? "Vain ohjeet" : "Read-only"}
+                      </span>
+                    </div>
+
+                    {aiMessages.length ? (
+                      <div className="support-ai-thread" aria-live="polite">
+                        {aiMessages.map((item) => (
+                          <div
+                            key={item.id}
+                            className={`support-ai-message ${item.role === "user" ? "is-user" : "is-assistant"}`}
+                          >
+                            <span>
+                              {item.role === "user"
+                                ? fi
+                                  ? "Sinä"
+                                  : "You"
+                                : "Averomira AI"}
+                            </span>
+                            <p>{item.text}</p>
+
+                            {item.role === "assistant" && item.articleIds?.length ? (
+                              <div className="support-ai-related">
+                                {item.articleIds
+                                  .map((articleId) =>
+                                    articles.find((article) => article.id === articleId),
+                                  )
+                                  .filter((article): article is HelpArticle => Boolean(article))
+                                  .map((article) => (
+                                    <button
+                                      key={article.id}
+                                      type="button"
+                                      onClick={() =>
+                                        setView({ kind: "article", articleId: article.id })
+                                      }
+                                    >
+                                      {article.title} <ArrowIcon />
+                                    </button>
+                                  ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ))}
+
+                        {aiAsking ? (
+                          <div className="support-ai-thinking">
+                            <span aria-hidden="true" />
+                            {fi ? "Averomira AI hakee vastausta…" : "Averomira AI is checking…"}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    <form className="support-ai-form" onSubmit={askSupportAi}>
+                      <label className="sr-only" htmlFor="support-ai-question">
+                        {fi ? "Kysy Averomira AI:lta" : "Ask Averomira AI"}
+                      </label>
+                      <input
+                        ref={aiInputRef}
+                        id="support-ai-question"
+                        value={aiQuestion}
+                        onChange={(event) => setAiQuestion(event.target.value)}
+                        maxLength={700}
+                        autoComplete="off"
+                        placeholder={
+                          fi
+                            ? "Esim. miksi tämä rivi vaatii tarkistuksen?"
+                            : "E.g. why does this line need review?"
+                        }
+                      />
+                      <button
+                        type="submit"
+                        disabled={aiAsking || aiQuestion.trim().length < 3}
+                        aria-label={fi ? "Lähetä kysymys" : "Send question"}
+                      >
+                        <ArrowIcon />
+                      </button>
+                    </form>
+
+                    <div className="support-ai-meta">
+                      <span>
+                        {fi
+                          ? "Älä lähetä salasanoja, Client Secretejä, API-avaimia tai tokeneita."
+                          : "Do not send passwords, Client Secrets, API keys or tokens."}
+                      </span>
+                      {aiMessages.length ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAiMessages([]);
+                            setAiQuestion("");
+                            setAiError("");
+                            window.setTimeout(() => aiInputRef.current?.focus(), 0);
+                          }}
+                        >
+                          {fi ? "Tyhjennä keskustelu" : "Clear conversation"}
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {aiError ? (
+                      <p className="support-ai-error" role="alert">
+                        {aiError}
+                      </p>
+                    ) : null}
+
+                    {aiMessages.some((item) => item.role === "assistant") ? (
+                      <button
+                        type="button"
+                        className="support-ai-escalate"
+                        onClick={openContactFromAi}
+                      >
+                        {fi
+                          ? "Luo tukipyyntö tästä keskustelusta"
+                          : "Create a support request from this conversation"}{" "}
+                        <ArrowIcon />
+                      </button>
+                    ) : null}
+                  </section>
+
+                  <div className="support-search-divider">
+                    <span>{fi ? "TAI HAE OHJEISTA" : "OR SEARCH HELP"}</span>
+                  </div>
 
                   <label className="support-search">
                     <span className="sr-only">{fi ? "Hae ohjeista" : "Search help"}</span>
