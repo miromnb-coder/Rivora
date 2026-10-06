@@ -10,6 +10,13 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const matchMethodMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20261006131500_memory_m2_match_method.sql",
+  ),
+  "utf8",
+);
 const rfqActions = readFileSync(
   join(process.cwd(), "app/app/rfq/[id]/actions.ts"),
   "utf8",
@@ -122,4 +129,17 @@ test("M2 does not auto-apply inactive catalogue targets", () => {
     migration,
     /join public\.products p[\s\S]*p\.id = mem\.target_entity_id[\s\S]*p\.active = true/,
   );
+});
+
+
+test("M2 database constraints allow the product_memory match method", () => {
+  assert.match(
+    matchMethodMigration,
+    /product_match_candidates_method_check/,
+  );
+  assert.match(
+    matchMethodMigration,
+    /rfq_lines_match_method_check/,
+  );
+  assert.match(matchMethodMigration, /'product_memory'/);
 });
