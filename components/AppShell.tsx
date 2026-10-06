@@ -4,6 +4,7 @@ import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/locale";
 import { AppNav } from "@/components/AppNav";
+import { SupportCenter } from "@/components/support/SupportCenter";
 
 export function AppShell({
   children,
@@ -87,6 +88,8 @@ export function AppShell({
       </header>
 
       <main className="app-main-v2">{children}</main>
+
+      <SupportCenter locale={locale} />
 
       <div className="app-mobile-bottom-nav">
         <AppNav items={nav} orderSubItems={[]} settingsSubItems={[]} compact />
