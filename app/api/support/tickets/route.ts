@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuthContext } from "@/lib/rivora/workspace";
 import { notifySupportAboutCustomerMessage } from "@/lib/rivora/support-email";
+import { looksLikeSupportSecret } from "@/lib/rivora/support-ai";
 import {
   consumePublicRateLimit,
 } from "@/lib/rivora/rate-limit";
@@ -133,6 +134,13 @@ export async function POST(request: Request) {
   let ticketNumber: number | null = null;
 
   try {
+    if (request.headers.get("sec-fetch-site") === "cross-site") {
+      return NextResponse.json(
+        { error: "Cross-site requests are not allowed.", requestId },
+        { status: 403, headers: requestIdHeaders(requestId) },
+      );
+    }
+
     const contentType = request.headers.get("content-type") ?? "";
     if (!contentType.includes("multipart/form-data")) {
       return NextResponse.json(
@@ -201,6 +209,17 @@ export async function POST(request: Request) {
     if (message.length < 10 || message.length > 5000) {
       return NextResponse.json(
         { error: "Message must be between 10 and 5000 characters.", requestId },
+        { status: 400, headers: requestIdHeaders(requestId) },
+      );
+    }
+
+    if (looksLikeSupportSecret(message)) {
+      return NextResponse.json(
+        {
+          error:
+            "Do not include passwords, Client Secrets, API keys or tokens in a support request.",
+          requestId,
+        },
         { status: 400, headers: requestIdHeaders(requestId) },
       );
     }
