@@ -394,10 +394,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     document.body.classList.add("support-center-open");
 
     const timer = window.setTimeout(() => {
-      if (view.kind === "home") {
-        if (aiMessages.length === 0) aiInputRef.current?.focus();
-        else searchRef.current?.focus();
-      }
+      if (view.kind === "home") aiInputRef.current?.focus();
     }, 80);
 
     return () => {
@@ -405,7 +402,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       document.removeEventListener("keydown", onKeyDown);
       document.body.classList.remove("support-center-open");
     };
-  }, [open, view.kind, aiMessages.length]);
+  }, [open, view.kind]);
 
   function openContact() {
     setView({ kind: "contact" });
