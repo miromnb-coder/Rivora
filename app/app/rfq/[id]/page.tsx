@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { confirmRfqMatch, retryRfqProcessing } from "./actions";
 import { createQuoteFromRfq } from "@/app/app/quotes/actions";
 import { formatLocale, getLocale } from "@/lib/locale";
+import { ContextHelpTrigger } from "@/components/support/ContextHelpTrigger";
 import {
   extractionConfidenceLabel,
   extractionConfidenceNeedsReview,
@@ -174,7 +175,13 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
       <header className="rfq-review-v2-head">
         <div>
           <div className="app-kicker-v2">{text.review}</div>
-          <h1>{rfq.reference || text.review}</h1>
+          <div className="support-heading-with-help">
+            <h1>{rfq.reference || text.review}</h1>
+            <ContextHelpTrigger
+              articleId="rfq-why-review"
+              label={fi ? "Ohje: miksi rivi vaatii tarkistuksen" : "Help: why a line needs review"}
+            />
+          </div>
           <p>
             {customer?.name ?? text.unknownCustomer} · {String(rfq.source_type).toUpperCase()} ·{" "}
             {unresolved ? text.needConfirm(unresolved) : text.allConfirmed}
