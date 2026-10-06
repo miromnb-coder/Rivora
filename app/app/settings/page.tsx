@@ -5,12 +5,16 @@ import {
   inviteWorkspaceMember,
   removeWorkspaceLogo,
   updateWorkspaceErpProvider,
+  updateWorkspaceRequestedErp,
   updateWorkspaceMemberRole,
   updateWorkspaceSettings,
 } from "./actions";
 import { getLocale } from "@/lib/locale";
 import { getSettingsCopy } from "@/lib/i18n/extra";
-import { getErpAdapter } from "@/lib/rivora/erp";
+import {
+  getErpAdapter,
+  getErpProviderCapability,
+} from "@/lib/rivora/erp";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   disconnectBusinessCentralConnectionAction,
@@ -54,7 +58,7 @@ export default async function SettingsPage({
     supabase
       .from("organizations")
       .select(
-        "name,business_id,address_line1,address_line2,postal_code,city,country,email,phone,logo_path,default_tax_rate,default_quote_validity_days,onboarding_completed_at,erp_provider",
+        "name,business_id,address_line1,address_line2,postal_code,city,country,email,phone,logo_path,default_tax_rate,default_quote_validity_days,onboarding_completed_at,erp_provider,erp_requested_name",
       )
       .eq("id", workspace.id)
       .maybeSingle(),
@@ -101,6 +105,10 @@ export default async function SettingsPage({
   );
 
   const erpProvider = String(organization?.erp_provider || workspace.erpProvider || "none");
+  const erpCapability = getErpProviderCapability(erpProvider);
+  const requestedErpName = String(
+    organization?.erp_requested_name || workspace.erpRequestedName || "",
+  ).trim();
   const message = params.saved ? copy.saved : params.message;
   const tone = params.tone === "error" ? "error" : "ok";
 
@@ -429,13 +437,55 @@ export default async function SettingsPage({
               </Link>
             </div>
           </div>
-        ) : erpProvider === "custom" ? (
+        ) : erpCapability.availability === "unsupported" ? (
           <div className="mt-5 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-5">
-            <strong className="block">{fi ? "Muu ERP valittu" : "Other ERP selected"}</strong>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <strong className="block">
+                  {requestedErpName
+                    ? requestedErpName
+                    : fi ? "Muu ERP" : "Other ERP"}
+                </strong>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                  {fi
+                    ? "Tälle ERP:lle ei ole tässä versiossa natiivia adapteria. Averomira ei pyydä ERP-tunnuksia eikä yritä automaattista vientiä. RFQ-, tarjous-, PO- ja Sales Order Draft -työnkulku toimii silti normaalisti."
+                    : "There is no native adapter for this ERP in this version. Averomira does not request ERP credentials or attempt automatic export. RFQ, quote, PO and Sales Order Draft workflows remain available."}
+                </p>
+              </div>
+              <span className="settings-status is-warning">
+                {fi ? "Ei natiivia integraatiota" : "No native integration"}
+              </span>
+            </div>
+            {canManage ? (
+              <form action={updateWorkspaceRequestedErp} className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                <label>
+                  <span className="settings-field-label">
+                    {fi ? "Käytössä olevan ERP:n nimi" : "ERP system name"}
+                  </span>
+                  <input
+                    name="erpRequestedName"
+                    required
+                    maxLength={120}
+                    defaultValue={requestedErpName}
+                    placeholder={fi ? "Esim. SAP S/4HANA, NetSuite tai Visma" : "e.g. SAP S/4HANA, NetSuite or Visma"}
+                    className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm"
+                  />
+                </label>
+                <button className="btn-secondary">
+                  {fi ? "Tallenna ERP-nimi" : "Save ERP name"}
+                </button>
+              </form>
+            ) : null}
+          </div>
+        ) : erpCapability.availability === "unavailable" ? (
+          <div className="mt-5 rounded-xl border border-[#ead7d5] bg-[#fff8f7] p-5">
+            <strong className="block">
+              {fi ? "ERP-adapteri ei ole saatavilla" : "ERP adapter unavailable"}
+            </strong>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
               {fi
-                ? "Averomiran RFQ-, tarjous-, PO- ja Sales Order Draft -työnkulku toimii normaalisti. Automaattinen ERP-vienti aktivoidaan vasta, kun tälle ERP:lle on toteutettu ja testattu integraatio."
-                : "Averomira's RFQ, quote, PO and Sales Order Draft workflow remains available. Automatic ERP export is enabled only after this ERP has a built and tested integration."}
+                ? `Työtilalle on tallennettu ERP-provider “${erpCapability.key}”, mutta tässä Averomira-versiossa sille ei ole natiivia adapteria. Automaattista vientiä ei yritetä.`
+                : `The workspace has ERP provider “${erpCapability.key}”, but this Averomira version has no native adapter for it. Automatic export is not attempted.`}
             </p>
           </div>
         ) : (
@@ -443,8 +493,8 @@ export default async function SettingsPage({
             <strong className="block">{fi ? "ERP-vienti ei ole käytössä" : "ERP export is disabled"}</strong>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
               {fi
-                ? "ERP-yhteyttä ei vaadita Averomiran muuhun työnkulkuun. Sales Order Draft voidaan silti muodostaa hyväksytystä PO:sta."
-                : "An ERP connection is not required for the rest of Averomira. A Sales Order Draft can still be created from an approved PO."}
+                ? "ERP-yhteyttä ei vaadita Averomiran muuhun työnkulkuun. Sales Order Draft voidaan silti muodostaa hyväksytystä PO:sta. Averomira ei yritä ERP-vientiä tässä tilassa."
+                : "An ERP connection is not required for the rest of Averomira. A Sales Order Draft can still be created from an approved PO. Averomira does not attempt ERP export in this state."}
             </p>
           </div>
         )}
