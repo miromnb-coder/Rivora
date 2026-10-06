@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import type { Locale } from "@/lib/locale";
 
 type FaqItem = {
   question: string;
   answer: string;
+};
+
+type AskResult = {
+  answer: string;
+  supported: boolean;
 };
 
 const faqContent: Record<Locale, FaqItem[]> = {
@@ -89,6 +94,63 @@ export function FaqV2({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   const items = faqContent[locale];
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [question, setQuestion] = useState("");
+  const [website, setWebsite] = useState("");
+  const [askResult, setAskResult] = useState<AskResult | null>(null);
+  const [askError, setAskError] = useState("");
+  const [asking, setAsking] = useState(false);
+
+  async function askAveromira(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const cleanQuestion = question.trim();
+    if (cleanQuestion.length < 3 || asking) return;
+
+    setAsking(true);
+    setAskError("");
+    setAskResult(null);
+
+    try {
+      const response = await fetch("/api/marketing/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: cleanQuestion,
+          locale,
+          website,
+        }),
+      });
+
+      const data = (await response.json()) as {
+        answer?: string;
+        supported?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok || !data.answer) {
+        throw new Error(
+          data.error ||
+            (fi
+              ? "Vastausta ei saatu juuri nyt. Yritä hetken kuluttua uudelleen."
+              : "No answer is available right now. Please try again shortly."),
+        );
+      }
+
+      setAskResult({
+        answer: data.answer,
+        supported: data.supported === true,
+      });
+    } catch (error) {
+      setAskError(
+        error instanceof Error
+          ? error.message
+          : fi
+            ? "Vastausta ei saatu juuri nyt."
+            : "No answer is available right now.",
+      );
+    } finally {
+      setAsking(false);
+    }
+  }
 
   return (
     <section className="marketing-shell v2-section faq-v2" id="faq" aria-labelledby="faq-v2-title">
@@ -138,6 +200,71 @@ export function FaqV2({ locale }: { locale: Locale }) {
               </article>
             );
           })}
+
+          <div className="faq-v2-ask">
+            <div className="faq-v2-ask-heading">
+              <div>
+                <span>{fi ? "Kysy jotain muuta" : "Ask something else"}</span>
+                <p>
+                  {fi
+                    ? "AI vastaa vain Averomiran tämänhetkisen julkisen tuotetiedon perusteella."
+                    : "AI answers only from Averomira's current public product knowledge."}
+                </p>
+              </div>
+              <span className="faq-v2-ai-badge">AI</span>
+            </div>
+
+            <form className="faq-v2-ask-form" onSubmit={askAveromira}>
+              <label className="sr-only" htmlFor="faq-v2-question">
+                {fi ? "Kysy Averomirasta" : "Ask about Averomira"}
+              </label>
+              <input
+                id="faq-v2-question"
+                type="text"
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                maxLength={500}
+                autoComplete="off"
+                placeholder={
+                  fi
+                    ? "Esim. voiko Averomira käsitellä PDF-tarjouspyynnön?"
+                    : "E.g. can Averomira process a PDF RFQ?"
+                }
+              />
+              <input
+                className="faq-v2-honeypot"
+                type="text"
+                value={website}
+                onChange={(event) => setWebsite(event.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                name="website"
+              />
+              <button
+                type="submit"
+                disabled={asking || question.trim().length < 3}
+                aria-label={fi ? "Lähetä kysymys" : "Send question"}
+              >
+                <span>{asking ? (fi ? "Haetaan" : "Thinking") : fi ? "Kysy" : "Ask"}</span>
+                <i aria-hidden="true">→</i>
+              </button>
+            </form>
+
+            <div className="faq-v2-ask-status" aria-live="polite">
+              {askError ? <p className="faq-v2-ask-error">{askError}</p> : null}
+
+              {askResult ? (
+                <div className={askResult.supported ? "faq-v2-ai-answer" : "faq-v2-ai-answer is-unsupported"}>
+                  <span>{askResult.supported ? (fi ? "Averomira AI" : "Averomira AI") : fi ? "Rajattu vastaus" : "Limited answer"}</span>
+                  <p>{askResult.answer}</p>
+                  <a href="#demo">
+                    {fi ? "Keskustele pilotista" : "Discuss the pilot"} <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
     </section>
