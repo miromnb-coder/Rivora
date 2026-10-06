@@ -47,7 +47,7 @@ async function autoMapSalesOrderDraft({
       displayName: null,
     };
   }
-  const config = adapter.getConfigurationStatus(workspace.id);
+  const config = await adapter.getConfigurationStatus(workspace.id);
   if (!config.configured) {
     return {
       configured: false,
@@ -387,7 +387,7 @@ export async function sendErpSalesOrderAction(formData: FormData) {
     const admin = createAdminClient();
     const actorId = String(claims.sub);
 
-    const config = adapter.getConfigurationStatus(workspace.id);
+    const config = await adapter.getConfigurationStatus(workspace.id);
     if (!config.configured) {
       if (!config.workspaceMatches && !config.missing.includes("workspaceId")) {
         throw new Error(`${adapter.displayName} configuration belongs to a different workspace.`);

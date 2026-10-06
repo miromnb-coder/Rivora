@@ -118,7 +118,7 @@ export default async function AppHome() {
   ]);
 
   const tasks: Task[] = [];
-  const bcConfig = getBusinessCentralConfigurationStatus(workspace.id);
+  const bcConfig = await getBusinessCentralConfigurationStatus(workspace.id);
   const erpMappingByEntity = new Map(
     (erpMappings ?? []).map((mapping: any) => [
       `${mapping.entity_type}:${mapping.local_entity_id}`,

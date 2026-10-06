@@ -1,9 +1,21 @@
+import {
+  getStoredErpConnection,
+  getStoredErpConnectionSecret,
+} from "./connections.ts";
+
 export type BusinessCentralConfigStatus = {
   configured: boolean;
   workspaceMatches: boolean;
   missing: string[];
   environment: string | null;
   companyId: string | null;
+  source: "workspace" | "legacy_env" | null;
+  connectionStatus: "configured" | "verified" | "error" | "disconnected" | "legacy" | null;
+  verifiedAt: string | null;
+  verifiedCompanyName: string | null;
+  lastError: string | null;
+  tenantId: string | null;
+  clientId: string | null;
 };
 
 export type BusinessCentralSalesOrderLine = {
@@ -56,6 +68,12 @@ type BusinessCentralConfig = {
 
 type ODataCollection<T> = { value?: T[] };
 
+type BcCompany = {
+  id: string;
+  name?: string;
+  displayName?: string;
+};
+
 type BcCustomer = {
   id: string;
   number: string;
@@ -85,10 +103,16 @@ function value(name: string) {
   return process.env[name]?.trim() || "";
 }
 
-export function getBusinessCentralConfigurationStatus(
-  workspaceId: string,
-): BusinessCentralConfigStatus {
-  const config = {
+function textConfig(
+  configuration: Record<string, unknown>,
+  key: string,
+) {
+  const raw = configuration[key];
+  return typeof raw === "string" ? raw.trim() : "";
+}
+
+function legacyConfig(workspaceId: string): BusinessCentralConfig | null {
+  const config: BusinessCentralConfig = {
     workspaceId: value("BUSINESS_CENTRAL_WORKSPACE_ID"),
     tenantId: value("BUSINESS_CENTRAL_TENANT_ID"),
     clientId: value("BUSINESS_CENTRAL_CLIENT_ID"),
@@ -97,28 +121,136 @@ export function getBusinessCentralConfigurationStatus(
     companyId: value("BUSINESS_CENTRAL_COMPANY_ID"),
   };
 
-  const missing = Object.entries(config)
-    .filter(([, entry]) => !entry)
-    .map(([key]) => key);
+  if (config.workspaceId !== workspaceId) return null;
+  return config;
+}
+
+export async function getBusinessCentralConfigurationStatus(
+  workspaceId: string,
+): Promise<BusinessCentralConfigStatus> {
+  const stored = await getStoredErpConnection(workspaceId, "business_central");
+
+  if (stored) {
+    const tenantId = textConfig(stored.configuration, "tenantId");
+    const clientId = textConfig(stored.configuration, "clientId");
+    const environment = textConfig(stored.configuration, "environment");
+    const companyId = textConfig(stored.configuration, "companyId");
+    const missing = [
+      !tenantId ? "tenantId" : null,
+      !clientId ? "clientId" : null,
+      !environment ? "environment" : null,
+      !companyId ? "companyId" : null,
+      !stored.hasSecret ? "clientSecret" : null,
+    ].filter(Boolean) as string[];
+
+    return {
+      configured:
+        stored.status === "verified" &&
+        missing.length === 0,
+      workspaceMatches: true,
+      missing,
+      environment: environment || null,
+      companyId: companyId || null,
+      source: "workspace",
+      connectionStatus: stored.status,
+      verifiedAt: stored.verifiedAt,
+      verifiedCompanyName: stored.verifiedCompanyName,
+      lastError: stored.lastError,
+      tenantId: tenantId || null,
+      clientId: clientId || null,
+    };
+  }
+
+  const legacy = legacyConfig(workspaceId);
+  if (legacy) {
+    const missing = Object.entries(legacy)
+      .filter(([, entry]) => !entry)
+      .map(([key]) => key);
+
+    return {
+      configured: missing.length === 0,
+      workspaceMatches: true,
+      missing,
+      environment: legacy.environment || null,
+      companyId: legacy.companyId || null,
+      source: "legacy_env",
+      connectionStatus: "legacy",
+      verifiedAt: null,
+      verifiedCompanyName: null,
+      lastError: null,
+      tenantId: legacy.tenantId || null,
+      clientId: legacy.clientId || null,
+    };
+  }
 
   return {
-    configured: missing.length === 0 && config.workspaceId === workspaceId,
-    workspaceMatches: Boolean(config.workspaceId) && config.workspaceId === workspaceId,
-    missing,
-    environment: config.environment || null,
-    companyId: config.companyId || null,
+    configured: false,
+    workspaceMatches: false,
+    missing: ["workspaceId", "tenantId", "clientId", "clientSecret", "environment", "companyId"],
+    environment: null,
+    companyId: null,
+    source: null,
+    connectionStatus: null,
+    verifiedAt: null,
+    verifiedCompanyName: null,
+    lastError: null,
+    tenantId: null,
+    clientId: null,
   };
 }
 
-function requireConfig(workspaceId: string): BusinessCentralConfig {
-  const config = {
-    workspaceId: value("BUSINESS_CENTRAL_WORKSPACE_ID"),
-    tenantId: value("BUSINESS_CENTRAL_TENANT_ID"),
-    clientId: value("BUSINESS_CENTRAL_CLIENT_ID"),
-    clientSecret: value("BUSINESS_CENTRAL_CLIENT_SECRET"),
-    environment: value("BUSINESS_CENTRAL_ENVIRONMENT"),
-    companyId: value("BUSINESS_CENTRAL_COMPANY_ID"),
+async function resolveStoredConfig(
+  workspaceId: string,
+  allowUnverified: boolean,
+): Promise<BusinessCentralConfig | null> {
+  const stored = await getStoredErpConnection(workspaceId, "business_central");
+  if (!stored) return null;
+  if (stored.status === "disconnected") {
+    throw new Error("Business Central connection is disconnected for this workspace.");
+  }
+  if (!allowUnverified && stored.status !== "verified") {
+    throw new Error("Business Central connection must be verified before use.");
+  }
+
+  const tenantId = textConfig(stored.configuration, "tenantId");
+  const clientId = textConfig(stored.configuration, "clientId");
+  const environment = textConfig(stored.configuration, "environment");
+  const companyId = textConfig(stored.configuration, "companyId");
+  const clientSecret = await getStoredErpConnectionSecret(workspaceId, "business_central");
+
+  const missing = [
+    !tenantId ? "tenantId" : null,
+    !clientId ? "clientId" : null,
+    !clientSecret ? "clientSecret" : null,
+    !environment ? "environment" : null,
+    !companyId ? "companyId" : null,
+  ].filter(Boolean);
+
+  if (missing.length) {
+    throw new Error(`Business Central workspace connection is incomplete. Missing: ${missing.join(", ")}`);
+  }
+
+  return {
+    workspaceId,
+    tenantId,
+    clientId,
+    clientSecret: clientSecret!,
+    environment,
+    companyId,
   };
+}
+
+async function requireConfig(
+  workspaceId: string,
+  allowUnverified = false,
+): Promise<BusinessCentralConfig> {
+  const stored = await resolveStoredConfig(workspaceId, allowUnverified);
+  if (stored) return stored;
+
+  const config = legacyConfig(workspaceId);
+  if (!config) {
+    throw new Error("Business Central is not configured for this workspace.");
+  }
 
   const missing = Object.entries(config)
     .filter(([, entry]) => !entry)
@@ -130,10 +262,6 @@ function requireConfig(workspaceId: string): BusinessCentralConfig {
         .map((key) => `BUSINESS_CENTRAL_${key.replace(/[A-Z]/g, (letter) => `_${letter}`).toUpperCase()}`)
         .join(", ")}`,
     );
-  }
-
-  if (config.workspaceId !== workspaceId) {
-    throw new Error("Business Central configuration is not assigned to this workspace.");
   }
 
   return config;
@@ -252,6 +380,54 @@ async function requestJson<T>({
   }
 
   return payload as T;
+}
+
+export type BusinessCentralVerificationResult = {
+  companyId: string;
+  companyName: string;
+  environment: string;
+};
+
+export async function verifyBusinessCentralConnection(
+  workspaceId: string,
+): Promise<BusinessCentralVerificationResult> {
+  const config = await requireConfig(workspaceId, true);
+  const token = await accessToken(config);
+  const root = baseUrl(config);
+
+  const company = await requestJson<BcCompany>({
+    token,
+    url: `${root}?${new URLSearchParams({ "$select": "id,name,displayName" }).toString()}`,
+  });
+
+  if (!company?.id || String(company.id).toLowerCase() !== config.companyId.toLowerCase()) {
+    throw new Error("Business Central company ID did not match the configured company.");
+  }
+
+  // Verify the application can read the two entity collections required by
+  // Averomira mapping before marking the workspace connection as verified.
+  await Promise.all([
+    requestJson<ODataCollection<BcCustomer>>({
+      token,
+      url: `${root}/customers?${new URLSearchParams({
+        "$select": "id,number",
+        "$top": "1",
+      }).toString()}`,
+    }),
+    requestJson<ODataCollection<BcItem>>({
+      token,
+      url: `${root}/items?${new URLSearchParams({
+        "$select": "id,number",
+        "$top": "1",
+      }).toString()}`,
+    }),
+  ]);
+
+  return {
+    companyId: config.companyId,
+    companyName: company.displayName || company.name || config.companyId,
+    environment: config.environment,
+  };
 }
 
 function collectionUrl(base: string, collection: string, filter: string, select: string) {
@@ -378,7 +554,7 @@ export async function validateBusinessCentralManualMapping({
     throw new Error("Business Central customer and item numbers can be at most 20 characters.");
   }
 
-  const config = requireConfig(workspaceId);
+  const config = await requireConfig(workspaceId);
   const token = await accessToken(config);
   const root = baseUrl(config);
 
@@ -525,7 +701,7 @@ async function firstItemMatch({
 export async function suggestBusinessCentralMappings(
   input: BusinessCentralMappingLookupInput,
 ): Promise<BusinessCentralMappingSuggestion[]> {
-  const config = requireConfig(input.workspaceId);
+  const config = await requireConfig(input.workspaceId);
   const token = await accessToken(config);
   const root = baseUrl(config);
   const suggestions: BusinessCentralMappingSuggestion[] = [];
@@ -654,7 +830,7 @@ export async function createBusinessCentralSalesOrder(
   if (!input.lines.length) throw new Error("Sales order draft has no lines.");
   if (!input.customerNumber.trim()) throw new Error("Business Central customer number is required.");
 
-  const config = requireConfig(input.workspaceId);
+  const config = await requireConfig(input.workspaceId);
   const token = await accessToken(config);
   const root = baseUrl(config);
 

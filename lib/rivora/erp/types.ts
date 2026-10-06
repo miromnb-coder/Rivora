@@ -6,6 +6,13 @@ export type ErpConfigurationStatus = {
   missing: string[];
   environment: string | null;
   companyId: string | null;
+  source?: "workspace" | "legacy_env" | null;
+  connectionStatus?: "configured" | "verified" | "error" | "disconnected" | "legacy" | null;
+  verifiedAt?: string | null;
+  verifiedCompanyName?: string | null;
+  lastError?: string | null;
+  tenantId?: string | null;
+  clientId?: string | null;
 };
 
 export type ErpEntityType = "customer" | "product";
@@ -95,7 +102,7 @@ export interface ErpAdapter {
   provider: Exclude<ErpProvider, "custom" | "none">;
   displayName: string;
 
-  getConfigurationStatus(workspaceId: string): ErpConfigurationStatus;
+  getConfigurationStatus(workspaceId: string): Promise<ErpConfigurationStatus>;
 
   isMappingVerified(mapping: ErpMappingRecord): boolean;
 
