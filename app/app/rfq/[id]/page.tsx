@@ -13,6 +13,7 @@ function rfqMethodLabel(method: string | null | undefined, fi: boolean) {
   const key = String(method || "").toLowerCase();
   const labels: Record<string, [string, string]> = {
     exact_sku: ["Tarkka SKU-osuma", "Exact SKU match"],
+    product_memory: ["Älykkään muistin vastine", "Smart Product Memory match"],
     customer_memory: ["Asiakaskohtainen muistivastine", "Customer memory match"],
     exact_mpn: ["Tarkka valmistajan tuotenumero", "Exact manufacturer part number"],
     fuzzy: ["Samankaltaisuuteen perustuva osuma", "Fuzzy match"],
