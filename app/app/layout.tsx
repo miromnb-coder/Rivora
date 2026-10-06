@@ -1,8 +1,20 @@
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { canManageWorkspaceFeature } from "@/lib/rivora/features";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 const inter = Inter({
   subsets: ["latin"],
