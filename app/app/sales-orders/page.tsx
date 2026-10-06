@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatLocale, getLocale } from "@/lib/locale";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { getErpProviderCapability } from "@/lib/rivora/erp";
 
 function statusLabel(status: string, fi: boolean) {
   const labels: Record<string, string> = fi
@@ -26,6 +27,8 @@ export default async function SalesOrdersPage() {
   const { supabase, workspace } = context;
   const fi = locale === "fi";
   const displayLocale = formatLocale(locale);
+  const erpCapability = getErpProviderCapability(workspace.erpProvider);
+  const requestedErpName = workspace.erpRequestedName?.trim() || "";
 
   const { data: drafts } = await supabase
     .from("sales_order_drafts")
@@ -46,17 +49,21 @@ export default async function SalesOrdersPage() {
             : "From approved PO to ERP-ready sales order draft."}
         </h1>
         <p className="mt-3 max-w-3xl text-[var(--muted)]">
-          {workspace.erpProvider === "business_central"
+          {erpCapability.availability === "native"
             ? (fi
-                ? "Averomira lukitsee hyväksytyn reconciliationin kaupallisen tilannekuvan ennen ERP-vientiä. Business Central -vienti luo vain Draft-tilauksen."
-                : "Averomira locks the approved reconciliation snapshot before ERP export. Business Central export creates a Draft order only.")
-            : workspace.erpProvider === "custom"
+                ? "Averomira lukitsee hyväksytyn reconciliationin kaupallisen tilannekuvan ennen ERP-vientiä. Microsoft Business Central -vienti luo vain Draft-tilauksen."
+                : "Averomira locks the approved reconciliation snapshot before ERP export. Microsoft Business Central export creates a Draft order only.")
+            : erpCapability.availability === "unsupported"
               ? (fi
-                  ? "Averomira muodostaa ERP-riippumattoman Sales Order Draftin. Muu ERP on valittu, mutta automaattinen vienti odottaa integraatiota."
-                  : "Averomira creates an ERP-independent Sales Order Draft. Another ERP is selected, but automatic export is awaiting integration.")
-              : (fi
-                  ? "Averomira muodostaa ERP-riippumattoman Sales Order Draftin. ERP-yhteyttä ei tarvita luonnoksen muodostamiseen."
-                  : "Averomira creates an ERP-independent Sales Order Draft. An ERP connection is not required to create the draft.")}
+                  ? `Averomira muodostaa ERP-riippumattoman Sales Order Draftin. ${requestedErpName || "Muu ERP"} ei ole natiivisti integroitu, joten automaattista vientiä ei yritetä.`
+                  : `Averomira creates an ERP-independent Sales Order Draft. ${requestedErpName || "The selected ERP"} has no native integration, so automatic export is not attempted.`)
+              : erpCapability.availability === "unavailable"
+                ? (fi
+                    ? "Työtilan ERP-providerille ei ole tässä versiossa adapteria. Sales Order Draft toimii, mutta automaattista vientiä ei yritetä."
+                    : "This version has no adapter for the workspace ERP provider. Sales Order Drafts work, but automatic export is not attempted.")
+                : (fi
+                    ? "Averomira muodostaa ERP-riippumattoman Sales Order Draftin. ERP-yhteyttä ei tarvita luonnoksen muodostamiseen eikä automaattista vientiä yritetä."
+                    : "Averomira creates an ERP-independent Sales Order Draft. No ERP connection is required and automatic export is not attempted.")}
         </p>
       </header>
 
