@@ -13,6 +13,7 @@ export function AppShell({
   userEmail,
   locale,
   leadsEnabled,
+  supportOperator,
 }: {
   children: React.ReactNode;
   workspaceName: string;
@@ -20,6 +21,7 @@ export function AppShell({
   userEmail?: string;
   locale: Locale;
   leadsEnabled: boolean;
+  supportOperator: boolean;
 }) {
   const copy = getDictionary(locale).nav;
   const nav: Array<readonly [string, string, string]> = [
@@ -52,6 +54,9 @@ export function AppShell({
     [copy.userSettings, "/app/settings#users"],
     ...(["owner", "admin"].includes(workspaceRole)
       ? ([[copy.operationsSettings, "/app/settings/operations"]] as Array<readonly [string, string]>)
+      : []),
+    ...(supportOperator
+      ? ([[locale === "fi" ? "Tukipyynnöt" : "Support inbox", "/app/settings/support"]] as Array<readonly [string, string]>)
       : []),
   ];
 
