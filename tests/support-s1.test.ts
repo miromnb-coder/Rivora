@@ -126,8 +126,10 @@ test("S1 Help Center is mounted globally in the authenticated app shell", () => 
   assert.match(supportCenter, /Kuvakaappaus \(valinnainen\)/);
 });
 
-test("S1 intentionally keeps AI support and ticket tracking out of the panel", () => {
-  assert.equal(supportCenter.includes("Kysy Averomira AI:lta"), false);
+test("S1 Help Center foundation remains intact as later support phases are added", () => {
+  assert.match(supportCenter, /className="support-launcher"/);
+  assert.match(supportCenter, /Lähetä tukipyyntö/);
+  assert.match(supportCenter, /\/api\/support\/tickets/);
   assert.equal(supportCenter.includes("Omat tukipyynnöt"), false);
 });
 
