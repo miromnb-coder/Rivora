@@ -10,6 +10,13 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const hardening = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20261006094000_harden_leads_feature_rpc.sql",
+  ),
+  "utf8",
+);
 const salesGuard = readFileSync(
   join(process.cwd(), "lib/rivora/sales.ts"),
   "utf8",
@@ -57,6 +64,13 @@ test("pilot invite admin policies use the same Leads feature gate", () => {
     /create policy "pilot invites feature admin update"[\s\S]*?can_manage_workspace_feature\('leads'\)/,
   );
   assert.match(migration, /grant select, insert, update on table public\.pilot_access_invites to authenticated/);
+});
+
+test("feature check RPC is hardened to security invoker with read-only feature visibility", () => {
+  assert.match(hardening, /security invoker/);
+  assert.match(hardening, /create policy organization_features_member_read/);
+  assert.match(hardening, /grant select on table public\.organization_features to authenticated/);
+  assert.equal(/grant (insert|update|delete).*organization_features to authenticated/i.test(hardening), false);
 });
 
 test("Leads route and API use the centralized capability guard", () => {
