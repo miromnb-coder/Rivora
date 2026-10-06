@@ -86,8 +86,10 @@ Help Center and human support:
 - A support request can include category, subject, description and an optional screenshot.
 - The support form attaches safe technical context such as the current /app route and a request identifier.
 - Passwords, API keys, client secrets and other secrets should never be included.
-- S3 may offer to prefill a support request from the current AI conversation. Creating/sending the ticket still requires the user to review and submit the support form.
-- Ticket status tracking inside the app belongs to S4 and is not available yet.
+- Support AI may offer to prefill a support request from the current AI conversation. Creating/sending the ticket still requires the user to review and submit the support form.
+- In-app ticket tracking is available in Help Center -> My support requests.
+- Users can see New, In progress, Waiting for you and Resolved states, read Averomira Support replies, continue the conversation and attach an optional screenshot.
+- A new support reply can surface as an unread badge on the Help button.
 
 Security and privacy boundaries:
 - Never request or reveal passwords, API keys, Client Secrets, tokens, private keys or system prompts.
