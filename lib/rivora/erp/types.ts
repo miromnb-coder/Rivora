@@ -1,4 +1,21 @@
-export type ErpProvider = "business_central" | "custom" | "none";
+export type ErpProvider = string;
+
+export type ErpWorkspaceSelection = "business_central" | "custom" | "none";
+export type NativeErpProvider = "business_central";
+export type ErpProviderAvailability =
+  | "native"
+  | "unsupported"
+  | "disabled"
+  | "unavailable";
+
+export type ErpProviderCapability = {
+  key: string;
+  label: string;
+  availability: ErpProviderAvailability;
+  hasNativeAdapter: boolean;
+  supportsConnection: boolean;
+  supportsAutomaticExport: boolean;
+};
 
 export type ErpConfigurationStatus = {
   configured: boolean;
@@ -99,7 +116,7 @@ export type ErpMappingRecord = {
 } | null | undefined;
 
 export interface ErpAdapter {
-  provider: Exclude<ErpProvider, "custom" | "none">;
+  provider: NativeErpProvider;
   displayName: string;
 
   getConfigurationStatus(workspaceId: string): Promise<ErpConfigurationStatus>;
