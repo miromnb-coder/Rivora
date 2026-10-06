@@ -21,7 +21,7 @@ export default async function BusinessCentralSettingsPage({
     redirect("/app/settings#erp");
   }
   const adapter = requireErpAdapter(workspace.erpProvider);
-  const config = adapter.getConfigurationStatus(workspace.id);
+  const config = await adapter.getConfigurationStatus(workspace.id);
 
   const [{ data: customers }, { data: products }, { data: mappings }] = await Promise.all([
     supabase
