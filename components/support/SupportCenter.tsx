@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/locale";
 import { supportContextForPath } from "@/lib/rivora/support-context";
 import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
+import { SupportTicketTracker } from "@/components/support/SupportTicketTracker";
 
 type HelpArticle = {
   id: string;
@@ -18,7 +19,14 @@ type PanelView =
   | { kind: "home" }
   | { kind: "article"; articleId: string }
   | { kind: "contact" }
-  | { kind: "success"; ticketNumber: number; attachmentUploaded: boolean };
+  | { kind: "tickets" }
+  | { kind: "ticket"; ticketId: string }
+  | {
+      kind: "success";
+      ticketId: string;
+      ticketNumber: number;
+      attachmentUploaded: boolean;
+    };
 
 type SupportAiMessage = {
   id: string;
@@ -339,6 +347,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [aiMessages, setAiMessages] = useState<SupportAiMessage[]>([]);
   const [aiAsking, setAiAsking] = useState(false);
   const [aiError, setAiError] = useState("");
+  const [supportUnreadCount, setSupportUnreadCount] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
   const previousPathRef = useRef(pathname);
@@ -359,6 +368,40 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     view.kind === "article"
       ? articles.find((article) => article.id === view.articleId) ?? null
       : null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshUnread() {
+      try {
+        const response = await fetch("/api/support/tickets", {
+          cache: "no-store",
+        });
+        if (!response.ok) return;
+        const data = (await response.json()) as { unreadCount?: number };
+        if (!cancelled) setSupportUnreadCount(Number(data.unreadCount || 0));
+      } catch {
+        // Support notification polling must never disrupt the application shell.
+      }
+    }
+
+    refreshUnread();
+
+    const interval = window.setInterval(() => {
+      if (!document.hidden) refreshUnread();
+    }, 60_000);
+
+    const onVisible = () => {
+      if (!document.hidden) refreshUnread();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
 
   useEffect(() => {
     if (previousPathRef.current === pathname) return;
@@ -575,12 +618,13 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       });
 
       const result = (await response.json()) as {
+        ticketId?: string;
         ticketNumber?: number;
         attachmentUploaded?: boolean;
         error?: string;
       };
 
-      if (!response.ok || !result.ticketNumber) {
+      if (!response.ok || !result.ticketId || !result.ticketNumber) {
         throw new Error(
           result.error ||
             (fi
@@ -589,10 +633,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         );
       }
 
+      const ticketId = result.ticketId;
       const ticketNumber = result.ticketNumber;
       const attachmentUploaded = result.attachmentUploaded !== false;
       resetContact();
-      setView({ kind: "success", ticketNumber, attachmentUploaded });
+      setView({ kind: "success", ticketId, ticketNumber, attachmentUploaded });
     } catch (error) {
       setFormError(
         error instanceof Error
@@ -620,6 +665,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       >
         <HelpIcon />
         <span>{fi ? "Apua?" : "Help"}</span>
+        {supportUnreadCount > 0 ? (
+          <i className="support-launcher-badge" aria-label={fi ? `${supportUnreadCount} uutta tukivastausta` : `${supportUnreadCount} new support replies`}>
+            {supportUnreadCount > 9 ? "9+" : supportUnreadCount}
+          </i>
+        ) : null}
       </button>
 
       {open ? (
@@ -649,11 +699,19 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       ? fi
                         ? "Ota yhteyttä tukeen"
                         : "Contact support"
-                      : view.kind === "success"
+                      : view.kind === "tickets"
                         ? fi
-                          ? "Pyyntö vastaanotettu"
-                          : "Request received"
-                        : selectedArticle?.title || (fi ? "Ohje" : "Help")}
+                          ? "Omat tukipyynnöt"
+                          : "My support requests"
+                        : view.kind === "ticket"
+                          ? fi
+                            ? "Tukipyyntö"
+                            : "Support request"
+                          : view.kind === "success"
+                            ? fi
+                              ? "Pyyntö vastaanotettu"
+                              : "Request received"
+                            : selectedArticle?.title || (fi ? "Ohje" : "Help")}
                 </h2>
               </div>
               <button
@@ -893,6 +951,28 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                     </div>
                   </div>
 
+                  <button
+                    type="button"
+                    className="support-ticket-home-card"
+                    onClick={() => setView({ kind: "tickets" })}
+                  >
+                    <span>
+                      <small>{fi ? "TUKIPYYNNÖT" : "SUPPORT REQUESTS"}</small>
+                      <strong>{fi ? "Omat tukipyynnöt" : "My support requests"}</strong>
+                      <p>
+                        {fi
+                          ? "Seuraa tilaa, lue tuen vastaukset ja jatka keskustelua."
+                          : "Track status, read support replies and continue the conversation."}
+                      </p>
+                    </span>
+                    <span className="support-ticket-home-side">
+                      {supportUnreadCount > 0 ? (
+                        <i>{supportUnreadCount}</i>
+                      ) : null}
+                      <ArrowIcon />
+                    </span>
+                  </button>
+
                   <div className="support-contact-card">
                     <span>{fi ? "Etkö löytänyt vastausta?" : "Couldn't find the answer?"}</span>
                     <strong>{fi ? "Ota yhteyttä Averomira-tukeen." : "Contact Averomira Support."}</strong>
@@ -908,7 +988,19 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                 </>
               ) : null}
 
-              {view.kind === "article" && selectedArticle ? (
+              {view.kind === "tickets" || view.kind === "ticket" ? (
+                <SupportTicketTracker
+                  locale={locale}
+                  ticketId={view.kind === "ticket" ? view.ticketId : null}
+                  onBack={() =>
+                    setView(view.kind === "ticket" ? { kind: "tickets" } : { kind: "home" })
+                  }
+                  onOpenTicket={(ticketId) => setView({ kind: "ticket", ticketId })}
+                  onUnreadChange={setSupportUnreadCount}
+                />
+              ) : null}
+
+                            {view.kind === "article" && selectedArticle ? (
                 <article className="support-article">
                   <button
                     type="button"
@@ -1047,8 +1139,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                   </strong>
                   <p>
                     {fi
-                      ? "Pyyntö on tallennettu Averomiraan. Seuraavassa tukivaiheessa voit seurata vastauksia suoraan sovelluksessa."
-                      : "The request is stored in Averomira. A later support phase will add in-app reply tracking."}
+                      ? "Pyyntö on tallennettu Averomiraan. Voit seurata sen tilaa ja tuen vastauksia suoraan Help Centerissä."
+                      : "The request is stored in Averomira. You can track its status and support replies directly in the Help Center."}
                   </p>
                   {!view.attachmentUploaded ? (
                     <p className="support-attachment-warning">
@@ -1057,8 +1149,18 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                         : "The request was saved, but the screenshot could not be attached."}
                     </p>
                   ) : null}
-                  <button type="button" onClick={() => setView({ kind: "home" })}>
-                    {fi ? "Takaisin Help Centeriin" : "Back to Help Center"} <ArrowIcon />
+                  <button
+                    type="button"
+                    onClick={() => setView({ kind: "ticket", ticketId: view.ticketId })}
+                  >
+                    {fi ? "Avaa tukipyyntö" : "Open support request"} <ArrowIcon />
+                  </button>
+                  <button
+                    type="button"
+                    className="support-success-secondary"
+                    onClick={() => setView({ kind: "home" })}
+                  >
+                    {fi ? "Takaisin Help Centeriin" : "Back to Help Center"}
                   </button>
                 </div>
               ) : null}
