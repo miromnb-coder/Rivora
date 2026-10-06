@@ -24,7 +24,7 @@ test("S3 Support AI is authenticated and workspace/user rate-limited", () => {
   assert.match(route, /limit: 20/);
   assert.match(route, /support_ai_user_day/);
   assert.match(route, /limit: 100/);
-  assert.match(route, /context\.workspace\.id.*context\.claims\.sub/s);
+  assert.match(route, /context\.workspace\.id[\\s\\S]*context\.claims\.sub/);
 });
 
 test("S3 AI receives only safe route-level app context, not record contents", () => {
