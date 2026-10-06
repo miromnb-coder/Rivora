@@ -1,8 +1,8 @@
 -- M2 — Product Memory
 --
 -- Makes M1's generic memory core the canonical product-memory source for RFQ
--- matching while preserving the legacy customer_product_mappings table as a
--- compatibility mirror for the existing Memory UI.
+-- matching. The legacy customer_product_mappings table remains a compatibility
+-- mirror for the existing Memory UI, but it is no longer a matching source.
 --
 -- Safety principles:
 --   * only verified product memory participates in matching
@@ -416,27 +416,6 @@ begin
      and p.active = true
     where l.rfq_id = target_rfq_id
       and nullif(trim(l.customer_sku), '') is not null
-
-    union all
-
-    select
-      l.id,
-      m.product_id,
-      100::numeric,
-      'customer_memory'::text,
-      4
-    from public.rfq_lines l
-    join public.rfqs r on r.id = l.rfq_id
-    join public.customer_product_mappings m
-      on m.organization_id = l.organization_id
-     and m.customer_id = r.customer_id
-     and m.normalized_customer_sku = l.normalized_customer_sku
-    join public.products p
-      on p.id = m.product_id
-     and p.organization_id = l.organization_id
-     and p.active = true
-    where l.rfq_id = target_rfq_id
-      and l.normalized_customer_sku <> ''
 
     union all
 
