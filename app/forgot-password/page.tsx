@@ -1,7 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale } from "@/lib/locale";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { requestPasswordReset } from "./actions";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 export default async function ForgotPasswordPage({
   searchParams,

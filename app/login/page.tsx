@@ -1,8 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { login } from "./actions";
 import { getDictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 export default async function LoginPage({
   searchParams,
