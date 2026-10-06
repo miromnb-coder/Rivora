@@ -4,10 +4,31 @@ import { NavigationProgress } from "@/components/NavigationProgress";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.averomira.com"),
-  title: "Averomira — RFQ to ready-to-review quote",
-  description: "AI-assisted RFQ product matching for technical distributors and manufacturers.",
+  metadataBase: new URL("https://averomira.com"),
+  title: {
+    default: "Averomira — RFQ, Quotes, PO Reconciliation & ERP",
+    template: "%s | Averomira",
+  },
+  description:
+    "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
   applicationName: "Averomira",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://averomira.com",
+    siteName: "Averomira",
+    title: "Averomira — RFQ, Quotes, PO Reconciliation & ERP",
+    description:
+      "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Averomira — RFQ, Quotes, PO Reconciliation & ERP",
+    description:
+      "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
+  },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

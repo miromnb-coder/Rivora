@@ -16,9 +16,25 @@ import {
 
 export default async function Home() {
   const locale = await getLocale();
+  const organizationStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Averomira",
+    url: "https://averomira.com",
+    logo: "https://averomira.com/icon.svg",
+    description:
+      "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
+  };
 
   return (
-    <main className="marketing-page minimal-direction">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationStructuredData).replace(/</g, "\\u003c"),
+        }}
+      />
+      <main className="marketing-page minimal-direction">
       <div className="marketing-shell">
         <MarketingNav locale={locale} />
       </div>
@@ -32,7 +48,8 @@ export default async function Home() {
       <BeforeAfterV2 locale={locale} />
       <PricingLeadCapture locale={locale} />
       <FinalCtaV2 locale={locale} />
-      <MarketingFooter locale={locale} />
-    </main>
+        <MarketingFooter locale={locale} />
+      </main>
+    </>
   );
 }
