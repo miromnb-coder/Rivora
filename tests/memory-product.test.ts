@@ -17,6 +17,13 @@ const matchMethodMigration = readFileSync(
   ),
   "utf8",
 );
+const upsertFixMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20261006132000_fix_memory_upsert_target.sql",
+  ),
+  "utf8",
+);
 const rfqActions = readFileSync(
   join(process.cwd(), "app/app/rfq/[id]/actions.ts"),
   "utf8",
@@ -142,4 +149,22 @@ test("M2 database constraints allow the product_memory match method", () => {
     /rfq_lines_match_method_check/,
   );
   assert.match(matchMethodMigration, /'product_memory'/);
+});
+
+
+test("M2 fixes the Smart Memory upsert update ambiguity", () => {
+  assert.match(
+    upsertFixMigration,
+    /resolved_target_entity_id uuid := target_entity_id/,
+  );
+  assert.match(
+    upsertFixMigration,
+    /target_entity_id = resolved_target_entity_id/,
+  );
+  assert.equal(
+    /set target_entity_type = normalized_target_type,\s*target_entity_id = target_entity_id/.test(
+      upsertFixMigration,
+    ),
+    false,
+  );
 });
