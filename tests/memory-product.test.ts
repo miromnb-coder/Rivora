@@ -67,7 +67,7 @@ test("M2 keeps remembered suggestions human-confirmed", () => {
     rfqPage,
     /memory and exact matches still require confirmation/,
   );
-  assert.match(rfqPage, /Smart Product Memory match/);
+  assert.match(rfqPage, /Remembered mapping/);
 });
 
 test("M2 confirmation writes verified memory through a server-only actor-bound RPC", () => {
@@ -122,8 +122,8 @@ test("M2 application paths use the server-only Product Memory RPCs", () => {
 });
 
 test("M2 keeps Memory management synchronized with the canonical memory core", () => {
-  assert.match(memoryActions, /update_customer_product_memory_server/);
-  assert.match(memoryActions, /disable_customer_product_memory_server/);
+  assert.match(memoryActions, /update_customer_product_memory_by_memory_server/);
+  assert.match(memoryActions, /disable_customer_product_memory_by_memory_server/);
   assert.match(memoryActions, /target_actor_id: claims\.sub/);
   assert.match(
     migration,

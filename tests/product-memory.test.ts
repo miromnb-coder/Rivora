@@ -135,15 +135,15 @@ test("new CSV and PDF RFQs run Product Memory matching", () => {
 });
 
 test("Customer Memory management keeps the M1 core synchronized", () => {
-  assert.match(memoryActions, /update_customer_product_memory_server/);
-  assert.match(memoryActions, /disable_customer_product_memory_server/);
+  assert.match(memoryActions, /update_customer_product_memory_by_memory_server/);
+  assert.match(memoryActions, /disable_customer_product_memory_by_memory_server/);
   assert.match(memoryActions, /target_actor_id: claims\.sub/);
 });
 
 test("RFQ Review explains Product Memory without bypassing confirmation", () => {
   assert.match(
     rfqPage,
-    /product_memory: \["Älykkään muistin vastine", "Smart Product Memory match"\]/,
+    /product_memory: \["Muistettu vastine", "Remembered mapping"\]/,
   );
   assert.match(
     rfqPage,

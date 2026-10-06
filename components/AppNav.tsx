@@ -22,6 +22,14 @@ function isItemActive(pathname: string, href: string, id: string) {
     );
   }
 
+  if (id === "settings") {
+    return (
+      pathname === "/app/settings" ||
+      pathname.startsWith("/app/settings/") ||
+      pathname === "/app/memory"
+    );
+  }
+
   return pathname === href || pathname.startsWith(href + "/");
 }
 
@@ -279,7 +287,9 @@ export function AppNav({
                         (subHref === "/app/orders" &&
                           !currentKey.includes("?view=")));
                   } else if (id === "settings") {
-                    if (subHref === "/app/settings#business-central") {
+                    if (subHref === "/app/memory") {
+                      subActive = pathname === "/app/memory";
+                    } else if (subHref === "/app/settings#business-central") {
                       subActive =
                         pathname.startsWith("/app/settings/business-central") ||
                         currentKey === subHref;
