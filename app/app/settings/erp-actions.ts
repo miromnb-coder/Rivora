@@ -73,7 +73,7 @@ export async function saveBusinessCentralConnectionAction(formData: FormData) {
   }
 
   const companyUuid =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!companyUuid.test(companyId)) {
     redirect(settingsUrl("Business Central Company ID ei ole kelvollinen UUID.", "error"));
   }
