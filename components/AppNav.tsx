@@ -293,6 +293,8 @@ export function AppNav({
                       subActive =
                         pathname.startsWith("/app/settings/business-central") ||
                         currentKey === subHref;
+                    } else if (subHref === "/app/settings/support") {
+                      subActive = pathname.startsWith("/app/settings/support");
                     } else {
                       subActive =
                         pathname === "/app/settings" &&
