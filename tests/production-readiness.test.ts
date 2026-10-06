@@ -31,6 +31,10 @@ const smokeWorkflow = readFileSync(
   join(process.cwd(), ".github/workflows/production-smoke.yml"),
   "utf8",
 );
+const proxyGuard = readFileSync(
+  join(process.cwd(), "lib/supabase/proxy.ts"),
+  "utf8",
+);
 const runbook = readFileSync(
   join(process.cwd(), "docs/production-runbook.md"),
   "utf8",
@@ -136,4 +140,9 @@ test("R3 migration fixes current production advisor hotspots", () => {
   assert.match(migration, /pilot_access_invites_accepted_by_idx/);
   assert.match(migration, /quote_email_events_organization_id_idx/);
   assert.match(migration, /quotes_created_by_idx/);
+});
+
+
+test("production health endpoint bypasses authenticated app routing", () => {
+  assert.match(proxyGuard, /pathname === "\/api\/health"/);
 });
