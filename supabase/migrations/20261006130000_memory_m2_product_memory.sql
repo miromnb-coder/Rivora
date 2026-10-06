@@ -546,7 +546,8 @@ begin
     );
 
   -- Count each remembered suggestion once per RFQ line, even if matching is
-  -- retried. The usage event is the idempotency key.
+  -- retried. The usage event is the idempotency key. The legacy mapping table
+  -- is updated only as a compatibility mirror for the current Memory UI.
   with matching_memory as (
     select
       mem.id as memory_id,
@@ -593,16 +594,34 @@ begin
     select memory_id, count(*)::integer as added_uses
     from inserted
     group by memory_id
+  ),
+  updated_memory as (
+    update public.workspace_memory_entries m
+    set use_count = m.use_count + counts.added_uses,
+        last_used_at = now(),
+        updated_by = target_actor_id,
+        updated_at = now()
+    from counts
+    where m.id = counts.memory_id
+    returning m.id
+  ),
+  updated_legacy as (
+    update public.customer_product_mappings legacy
+    set times_used = legacy.times_used + counts.added_uses,
+        last_used_at = now(),
+        updated_at = now()
+    from counts
+    join public.workspace_memory_entries mem
+      on mem.id = counts.memory_id
+    where legacy.organization_id = mem.organization_id
+      and legacy.customer_id = mem.customer_id
+      and legacy.product_id = mem.target_entity_id
+      and private.normalize_memory_key(legacy.customer_sku) = mem.source_key
+    returning legacy.id
   )
-  update public.workspace_memory_entries m
-  set use_count = m.use_count + counts.added_uses,
-      last_used_at = now(),
-      updated_by = target_actor_id,
-      updated_at = now()
-  from counts
-  where m.id = counts.memory_id;
-
-  get diagnostics memory_uses = row_count;
+  select count(*)::integer
+  into memory_uses
+  from inserted;
 
   select count(*) into total_lines
   from public.rfq_lines
