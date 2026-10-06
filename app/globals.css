@@ -17811,3 +17811,597 @@ textarea:focus-visible {
     transition: none;
   }
 }
+
+
+/* Support Center visual refresh — premium, calmer hierarchy */
+.support-center-backdrop {
+  background: rgba(20, 23, 21, .16);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+}
+
+.support-center-panel {
+  width: min(520px, calc(100vw - 28px));
+  border-left: 1px solid #e7e8e4;
+  background: #fbfbf9;
+  box-shadow: -28px 0 70px rgba(21, 25, 22, .095);
+}
+
+.support-center-header {
+  min-height: 116px;
+  padding: 26px 28px 22px;
+  border-bottom: 1px solid #ebece8;
+  background: rgba(253, 253, 251, .96);
+}
+
+.support-center-header > div > span {
+  color: #9a9f9a;
+  font-size: 8px;
+  letter-spacing: .13em;
+}
+
+.support-center-header h2 {
+  margin-top: 7px;
+  font-size: 26px;
+  line-height: 1.04;
+  letter-spacing: -.042em;
+  font-weight: 720;
+}
+
+.support-center-header-subtitle {
+  margin: 7px 0 0;
+  max-width: 330px;
+  color: #818681;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.support-center-close {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+  border-color: transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #6e746f;
+}
+
+.support-center-close:hover {
+  border-color: #e3e5e1;
+  background: #f3f4f1;
+  color: #222722;
+}
+
+.support-center-body {
+  padding: 24px 28px 30px;
+}
+
+/* Primary AI entry */
+.support-ai-card {
+  margin-top: 0;
+  border: 1px solid #e1e4df;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(237, 239, 252, .85), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #fafbf8 100%);
+  padding: 18px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.8) inset,
+    0 10px 28px rgba(21,25,22,.04);
+}
+
+.support-ai-head {
+  align-items: flex-start;
+}
+
+.support-ai-head > div > span:first-child {
+  color: #747b76;
+  font-size: 8px;
+  letter-spacing: .12em;
+}
+
+.support-ai-head strong {
+  margin-top: 7px;
+  font-size: 16px;
+  letter-spacing: -.018em;
+}
+
+.support-ai-head p {
+  margin-top: 5px;
+  max-width: 330px;
+  color: #858b86;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.support-ai-readonly {
+  min-height: 24px;
+  border-color: #e0e3de;
+  background: rgba(255,255,255,.72);
+  padding-inline: 9px;
+  color: #7d837e;
+}
+
+.support-ai-form {
+  margin-top: 15px;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 8px;
+}
+
+.support-ai-form > input {
+  height: 46px;
+  border-color: #dadeD9;
+  border-radius: 12px;
+  padding-inline: 13px;
+  font-size: 11px;
+  box-shadow: 0 1px 2px rgba(20,24,21,.02);
+}
+
+.support-ai-form > button {
+  width: 42px;
+  height: 46px;
+  border-radius: 12px;
+  background: #202522;
+  border-color: #202522;
+}
+
+.support-ai-meta {
+  margin-top: 9px;
+}
+
+.support-ai-meta > span {
+  max-width: 320px;
+  color: #a0a5a0;
+  font-size: 7.5px;
+}
+
+.support-ai-thread {
+  max-height: 360px;
+}
+
+.support-ai-message {
+  border-radius: 14px;
+}
+
+.support-ai-message.is-user {
+  background: #232824;
+}
+
+.support-ai-message.is-assistant {
+  border-color: #e5e7e3;
+  box-shadow: 0 4px 14px rgba(20,24,21,.025);
+}
+
+/* Contextual recommendations: lighter than a card stack */
+.support-context-section-v2 {
+  margin-top: 22px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.support-context-section-v2 .support-context-section-head {
+  padding: 0 1px 10px;
+}
+
+.support-context-section-v2 .support-context-section-head > div > span {
+  color: #9ca19c;
+  font-size: 7.5px;
+  letter-spacing: .11em;
+}
+
+.support-context-section-v2 .support-context-section-head strong {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.support-context-section-v2 .support-context-section-head p {
+  margin-top: 3px;
+  max-width: 390px;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.support-context-section-v2 .support-context-links {
+  margin-top: 0;
+  overflow: hidden;
+  border: 1px solid #e5e7e3;
+  border-radius: 14px;
+  background: rgba(255,255,255,.75);
+}
+
+.support-context-section-v2 .support-context-links > button {
+  min-height: 46px;
+  border-bottom-color: #eceeeb;
+  padding: 10px 12px;
+  font-size: 10px;
+}
+
+.support-context-section-v2 .support-context-links > button:hover {
+  background: #fafbf8;
+}
+
+/* Three clear destinations */
+.support-home-actions {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.support-home-action {
+  position: relative;
+  min-width: 0;
+  min-height: 126px;
+  border: 1px solid #e3e5e1;
+  border-radius: 15px;
+  background: #fff;
+  padding: 13px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  color: #313632;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 5px 18px rgba(20,24,21,.025);
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.support-home-action:hover {
+  transform: translateY(-1px);
+  border-color: #d2d6d0;
+  background: #fdfdfb;
+  box-shadow: 0 9px 22px rgba(20,24,21,.05);
+}
+
+.support-home-action > span:last-child:not(.support-home-action-end) {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  color: #8b918c;
+  font-size: 12px;
+}
+
+.support-home-action-icon {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e5e7e3;
+  border-radius: 10px;
+  background: #f7f8f5;
+  display: grid;
+  place-items: center;
+  color: #4f5650;
+}
+
+.support-home-action-copy {
+  margin-top: 12px;
+  min-width: 0;
+}
+
+.support-home-action-copy strong,
+.support-home-action-copy small {
+  display: block;
+}
+
+.support-home-action-copy strong {
+  color: #2d322e;
+  font-size: 10.5px;
+  line-height: 1.35;
+  font-weight: 790;
+}
+
+.support-home-action-copy small {
+  margin-top: 4px;
+  color: #8a908b;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.support-home-action-end {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #8b918c;
+  font-size: 12px;
+}
+
+.support-home-action-end i {
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #d85f48;
+  padding-inline: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-style: normal;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+/* Help library stays secondary until the user asks for it */
+.support-help-library {
+  margin-top: 20px;
+  border-top: 1px solid #e9ebe7;
+  padding-top: 18px;
+  animation: support-fade-in .16s ease both;
+}
+
+.support-help-library-head {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.support-help-library-head > div > span,
+.support-help-library-head > div > strong {
+  display: block;
+}
+
+.support-help-library-head > div > span {
+  color: #9a9f9a;
+  font-size: 7.5px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.support-help-library-head > div > strong {
+  margin-top: 5px;
+  color: #383e39;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.support-help-library-head > button {
+  border: 0;
+  background: transparent;
+  padding: 3px 0;
+  color: #858b86;
+  font: inherit;
+  font-size: 8px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.support-help-library-head > button:hover {
+  color: #303531;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.support-help-library .support-search {
+  height: 44px;
+  border-radius: 11px;
+}
+
+.support-help-library .support-help-section {
+  margin-top: 16px;
+}
+
+.support-help-library .support-help-list {
+  max-height: 330px;
+  overflow-y: auto;
+  border-radius: 13px;
+}
+
+/* Launcher now looks like a deliberate product control */
+.support-launcher {
+  right: 22px;
+  bottom: 22px;
+  height: 42px;
+  border-color: #dfe2dd;
+  border-radius: 999px;
+  background: rgba(250,250,248,.96);
+  padding: 0 14px 0 11px;
+  gap: 7px;
+  color: #363c37;
+  box-shadow:
+    0 8px 24px rgba(20,24,21,.09),
+    0 1px 0 rgba(255,255,255,.9) inset;
+}
+
+.support-launcher:hover {
+  border-color: #cfd3cd;
+  background: #fff;
+}
+
+.support-launcher-badge {
+  min-width: 17px;
+  height: 17px;
+  background: #d85f48;
+  font-size: 7px;
+}
+
+/* Secondary views */
+.support-article-copy {
+  margin-top: 22px;
+}
+
+.support-article-copy p {
+  font-size: 12px;
+  line-height: 1.72;
+}
+
+.support-contact-form {
+  gap: 14px;
+}
+
+.support-contact-note,
+.support-context-note {
+  background: #f7f8f5;
+}
+
+.support-submit {
+  min-height: 42px;
+}
+
+/* Ticket view: clearer conversation and anchored reply area */
+.support-ticket-detail {
+  min-height: calc(100dvh - 180px);
+  display: flex;
+  flex-direction: column;
+}
+
+.support-ticket-detail-head {
+  margin-top: 18px;
+}
+
+.support-ticket-detail-head > div > strong {
+  font-size: 16px;
+  letter-spacing: -.015em;
+}
+
+.support-ticket-meta {
+  margin-top: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eceeeb;
+}
+
+.support-ticket-thread {
+  flex: 1;
+  margin-top: 16px;
+  padding-bottom: 12px;
+  gap: 10px;
+}
+
+.support-ticket-message {
+  max-width: 88%;
+  border-radius: 14px;
+  padding: 11px 12px;
+}
+
+.support-ticket-message.is-support {
+  border-color: #e4e6e2;
+  background: #fff;
+  box-shadow: 0 3px 14px rgba(20,24,21,.025);
+}
+
+.support-ticket-message.is-customer {
+  background: #242a25;
+}
+
+.support-ticket-reply {
+  position: sticky;
+  bottom: -30px;
+  z-index: 2;
+  margin-top: auto;
+  margin-right: -28px;
+  margin-left: -28px;
+  border-top: 1px solid #e4e6e2;
+  background: rgba(251,251,249,.97);
+  padding: 14px 28px 30px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.support-ticket-reply textarea {
+  min-height: 82px;
+  border-radius: 12px;
+}
+
+.support-ticket-reply-tools {
+  margin-top: 8px;
+}
+
+.support-ticket-reply-tools > button,
+.support-ticket-reply-tools > label {
+  min-height: 36px;
+  border-radius: 10px;
+}
+
+.support-ticket-list {
+  border-radius: 14px;
+}
+
+.support-ticket-list > button {
+  min-height: 72px;
+  padding: 13px 14px;
+}
+
+.support-ticket-list > button.is-unread {
+  background: #f5f8f4;
+}
+
+@media (max-width: 720px) {
+  .support-center-panel {
+    width: min(500px, 100vw);
+  }
+
+  .support-home-actions {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .support-home-action {
+    min-height: 76px;
+    padding: 12px 44px 12px 12px;
+    justify-content: center;
+  }
+
+  .support-home-action-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    width: 32px;
+    height: 32px;
+    transform: translateY(-50%);
+  }
+
+  .support-home-action-copy {
+    margin: 0 0 0 42px;
+  }
+
+  .support-home-action > span:last-child:not(.support-home-action-end),
+  .support-home-action-end {
+    right: 13px;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+}
+
+@media (max-width: 560px) {
+  .support-center-header {
+    min-height: 100px;
+    padding: max(18px, env(safe-area-inset-top)) 18px 17px;
+  }
+
+  .support-center-header h2 {
+    font-size: 23px;
+  }
+
+  .support-center-body {
+    padding: 18px;
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
+
+  .support-ai-card {
+    border-radius: 16px;
+    padding: 15px;
+  }
+
+  .support-ticket-reply {
+    bottom: calc(-1 * max(22px, env(safe-area-inset-bottom)));
+    margin-right: -18px;
+    margin-left: -18px;
+    padding: 13px 18px max(22px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .support-home-action {
+    transition: none;
+  }
+
+  .support-help-library {
+    animation: none;
+  }
+}
