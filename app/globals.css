@@ -14972,3 +14972,220 @@ textarea:focus-visible {
     transition: none;
   }
 }
+
+
+/* M3 — Smart Memory explainability + management */
+.rfq-review-v2-memory-explanation {
+  margin-top: 14px;
+  border: 1px solid #dfe4df;
+  border-radius: 12px;
+  background: #f7faf7;
+  padding: 13px 14px;
+}
+
+.rfq-review-v2-memory-explanation-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rfq-review-v2-memory-explanation-head span {
+  color: #4d6253;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.rfq-review-v2-memory-explanation-head strong {
+  border-radius: 999px;
+  background: #e8efe9;
+  padding: 4px 7px;
+  color: #4b5d50;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rfq-review-v2-memory-explanation p {
+  margin-top: 8px;
+  color: #5f6761;
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.rfq-review-v2-memory-facts {
+  margin-top: 9px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.rfq-review-v2-memory-facts span {
+  color: #858c86;
+  font-size: 9px;
+  line-height: 14px;
+}
+
+.rfq-review-v2-memory-facts b {
+  color: #4b524c;
+  font-weight: 650;
+}
+
+.rfq-review-v2-memory-explanation > small {
+  display: block;
+  margin-top: 9px;
+  color: #6f776f;
+  font-size: 9px;
+  line-height: 14px;
+}
+
+.memory-m3-row {
+  grid-template-columns:
+    minmax(140px,.72fr)
+    minmax(170px,.9fr)
+    28px
+    minmax(240px,1.2fr)
+    minmax(185px,.9fr);
+  align-items: start;
+  padding: 22px 0;
+}
+
+.memory-m3-row.is-disabled {
+  opacity: .72;
+}
+
+.memory-m3-edit {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.memory-m3-edit label {
+  min-width: 0;
+}
+
+.memory-m3-edit label > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #858a86;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.memory-m3-edit input {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  border: 1px solid var(--app-line-strong);
+  border-radius: 9px;
+  background: #fff;
+  padding: 0 9px;
+  color: var(--app-ink);
+  font-size: 11px;
+  outline: none;
+}
+
+.memory-m3-edit input:focus {
+  border-color: #9ea69f;
+  box-shadow: 0 0 0 3px rgba(54,90,73,.08);
+}
+
+.memory-m3-warning {
+  color: #8a5c35 !important;
+  font-weight: 650;
+}
+
+.memory-m3-meta {
+  justify-self: stretch;
+  text-align: left;
+}
+
+.memory-m3-meta strong {
+  font-size: 18px;
+}
+
+.memory-m3-meta small {
+  font-size: 9px;
+  line-height: 14px;
+}
+
+.memory-m3-delete {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.memory-m3-delete label {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: var(--app-muted);
+  font-size: 9px;
+  line-height: 13px;
+}
+
+.memory-m3-delete label > span {
+  color: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.memory-m3-delete input {
+  margin-top: 1px;
+}
+
+.memory-m3-disabled-note {
+  margin-top: 10px;
+  color: #7b817c;
+  font-size: 9px;
+  line-height: 14px;
+}
+
+@media (max-width: 1100px) {
+  .memory-m3-row {
+    grid-template-columns: minmax(140px,.8fr) minmax(160px,1fr) 24px minmax(220px,1.15fr);
+  }
+
+  .memory-m3-row .memory-m3-meta {
+    grid-column: 4;
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .rfq-review-v2-memory-explanation-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .memory-m3-row {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .memory-m3-row .memory-app-v2-arrow {
+    transform: rotate(90deg);
+    text-align: left;
+  }
+
+  .memory-m3-row .memory-m3-meta {
+    grid-column: auto;
+  }
+
+  .memory-m3-edit {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-m3-edit button,
+  .memory-m3-delete button {
+    width: 100%;
+  }
+}
