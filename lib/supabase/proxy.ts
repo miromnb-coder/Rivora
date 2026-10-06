@@ -13,6 +13,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/privacy") ||
     pathname.startsWith("/terms") ||
     pathname === "/api/leads" ||
+    pathname === "/api/health" ||
     pathname === "/api/webhooks/resend";
 
   // Public marketing/auth routes do not need an authenticated Supabase roundtrip.
