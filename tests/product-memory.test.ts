@@ -87,8 +87,8 @@ test("M2 mutations stay behind server-only service-role RPCs", () => {
   for (const signature of [
     "confirm_rfq_line_match_with_memory_server",
     "refresh_rfq_matches_with_memory_server",
-    "update_customer_product_memory_by_memory_server",
-    "disable_customer_product_memory_by_memory_server",
+    "update_customer_product_memory_server",
+    "disable_customer_product_memory_server",
   ]) {
     assert.match(
       migration,
