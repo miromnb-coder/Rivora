@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContextHelpTrigger } from "@/components/support/ContextHelpTrigger";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
@@ -78,9 +79,15 @@ export default async function BusinessCentralSettingsPage({
 
       <header className="mb-7 max-w-[760px]">
         <div className="app-kicker-v2">Business Central</div>
-        <h1 className="mt-2 break-words !text-[30px] !font-semibold !leading-9 tracking-[-.035em] lg:!text-[34px] lg:!leading-10">
-          {fi ? "Business Central -vastineet" : "Business Central mappings"}
-        </h1>
+        <div className="support-heading-with-help mt-2">
+          <h1 className="break-words !text-[30px] !font-semibold !leading-9 tracking-[-.035em] lg:!text-[34px] lg:!leading-10">
+            {fi ? "Business Central -vastineet" : "Business Central mappings"}
+          </h1>
+          <ContextHelpTrigger
+            articleId="business-central-mapping"
+            label={fi ? "Ohje: Business Central -vastineet" : "Help: Business Central mappings"}
+          />
+        </div>
         <p className="mt-2 max-w-[680px] text-[13px] leading-5 text-[var(--muted)]">
           {fi
             ? "Tarkista ja korjaa asiakas- ja tuotevastineet. Averomira käyttää näitä automaattisesti tulevissa tilauksissa."
