@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatLocale, getLocale } from "@/lib/locale";
 import { requireWorkspace } from "@/lib/rivora/workspace";
-import { getErpAdapter } from "@/lib/rivora/erp";
+import {
+  getErpAdapter,
+  getErpProviderCapability,
+} from "@/lib/rivora/erp";
 import {
   autoMapErpAction,
   saveErpMappingAction,
@@ -50,6 +53,8 @@ export default async function SalesOrderDraftDetailPage({
   const fi = locale === "fi";
   const displayLocale = formatLocale(locale);
   const canAdmin = ["owner", "admin"].includes(workspace.role);
+  const erpCapability = getErpProviderCapability(workspace.erpProvider);
+  const requestedErpName = workspace.erpRequestedName?.trim() || "";
   const adapter = getErpAdapter(workspace.erpProvider);
   const isBusinessCentral = adapter?.provider === "business_central";
   const mappingVerified = (mapping: any) => adapter?.isMappingVerified(mapping) ?? false;
@@ -467,8 +472,8 @@ export default async function SalesOrderDraftDetailPage({
               {!config.configured ? (
                 <div className="mt-4 rounded-xl bg-white p-4 text-xs leading-5 text-[var(--muted)]">
                   {fi
-                    ? "Palvelinpuolen Business Central OAuth -asetukset pitää lisätä Vercelin ympäristömuuttujiin ennen ensimmäistä vientiä."
-                    : "Server-side Business Central OAuth settings must be added to Vercel environment variables before the first export."}
+                    ? "Business Central -yhteys pitää tallentaa ja tarkistaa työtilan ERP-asetuksissa ennen vientiä."
+                    : "The Business Central connection must be saved and verified in the workspace ERP settings before export."}
                 </div>
               ) : null}
 
@@ -515,18 +520,26 @@ export default async function SalesOrderDraftDetailPage({
         <section className="surface mt-6 p-6">
           <div className="upload-v2-section-label">{fi ? "ERP-yhteys" : "ERP connection"}</div>
           <h2 className="mt-2 text-2xl font-bold">
-            {workspace.erpProvider === "custom"
-              ? (fi ? "Muu ERP odottaa integraatiota" : "Other ERP is awaiting integration")
-              : (fi ? "ERP-vienti ei ole käytössä" : "ERP export is disabled")}
+            {erpCapability.availability === "unsupported"
+              ? fi
+                ? `${requestedErpName || "Muu ERP"} — ei natiivia integraatiota`
+                : `${requestedErpName || "Other ERP"} — no native integration`
+              : erpCapability.availability === "unavailable"
+                ? (fi ? "ERP-adapteri ei ole saatavilla" : "ERP adapter unavailable")
+                : (fi ? "ERP-vienti ei ole käytössä" : "ERP export is disabled")}
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-            {workspace.erpProvider === "custom"
+            {erpCapability.availability === "unsupported"
               ? (fi
-                  ? "Sales Order Draft on valmis, mutta automaattista ERP-vientiä ei tehdä ennen kuin tälle ERP:lle on rakennettu ja testattu integraatio."
-                  : "The Sales Order Draft is ready, but automatic ERP export stays unavailable until this ERP has a built and tested integration.")
-              : (fi
-                  ? "Sales Order Draft voidaan muodostaa normaalisti ilman ERP-yhteyttä. ERP-vientiä ei yritetä tässä työtilassa."
-                  : "Sales Order Drafts can be created normally without an ERP connection. ERP export is not attempted in this workspace.")}
+                  ? "Sales Order Draft on valmis. Averomira ei pyydä tämän ERP:n tunnuksia eikä yritä automaattista vientiä ennen kuin natiivi adapteri on rakennettu ja testattu."
+                  : "The Sales Order Draft is ready. Averomira does not request credentials or attempt automatic export until a native adapter has been built and tested.")
+              : erpCapability.availability === "unavailable"
+                ? (fi
+                    ? `Provider “${erpCapability.key}” on tallennettu työtilalle, mutta tässä versiossa sille ei ole adapteria. Automaattista vientiä ei yritetä.`
+                    : `Provider “${erpCapability.key}” is stored for this workspace, but this version has no adapter for it. Automatic export is not attempted.`)
+                : (fi
+                    ? "Sales Order Draft voidaan muodostaa normaalisti ilman ERP-yhteyttä. ERP-vientiä ei yritetä tässä työtilassa."
+                    : "Sales Order Drafts can be created normally without an ERP connection. ERP export is not attempted in this workspace.")}
           </p>
           {canAdmin ? (
             <Link href="/app/settings#erp" className="btn-secondary mt-5 inline-flex">

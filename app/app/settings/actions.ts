@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isSelectableErpProvider } from "@/lib/rivora/erp";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -123,7 +124,7 @@ export async function updateWorkspaceErpProvider(formData: FormData) {
   const { supabase, workspace } = await requireSettingsAdmin();
   const erpProvider = clean(formData.get("erpProvider"), 40);
 
-  if (!["business_central", "custom", "none"].includes(erpProvider)) {
+  if (!isSelectableErpProvider(erpProvider)) {
     throw new Error("Unsupported ERP provider.");
   }
 
@@ -131,6 +132,7 @@ export async function updateWorkspaceErpProvider(formData: FormData) {
     .from("organizations")
     .update({
       erp_provider: erpProvider,
+      erp_requested_name: erpProvider === "custom" ? undefined : null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", workspace.id);
@@ -141,6 +143,52 @@ export async function updateWorkspaceErpProvider(formData: FormData) {
   revalidatePath("/app/sales-orders");
   revalidatePath("/app/orders");
   redirect("/app/settings?saved=1#erp");
+}
+
+export async function updateWorkspaceRequestedErp(formData: FormData) {
+  const { supabase, workspace } = await requireSettingsAdmin();
+
+  if (workspace.erpProvider !== "custom") {
+    redirect(
+      settingsUrl(
+        "Muu ERP pitää valita ennen ERP-nimen tallentamista.",
+        "error",
+        "erp",
+      ),
+    );
+  }
+
+  const requestedName = clean(formData.get("erpRequestedName"), 120);
+  if (!requestedName) {
+    redirect(
+      settingsUrl(
+        "Anna käytössä olevan ERP-järjestelmän nimi.",
+        "error",
+        "erp",
+      ),
+    );
+  }
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      erp_requested_name: requestedName,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", workspace.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/app/settings");
+  revalidatePath("/app/sales-orders");
+  revalidatePath("/app/orders");
+  redirect(
+    settingsUrl(
+      "ERP-nimi tallennettiin. Tämä ei aktivoi automaattista ERP-integraatiota.",
+      "ok",
+      "erp",
+    ),
+  );
 }
 
 export async function removeWorkspaceLogo() {

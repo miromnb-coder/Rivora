@@ -7,7 +7,8 @@ type WorkspaceOrganization = {
   default_tax_rate?: number | string | null;
   default_quote_validity_days?: number | null;
   onboarding_completed_at?: string | null;
-  erp_provider?: "business_central" | "custom" | "none" | null;
+  erp_provider?: string | null;
+  erp_requested_name?: string | null;
 };
 
 export const getAuthContext = cache(async function getAuthContext() {
@@ -21,7 +22,7 @@ export const getAuthContext = cache(async function getAuthContext() {
 
   const { data: membership } = await supabase
     .from("organization_members")
-    .select("organization_id, role, organizations(name,default_tax_rate,default_quote_validity_days,onboarding_completed_at,erp_provider)")
+    .select("organization_id, role, organizations(name,default_tax_rate,default_quote_validity_days,onboarding_completed_at,erp_provider,erp_requested_name)")
     .eq("user_id", claims.sub)
     .limit(1)
     .maybeSingle();
@@ -43,6 +44,7 @@ export const getAuthContext = cache(async function getAuthContext() {
           defaultQuoteValidityDays: Number(org?.default_quote_validity_days ?? 14),
           onboardingCompletedAt: org?.onboarding_completed_at ?? null,
           erpProvider: org?.erp_provider ?? "none",
+          erpRequestedName: org?.erp_requested_name ?? null,
         }
       : null,
   };
