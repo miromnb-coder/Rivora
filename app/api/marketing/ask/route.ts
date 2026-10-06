@@ -24,7 +24,7 @@ const ANSWER_SCHEMA = {
   required: ["supported", "answer"],
   properties: {
     supported: { type: "boolean" },
-    answer: { type: "string", minLength: 1, maxLength: 900 },
+    answer: { type: "string" },
   },
 } as const;
 
