@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type MemoryScope = "customer" | "workspace";
@@ -102,6 +103,7 @@ export async function findVerifiedWorkspaceMemory({
   sourceValue,
   allowWorkspaceFallback = true,
 }: {
+  actorId: string;
   organizationId: string;
   customerId?: string | null;
   memoryType: string;
@@ -154,6 +156,7 @@ export async function findVerifiedWorkspaceMemory({
 }
 
 export async function rememberWorkspaceDecision({
+  actorId,
   organizationId,
   customerId,
   scope = customerId ? "customer" : "workspace",
@@ -182,8 +185,8 @@ export async function rememberWorkspaceDecision({
   sourceEntityId?: string | null;
   metadata?: Record<string, unknown>;
 }) {
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("upsert_workspace_memory_entry", {
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("upsert_workspace_memory_entry_server", {
     target_organization_id: organizationId,
     target_customer_id: customerId ?? null,
     target_scope: scope,
@@ -197,6 +200,7 @@ export async function rememberWorkspaceDecision({
     target_source_entity_type: sourceEntityType ?? null,
     target_source_entity_id: sourceEntityId ?? null,
     target_metadata: metadata,
+    target_actor_id: actorId,
   });
 
   if (error) {
@@ -209,11 +213,13 @@ export async function rememberWorkspaceDecision({
 export async function setWorkspaceMemoryState(
   memoryId: string,
   state: MemoryVerificationState,
+  actorId: string,
 ) {
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("set_workspace_memory_state", {
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("set_workspace_memory_state_server", {
     target_memory_id: memoryId,
     target_state: state,
+    target_actor_id: actorId,
   });
 
   if (error) {
@@ -221,10 +227,14 @@ export async function setWorkspaceMemoryState(
   }
 }
 
-export async function recordWorkspaceMemoryUsage(memoryId: string) {
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("record_workspace_memory_usage", {
+export async function recordWorkspaceMemoryUsage(
+  memoryId: string,
+  actorId: string,
+) {
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("record_workspace_memory_usage_server", {
     target_memory_id: memoryId,
+    target_actor_id: actorId,
   });
 
   if (error) {
