@@ -279,6 +279,8 @@ begin
       when old.target_entity_type is distinct from new.target_entity_type
         or old.target_entity_id is distinct from new.target_entity_id
         then 'memory_target_changed'
+      when old.use_count is distinct from new.use_count
+        then 'memory_used'
       else 'memory_updated'
     end;
     actor_id := coalesce(new.updated_by, (select auth.uid()));
@@ -303,9 +305,9 @@ begin
     actor_id
   );
 
-  return coalesce(new, old);
+  return null;
 end;
-$$;
+$;
 
 revoke all on function private.audit_workspace_memory_entry() from public;
 revoke all on function private.audit_workspace_memory_entry() from anon;
