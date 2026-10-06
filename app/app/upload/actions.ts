@@ -10,6 +10,7 @@ import {
   toRfqRows,
 } from "@/lib/rivora/imports";
 import { extractRfqFromPdf } from "@/lib/rivora/openai-rfq";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unexpected import error.";
@@ -126,7 +127,7 @@ export async function processRfq(formData: FormData) {
     if (!customerName) throw new Error("Customer name is required.");
 
     context = await requireWorkspace();
-    const { supabase, workspace } = context;
+    const { supabase, workspace, claims } = context;
     if (!["owner", "admin", "member"].includes(workspace.role)) {
       throw new Error("Reviewer access is read-only.");
     }
@@ -163,8 +164,10 @@ export async function processRfq(formData: FormData) {
     const { error: lineError } = await supabase.from("rfq_lines").insert(payload);
     if (lineError) throw lineError;
 
-    const { error: matchError } = await supabase.rpc("refresh_rfq_matches", {
+    const admin = createAdminClient();
+    const { error: matchError } = await admin.rpc("refresh_rfq_matches_with_memory_server", {
       target_rfq_id: rfq.id,
+      target_actor_id: claims.sub,
     });
     if (matchError) throw matchError;
   } catch (error) {
@@ -209,7 +212,7 @@ export async function processPdfRfq(formData: FormData) {
     if (!(file instanceof File)) throw new Error("Choose a PDF RFQ.");
 
     context = await requireWorkspace();
-    const { supabase, workspace } = context;
+    const { supabase, workspace, claims } = context;
     if (!["owner", "admin", "member"].includes(workspace.role)) {
       throw new Error("Reviewer access is read-only.");
     }
@@ -289,8 +292,10 @@ export async function processPdfRfq(formData: FormData) {
     });
     if (auditError) throw auditError;
 
-    const { error: matchError } = await supabase.rpc("refresh_rfq_matches", {
+    const admin = createAdminClient();
+    const { error: matchError } = await admin.rpc("refresh_rfq_matches_with_memory_server", {
       target_rfq_id: rfq.id,
+      target_actor_id: claims.sub,
     });
     if (matchError) throw matchError;
   } catch (error) {
