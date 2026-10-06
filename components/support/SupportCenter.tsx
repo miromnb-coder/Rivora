@@ -1058,7 +1058,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                 />
               ) : null}
 
-                            {view.kind === "article" && selectedArticle ? (
+              {view.kind === "article" && selectedArticle ? (
                 <article className="support-article">
                   <button
                     type="button"
