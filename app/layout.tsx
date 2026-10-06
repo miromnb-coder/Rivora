@@ -12,6 +12,17 @@ export const metadata: Metadata = {
   description:
     "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
   applicationName: "Averomira",
+  icons: {
+    icon: [
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml",
+        sizes: "any",
+      },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/apple-icon.svg",
+  },
   alternates: {
     canonical: "/",
   },
