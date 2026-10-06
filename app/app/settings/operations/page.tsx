@@ -75,13 +75,7 @@ export default async function OperationsSettingsPage() {
     ? await adapter.getConfigurationStatus(workspace.id)
     : null;
 
-  const emailConfigured = Boolean(
-    process.env.RESEND_API_KEY?.trim() &&
-      (
-        process.env.AVEROMIRA_QUOTE_FROM?.trim() ||
-        process.env.AVEROMIRA_INVITE_FROM?.trim()
-      ),
-  );
+  const emailConfigured = Boolean(process.env.RESEND_API_KEY?.trim());
   const extractionConfigured = Boolean(process.env.OPENAI_API_KEY?.trim());
   const erpReady =
     capability.availability === "disabled" ||
@@ -118,8 +112,8 @@ export default async function OperationsSettingsPage() {
       label: fi ? "Sähköpostin lähetys" : "Email delivery",
       ok: emailConfigured,
       detail: emailConfigured
-        ? (fi ? "Resend ja lähettäjä on konfiguroitu." : "Resend and sender configuration are present.")
-        : (fi ? "Resend- tai lähettäjämääritys puuttuu." : "Resend or sender configuration is missing."),
+        ? (fi ? "Resend-palvelinavain on konfiguroitu; lähettäjällä on Averomiran turvallinen oletus." : "Resend server key is configured; the sender has Averomira's safe default.")
+        : (fi ? "RESEND_API_KEY puuttuu." : "RESEND_API_KEY is missing."),
     },
     {
       label: fi ? "ERP-valmius" : "ERP readiness",
