@@ -11,18 +11,19 @@ export function AppShell({
   workspaceRole,
   userEmail,
   locale,
+  leadsEnabled,
 }: {
   children: React.ReactNode;
   workspaceName: string;
   workspaceRole: string;
   userEmail?: string;
   locale: Locale;
+  leadsEnabled: boolean;
 }) {
   const copy = getDictionary(locale).nav;
-  const leadsWorkspace = workspaceName.trim().toLowerCase() === "nordic flow systems oy";
   const nav: Array<readonly [string, string, string]> = [
     [copy.dashboard, "/app", "dashboard"],
-    ...(leadsWorkspace && ["owner", "admin"].includes(workspaceRole)
+    ...(leadsEnabled
       ? ([[copy.leads, "/app/leads", "leads"]] as Array<readonly [string, string, string]>)
       : []),
     [copy.orders, "/app/orders", "orders"],

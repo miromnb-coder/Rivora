@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/rivora/workspace";
+import { canManageWorkspaceFeature } from "@/lib/rivora/features";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const { supabase, claims, workspace } = await getAuthContext();
+  const context = await getAuthContext();
+  const { supabase } = context;
 
-  if (!claims || !workspace || !["owner", "admin"].includes(workspace.role)) {
+  if (!(await canManageWorkspaceFeature(context, "leads"))) {
     return NextResponse.json({ count: 0 }, { status: 200 });
   }
 
