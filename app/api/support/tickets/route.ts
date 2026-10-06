@@ -205,7 +205,9 @@ export async function POST(request: Request) {
       }
     }
 
-    const { data, error } = await context.supabase.rpc("create_support_ticket", {
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc("create_support_ticket_server", {
+      target_actor_id: context.claims.sub,
       target_organization_id: context.workspace.id,
       target_category: category,
       target_subject: subject,
@@ -228,7 +230,6 @@ export async function POST(request: Request) {
 
     if (screenshot) {
       try {
-        const admin = createAdminClient();
         const storagePath =
           `${context.workspace.id}/${ticketId}/${crypto.randomUUID()}.${extensionFor(screenshot.type)}`;
         const buffer = Buffer.from(await screenshot.arrayBuffer());
