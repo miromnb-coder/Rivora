@@ -486,6 +486,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         supported?: boolean;
         answer?: string;
         articleIds?: string[];
+        sensitiveInputBlocked?: boolean;
         error?: string;
       };
 
@@ -499,7 +500,16 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       }
 
       setAiMessages((current) => [
-        ...current,
+        ...current.map((item) =>
+          data.sensitiveInputBlocked && item.id === userMessage.id
+            ? {
+                ...item,
+                text: fi
+                  ? "[Mahdollinen salaisuus poistettu keskustelusta]"
+                  : "[Potential secret removed from conversation]",
+              }
+            : item,
+        ),
         {
           id: `assistant-${Date.now()}`,
           role: "assistant",
