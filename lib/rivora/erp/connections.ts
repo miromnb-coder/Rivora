@@ -1,4 +1,7 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+async function createConnectionAdminClient() {
+  const { createAdminClient } = await import("../../supabase/admin.ts");
+  return createAdminClient();
+}
 
 export type StoredErpConnectionStatus =
   | "configured"
@@ -29,7 +32,7 @@ export async function getStoredErpConnection(
   organizationId: string,
   provider: string,
 ): Promise<StoredErpConnection | null> {
-  const admin = createAdminClient();
+  const admin = await createConnectionAdminClient();
   const { data, error } = await admin
     .from("erp_connections")
     .select(
@@ -73,7 +76,7 @@ export async function getStoredErpConnectionSecret(
   organizationId: string,
   provider: string,
 ): Promise<string | null> {
-  const admin = createAdminClient();
+  const admin = await createConnectionAdminClient();
   const { data, error } = await admin.rpc("get_erp_connection_secret_server", {
     target_organization_id: organizationId,
     target_provider: provider,
@@ -100,7 +103,7 @@ export async function upsertStoredErpConnection({
   secret: string;
   actorId: string;
 }) {
-  const admin = createAdminClient();
+  const admin = await createConnectionAdminClient();
   const { data, error } = await admin.rpc("upsert_erp_connection_server", {
     target_organization_id: organizationId,
     target_provider: provider,
@@ -130,7 +133,7 @@ export async function markStoredErpConnectionVerification({
   errorMessage?: string | null;
   actorId: string;
 }) {
-  const admin = createAdminClient();
+  const admin = await createConnectionAdminClient();
   const { error } = await admin.rpc("mark_erp_connection_verification_server", {
     target_organization_id: organizationId,
     target_provider: provider,
@@ -154,7 +157,7 @@ export async function disconnectStoredErpConnection({
   provider: string;
   actorId: string;
 }) {
-  const admin = createAdminClient();
+  const admin = await createConnectionAdminClient();
   const { error } = await admin.rpc("disconnect_erp_connection_server", {
     target_organization_id: organizationId,
     target_provider: provider,
