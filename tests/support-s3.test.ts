@@ -31,8 +31,9 @@ test("S3 AI receives only safe route-level app context, not record contents", ()
   assert.match(route, /normalizeContextPath/);
   assert.match(route, /path\.startsWith\("\/app"\)/);
   assert.match(route, /supportContextForPath\(contextPath, locale\)/);
-  assert.match(route, /Current route:/);
   assert.match(route, /Current area:/);
+  assert.equal(route.includes(`Current route: \${contextPath}`), false);
+  assert.match(route, /supportArea: routeContext\?\.title \?\? "general"/);
   assert.equal(/\.from\(["'][a-z_]+["']\)/.test(route), false);
 });
 
