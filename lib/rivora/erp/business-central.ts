@@ -382,6 +382,54 @@ async function requestJson<T>({
   return payload as T;
 }
 
+export type BusinessCentralVerificationResult = {
+  companyId: string;
+  companyName: string;
+  environment: string;
+};
+
+export async function verifyBusinessCentralConnection(
+  workspaceId: string,
+): Promise<BusinessCentralVerificationResult> {
+  const config = await requireConfig(workspaceId, true);
+  const token = await accessToken(config);
+  const root = baseUrl(config);
+
+  const company = await requestJson<BcCompany>({
+    token,
+    url: `${root}?${new URLSearchParams({ "$select": "id,name,displayName" }).toString()}`,
+  });
+
+  if (!company?.id || String(company.id).toLowerCase() !== config.companyId.toLowerCase()) {
+    throw new Error("Business Central company ID did not match the configured company.");
+  }
+
+  // Verify the application can read the two entity collections required by
+  // Averomira mapping before marking the workspace connection as verified.
+  await Promise.all([
+    requestJson<ODataCollection<BcCustomer>>({
+      token,
+      url: `${root}/customers?${new URLSearchParams({
+        "$select": "id,number",
+        "$top": "1",
+      }).toString()}`,
+    }),
+    requestJson<ODataCollection<BcItem>>({
+      token,
+      url: `${root}/items?${new URLSearchParams({
+        "$select": "id,number",
+        "$top": "1",
+      }).toString()}`,
+    }),
+  ]);
+
+  return {
+    companyId: config.companyId,
+    companyName: company.displayName || company.name || config.companyId,
+    environment: config.environment,
+  };
+}
+
 function collectionUrl(base: string, collection: string, filter: string, select: string) {
   const query = new URLSearchParams({
     "$filter": filter,
@@ -506,7 +554,7 @@ export async function validateBusinessCentralManualMapping({
     throw new Error("Business Central customer and item numbers can be at most 20 characters.");
   }
 
-  const config = requireConfig(workspaceId);
+  const config = await requireConfig(workspaceId);
   const token = await accessToken(config);
   const root = baseUrl(config);
 
@@ -653,7 +701,7 @@ async function firstItemMatch({
 export async function suggestBusinessCentralMappings(
   input: BusinessCentralMappingLookupInput,
 ): Promise<BusinessCentralMappingSuggestion[]> {
-  const config = requireConfig(input.workspaceId);
+  const config = await requireConfig(input.workspaceId);
   const token = await accessToken(config);
   const root = baseUrl(config);
   const suggestions: BusinessCentralMappingSuggestion[] = [];
@@ -782,7 +830,7 @@ export async function createBusinessCentralSalesOrder(
   if (!input.lines.length) throw new Error("Sales order draft has no lines.");
   if (!input.customerNumber.trim()) throw new Error("Business Central customer number is required.");
 
-  const config = requireConfig(input.workspaceId);
+  const config = await requireConfig(input.workspaceId);
   const token = await accessToken(config);
   const root = baseUrl(config);
 
