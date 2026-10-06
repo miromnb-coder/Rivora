@@ -103,7 +103,6 @@ export async function findVerifiedWorkspaceMemory({
   sourceValue,
   allowWorkspaceFallback = true,
 }: {
-  actorId: string;
   organizationId: string;
   customerId?: string | null;
   memoryType: string;
@@ -171,6 +170,7 @@ export async function rememberWorkspaceDecision({
   sourceEntityId,
   metadata = {},
 }: {
+  actorId: string;
   organizationId: string;
   customerId?: string | null;
   scope?: MemoryScope;
