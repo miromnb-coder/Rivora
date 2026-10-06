@@ -260,7 +260,6 @@ export async function POST(request: Request) {
                 "Return up to three relevant article IDs from the allowed enum. Use an empty array if none are clearly relevant.",
                 "",
                 "APP CONTEXT (safe, non-record metadata only):",
-                `Current route: ${contextPath}`,
                 `Current area: ${routeContext?.title ?? "Averomira"}`,
                 `Area description: ${routeContext?.description ?? "General application support"}`,
                 `Suggested article IDs for this area: ${routeContext?.articleIds.join(", ") || "none"}`,
@@ -321,7 +320,7 @@ export async function POST(request: Request) {
         requestId,
         organizationId: context.workspace.id,
         userId: context.claims.sub,
-        contextPath,
+        supportArea: routeContext?.title ?? "general",
         questionLength: question.length,
       });
 
@@ -348,7 +347,7 @@ export async function POST(request: Request) {
       requestId,
       organizationId: context.workspace.id,
       userId: context.claims.sub,
-      contextPath,
+      supportArea: routeContext?.title ?? "general",
       model,
       questionLength: question.length,
       historyItems: history.length,
