@@ -59,7 +59,7 @@ async function notifySupport({
   requestId: string;
 }) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  const recipient = process.env.AVEROMIRA_SUPPORT_EMAIL?.trim();
+  const recipient =\n    process.env.AVEROMIRA_SUPPORT_EMAIL?.trim() ||\n    process.env.AVEROMIRA_QUOTE_REPLY_TO?.trim();
   const from =
     process.env.AVEROMIRA_SUPPORT_FROM?.trim() ||
     process.env.AVEROMIRA_QUOTE_FROM?.trim();
