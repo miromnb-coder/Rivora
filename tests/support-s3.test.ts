@@ -106,3 +106,11 @@ test("S3 UI warns users not to paste secrets", () => {
     /Do not send passwords, Client Secrets, API keys or tokens/,
   );
 });
+
+
+test("S3 removes blocked credentials from client-side conversation history", () => {
+  assert.match(supportCenter, /sensitiveInputBlocked\?: boolean/);
+  assert.match(supportCenter, /Mahdollinen salaisuus poistettu keskustelusta/);
+  assert.match(supportCenter, /Potential secret removed from conversation/);
+  assert.match(supportCenter, /data\.sensitiveInputBlocked && item\.id === userMessage\.id/);
+});
