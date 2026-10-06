@@ -15837,3 +15837,144 @@ textarea:focus-visible {
     transition: none;
   }
 }
+
+
+/* S2 — Contextual Help */
+.support-context-section {
+  margin-top: 18px;
+  border: 1px solid #dfe2dd;
+  border-radius: 15px;
+  background: #f6f6f3;
+  padding: 15px;
+}
+
+.support-context-section-head > div > span {
+  display: block;
+  color: #8d928e;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.support-context-section-head strong {
+  display: block;
+  margin-top: 7px;
+  color: #2b302c;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 780;
+}
+
+.support-context-section-head p {
+  margin: 5px 0 0;
+  color: #7b817c;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.support-context-links {
+  margin-top: 12px;
+  border-top: 1px solid #e2e4df;
+}
+
+.support-context-links > button {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-bottom: 1px solid #e5e7e2;
+  background: transparent;
+  padding: 9px 2px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 12px;
+  color: #3e443f;
+  text-align: left;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.support-context-links > button:last-child {
+  border-bottom: 0;
+}
+
+.support-context-links > button:hover {
+  color: #202320;
+}
+
+.context-help-trigger {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border: 1px solid #dfe1dc;
+  border-radius: 999px;
+  background: #fff;
+  display: inline-grid;
+  place-items: center;
+  color: #858b86;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(20,24,21,.025);
+  transition: border-color .16s ease, color .16s ease, background .16s ease;
+}
+
+.context-help-trigger:hover {
+  border-color: #c7cbc5;
+  background: #fafaf8;
+  color: #343934;
+}
+
+.context-help-trigger:focus-visible {
+  outline: 2px solid #555d57;
+  outline-offset: 2px;
+}
+
+.support-heading-with-help {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.support-heading-with-help > h1,
+.support-heading-with-help > h2 {
+  min-width: 0;
+  margin-right: 0;
+}
+
+.support-label-with-help {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.support-label-with-help .context-help-trigger {
+  width: 20px;
+  height: 20px;
+  flex-basis: 20px;
+  font-size: 9px;
+}
+
+@media (max-width: 560px) {
+  .support-context-section {
+    padding: 13px;
+  }
+
+  .context-help-trigger {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .context-help-trigger {
+    transition: none;
+  }
+}
