@@ -112,14 +112,7 @@ select
   m.updated_at
 from public.customer_product_mappings m
 where nullif(trim(m.customer_sku), '') is not null
-on conflict (
-  organization_id,
-  scope,
-  memory_type,
-  coalesce(customer_id, '00000000-0000-0000-0000-000000000000'::uuid),
-  source_key
-)
-do nothing;
+on conflict do nothing;
 
 
 create or replace function public.confirm_rfq_line_match_with_memory_server(
