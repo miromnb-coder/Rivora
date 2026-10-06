@@ -1,0 +1,27 @@
+name: Production Smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * *"
+
+jobs:
+  public-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Health endpoint
+        run: |
+          set -euo pipefail
+          body="$(curl --fail --silent --show-error --retry 2 --max-time 20 https://averomira.com/api/health)"
+          echo "$body" | jq -e '.status == "ok" and .service == "averomira"' >/dev/null
+
+      - name: Login page
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 2 --max-time 20 https://averomira.com/login >/dev/null
+
+      - name: Marketing homepage
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 2 --max-time 20 https://averomira.com/ >/dev/null
