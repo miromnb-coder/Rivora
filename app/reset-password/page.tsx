@@ -27,7 +27,7 @@ export default async function ResetPasswordPage({
     <main className="nodra-auth min-h-screen px-5 py-12">
       <div className="mx-auto max-w-md">
         <div className="mb-7 flex items-start justify-between gap-4">
-          <Link href="/" className="nodra-wordmark">NODRA</Link>
+          <Link href="/" className="text-2xl font-extrabold tracking-[-.04em] text-[#171a18]">Averomira</Link>
           <LocaleSwitcher locale={locale} label="" />
         </div>
 
