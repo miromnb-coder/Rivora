@@ -324,6 +324,34 @@ function ArrowIcon({ left = false }: { left?: boolean }) {
   return <span aria-hidden="true">{left ? "←" : "→"}</span>;
 }
 
+function BookIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5z" />
+      <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z" />
+    </svg>
+  );
+}
+
+function TicketIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 4h12a2 2 0 0 1 2 2v3a3 3 0 0 0 0 6v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a3 3 0 0 0 0-6V6a2 2 0 0 1 2-2Z" />
+      <path d="M12 7v10" strokeDasharray="2 2" />
+    </svg>
+  );
+}
+
+function HeadsetIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 13v-1a8 8 0 0 1 16 0v1" />
+      <path d="M4 13h3v6H6a2 2 0 0 1-2-2zM20 13h-3v6h1a2 2 0 0 0 2-2z" />
+      <path d="M17 19c-.7 1.3-2.4 2-5 2" />
+    </svg>
+  );
+}
+
 export function SupportCenter({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   const pathname = usePathname();
@@ -348,6 +376,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [aiAsking, setAiAsking] = useState(false);
   const [aiError, setAiError] = useState("");
   const [supportUnreadCount, setSupportUnreadCount] = useState(0);
+  const [showHelpLibrary, setShowHelpLibrary] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
   const previousPathRef = useRef(pathname);
@@ -713,6 +742,13 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                               : "Request received"
                             : selectedArticle?.title || (fi ? "Ohje" : "Help")}
                 </h2>
+                {view.kind === "home" ? (
+                  <p className="support-center-header-subtitle">
+                    {fi
+                      ? "Tuki, ohjeet ja vastaukset yhdessä paikassa."
+                      : "Support, guidance and answers in one place."}
+                  </p>
+                ) : null}
               </div>
               <button
                 type="button"
@@ -727,12 +763,6 @@ export function SupportCenter({ locale }: { locale: Locale }) {
             <div className="support-center-body">
               {view.kind === "home" ? (
                 <>
-                  <p className="support-center-intro">
-                    {fi
-                      ? "Kysy Support AI:lta, hae ohjeista tai lähetä tukipyyntö suoraan Averomirasta."
-                      : "Ask Support AI, search the help articles or send a support request directly from Averomira."}
-                  </p>
-
                   <section className="support-ai-card" aria-labelledby="support-ai-title">
                     <div className="support-ai-head">
                       <div>
@@ -870,44 +900,17 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                     ) : null}
                   </section>
 
-                  <div className="support-search-divider">
-                    <span>{fi ? "TAI HAE OHJEISTA" : "OR SEARCH HELP"}</span>
-                  </div>
-
-                  <label className="support-search">
-                    <span className="sr-only">{fi ? "Hae ohjeista" : "Search help"}</span>
-                    <svg
-                      width="17"
-                      height="17"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      aria-hidden="true"
-                    >
-                      <circle cx="11" cy="11" r="6.5" />
-                      <path d="m16 16 4 4" />
-                    </svg>
-                    <input
-                      ref={searchRef}
-                      value={query}
-                      onChange={(event) => setQuery(event.target.value)}
-                      placeholder={fi ? "Hae ohjeista…" : "Search help…"}
-                    />
-                  </label>
-
                   {!query.trim() && routeContext && contextArticles.length ? (
-                    <div className="support-context-section">
+                    <div className="support-context-section support-context-section-v2">
                       <div className="support-context-section-head">
                         <div>
-                          <span>{fi ? "Ohjeet tähän näkymään" : "Help for this view"}</span>
+                          <span>{fi ? "SUOSITELTU TÄSSÄ NÄKYMÄSSÄ" : "RECOMMENDED IN THIS VIEW"}</span>
                           <strong>{routeContext.title}</strong>
                           <p>{routeContext.description}</p>
                         </div>
                       </div>
                       <div className="support-context-links">
-                        {contextArticles.map((article) => (
+                        {contextArticles.slice(0, 3).map((article) => (
                           <button
                             key={article.id}
                             type="button"
@@ -921,70 +924,125 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                     </div>
                   ) : null}
 
-                  <div className="support-help-section">
-                    <div className="support-help-section-head">
-                      <span>{query.trim() ? (fi ? "Hakutulokset" : "Search results") : (fi ? "Kaikki ohjeet" : "All help articles")}</span>
-                      <small>{filteredArticles.length}</small>
-                    </div>
-
-                    <div className="support-help-list">
-                      {filteredArticles.map((article) => (
-                        <button
-                          key={article.id}
-                          type="button"
-                          onClick={() => setView({ kind: "article", articleId: article.id })}
-                        >
-                          <span>
-                            <strong>{article.title}</strong>
-                            <small>{article.summary}</small>
-                          </span>
-                          <ArrowIcon />
-                        </button>
-                      ))}
-                      {filteredArticles.length === 0 ? (
-                        <div className="support-empty">
-                          {fi
-                            ? "Tällä haulla ei löytynyt ohjetta."
-                            : "No help article matched this search."}
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="support-ticket-home-card"
-                    onClick={() => setView({ kind: "tickets" })}
-                  >
-                    <span>
-                      <small>{fi ? "TUKIPYYNNÖT" : "SUPPORT REQUESTS"}</small>
-                      <strong>{fi ? "Omat tukipyynnöt" : "My support requests"}</strong>
-                      <p>
-                        {fi
-                          ? "Seuraa tilaa, lue tuen vastaukset ja jatka keskustelua."
-                          : "Track status, read support replies and continue the conversation."}
-                      </p>
-                    </span>
-                    <span className="support-ticket-home-side">
-                      {supportUnreadCount > 0 ? (
-                        <i>{supportUnreadCount}</i>
-                      ) : null}
+                  <div className="support-home-actions">
+                    <button
+                      type="button"
+                      className="support-home-action"
+                      onClick={() => {
+                        setShowHelpLibrary(true);
+                        window.setTimeout(() => searchRef.current?.focus(), 0);
+                      }}
+                    >
+                      <span className="support-home-action-icon"><BookIcon /></span>
+                      <span className="support-home-action-copy">
+                        <strong>{fi ? "Ohjeet" : "Help articles"}</strong>
+                        <small>{fi ? "Selaa oppaita ja vastauksia." : "Browse guides and answers."}</small>
+                      </span>
                       <ArrowIcon />
-                    </span>
-                  </button>
+                    </button>
 
-                  <div className="support-contact-card">
-                    <span>{fi ? "Etkö löytänyt vastausta?" : "Couldn't find the answer?"}</span>
-                    <strong>{fi ? "Ota yhteyttä Averomira-tukeen." : "Contact Averomira Support."}</strong>
-                    <p>
-                      {fi
-                        ? "Lähetä kuvaus ongelmasta. Nykyinen sovellusnäkymä liitetään turvallisena teknisenä kontekstina."
-                        : "Describe the issue. The current app view is attached as safe technical context."}
-                    </p>
-                    <button type="button" onClick={openContact}>
-                      {fi ? "Lähetä tukipyyntö" : "Send support request"} <ArrowIcon />
+                    <button
+                      type="button"
+                      className="support-home-action"
+                      onClick={() => setView({ kind: "tickets" })}
+                    >
+                      <span className="support-home-action-icon"><TicketIcon /></span>
+                      <span className="support-home-action-copy">
+                        <strong>{fi ? "Omat tukipyynnöt" : "My support requests"}</strong>
+                        <small>{fi ? "Seuraa tilaa ja vastaa tukeen." : "Track status and reply to support."}</small>
+                      </span>
+                      <span className="support-home-action-end">
+                        {supportUnreadCount > 0 ? <i>{supportUnreadCount > 9 ? "9+" : supportUnreadCount}</i> : null}
+                        <ArrowIcon />
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="support-home-action"
+                      onClick={openContact}
+                    >
+                      <span className="support-home-action-icon"><HeadsetIcon /></span>
+                      <span className="support-home-action-copy">
+                        <strong>{fi ? "Ota yhteyttä tukeen" : "Contact support"}</strong>
+                        <small>{fi ? "Lähetä tukipyyntö tiimillemme." : "Send a request to our team."}</small>
+                      </span>
+                      <ArrowIcon />
                     </button>
                   </div>
+
+                  {showHelpLibrary || query.trim() ? (
+                    <section className="support-help-library">
+                      <div className="support-help-library-head">
+                        <div>
+                          <span>{fi ? "OHJEKESKUS" : "HELP CENTER"}</span>
+                          <strong>{fi ? "Etsi kaikista ohjeista" : "Search all help articles"}</strong>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowHelpLibrary(false);
+                            setQuery("");
+                          }}
+                        >
+                          {fi ? "Sulje" : "Close"}
+                        </button>
+                      </div>
+
+                      <label className="support-search">
+                        <span className="sr-only">{fi ? "Hae ohjeista" : "Search help"}</span>
+                        <svg
+                          width="17"
+                          height="17"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          aria-hidden="true"
+                        >
+                          <circle cx="11" cy="11" r="6.5" />
+                          <path d="m16 16 4 4" />
+                        </svg>
+                        <input
+                          ref={searchRef}
+                          value={query}
+                          onChange={(event) => setQuery(event.target.value)}
+                          placeholder={fi ? "Hae ohjeista…" : "Search help…"}
+                        />
+                      </label>
+
+                      <div className="support-help-section">
+                        <div className="support-help-section-head">
+                          <span>{query.trim() ? (fi ? "Hakutulokset" : "Search results") : (fi ? "Kaikki ohjeet" : "All help articles")}</span>
+                          <small>{filteredArticles.length}</small>
+                        </div>
+
+                        <div className="support-help-list">
+                          {filteredArticles.map((article) => (
+                            <button
+                              key={article.id}
+                              type="button"
+                              onClick={() => setView({ kind: "article", articleId: article.id })}
+                            >
+                              <span>
+                                <strong>{article.title}</strong>
+                                <small>{article.summary}</small>
+                              </span>
+                              <ArrowIcon />
+                            </button>
+                          ))}
+                          {filteredArticles.length === 0 ? (
+                            <div className="support-empty">
+                              {fi
+                                ? "Tällä haulla ei löytynyt ohjetta."
+                                : "No help article matched this search."}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    </section>
+                  ) : null}
                 </>
               ) : null}
 
