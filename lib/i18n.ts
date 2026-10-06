@@ -6,7 +6,7 @@ const dictionaries = {
       dashboard: "Workspace", orders: "Orders", allOrders: "All cases", attentionOrders: "Needs attention", quoteStage: "Quote stage", erpOrders: "ERP", completedOrders: "Complete",
       inbox: "Inbox", quotes: "Quotes", purchaseOrders: "Purchase orders", salesOrders: "Sales orders", customers: "Customers", leads: "Leads",
       processRfq: "Process RFQ", products: "Products", memory: "Customer memory",
-      settings: "Settings", companySettings: "Company details", quoteSettings: "Quote settings", brandSettings: "Brand / PDF", businessCentralSettings: "ERP connection", userSettings: "Users", setup: "Setup", workspace: "Workspace", signOut: "Sign out",
+      settings: "Settings", companySettings: "Company details", quoteSettings: "Quote settings", brandSettings: "Brand / PDF", businessCentralSettings: "ERP connection", userSettings: "Users", operationsSettings: "Production status", setup: "Setup", workspace: "Workspace", signOut: "Sign out",
       product: "Sales workspace", language: "Language",
     },
     common: {
@@ -71,7 +71,7 @@ const dictionaries = {
       dashboard: "Työpöytä", orders: "Tilaukset", allOrders: "Kaikki caset", attentionOrders: "Vaatii huomiota", quoteStage: "Tarjousvaihe", erpOrders: "ERP", completedOrders: "Valmiit",
       inbox: "Saapuneet", quotes: "Tarjoukset", purchaseOrders: "Ostotilaukset", salesOrders: "Myyntitilaukset", customers: "Asiakkaat", leads: "Liidit",
       processRfq: "Käsittele tarjouspyyntö", products: "Tuotteet", memory: "Asiakaskohtainen muisti",
-      settings: "Asetukset", companySettings: "Yritystiedot", quoteSettings: "Tarjousasetukset", brandSettings: "Brändi / PDF", businessCentralSettings: "ERP-yhteys", userSettings: "Käyttäjät", setup: "Käyttöönotto", workspace: "Työtila", signOut: "Kirjaudu ulos",
+      settings: "Asetukset", companySettings: "Yritystiedot", quoteSettings: "Tarjousasetukset", brandSettings: "Brändi / PDF", businessCentralSettings: "ERP-yhteys", userSettings: "Käyttäjät", operationsSettings: "Production-tila", setup: "Käyttöönotto", workspace: "Työtila", signOut: "Kirjaudu ulos",
       product: "Myynnin työtila", language: "Kieli",
     },
     common: {
