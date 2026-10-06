@@ -11,7 +11,7 @@ if (!BASE_URL || !SUPABASE_URL || !SUPABASE_KEY) {
   throw new Error("Missing E2E environment.");
 }
 
-const password = "NodraE2E!" + crypto.randomBytes(18).toString("base64url");
+const password = "AveromiraE2E!" + crypto.randomBytes(18).toString("base64url");
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
 });
@@ -63,7 +63,7 @@ try {
   await settle();
 
   await page.goto(BASE_URL + "/onboarding", { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="workspaceName"]').fill("Nodra Pilot E2E");
+  await page.locator('input[name="workspaceName"]').fill("Averomira Pilot E2E");
   await page.locator('input[name="password"]').fill(password);
   await page.locator('input[name="passwordConfirm"]').fill(password);
   await page.getByRole("button", { name: /create|luo/i }).click();
@@ -72,7 +72,7 @@ try {
   console.log("PASS onboarding");
 
   await page.goto(BASE_URL + "/app/settings", { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="name"]').fill("Nodra Pilot E2E");
+  await page.locator('input[name="name"]').fill("Averomira Pilot E2E");
   await page.locator('input[name="email"]').fill("sales@example.com");
   await page.locator('input[name="addressLine1"]').fill("E2E Street 1");
   await page.locator('input[name="postalCode"]').fill("33100");
@@ -85,8 +85,8 @@ try {
 
   const catalogue = [
     "sku,name,manufacturer,mpn,unit,price,stock",
-    "E2E-001,E2E Test Product A,Nodra Test,MPN-E2E-001,pcs,12.50,100",
-    "E2E-002,E2E Test Product B,Nodra Test,MPN-E2E-002,pcs,19.90,50",
+    "E2E-001,E2E Test Product A,Averomira Test,MPN-E2E-001,pcs,12.50,100",
+    "E2E-002,E2E Test Product B,Averomira Test,MPN-E2E-002,pcs,19.90,50",
   ].join("\n");
 
   await page.goto(BASE_URL + "/app/upload", { waitUntil: "domcontentloaded" });
