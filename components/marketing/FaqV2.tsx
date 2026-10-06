@@ -156,7 +156,7 @@ export function FaqV2({ locale }: { locale: Locale }) {
     <section className="marketing-shell v2-section faq-v2" id="faq" aria-labelledby="faq-v2-title">
       <div className="faq-v2-layout">
         <div className="faq-v2-intro">
-          <div className="v2-section-label">{fi ? "Kysymykset" : "Questions"}</div>
+          <div className="v2-section-label">{fi ? "Kysymykset" : "Questions"} <span className="faq-v2-preview-badge">PREVIEW</span></div>
           <h2 id="faq-v2-title">{fi ? "Usein kysyttyä Averomirasta." : "Common questions about Averomira."}</h2>
           <p>
             {fi
