@@ -2,6 +2,7 @@ import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { MinimalShaderHero } from "@/components/marketing/MinimalShaderHero";
 import { PricingLeadCapture } from "@/components/marketing/PricingLeadCapture";
+import { FaqV2 } from "@/components/marketing/FaqV2";
 import { getLocale } from "@/lib/locale";
 import {
   ProofStripV2,
@@ -46,6 +47,7 @@ export default async function Home() {
       <ConfidenceSystemV2 locale={locale} />
       <AiExtractionV2 locale={locale} />
       <BeforeAfterV2 locale={locale} />
+      <FaqV2 locale={locale} />
       <PricingLeadCapture locale={locale} />
       <FinalCtaV2 locale={locale} />
         <MarketingFooter locale={locale} />
