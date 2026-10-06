@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { canManageWorkspaceFeature } from "@/lib/rivora/features";
+import { isSupportOperatorEmail } from "@/lib/rivora/support-operator";
 
 export const metadata: Metadata = {
   robots: {
@@ -31,6 +32,9 @@ export default async function ProductLayout({ children }: { children: React.Reac
   ]);
   const { claims, workspace } = context;
   const leadsEnabled = await canManageWorkspaceFeature(context, "leads");
+  const supportOperator = isSupportOperatorEmail(
+    typeof claims.email === "string" ? claims.email : null,
+  );
 
   return (
     <div className={inter.variable}>
@@ -40,6 +44,7 @@ export default async function ProductLayout({ children }: { children: React.Reac
         userEmail={typeof claims.email === "string" ? claims.email : undefined}
         locale={locale}
         leadsEnabled={leadsEnabled}
+        supportOperator={supportOperator}
       >
         {children}
       </AppShell>
