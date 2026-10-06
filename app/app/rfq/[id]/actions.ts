@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function confirmRfqMatch(formData: FormData) {
   const rfqId = String(formData.get("rfqId") ?? "");
@@ -11,15 +12,17 @@ export async function confirmRfqMatch(formData: FormData) {
 
   if (!rfqId || !lineId || !productId) return;
 
-  const { supabase, workspace } = await requireWorkspace();
+  const { workspace, claims } = await requireWorkspace();
   if (!["owner", "admin", "member"].includes(workspace.role)) {
     throw new Error("Reviewer access is read-only. An owner, admin or member must confirm RFQ matches.");
   }
 
-  const { error } = await supabase.rpc("confirm_rfq_line_match", {
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("confirm_rfq_line_match_with_memory_server", {
     target_line_id: lineId,
     target_product_id: productId,
     remember_for_customer: remember,
+    target_actor_id: claims.sub,
   });
 
   if (error) throw new Error(error.message);
@@ -34,7 +37,7 @@ export async function retryRfqProcessing(formData: FormData) {
   const rfqId = String(formData.get("rfqId") ?? "");
   if (!rfqId) throw new Error("RFQ is required.");
 
-  const { supabase, workspace } = await requireWorkspace();
+  const { supabase, workspace, claims } = await requireWorkspace();
   if (!["owner", "admin", "member"].includes(workspace.role)) {
     throw new Error("Reviewer access is read-only.");
   }
@@ -59,8 +62,10 @@ export async function retryRfqProcessing(formData: FormData) {
     throw new Error("This RFQ failed before line creation. Re-upload the source file.");
   }
 
-  const { error } = await supabase.rpc("refresh_rfq_matches", {
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("refresh_rfq_matches_with_memory_server", {
     target_rfq_id: rfqId,
+    target_actor_id: claims.sub,
   });
   if (error) throw new Error(error.message);
 
