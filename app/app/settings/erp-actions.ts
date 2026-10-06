@@ -78,6 +78,9 @@ export async function saveBusinessCentralConnectionAction(formData: FormData) {
     redirect(settingsUrl("Business Central Company ID ei ole kelvollinen UUID.", "error"));
   }
 
+  let message = "";
+  let tone: "ok" | "error" = "ok";
+
   try {
     if (!clientSecret) {
       const existing = await getStoredErpConnection(workspace.id, "business_central");
@@ -113,34 +116,31 @@ export async function saveBusinessCentralConnectionAction(formData: FormData) {
       actorId,
     });
 
-    revalidatePath("/app/settings");
-    revalidatePath("/app/settings/business-central");
-    revalidatePath("/app/sales-orders");
-    redirect(
-      settingsUrl(
-        `Business Central -yhteys tarkistettu: ${verified.companyName} / ${verified.environment}.`,
-      ),
-    );
+    message = `Business Central -yhteys tarkistettu: ${verified.companyName} / ${verified.environment}.`;
   } catch (error) {
-    const message = await markFailure(workspace.id, actorId, error);
-    revalidatePath("/app/settings");
-    redirect(settingsUrl(message, "error"));
+    message = await markFailure(workspace.id, actorId, error);
+    tone = "error";
   }
+
+  revalidatePath("/app/settings");
+  revalidatePath("/app/settings/business-central");
+  revalidatePath("/app/sales-orders");
+  redirect(settingsUrl(message, tone));
 }
 
 export async function verifyBusinessCentralConnectionAction() {
   const { workspace, claims } = await requireErpAdmin();
   const actorId = String(claims.sub);
 
+  let message = "";
+  let tone: "ok" | "error" = "ok";
+
   try {
     const verified = await verifyBusinessCentralConnection(workspace.id);
     const stored = await getStoredErpConnection(workspace.id, "business_central");
     if (!stored) {
-      redirect(
-        settingsUrl(
-          "Nykyinen yhteys käyttää vielä legacy-palvelinmääritystä. Tallenna yhteys ensin asiakaskohtaiseksi.",
-          "error",
-        ),
+      throw new Error(
+        "Nykyinen yhteys käyttää vielä legacy-palvelinmääritystä. Tallenna yhteys ensin asiakaskohtaiseksi.",
       );
     }
 
@@ -152,18 +152,21 @@ export async function verifyBusinessCentralConnectionAction() {
       actorId,
     });
 
-    revalidatePath("/app/settings");
-    revalidatePath("/app/settings/business-central");
-    redirect(settingsUrl(`Business Central -yhteys tarkistettu: ${verified.companyName}.`));
+    message = `Business Central -yhteys tarkistettu: ${verified.companyName}.`;
   } catch (error) {
-    const message = await markFailure(workspace.id, actorId, error);
-    revalidatePath("/app/settings");
-    redirect(settingsUrl(message, "error"));
+    message = await markFailure(workspace.id, actorId, error);
+    tone = "error";
   }
+
+  revalidatePath("/app/settings");
+  revalidatePath("/app/settings/business-central");
+  redirect(settingsUrl(message, tone));
 }
 
 export async function disconnectBusinessCentralConnectionAction() {
   const { workspace, claims } = await requireErpAdmin();
+  let message = "Business Central -yhteys katkaistiin.";
+  let tone: "ok" | "error" = "ok";
 
   try {
     await disconnectStoredErpConnection({
@@ -171,13 +174,14 @@ export async function disconnectBusinessCentralConnectionAction() {
       provider: "business_central",
       actorId: String(claims.sub),
     });
-    revalidatePath("/app/settings");
-    revalidatePath("/app/settings/business-central");
-    revalidatePath("/app/sales-orders");
-    redirect(settingsUrl("Business Central -yhteys katkaistiin."));
   } catch (error) {
-    const message =
+    message =
       error instanceof Error ? error.message : "Business Central -yhteyttä ei voitu katkaista.";
-    redirect(settingsUrl(message, "error"));
+    tone = "error";
   }
+
+  revalidatePath("/app/settings");
+  revalidatePath("/app/settings/business-central");
+  revalidatePath("/app/sales-orders");
+  redirect(settingsUrl(message, tone));
 }
