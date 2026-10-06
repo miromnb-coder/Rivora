@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuthContext } from "@/lib/rivora/workspace";
+import { notifySupportAboutCustomerMessage } from "@/lib/rivora/support-email";
 import {
   consumePublicRateLimit,
 } from "@/lib/rivora/rate-limit";
@@ -39,73 +40,92 @@ function extensionFor(type: string) {
   return "jpg";
 }
 
-async function notifySupport({
-  ticketNumber,
-  workspaceName,
-  requesterEmail,
-  category,
-  subject,
-  message,
-  contextPath,
-  requestId,
-}: {
-  ticketNumber: number;
-  workspaceName: string;
-  requesterEmail: string | null;
-  category: string;
-  subject: string;
-  message: string;
-  contextPath: string | null;
-  requestId: string;
-}) {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  const recipient =
-    process.env.AVEROMIRA_SUPPORT_EMAIL?.trim() ||
-    process.env.AVEROMIRA_QUOTE_REPLY_TO?.trim();
-  const from =
-    process.env.AVEROMIRA_SUPPORT_FROM?.trim() ||
-    process.env.AVEROMIRA_QUOTE_FROM?.trim();
+export async function GET(request: Request) {
+  const requestId = requestIdFor(request);
 
-  if (!apiKey || !recipient || !from) {
-    operationalLog("info", "support_notification_skipped", {
-      requestId,
-      ticketNumber,
-      configured: false,
+  try {
+    const context = await getAuthContext();
+    if (!context.claims?.sub || !context.workspace) {
+      return NextResponse.json(
+        { error: "Authentication required.", requestId },
+        { status: 401, headers: requestIdHeaders(requestId) },
+      );
+    }
+
+    const admin = createAdminClient();
+    const { data: tickets, error: ticketError } = await admin
+      .from("support_tickets")
+      .select(
+        "id,ticket_number,subject,category,status,priority,created_at,updated_at,last_message_at,last_support_message_at",
+      )
+      .eq("organization_id", context.workspace.id)
+      .eq("created_by", context.claims.sub)
+      .order("last_message_at", { ascending: false })
+      .limit(50);
+
+    if (ticketError) throw ticketError;
+
+    const ticketIds = (tickets ?? []).map((ticket) => String(ticket.id));
+    const reads =
+      ticketIds.length === 0
+        ? []
+        : (
+            await admin
+              .from("support_ticket_reads")
+              .select("ticket_id,last_read_at")
+              .eq("organization_id", context.workspace.id)
+              .eq("user_id", context.claims.sub)
+              .in("ticket_id", ticketIds)
+          ).data ?? [];
+
+    const readByTicket = new Map(
+      reads.map((item) => [String(item.ticket_id), String(item.last_read_at)]),
+    );
+
+    const items = (tickets ?? []).map((ticket) => {
+      const lastReadAt = readByTicket.get(String(ticket.id)) ?? null;
+      const lastSupportAt = ticket.last_support_message_at
+        ? String(ticket.last_support_message_at)
+        : null;
+      const unread = Boolean(
+        lastSupportAt &&
+          (!lastReadAt ||
+            new Date(lastSupportAt).getTime() > new Date(lastReadAt).getTime()),
+      );
+
+      return {
+        id: String(ticket.id),
+        ticketNumber: Number(ticket.ticket_number),
+        subject: String(ticket.subject),
+        category: String(ticket.category),
+        status: String(ticket.status),
+        priority: String(ticket.priority),
+        createdAt: String(ticket.created_at),
+        updatedAt: String(ticket.updated_at),
+        lastMessageAt: String(ticket.last_message_at || ticket.updated_at),
+        unread,
+      };
     });
-    return false;
+
+    return NextResponse.json(
+      {
+        tickets: items,
+        unreadCount: items.filter((item) => item.unread).length,
+        requestId,
+      },
+      { status: 200, headers: requestIdHeaders(requestId) },
+    );
+  } catch (error) {
+    operationalLog("error", "support_ticket_list_failed", {
+      requestId,
+      message: safeErrorMessage(error),
+    });
+
+    return NextResponse.json(
+      { error: "Support requests could not be loaded.", requestId },
+      { status: 503, headers: requestIdHeaders(requestId) },
+    );
   }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [recipient],
-      reply_to: requesterEmail || undefined,
-      subject: `Averomira support #${ticketNumber}: ${subject}`,
-      text: [
-        `Ticket: #${ticketNumber}`,
-        `Workspace: ${workspaceName}`,
-        `Requester: ${requesterEmail || "Unknown"}`,
-        `Category: ${category}`,
-        contextPath ? `Context: ${contextPath}` : null,
-        `Request ID: ${requestId}`,
-        "",
-        message,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Support notification failed with status ${response.status}.`);
-  }
-
-  return true;
 }
 
 export async function POST(request: Request) {
@@ -275,17 +295,22 @@ export async function POST(request: Request) {
 
     let notificationSent = false;
     try {
-      notificationSent = await notifySupport({
+      notificationSent = await notifySupportAboutCustomerMessage({
         ticketNumber,
         workspaceName: context.workspace.name,
         requesterEmail:
           typeof context.claims.email === "string"
             ? context.claims.email
             : null,
-        category,
         subject,
-        message,
-        contextPath,
+        message: [
+          `Category: ${category}`,
+          contextPath ? `Context: ${contextPath}` : null,
+          "",
+          message,
+        ]
+          .filter(Boolean)
+          .join("\n"),
         requestId,
       });
     } catch (notificationError) {
