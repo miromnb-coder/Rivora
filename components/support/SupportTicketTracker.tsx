@@ -186,6 +186,19 @@ export function SupportTicketTracker({
     };
   }, [ticketId]);
 
+  useEffect(() => {
+    if (!ticketId) return;
+
+    const interval = window.setInterval(() => {
+      if (document.hidden) return;
+      loadDetail(ticketId).catch(() => {
+        // Background refresh must not replace the current conversation with an error state.
+      });
+    }, 45_000);
+
+    return () => window.clearInterval(interval);
+  }, [ticketId]);
+
   async function submitReply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!ticketId || replying || reply.trim().length < 1) return;
@@ -334,6 +347,11 @@ export function SupportTicketTracker({
         </div>
 
         <form className="support-ticket-reply" onSubmit={submitReply}>
+          <p className="support-ticket-reply-note">
+            {fi
+              ? "Älä lisää salasanoja, Client Secretejä, API-avaimia tai tokeneita."
+              : "Do not include passwords, Client Secrets, API keys or tokens."}
+          </p>
           <label>
             <span>{fi ? "Vastaa tukeen" : "Reply to support"}</span>
             <textarea
