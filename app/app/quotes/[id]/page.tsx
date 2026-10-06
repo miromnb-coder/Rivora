@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContextHelpTrigger } from "@/components/support/ContextHelpTrigger";
 import { notFound } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import {
@@ -370,7 +371,13 @@ export default async function QuoteDetailPage({
           </section>
 
           <section className="quote-builder-v1-panel quote-builder-v1-approval">
-            <div className="upload-v2-section-label">{copy.approvalSending}</div>
+            <div className="support-label-with-help">
+              <div className="upload-v2-section-label">{copy.approvalSending}</div>
+              <ContextHelpTrigger
+                articleId="quote-locking"
+                label={locale === "fi" ? "Ohje: tarjouksen hyväksyntä ja lukitus" : "Help: quote approval and locking"}
+              />
+            </div>
 
             <div className="quote-builder-v1-flow">
               {["draft", "ready", "approved", "sent"].map((stage, index) => {
