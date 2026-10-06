@@ -6,6 +6,7 @@ import {
   businessCentralMappingIsVerified,
   getBusinessCentralConfigurationStatus,
 } from "@/lib/rivora/erp/business-central";
+import { getErpProviderCapability } from "@/lib/rivora/erp";
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
@@ -38,6 +39,11 @@ export default async function AppHome() {
   ]);
   const fi = locale === "fi";
   const displayLocale = formatLocale(locale);
+  const erpCapability = getErpProviderCapability(workspace.erpProvider);
+  const isBusinessCentral =
+    erpCapability.key === "business_central" &&
+    erpCapability.hasNativeAdapter;
+  const requestedErpName = workspace.erpRequestedName?.trim() || "";
 
   const [
     { data: organization },
@@ -118,7 +124,9 @@ export default async function AppHome() {
   ]);
 
   const tasks: Task[] = [];
-  const bcConfig = await getBusinessCentralConfigurationStatus(workspace.id);
+  const bcConfig = isBusinessCentral
+    ? await getBusinessCentralConfigurationStatus(workspace.id)
+    : null;
   const erpMappingByEntity = new Map(
     (erpMappings ?? []).map((mapping: any) => [
       `${mapping.entity_type}:${mapping.local_entity_id}`,
@@ -237,6 +245,35 @@ export default async function AppHome() {
 
     const customerName = customer?.name || (fi ? "Tuntematon asiakas" : "Unknown customer");
     const reference = order.customer_po_number || "PO";
+
+    if (!isBusinessCentral) {
+      const unsupported = erpCapability.availability === "unsupported";
+      const unavailable = erpCapability.availability === "unavailable";
+      tasks.push({
+        key: `sales-${order.id}`,
+        caseKey: normalizedKey(customerName, reference),
+        stageRank: 4,
+        eyebrow: "Sales Order Draft",
+        title: unsupported
+          ? fi
+            ? `${requestedErpName || "Muu ERP"} ei ole natiivisti integroitu`
+            : `${requestedErpName || "Selected ERP"} has no native integration`
+          : unavailable
+            ? fi
+              ? "ERP-adapteri ei ole saatavilla"
+              : "ERP adapter unavailable"
+            : fi
+              ? "Myyntitilausluonnos on valmis"
+              : "Sales order draft is ready",
+        detail: `${customerName} · ${reference} · ${money.format(total)}`,
+        href: `/app/sales-orders/${order.id}`,
+        action: fi ? "Avaa luonnos" : "Open draft",
+        priority: order.status === "erp_failed" ? 10 : 5,
+        updatedAt: order.updated_at,
+      });
+      continue;
+    }
+
     const productIds = [...new Set(lines.map((line: any) => String(line.product_id)).filter(Boolean))];
     const customerVerified = businessCentralMappingIsVerified(
       erpMappingByEntity.get(`customer:${order.customer_id}`) as any,
@@ -249,7 +286,7 @@ export default async function AppHome() {
     );
     const missingMappings = (customerVerified ? 0 : 1) + missingProducts.length;
     const mappingTotal = 1 + productIds.length;
-    const exportReady = bcConfig.configured && missingMappings === 0;
+    const exportReady = Boolean(bcConfig?.configured) && missingMappings === 0;
 
     tasks.push({
       key: `sales-${order.id}`,
