@@ -1,12 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
+import {
+  operationalLog,
+  requestIdFor,
+  requestIdHeaders,
+} from "@/lib/rivora/observability";
 
 export async function POST(request: Request) {
+  const requestId = requestIdFor(request);
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
 
   if (!claims?.sub) {
-    return Response.json({ ok: false }, { status: 401 });
+    return Response.json({ ok: false, requestId }, { status: 401, headers: requestIdHeaders(requestId) });
   }
 
   const { data: membership } = await supabase
@@ -26,7 +32,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return Response.json({ ok: false }, { status: 400 });
+    return Response.json({ ok: false, requestId }, { status: 400, headers: requestIdHeaders(requestId) });
   }
 
   const message = String(body.message ?? "Unexpected application error").slice(0, 2000);
@@ -34,7 +40,8 @@ export async function POST(request: Request) {
   const action = String(body.action ?? "").slice(0, 200) || null;
   const digest = String(body.digest ?? "").slice(0, 200) || null;
 
-  console.error("[nodra-app-error]", {
+  operationalLog("error", "app_error_boundary", {
+    requestId,
     organizationId: membership?.organization_id ?? null,
     route,
     action,
@@ -49,12 +56,15 @@ export async function POST(request: Request) {
     action,
     message,
     error_digest: digest,
-    metadata: { source: "next-error-boundary" },
+    metadata: { source: "next-error-boundary", requestId },
   });
 
   if (error) {
-    console.error("[nodra-app-error-monitor-write-failed]", error.message);
+    operationalLog("error", "app_error_monitor_write_failed", {
+      requestId,
+      message: error.message,
+    });
   }
 
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, requestId }, { headers: requestIdHeaders(requestId) });
 }
