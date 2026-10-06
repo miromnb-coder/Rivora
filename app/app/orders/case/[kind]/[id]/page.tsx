@@ -302,9 +302,8 @@ export default async function OrderCasePage({
 
     bcMappingTotal = 1 + productIds.length;
     bcMissingMappings = (customerVerified ? 0 : 1) + missingProducts.length;
-    bcExportReady =
-      getBusinessCentralConfigurationStatus(workspace.id).configured &&
-      bcMissingMappings === 0;
+    const bcConfig = await getBusinessCentralConfigurationStatus(workspace.id);
+    bcExportReady = bcConfig.configured && bcMissingMappings === 0;
   }
 
   const currentStage = sales ? "erp" : po ? "po" : quote ? "quote" : "rfq";
