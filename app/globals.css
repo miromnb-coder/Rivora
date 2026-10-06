@@ -14972,3 +14972,21 @@ textarea:focus-visible {
     transition: none;
   }
 }
+
+
+/* Q4 preview environment marker */
+.faq-v2-preview-badge {
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border: 1px solid #cfd3ce;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6d736e;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  vertical-align: middle;
+}
