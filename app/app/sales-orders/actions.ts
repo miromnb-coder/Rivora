@@ -6,6 +6,11 @@ import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
+  operationalLog,
+  requestIdFor,
+  safeErrorMessage,
+} from "@/lib/rivora/observability";
+import {
   getErpAdapter,
   requireErpAdapter,
   type ErpSalesOrderInput,
@@ -372,6 +377,7 @@ export async function saveErpMappingAction(formData: FormData) {
 }
 
 export async function sendErpSalesOrderAction(formData: FormData) {
+  const operationId = requestIdFor();
   const salesOrderDraftId = clean(formData.get("salesOrderDraftId"), 80);
   if (!salesOrderDraftId) throw new Error("Sales order draft ID is required.");
 
@@ -507,6 +513,14 @@ export async function sendErpSalesOrderAction(formData: FormData) {
     attemptId = String(startedAttempt ?? "");
     if (!attemptId) throw new Error("ERP attempt could not be started.");
 
+    operationalLog("info", "erp_export_started", {
+      operationId,
+      organizationId: workspace.id,
+      salesOrderDraftId,
+      provider: adapter.provider,
+      attemptId,
+    });
+
     try {
       const result = await adapter.createSalesOrder(input);
 
@@ -528,6 +542,20 @@ export async function sendErpSalesOrderAction(formData: FormData) {
       });
       if (finishError) throw finishError;
 
+      operationalLog(
+        result.status === "created" ? "info" : "warn",
+        "erp_export_finished",
+        {
+          operationId,
+          organizationId: workspace.id,
+          salesOrderDraftId,
+          provider: adapter.provider,
+          attemptId,
+          result: result.status,
+          externalOrderNumber: result.externalOrderNumber ?? null,
+        },
+      );
+
       if (result.status === "existing") {
         failure =
           `An existing ${adapter.displayName} order with this customer PO number was detected. No duplicate was created; review the existing ERP order.`;
@@ -538,8 +566,16 @@ export async function sendErpSalesOrderAction(formData: FormData) {
         success = `${adapter.displayName} Draft order ${result.externalOrderNumber || result.externalOrderId} created.`;
       }
     } catch (adapterError) {
-      const message =
-        adapterError instanceof Error ? adapterError.message : "ERP export failed.";
+      const message = safeErrorMessage(adapterError, "ERP export failed.");
+
+      operationalLog("error", "erp_export_adapter_failed", {
+        operationId,
+        organizationId: workspace.id,
+        salesOrderDraftId,
+        provider: adapter.provider,
+        attemptId,
+        message,
+      });
 
       const { error: finishError } = await admin.rpc("finish_erp_delivery_attempt_server", {
         target_attempt_id: attemptId,
@@ -558,7 +594,13 @@ export async function sendErpSalesOrderAction(formData: FormData) {
       failure = message;
     }
   } catch (error) {
-    failure = error instanceof Error ? error.message : "ERP export failed.";
+    failure = safeErrorMessage(error, "ERP export failed.");
+    operationalLog("error", "erp_export_action_failed", {
+      operationId,
+      salesOrderDraftId,
+      attemptId,
+      message: failure,
+    });
   }
 
   revalidatePath("/app/sales-orders");
