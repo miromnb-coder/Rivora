@@ -47,6 +47,9 @@ export function AppShell({
     [copy.brandSettings, "/app/settings#brand"],
     [copy.businessCentralSettings, "/app/settings#erp"],
     [copy.userSettings, "/app/settings#users"],
+    ...(["owner", "admin"].includes(workspaceRole)
+      ? ([[copy.operationsSettings, "/app/settings/operations"]] as Array<readonly [string, string]>)
+      : []),
   ];
 
   return (
