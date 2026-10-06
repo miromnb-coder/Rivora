@@ -277,8 +277,12 @@ export default async function SettingsPage({
               disabled={!canManage}
               className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm"
             >
-              <option value="business_central">Microsoft Business Central</option>
-              <option value="custom">{fi ? "Muu ERP" : "Other ERP"}</option>
+              <option value="business_central">
+                {fi ? "Microsoft Business Central — natiivi integraatio" : "Microsoft Business Central — native integration"}
+              </option>
+              <option value="custom">
+                {fi ? "Muu ERP — ei natiivia integraatiota" : "Other ERP — no native integration"}
+              </option>
               <option value="none">{fi ? "Ei ERP-integraatiota" : "No ERP integration"}</option>
             </select>
           </label>
