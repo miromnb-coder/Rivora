@@ -56,23 +56,21 @@ Sprint 2 adds deterministic Quote ↔ PO reconciliation. Each run is versioned i
 
 Sprint 3 adds `sales_order_drafts → sales_order_draft_lines`, explicit ERP entity mappings, and audited `erp_delivery_attempts`. Sales Order Drafts are created only from the latest approved PO reconciliation. Accepted PO commercial values are preferred while canonical product identity comes from the approved quote line. An unmatched extra PO line blocks draft creation rather than guessing an ERP product.
 
-The Business Central adapter uses Microsoft Entra service-to-service Client Credentials authentication. Secrets stay server-side in environment variables. Before creating a Business Central Draft sales order, the adapter validates the mapped customer and items, checks item base units, and searches for an existing order using customer number + customer PO number. Partial creation locks automatic retry so a network or line-level failure cannot silently duplicate an ERP order.
+The Business Central adapter uses Microsoft Entra service-to-service Client Credentials authentication. Production credentials are workspace-scoped: non-secret connection metadata is stored in `erp_connections`, while client secrets are encrypted in Supabase Vault and are only read server-side. The original Vercel environment configuration remains a temporary migration fallback for the already-proven production workspace.
 
-Business Central server environment variables:
+Before creating a Business Central Draft sales order, the adapter validates the mapped customer and items, checks item base units, and searches for an existing order using customer number + customer PO number. Partial creation locks automatic retry. If a create response is ambiguous because of a timeout/network break, the adapter performs another duplicate lookup before allowing a retry path.
 
-```bash
-BUSINESS_CENTRAL_WORKSPACE_ID=
-BUSINESS_CENTRAL_TENANT_ID=
-BUSINESS_CENTRAL_CLIENT_ID=
-BUSINESS_CENTRAL_CLIENT_SECRET=
-BUSINESS_CENTRAL_ENVIRONMENT=
-BUSINESS_CENTRAL_COMPANY_ID=
-```
-
-`BUSINESS_CENTRAL_WORKSPACE_ID` deliberately binds the first adapter configuration to one Averomira workspace. Multi-workspace OAuth credential storage is a later connector-hardening step.
+Microsoft Business Central is currently the only native ERP adapter. `custom` means the customer uses another ERP but Averomira must not request credentials or attempt automatic export until a real adapter has been implemented and tested. `none` disables ERP export while keeping the ERP-independent Sales Order Draft workflow available.
 
 ## Current product baseline
 
 The current product includes Finnish/English locale handling, RFQ extraction/matching, Quote Builder, delivery tracking, PO extraction, deterministic Quote ↔ PO reconciliation, Sales Order Drafts and the first Business Central ERP adapter.
 
 Deployment trigger: current main baseline verified 2026-09-26.
+
+
+## Production operations
+
+A non-destructive production smoke workflow checks the public health endpoint, login page and homepage. Workspace owners/admins can open **Settings → Production status** for safe operational checks such as stale ERP attempts and recent application/email failures.
+
+Incident procedures, ERP ambiguity handling, upload/rate limits, credential rotation and the backup/restore drill checklist are documented in `docs/production-runbook.md`.

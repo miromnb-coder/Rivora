@@ -3,6 +3,13 @@ import ExcelJS from "exceljs";
 
 type RawRow = Record<string, string>;
 
+const MAX_GENERIC_ROWS = 50_000;
+const MAX_COLUMNS = 100;
+const MAX_CELL_CHARS = 5_000;
+const MAX_CATALOGUE_ROWS = 25_000;
+const MAX_RFQ_ROWS = 1_000;
+const MAX_PURCHASE_ORDER_ROWS = 2_000;
+
 export type CatalogueImportRow = {
   sku: string;
   name: string;
@@ -103,24 +110,45 @@ async function parseXlsx(buffer: Buffer): Promise<RawRow[]> {
   return rows;
 }
 
+function validateTabularShape(rows: RawRow[]) {
+  if (rows.length > MAX_GENERIC_ROWS) {
+    throw new Error(`File has too many rows. Maximum is ${MAX_GENERIC_ROWS.toLocaleString("en-US")}.`);
+  }
+
+  for (const [index, row] of rows.entries()) {
+    const entries = Object.entries(row);
+    if (entries.length > MAX_COLUMNS) {
+      throw new Error(`Row ${index + 2} has too many columns. Maximum is ${MAX_COLUMNS}.`);
+    }
+    if (entries.some(([, value]) => String(value).length > MAX_CELL_CHARS)) {
+      throw new Error(`Row ${index + 2} contains a cell that is too long.`);
+    }
+  }
+
+  return rows;
+}
+
 export async function parseTabularFile(file: File): Promise<RawRow[]> {
   if (!file || file.size === 0) throw new Error("Choose a CSV or XLSX file.");
-  if (file.size > 10 * 1024 * 1024) throw new Error("File is larger than the 10 MB MVP limit.");
+  if (file.size > 10 * 1024 * 1024) throw new Error("File is larger than the 10 MB Averomira limit.");
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const lower = file.name.toLowerCase();
 
   if (lower.endsWith(".csv")) {
-    return parse(buffer.toString("utf8"), {
+    const rows = parse(buffer.toString("utf8"), {
       columns: true,
       skip_empty_lines: true,
       trim: true,
       bom: true,
       relax_column_count: true,
     }) as RawRow[];
+    return validateTabularShape(rows);
   }
 
-  if (lower.endsWith(".xlsx")) return parseXlsx(buffer);
+  if (lower.endsWith(".xlsx")) {
+    return validateTabularShape(await parseXlsx(buffer));
+  }
 
   throw new Error("Averomira accepts CSV and XLSX files.");
 }
@@ -130,6 +158,9 @@ export function sourceTypeFromName(name: string): "csv" | "excel" {
 }
 
 export function toCatalogueRows(rows: RawRow[]): CatalogueImportRow[] {
+  if (rows.length > MAX_CATALOGUE_ROWS) {
+    throw new Error(`Catalogue has too many rows. Maximum is ${MAX_CATALOGUE_ROWS.toLocaleString("en-US")}.`);
+  }
   if (!rows.length) {
     throw new Error("Catalogue file has no product rows.");
   }
@@ -178,6 +209,9 @@ export function toCatalogueRows(rows: RawRow[]): CatalogueImportRow[] {
 }
 
 export function toRfqRows(rows: RawRow[]): RfqImportRow[] {
+  if (rows.length > MAX_RFQ_ROWS) {
+    throw new Error(`RFQ has too many rows. Maximum is ${MAX_RFQ_ROWS.toLocaleString("en-US")}.`);
+  }
   if (!rows.length) {
     throw new Error("RFQ file has no request rows.");
   }
@@ -203,6 +237,9 @@ export function toRfqRows(rows: RawRow[]): RfqImportRow[] {
 
 
 export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
+  if (rows.length > MAX_PURCHASE_ORDER_ROWS) {
+    throw new Error(`Purchase order has too many rows. Maximum is ${MAX_PURCHASE_ORDER_ROWS.toLocaleString("en-US")}.`);
+  }
   if (!rows.length) {
     throw new Error("Purchase order file has no order rows.");
   }

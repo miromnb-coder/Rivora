@@ -328,6 +328,7 @@ async function accessToken(config: BusinessCentralConfig) {
         grant_type: "client_credentials",
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
     },
   );
 
@@ -366,6 +367,7 @@ async function requestJson<T>({
     },
     body: body ? JSON.stringify(body) : undefined,
     cache: "no-store",
+    signal: AbortSignal.timeout(method === "POST" ? 30_000 : 20_000),
   });
 
   const payload = (await response.json().catch(() => ({}))) as Record<string, any>;
@@ -908,12 +910,51 @@ export async function createBusinessCentralSalesOrder(
     };
   }
 
-  const order = await requestJson<BcSalesOrder>({
-    token,
-    url: `${root}/salesOrders`,
-    method: "POST",
-    body: businessCentralSalesOrderHeader(input),
-  });
+  let order: BcSalesOrder;
+  try {
+    order = await requestJson<BcSalesOrder>({
+      token,
+      url: `${root}/salesOrders`,
+      method: "POST",
+      body: businessCentralSalesOrderHeader(input),
+    });
+  } catch (createError) {
+    // A serverless timeout/network break can happen after Business Central has
+    // accepted the POST but before Averomira receives the response. Re-check
+    // the idempotency key before allowing any retry. If the header exists, lock
+    // the draft for manual review instead of risking a duplicate order.
+    try {
+      const afterCreateFailure = await requestJson<ODataCollection<BcSalesOrder>>({
+        token,
+        url: collectionUrl(
+          root,
+          "salesOrders",
+          duplicateFilter,
+          "id,number,status,externalDocumentNumber,customerNumber",
+        ),
+      });
+      const recoveredOrder = afterCreateFailure.value?.[0];
+      if (recoveredOrder) {
+        return {
+          status: "partial",
+          externalOrderId: recoveredOrder.id,
+          externalOrderNumber: recoveredOrder.number || null,
+          error:
+            "Business Central order header was found after an ambiguous create response. Automatic retry is locked; verify the order lines in Business Central before continuing.",
+          summary: {
+            detectedAfterAmbiguousCreate: true,
+            detectedBy: "externalDocumentNumber+customerNumber",
+            businessCentralStatus: recoveredOrder.status || null,
+          },
+        };
+      }
+    } catch {
+      // Preserve the original create failure. A later retry still performs the
+      // duplicate lookup before creating another header.
+    }
+
+    throw createError;
+  }
 
   for (const line of input.lines) {
     const item = items.get(line.externalItemNumber);
