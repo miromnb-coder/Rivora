@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getAuthContext } from "@/lib/rivora/workspace";
 import { createWorkspace } from "./actions";
@@ -5,6 +6,17 @@ import { getLocale } from "@/lib/locale";
 import { getOnboardingCopy } from "@/lib/i18n/extra";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { signOut } from "@/app/app/actions";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 export default async function OnboardingPage({
   searchParams,
