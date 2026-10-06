@@ -43,8 +43,8 @@ test("S2 maps high-value app routes to contextual help articles", () => {
 
 test("S2 Help Center surfaces view-specific guidance before the full library", () => {
   assert.match(supportCenter, /supportContextForPath\(pathname, locale\)/);
-  assert.match(supportCenter, /Ohjeet tähän näkymään/);
-  assert.match(supportCenter, /Help for this view/);
+  assert.match(supportCenter, /SUOSITELTU TÄSSÄ NÄKYMÄSSÄ/);
+  assert.match(supportCenter, /RECOMMENDED IN THIS VIEW/);
   assert.match(supportCenter, /support-context-links/);
   assert.match(supportCenter, /Kaikki ohjeet/);
 });
@@ -88,6 +88,6 @@ test("S2 places contextual help only in high-value decision areas", () => {
 test("S2 contextual-help layer remains passive as later support phases are added", () => {
   assert.equal(contextTrigger.includes("fetch("), false);
   assert.equal(supportContext.includes("openai"), false);
-  assert.match(supportCenter, /Ohjeet tähän näkymään/);
+  assert.match(supportCenter, /SUOSITELTU TÄSSÄ NÄKYMÄSSÄ/);
   assert.match(supportCenter, /support-context-links/);
 });
