@@ -11,6 +11,14 @@ const migration = readFileSync(
   "utf8",
 );
 
+const hardening = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20261006114500_harden_memory_m1_rpc.sql",
+  ),
+  "utf8",
+);
+
 const helper = readFileSync(
   join(process.cwd(), "lib/rivora/memory.ts"),
   "utf8",
@@ -129,4 +137,40 @@ test("memory server helper prefers customer memory and can fall back to workspac
   assert.match(helper, /scope", "workspace"/);
   assert.match(helper, /rememberWorkspaceDecision/);
   assert.match(helper, /recordWorkspaceMemoryUsage/);
+});
+
+
+test("M1 mutation RPCs are server-only after hardening", () => {
+  assert.match(
+    hardening,
+    /drop function if exists public\.upsert_workspace_memory_entry/,
+  );
+  assert.match(
+    hardening,
+    /create or replace function public\.upsert_workspace_memory_entry_server/,
+  );
+  assert.match(
+    hardening,
+    /revoke all on function public\.upsert_workspace_memory_entry_server[\s\S]*from authenticated/,
+  );
+  assert.match(
+    hardening,
+    /grant execute on function public\.upsert_workspace_memory_entry_server[\s\S]*to service_role/,
+  );
+  assert.match(
+    hardening,
+    /revoke all on function public\.set_workspace_memory_state_server\(uuid,text,uuid\) from authenticated/,
+  );
+  assert.match(
+    hardening,
+    /revoke all on function public\.record_workspace_memory_usage_server\(uuid,uuid\) from authenticated/,
+  );
+});
+
+test("M1 server helpers require an explicit actor for mutations", () => {
+  assert.match(helper, /createAdminClient/);
+  assert.match(helper, /target_actor_id: actorId/);
+  assert.match(helper, /upsert_workspace_memory_entry_server/);
+  assert.match(helper, /set_workspace_memory_state_server/);
+  assert.match(helper, /record_workspace_memory_usage_server/);
 });
