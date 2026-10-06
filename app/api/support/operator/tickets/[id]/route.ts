@@ -60,6 +60,13 @@ export async function GET(
   const requestId = requestIdFor(request);
 
   try {
+    if (request.headers.get("sec-fetch-site") === "cross-site") {
+      return NextResponse.json(
+        { error: "Cross-site requests are not allowed.", requestId },
+        { status: 403, headers: requestIdHeaders(requestId) },
+      );
+    }
+
     const { context, allowed } = await operatorContext();
     if (!allowed || !context.claims?.sub) {
       return NextResponse.json(
@@ -182,6 +189,13 @@ export async function POST(
   const requestId = requestIdFor(request);
 
   try {
+    if (request.headers.get("sec-fetch-site") === "cross-site") {
+      return NextResponse.json(
+        { error: "Cross-site requests are not allowed.", requestId },
+        { status: 403, headers: requestIdHeaders(requestId) },
+      );
+    }
+
     const { context, allowed } = await operatorContext();
     if (!allowed || !context.claims?.sub) {
       return NextResponse.json(
@@ -311,6 +325,13 @@ export async function PATCH(
   const requestId = requestIdFor(request);
 
   try {
+    if (request.headers.get("sec-fetch-site") === "cross-site") {
+      return NextResponse.json(
+        { error: "Cross-site requests are not allowed.", requestId },
+        { status: 403, headers: requestIdHeaders(requestId) },
+      );
+    }
+
     const { context, allowed } = await operatorContext();
     if (!allowed || !context.claims?.sub) {
       return NextResponse.json(
