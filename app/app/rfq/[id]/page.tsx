@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { confirmRfqMatch, retryRfqProcessing } from "./actions";
 import { createQuoteFromRfq } from "@/app/app/quotes/actions";
 import { formatLocale, getLocale } from "@/lib/locale";
@@ -13,7 +14,7 @@ function rfqMethodLabel(method: string | null | undefined, fi: boolean) {
   const key = String(method || "").toLowerCase();
   const labels: Record<string, [string, string]> = {
     exact_sku: ["Tarkka SKU-osuma", "Exact SKU match"],
-    product_memory: ["Älykkään muistin vastine", "Smart Product Memory match"],
+    product_memory: ["Muistettu vastine", "Remembered mapping"],
     customer_memory: ["Asiakaskohtainen muistivastine", "Customer memory match"],
     exact_mpn: ["Tarkka valmistajan tuotenumero", "Exact manufacturer part number"],
     fuzzy: ["Samankaltaisuuteen perustuva osuma", "Fuzzy match"],
@@ -21,6 +22,18 @@ function rfqMethodLabel(method: string | null | undefined, fi: boolean) {
     unmatched: ["Ei osumaa", "Unmatched"],
   };
   return labels[key]?.[fi ? 0 : 1] ?? (method ? String(method).replaceAll("_", " ") : (fi ? "Ei menetelmää" : "No method"));
+}
+
+function productMemorySourceLabel(source: string | null | undefined, fi: boolean) {
+  const labels: Record<string, [string, string]> = {
+    manual_confirmation: ["Ihmisen vahvistama", "Human confirmed"],
+    approved_quote: ["Hyväksytystä tarjouksesta", "From approved quote"],
+    approved_po_reconciliation: ["Hyväksytystä PO-tarkistuksesta", "From approved PO review"],
+    verified_erp_mapping: ["Vahvistetusta ERP-vastineesta", "From verified ERP mapping"],
+    system_import: ["Järjestelmätuonti", "System import"],
+  };
+  const key = String(source || "");
+  return labels[key]?.[fi ? 0 : 1] ?? (fi ? "Vahvistettu muisti" : "Verified memory");
 }
 
 function rfqReviewStatusLabel(status: string, fi: boolean) {
@@ -53,9 +66,10 @@ function lineTone(confidence: number, reviewStatus: string) {
 
 export default async function RfqPage({ params }: { params: Promise<{ id: string }> }) {
   const [{ id }, locale, context] = await Promise.all([params, getLocale(), requireWorkspace()]);
-  const { supabase, workspace } = context;
+  const { supabase, workspace, claims } = context;
   const fi = locale === "fi";
   const money = new Intl.NumberFormat(formatLocale(locale), { style: "currency", currency: "EUR" });
+  const memoryDate = new Intl.DateTimeFormat(formatLocale(locale), { dateStyle: "medium" });
   const text = {
     inbox: fi ? "Tarjouspyynnöt" : "Inbox", review: fi ? "Tarjouspyynnön tarkistus" : "RFQ review", unknownCustomer: fi ? "Tuntematon asiakas" : "Unknown customer",
     needConfirm: (n: number) => fi ? `${n} riviä vaatii ihmisen vahvistuksen` : `${n} lines need human confirmation`, allConfirmed: fi ? "kaikki rivit ihmisen vahvistamia" : "all lines human-confirmed",
@@ -107,6 +121,20 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
     byLine.set((candidate as any).rfq_line_id, list);
   }
 
+  const admin = createAdminClient();
+  const { data: memoryExplanations, error: memoryExplanationError } = await admin.rpc(
+    "get_rfq_product_memory_explanations_server",
+    {
+      target_rfq_id: id,
+      target_actor_id: claims.sub,
+    },
+  );
+  if (memoryExplanationError) throw new Error(memoryExplanationError.message);
+
+  const memoryExplanationByLine = new Map<string, any>();
+  for (const explanation of memoryExplanations ?? []) {
+    memoryExplanationByLine.set(String((explanation as any).rfq_line_id), explanation);
+  }
 
   const hasManualLines = (lines ?? []).some(
     (line: any) =>
@@ -248,6 +276,8 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
             const primaryProduct = Array.isArray(primaryCandidate?.products)
               ? primaryCandidate?.products?.[0]
               : primaryCandidate?.products;
+            const memoryExplanation = memoryExplanationByLine.get(String(line.id));
+            const displayedMethod = memoryExplanation ? "product_memory" : line.match_method;
             const stateLabel =
               line.review_status === "confirmed"
                 ? (fi ? "Vahvistettu" : "Confirmed")
@@ -278,8 +308,53 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
                   <div className="rfq-review-v2-method">
                     <span>{text.method}</span>
-                    <b>{rfqMethodLabel(line.match_method, fi)}</b>
+                    <b>{rfqMethodLabel(displayedMethod, fi)}</b>
                   </div>
+
+                  {memoryExplanation ? (
+                    <div className="rfq-review-v2-memory-explanation">
+                      <div className="rfq-review-v2-memory-explanation-head">
+                        <span>{fi ? "Muistettu vastine" : "Remembered mapping"}</span>
+                        <strong>
+                          {memoryExplanation.verification_state === "verified"
+                            ? (fi ? "Verified" : "Verified")
+                            : (fi ? "Ei enää aktiivinen" : "No longer active")}
+                        </strong>
+                      </div>
+                      <p>
+                        {fi
+                          ? `Asiakkaan tunniste “${memoryExplanation.source_value}” on yhdistetty tähän tuotteeseen aiemmassa ihmisen vahvistamassa päätöksessä.`
+                          : `The customer identifier “${memoryExplanation.source_value}” was linked to this product in an earlier human-confirmed decision.`}
+                      </p>
+                      <div className="rfq-review-v2-memory-facts">
+                        <span>
+                          {fi ? "Lähde" : "Source"} ·{" "}
+                          <b>{productMemorySourceLabel(memoryExplanation.memory_source, fi)}</b>
+                        </span>
+                        <span>
+                          {fi ? "Vahvistettu" : "Verified"} ·{" "}
+                          <b>
+                            {memoryExplanation.verified_at
+                              ? memoryDate.format(new Date(memoryExplanation.verified_at))
+                              : "—"}
+                          </b>
+                        </span>
+                        <span>
+                          {fi ? "Käytetty" : "Used"} ·{" "}
+                          <b>{Number(memoryExplanation.use_count ?? 0)}×</b>
+                        </span>
+                        <span>
+                          {fi ? "Varmuus" : "Confidence"} ·{" "}
+                          <b>{Math.round(Number(memoryExplanation.confidence ?? 0))}%</b>
+                        </span>
+                      </div>
+                      <small>
+                        {fi
+                          ? "Muisti priorisoi ehdotuksen, mutta tämä rivi vaatii edelleen ihmisen vahvistuksen."
+                          : "Memory prioritizes the suggestion, but this line still requires human confirmation."}
+                      </small>
+                    </div>
+                  ) : null}
 
                   {line.extraction_notes ? (
                     <div className="rfq-review-v2-note">{line.extraction_notes}</div>
