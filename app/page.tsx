@@ -16,22 +16,35 @@ import {
 
 export default async function Home() {
   const locale = await getLocale();
-  const organizationStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Averomira",
-    url: "https://averomira.com",
-    logo: "https://averomira.com/icon.svg",
-    description:
-      "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
-  };
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://averomira.com/#organization",
+      name: "Averomira",
+      url: "https://averomira.com",
+      logo: "https://averomira.com/favicon.svg",
+      description:
+        "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://averomira.com/#website",
+      url: "https://averomira.com",
+      name: "Averomira",
+      publisher: {
+        "@id": "https://averomira.com/#organization",
+      },
+    },
+  ];
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationStructuredData).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
         }}
       />
       <main className="marketing-page minimal-direction">
