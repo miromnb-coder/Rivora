@@ -196,6 +196,23 @@ export function SupportInbox({ locale }: { locale: Locale }) {
     });
   }, [selectedId]);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (document.hidden) return;
+
+      loadTickets().catch(() => {
+        // Keep the current inbox visible if a background refresh fails.
+      });
+      if (selectedId) {
+        loadDetail(selectedId).catch(() => {
+          // Keep the current conversation visible if a background refresh fails.
+        });
+      }
+    }, 30_000);
+
+    return () => window.clearInterval(interval);
+  }, [selectedId]);
+
   async function submitReply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedId || sending || reply.trim().length < 1) return;
