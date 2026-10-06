@@ -21,6 +21,17 @@ create table if not exists public.organization_features (
 
 alter table public.organization_features enable row level security;
 
+drop policy if exists organization_features_deny_browser_access
+  on public.organization_features;
+
+create policy organization_features_deny_browser_access
+on public.organization_features
+as restrictive
+for all
+to authenticated
+using (false)
+with check (false);
+
 revoke all on table public.organization_features from anon;
 revoke all on table public.organization_features from authenticated;
 grant select, insert, update, delete on table public.organization_features to service_role;
