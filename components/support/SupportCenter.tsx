@@ -4,6 +4,8 @@ import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/locale";
+import { supportContextForPath } from "@/lib/rivora/support-context";
+import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
 
 type HelpArticle = {
   id: string;
@@ -90,6 +92,56 @@ const helpArticles: Record<Locale, HelpArticle[]> = {
         "Muistin tietoja voi tarkastella Asetukset-valikon Älykäs muisti -kohdasta.",
       ],
     },
+    {
+      id: "rfq-why-review",
+      title: "Miksi tuoterivi jäi tarkistettavaksi?",
+      summary: "Miten Averomira päättää, mikä vaatii ihmisen vahvistuksen.",
+      body: [
+        "Rivi jää tarkistettavaksi, kun Averomira ei voi vahvistaa tuotetta turvallisesti ilman ihmisen päätöstä tai kun prosessin käytäntö vaatii erillisen vahvistuksen.",
+        "Tarkka SKU-osuma tai muistettu vastine voi nostaa oikean tuotteen vahvaksi ehdokkaaksi, mutta se ei ohita RFQ Review -vahvistusta.",
+        "Tarkista asiakkaan tunniste, kuvaus, määrä ja ehdotetun tuotteen tiedot. Vahvista vasta, kun ehdotus vastaa asiakkaan pyyntöä.",
+      ],
+    },
+    {
+      id: "business-central-client-id",
+      title: "Mistä löydän Business Centralin Client ID:n?",
+      summary: "Application (client) ID löytyy Microsoft Entra -sovellusrekisteröinnistä.",
+      body: [
+        "Avaa Microsoft Entra -hallinnassa se App registration, jota Averomiran Business Central -yhteys käyttää.",
+        "Avaa sovelluksen Overview / Yleiskatsaus. Kopioi Application (client) ID -arvo Averomiran Business Central -asetuksiin.",
+        "Client ID ei ole sama asia kuin Client Secret. Älä lähetä Client Secretiä tukipyyntöön tai kuvakaappaukseen.",
+      ],
+    },
+    {
+      id: "business-central-mapping",
+      title: "Miksi Business Central -vastine puuttuu?",
+      summary: "Asiakas tai tuote tarvitsee vahvistetun ERP-vastineen ennen vientiä.",
+      body: [
+        "Averomira tarvitsee Business Centralissa käytettävän asiakasnumeron ja item-numeron ennen ERP-valmiin tilauksen vientiä.",
+        "Jos vastine puuttuu tai sitä ei ole vielä vahvistettu, työjono näyttää tehtävän Täydennä Business Central -vastineet.",
+        "Täytä tai tarkista vastine Business Central -vastineet -näkymässä. Averomira ei korvaa puuttuvaa ERP-tunnistetta arvaamalla.",
+      ],
+    },
+    {
+      id: "po-exceptions",
+      title: "Mitä ostotilauksen poikkeama tarkoittaa?",
+      summary: "Näin tulkitset PO:n ja hyväksytyn tarjouksen erot.",
+      body: [
+        "PO-tarkistus vertaa asiakkaan ostotilausta hyväksyttyyn tarjoukseen ja nostaa esiin kohdat, joissa tiedot eivät vastaa toisiaan.",
+        "Poikkeama voi liittyä esimerkiksi tuotteeseen, määrään, hintaan, valuuttaan tai tarjousviitteeseen.",
+        "Tarkista poikkeaman lähdetiedot ja tee päätös ennen hyväksyntää. ERP-valmis tilaus muodostetaan vasta tarkistetusta reconciliationista.",
+      ],
+    },
+    {
+      id: "quote-locking",
+      title: "Miksi tarjouksen tiedot ovat lukittu?",
+      summary: "Hyväksyntä lukitsee kaupalliset tiedot prosessin eheyden vuoksi.",
+      body: [
+        "Kun tarjous hyväksytään, Averomira lukitsee keskeiset kaupalliset tiedot, jotta hyväksytty sisältö ei muutu huomaamatta.",
+        "Jos tarjous on vielä Ready-tilassa ja tarvitsee muutoksia, palauta se luonnokseksi ennen hyväksyntää.",
+        "Jo lähetetyn tarjouksen muuttamisen sijaan käsittele tarvittava muutos yrityksesi hyväksytyn prosessin mukaisesti.",
+      ],
+    },
   ],
   en: [
     {
@@ -162,6 +214,56 @@ const helpArticles: Record<Locale, HelpArticle[]> = {
         "Memory entries can be reviewed under Settings > Smart memory.",
       ],
     },
+    {
+      id: "rfq-why-review",
+      title: "Why does this product line need review?",
+      summary: "How Averomira decides what needs human confirmation.",
+      body: [
+        "A line stays in review when Averomira cannot safely confirm the product without a human decision or when the workflow policy requires explicit confirmation.",
+        "An exact SKU match or remembered mapping can make a product a strong candidate, but it does not bypass RFQ Review confirmation.",
+        "Check the customer identifier, description, quantity and suggested product details. Confirm only when the suggestion matches the customer's request.",
+      ],
+    },
+    {
+      id: "business-central-client-id",
+      title: "Where do I find the Business Central Client ID?",
+      summary: "The Application (client) ID is in the Microsoft Entra app registration.",
+      body: [
+        "Open the App registration in Microsoft Entra that your Averomira Business Central connection uses.",
+        "Open the app's Overview page and copy the Application (client) ID into the Business Central settings in Averomira.",
+        "The Client ID is not the Client Secret. Do not include a Client Secret in a support request or screenshot.",
+      ],
+    },
+    {
+      id: "business-central-mapping",
+      title: "Why is a Business Central mapping missing?",
+      summary: "A customer or product needs a verified ERP mapping before export.",
+      body: [
+        "Averomira needs the Business Central customer number and item number used by the ERP before an ERP-ready order can be exported.",
+        "If a mapping is missing or not yet verified, the work queue shows a Complete Business Central mappings task.",
+        "Complete or verify the mapping in the Business Central mappings view. Averomira does not guess missing ERP identifiers.",
+      ],
+    },
+    {
+      id: "po-exceptions",
+      title: "What does a purchase-order exception mean?",
+      summary: "How to interpret differences between the PO and approved quote.",
+      body: [
+        "PO review compares the customer's purchase order with the approved quote and surfaces fields that do not match.",
+        "An exception can involve the product, quantity, price, currency or quote reference.",
+        "Review the source values and make the decision before approval. The ERP-ready order is created only from a reviewed reconciliation.",
+      ],
+    },
+    {
+      id: "quote-locking",
+      title: "Why are quote fields locked?",
+      summary: "Approval locks commercial data to preserve process integrity.",
+      body: [
+        "When a quote is approved, Averomira locks core commercial fields so approved content cannot change silently.",
+        "If a quote is still Ready and needs changes, return it to draft before approval.",
+        "For an already sent quote, handle the required change through your company's approved commercial process instead of silently rewriting the sent quote.",
+      ],
+    },
   ],
 };
 
@@ -210,6 +312,12 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   const pathname = usePathname();
   const articles = helpArticles[locale];
+  const routeContext = supportContextForPath(pathname, locale);
+  const contextArticles = routeContext
+    ? routeContext.articleIds
+        .map((articleId) => articles.find((article) => article.id === articleId))
+        .filter((article): article is HelpArticle => Boolean(article))
+    : [];
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<PanelView>({ kind: "home" });
   const [query, setQuery] = useState("");
@@ -237,6 +345,21 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     view.kind === "article"
       ? articles.find((article) => article.id === view.articleId) ?? null
       : null;
+
+  useEffect(() => {
+    const handleContextHelp = (event: Event) => {
+      const detail = (event as CustomEvent<{ articleId?: string }>).detail;
+      const articleId = detail?.articleId;
+      if (!articleId || !articles.some((article) => article.id === articleId)) return;
+
+      setQuery("");
+      setView({ kind: "article", articleId });
+      setOpen(true);
+    };
+
+    window.addEventListener(SUPPORT_OPEN_EVENT, handleContextHelp);
+    return () => window.removeEventListener(SUPPORT_OPEN_EVENT, handleContextHelp);
+  }, [articles]);
 
   useEffect(() => {
     if (!open) return;
@@ -431,9 +554,33 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                     />
                   </label>
 
+                  {!query.trim() && routeContext && contextArticles.length ? (
+                    <div className="support-context-section">
+                      <div className="support-context-section-head">
+                        <div>
+                          <span>{fi ? "Ohjeet tähän näkymään" : "Help for this view"}</span>
+                          <strong>{routeContext.title}</strong>
+                          <p>{routeContext.description}</p>
+                        </div>
+                      </div>
+                      <div className="support-context-links">
+                        {contextArticles.map((article) => (
+                          <button
+                            key={article.id}
+                            type="button"
+                            onClick={() => setView({ kind: "article", articleId: article.id })}
+                          >
+                            <span>{article.title}</span>
+                            <ArrowIcon />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div className="support-help-section">
                     <div className="support-help-section-head">
-                      <span>{fi ? "Ohjeet" : "Help articles"}</span>
+                      <span>{query.trim() ? (fi ? "Hakutulokset" : "Search results") : (fi ? "Kaikki ohjeet" : "All help articles")}</span>
                       <small>{filteredArticles.length}</small>
                     </div>
 
