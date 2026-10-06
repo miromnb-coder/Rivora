@@ -13,5 +13,15 @@ alter table public.organizations
     or char_length(erp_requested_name) between 1 and 120
   );
 
+alter table public.organizations
+  drop constraint if exists organizations_erp_requested_name_provider_check;
+
+alter table public.organizations
+  add constraint organizations_erp_requested_name_provider_check
+  check (
+    erp_requested_name is null
+    or erp_provider = 'custom'
+  );
+
 comment on column public.organizations.erp_requested_name is
   'Human-readable ERP name when erp_provider=custom. This does not enable a native connection or automatic export.';
