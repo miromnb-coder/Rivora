@@ -6,6 +6,7 @@ import {
   businessCentralMappingIsVerified,
   getBusinessCentralConfigurationStatus,
 } from "@/lib/rivora/erp/business-central";
+import { getErpProviderCapability } from "@/lib/rivora/erp";
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
@@ -76,6 +77,11 @@ export default async function OrderCasePage({
   const { supabase, workspace } = context;
   const fi = locale === "fi";
   const displayLocale = formatLocale(locale);
+  const workspaceErpCapability = getErpProviderCapability(workspace.erpProvider);
+  const isBusinessCentralWorkspace =
+    workspaceErpCapability.key === "business_central" &&
+    workspaceErpCapability.hasNativeAdapter;
+  const requestedErpName = workspace.erpRequestedName?.trim() || "";
 
   let rfqId: string | null = null;
   let quoteId: string | null = null;
@@ -204,7 +210,7 @@ export default async function OrderCasePage({
     salesOrderId
       ? supabase
           .from("sales_order_drafts")
-          .select("id,status,customer_id,customer_po_number,currency,updated_at,external_order_number,erp_error,sales_order_draft_lines(line_total,product_id)")
+          .select("id,status,customer_id,customer_po_number,currency,updated_at,erp_provider,external_order_number,erp_error,sales_order_draft_lines(line_total,product_id)")
           .eq("id", salesOrderId)
           .eq("organization_id", workspace.id)
           .maybeSingle()
@@ -268,7 +274,7 @@ export default async function OrderCasePage({
   let bcMissingMappings = 0;
   let bcMappingTotal = 0;
 
-  if (sales?.status === "draft") {
+  if (sales?.status === "draft" && isBusinessCentralWorkspace) {
     const productIds = [
       ...new Set(
         salesLines
@@ -425,29 +431,60 @@ export default async function OrderCasePage({
     primary = {
       title: fi ? "Tilaus on valmis myyntitilausluonnokseksi" : "Order is ready for a sales order draft",
       body: fi
-        ? "Hyväksytty PO voidaan lukita ERP-vientiä varten."
-        : "The approved PO can now be locked for ERP export.",
+        ? "Hyväksytty PO voidaan lukita Sales Order Draftiksi. Automaattinen ERP-vienti on käytössä vain, jos työtilalla on natiivi ja valmis ERP-adapteri."
+        : "The approved PO can now be locked as a Sales Order Draft. Automatic ERP export is available only when the workspace has a native, ready ERP adapter.",
       action: fi ? "Luo myyntitilausluonnos" : "Create sales order draft",
       href: `/app/purchase-orders/${po.id}`,
     };
   } else if (sales && sales.status === "draft") {
-    primary = bcExportReady
-      ? {
-          title: fi ? "Valmis Business Centraliin" : "Ready for Business Central",
-          body: fi
-            ? "Kaikki vientiehdot ja Business Central -vastineet ovat valmiit."
-            : "All export requirements and Business Central mappings are ready.",
-          action: fi ? "Jatka Business Centraliin" : "Continue to Business Central",
-          href: `/app/sales-orders/${sales.id}`,
-        }
-      : {
-          title: fi ? "Täydennä Business Central -vastineet" : "Complete Business Central mappings",
-          body: fi
-            ? `${bcMissingMappings}/${bcMappingTotal} vastinetta puuttuu tai vaatii tarkistuksen ennen vientiä.`
-            : `${bcMissingMappings}/${bcMappingTotal} mappings are missing or require verification before export.`,
-          action: fi ? "Tarkista vastineet" : "Review mappings",
-          href: `/app/sales-orders/${sales.id}`,
-        };
+    if (isBusinessCentralWorkspace) {
+      primary = bcExportReady
+        ? {
+            title: fi ? "Valmis Business Centraliin" : "Ready for Business Central",
+            body: fi
+              ? "Kaikki vientiehdot ja Business Central -vastineet ovat valmiit."
+              : "All export requirements and Business Central mappings are ready.",
+            action: fi ? "Jatka Business Centraliin" : "Continue to Business Central",
+            href: `/app/sales-orders/${sales.id}`,
+          }
+        : {
+            title: fi ? "Täydennä Business Central -vastineet" : "Complete Business Central mappings",
+            body: fi
+              ? `${bcMissingMappings}/${bcMappingTotal} vastinetta puuttuu tai vaatii tarkistuksen ennen vientiä.`
+              : `${bcMissingMappings}/${bcMappingTotal} mappings are missing or require verification before export.`,
+            action: fi ? "Tarkista vastineet" : "Review mappings",
+            href: `/app/sales-orders/${sales.id}`,
+          };
+    } else if (workspaceErpCapability.availability === "unsupported") {
+      primary = {
+        title: fi
+          ? `${requestedErpName || "Muu ERP"} ei ole natiivisti integroitu`
+          : `${requestedErpName || "Selected ERP"} has no native integration`,
+        body: fi
+          ? "Sales Order Draft on valmis, mutta Averomira ei pyydä ERP-tunnuksia eikä yritä automaattista vientiä tässä tilassa."
+          : "The Sales Order Draft is ready, but Averomira does not request ERP credentials or attempt automatic export in this state.",
+        action: fi ? "Avaa luonnos" : "Open draft",
+        href: `/app/sales-orders/${sales.id}`,
+      };
+    } else if (workspaceErpCapability.availability === "unavailable") {
+      primary = {
+        title: fi ? "ERP-adapteri ei ole saatavilla" : "ERP adapter unavailable",
+        body: fi
+          ? `Provider “${workspaceErpCapability.key}” on tallennettu työtilalle, mutta tässä versiossa sille ei ole adapteria. Automaattista vientiä ei yritetä.`
+          : `Provider “${workspaceErpCapability.key}” is stored for the workspace, but this version has no adapter. Automatic export is not attempted.`,
+        action: fi ? "Avaa luonnos" : "Open draft",
+        href: `/app/sales-orders/${sales.id}`,
+      };
+    } else {
+      primary = {
+        title: fi ? "Myyntitilausluonnos on valmis" : "Sales order draft is ready",
+        body: fi
+          ? "Työtilalla ei ole ERP-vientiä käytössä. Luonnos säilyy Averomirassa ilman automaattista vientiä."
+          : "ERP export is disabled for this workspace. The draft remains available in Averomira without automatic export.",
+        action: fi ? "Avaa luonnos" : "Open draft",
+        href: `/app/sales-orders/${sales.id}`,
+      };
+    }
   } else if (sales && ["erp_failed", "erp_partial"].includes(String(sales.status))) {
     primary = {
       title: fi ? "ERP-vienti tarvitsee huomiota" : "ERP export needs attention",
@@ -460,10 +497,19 @@ export default async function OrderCasePage({
       href: `/app/sales-orders/${sales.id}`,
     };
   } else if (sales?.status === "erp_created") {
+    const exportedProvider = getErpProviderCapability(
+      sales.erp_provider || workspace.erpProvider,
+    );
+    const exportedProviderLabel =
+      exportedProvider.key === "business_central"
+        ? "Business Central"
+        : exportedProvider.label;
     primary = {
-      title: fi ? "Tilaus on luotu Business Centraliin" : "Order created in Business Central",
+      title: fi
+        ? `Tilaus on luotu järjestelmään ${exportedProviderLabel}`
+        : `Order created in ${exportedProviderLabel}`,
       body: sales.external_order_number
-        ? `${fi ? "Business Central -numero" : "Business Central number"}: ${sales.external_order_number}`
+        ? `${exportedProviderLabel}: ${sales.external_order_number}`
         : fi
           ? "ERP-vienti on valmis."
           : "ERP export is complete.",
