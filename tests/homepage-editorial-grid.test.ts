@@ -19,7 +19,7 @@ test("technical drafting marks stay decorative and reduce on mobile", () => {
   assert.match(css, /\.product-showcase::before/);
   assert.match(css, /\.workflow-showcase::before/);
   assert.match(css, /@media \(max-width: 720px\)/);
-  assert.match(css, /\\.minimal-direction::before \\{\\s*display: none;/);
+  assert.match(css, /\.minimal-direction::before \{\s*display: none;/);
 });
 
 
