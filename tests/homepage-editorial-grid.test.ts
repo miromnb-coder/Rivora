@@ -21,3 +21,13 @@ test("technical drafting marks stay decorative and reduce on mobile", () => {
   assert.match(css, /@media \(max-width: 720px\)/);
   assert.match(css, /\.minimal-direction::before,\s*\.minimal-direction::after \{\s*display: none;/);
 });
+
+
+test("drafting grid spans the viewport and divides the navigation into cells", () => {
+  assert.match(css, /Editorial grid refinement — full viewport rules \+ navigation drafting cells/);
+  assert.match(css, /\.minimal-direction \.nav-v2-brand::after/);
+  assert.match(css, /\.minimal-direction \.nav-v2-actions::before/);
+  assert.match(css, /\.minimal-direction \.nav-v2::after/);
+  assert.match(css, /width: 100vw/);
+  assert.match(css, /transform: translateX\(-50%\)/);
+});
