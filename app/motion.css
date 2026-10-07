@@ -390,6 +390,31 @@ button:disabled,
   }
 }
 
+.support-center-layer.is-closing .support-center-backdrop {
+  animation: averomira-backdrop-exit 180ms var(--ease-exit) both;
+}
+
+.support-center-layer.is-closing .support-center-panel {
+  animation: averomira-help-panel-exit 180ms var(--ease-exit) both;
+  pointer-events: none;
+}
+
+@keyframes averomira-backdrop-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes averomira-help-panel-exit {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(8px, 10px) scale(0.97);
+  }
+}
+
 /* Dashboard data transitions */
 .dashboard-attention-count,
 .dashboard-kpi-item strong,
