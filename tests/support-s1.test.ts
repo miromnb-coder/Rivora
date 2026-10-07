@@ -120,14 +120,14 @@ test("support endpoint is authenticated, rate-limited and records safe app conte
 test("S1 Help Center is mounted globally in the authenticated app shell", () => {
   assert.match(appShell, /SupportCenter/);
   assert.match(appShell, /<SupportCenter locale=\{locale\}/);
-  assert.match(supportCenter, /className="support-launcher"/);
+  assert.match(supportCenter, /support-launcher/);
   assert.match(supportCenter, /Miten voimme auttaa\?/);
   assert.match(supportCenter, /Lähetä tukipyyntö/);
   assert.match(supportCenter, /Kuvakaappaus \(valinnainen\)/);
 });
 
 test("S1 Help Center foundation remains intact as later support phases are added", () => {
-  assert.match(supportCenter, /className="support-launcher"/);
+  assert.match(supportCenter, /support-launcher/);
   assert.match(supportCenter, /Lähetä tukipyyntö/);
   assert.match(supportCenter, /\/api\/support\/tickets/);
   assert.match(supportCenter, /Kuvakaappaus \(valinnainen\)/);

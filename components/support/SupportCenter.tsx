@@ -363,6 +363,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         .filter((article): article is HelpArticle => Boolean(article))
     : [];
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [view, setView] = useState<PanelView>({ kind: "home" });
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("product");
@@ -374,11 +375,14 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [aiQuestion, setAiQuestion] = useState("");
   const [aiMessages, setAiMessages] = useState<SupportAiMessage[]>([]);
   const [aiAsking, setAiAsking] = useState(false);
+  const [aiSent, setAiSent] = useState(false);
   const [aiError, setAiError] = useState("");
   const [supportUnreadCount, setSupportUnreadCount] = useState(0);
   const [showHelpLibrary, setShowHelpLibrary] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
+  const aiSuccessTimerRef = useRef<number | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
   const previousPathRef = useRef(pathname);
 
   const filteredArticles = useMemo(() => {
@@ -437,8 +441,47 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     previousPathRef.current = pathname;
     setAiQuestion("");
     setAiMessages([]);
+    setAiSent(false);
     setAiError("");
   }, [pathname]);
+
+  useEffect(() => {
+    return () => {
+      if (aiSuccessTimerRef.current) {
+        window.clearTimeout(aiSuccessTimerRef.current);
+      }
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  function openSupport() {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setClosing(false);
+    setOpen(true);
+  }
+
+  function closeSupport() {
+    if (!open || closing) return;
+
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    setClosing(true);
+    closeTimerRef.current = window.setTimeout(
+      () => {
+        setOpen(false);
+        setClosing(false);
+        closeTimerRef.current = null;
+      },
+      reducedMotion ? 0 : 180,
+    );
+  }
 
   useEffect(() => {
     const handleContextHelp = (event: Event) => {
@@ -448,7 +491,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
 
       setQuery("");
       setView({ kind: "article", articleId });
-      setOpen(true);
+      openSupport();
     };
 
     window.addEventListener(SUPPORT_OPEN_EVENT, handleContextHelp);
@@ -459,7 +502,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") closeSupport();
     };
 
     document.addEventListener("keydown", onKeyDown);
@@ -532,6 +575,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     setAiMessages([...previousMessages, userMessage]);
     setAiQuestion("");
     setAiError("");
+    if (aiSuccessTimerRef.current) {
+      window.clearTimeout(aiSuccessTimerRef.current);
+      aiSuccessTimerRef.current = null;
+    }
+    setAiSent(false);
     setAiAsking(true);
 
     try {
@@ -590,6 +638,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
           articleIds: Array.isArray(data.articleIds) ? data.articleIds : [],
         },
       ]);
+      setAiSent(true);
+      aiSuccessTimerRef.current = window.setTimeout(() => {
+        setAiSent(false);
+        aiSuccessTimerRef.current = null;
+      }, 900);
     } catch (error) {
       setAiError(
         error instanceof Error
@@ -684,11 +737,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     <>
       <button
         type="button"
-        className="support-launcher"
+        className={"support-launcher" + (open && !closing ? " is-open" : "")}
         aria-label={fi ? "Avaa Averomira Help Center" : "Open Averomira Help Center"}
         aria-expanded={open}
         onClick={() => {
-          setOpen(true);
+          openSupport();
           if (view.kind === "success") setView({ kind: "home" });
         }}
       >
@@ -702,12 +755,12 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       </button>
 
       {open ? (
-        <div className="support-center-layer">
+        <div className={"support-center-layer" + (closing ? " is-closing" : "")}>
           <button
             type="button"
             className="support-center-backdrop"
             aria-label={fi ? "Sulje Help Center" : "Close Help Center"}
-            onClick={() => setOpen(false)}
+            onClick={closeSupport}
           />
 
           <section
@@ -753,7 +806,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
               <button
                 type="button"
                 className="support-center-close"
-                onClick={() => setOpen(false)}
+                onClick={closeSupport}
                 aria-label={fi ? "Sulje" : "Close"}
               >
                 <CloseIcon />
@@ -852,10 +905,36 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       />
                       <button
                         type="submit"
+                        className={
+                          "support-ai-submit-motion" +
+                          (aiAsking ? " is-working" : aiSent ? " is-success" : "")
+                        }
                         disabled={aiAsking || aiQuestion.trim().length < 3}
-                        aria-label={fi ? "Lähetä kysymys" : "Send question"}
+                        aria-label={
+                          aiAsking
+                            ? fi
+                              ? "Averomira AI hakee vastausta"
+                              : "Averomira AI is checking"
+                            : aiSent
+                              ? fi
+                                ? "Vastaus valmis"
+                                : "Answer ready"
+                              : fi
+                                ? "Lähetä kysymys"
+                                : "Send question"
+                        }
                       >
-                        <ArrowIcon />
+                        {aiAsking ? (
+                          <span className="motion-dots" aria-hidden="true">
+                            <i />
+                            <i />
+                            <i />
+                          </span>
+                        ) : aiSent ? (
+                          <span aria-hidden="true">✓</span>
+                        ) : (
+                          <ArrowIcon />
+                        )}
                       </button>
                     </form>
 

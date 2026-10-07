@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type NavItem = readonly [label: string, href: string, id: string];
@@ -149,6 +149,12 @@ export function AppNav({
   const [ordersOpen, setOrdersOpen] = useState(ordersActive);
   const [settingsOpen, setSettingsOpen] = useState(settingsActive);
   const [activeSubHref, setActiveSubHref] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement | null>(null);
+  const [activeIndicator, setActiveIndicator] = useState({
+    top: 0,
+    height: 0,
+    opacity: 0,
+  });
 
   useEffect(() => {
     setPendingHref(null);
@@ -169,6 +175,41 @@ export function AppNav({
     window.addEventListener("hashchange", syncHash);
     return () => window.removeEventListener("hashchange", syncHash);
   }, [pathname]);
+
+  useEffect(() => {
+    const syncIndicator = () => {
+      const nav = navRef.current;
+      if (!nav) return;
+
+      const target =
+        nav.querySelector<HTMLElement>(".app-sidebar-v2-sublink.is-active") ??
+        nav.querySelector<HTMLElement>(".app-sidebar-v2-link.is-active") ??
+        nav.querySelector<HTMLElement>(
+          ".app-sidebar-v2-order-group.is-active .app-sidebar-v2-link",
+        );
+
+      if (!target) {
+        setActiveIndicator((current) => ({ ...current, opacity: 0 }));
+        return;
+      }
+
+      const navRect = nav.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      setActiveIndicator({
+        top: targetRect.top - navRect.top,
+        height: targetRect.height,
+        opacity: 1,
+      });
+    };
+
+    const frame = window.requestAnimationFrame(syncIndicator);
+    window.addEventListener("resize", syncIndicator);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", syncIndicator);
+    };
+  }, [activeSubHref, compact, ordersOpen, pathname, settingsOpen]);
 
   useEffect(() => {
     if (pathname !== "/app/settings" || !settingsSubItems.length) return;
@@ -210,7 +251,20 @@ export function AppNav({
   }, [pathname, settingsSubItems.length]);
 
   return (
-    <nav className={"app-sidebar-v2-nav" + (compact ? " is-compact" : "")} aria-label="Application navigation">
+    <nav
+      ref={navRef}
+      className={"app-sidebar-v2-nav" + (compact ? " is-compact" : "")}
+      aria-label="Application navigation"
+    >
+      <span
+        className="app-sidebar-v2-active-indicator"
+        aria-hidden="true"
+        style={{
+          height: activeIndicator.height,
+          opacity: activeIndicator.opacity,
+          transform: `translate3d(0, ${activeIndicator.top}px, 0)`,
+        }}
+      />
       {items.map(([label, href, id]) => {
         const active = isItemActive(pathname, href, id);
         const pending = pendingHref === href && !active;
@@ -241,7 +295,13 @@ export function AppNav({
                     setPendingHref(href);
                     setActiveSubHref(href);
                   }}
-                  className={"app-sidebar-v2-link app-sidebar-v2-link-" + id}
+                  aria-current={active ? "page" : undefined}
+                  className={
+                    "app-sidebar-v2-link app-sidebar-v2-link-" +
+                    id +
+                    (active ? " is-active" : "") +
+                    (pending ? " is-pending" : "")
+                  }
                 >
                   <span className="app-nav-main">
                     <span className="app-nav-icon"><NavIcon id={id} /></span>
@@ -274,7 +334,10 @@ export function AppNav({
                 </button>
               </div>
 
-              <div className="app-sidebar-v2-subnav" hidden={!open}>
+              <div
+                className="app-sidebar-v2-subnav"
+                aria-hidden={!open}
+              >
                 {subItems.map(([subLabel, subHref]) => {
                   const targetPath = hrefPath(subHref);
                   const currentKey = activeSubHref || pathname;
