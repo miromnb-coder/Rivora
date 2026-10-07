@@ -19,7 +19,7 @@ test("technical drafting marks stay decorative and reduce on mobile", () => {
   assert.match(css, /\.product-showcase::before/);
   assert.match(css, /\.workflow-showcase::before/);
   assert.match(css, /@media \(max-width: 720px\)/);
-  assert.match(css, /\.minimal-direction::before,\s*\.minimal-direction::after \{\s*display: none;/);
+  assert.match(css, /\.minimal-direction::before \{\s*display: none;/);
 });
 
 
@@ -30,4 +30,13 @@ test("drafting grid spans the viewport and divides the navigation into cells", (
   assert.match(css, /\.minimal-direction \.nav-v2::after/);
   assert.match(css, /width: 100vw/);
   assert.match(css, /transform: translateX\(-50%\)/);
+});
+
+
+test("left and right vertical drafting guides share one symmetric overlay", () => {
+  assert.match(css, /--draft-guide-inset:/);
+  assert.match(css, /background-size: 1px 100%, 1px 100%/);
+  assert.match(css, /var\(--draft-guide-inset\) 0,/);
+  assert.match(css, /calc\(100% - var\(--draft-guide-inset\)\) 0/);
+  assert.match(css, /\.minimal-direction::after \{\s*content: none;/);
 });
