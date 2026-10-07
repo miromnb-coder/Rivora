@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { reconcilePurchaseOrderForWorkspace } from "@/lib/rivora/po-reconciliation-service";
 
 function clean(value: FormDataEntryValue | null, max = 500) {
@@ -134,6 +135,7 @@ export async function acceptPurchaseOrderException(formData: FormData) {
   const purchaseOrderId = clean(formData.get("purchaseOrderId"), 80);
   const reconciliationLineId = clean(formData.get("reconciliationLineId"), 80);
   const note = clean(formData.get("reviewNote"), 2000);
+  const rememberUnitAlias = formData.get("rememberUnitAlias") === "on";
   if (!purchaseOrderId || !reconciliationLineId) {
     throw new Error("Purchase order and reconciliation line are required.");
   }
@@ -158,27 +160,31 @@ export async function acceptPurchaseOrderException(formData: FormData) {
       throw new Error("This exception has already been reviewed.");
     }
 
-    const { error: updateError } = await supabase
-      .from("purchase_order_reconciliation_lines")
-      .update({
-        review_status: "accepted",
-        review_note: note || null,
-        reviewed_by: String(claims.sub),
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq("id", reconciliationLineId)
-      .eq("organization_id", workspace.id);
+    const admin = createAdminClient();
+    const { error } = await admin.rpc(
+      "accept_purchase_order_exception_with_memory_server",
+      {
+        target_reconciliation_line_id: reconciliationLineId,
+        target_review_note: note || null,
+        remember_unit_alias: rememberUnitAlias,
+        target_actor_id: claims.sub,
+      },
+    );
 
-    if (updateError) throw updateError;
+    if (error) throw new Error(error.message);
   } catch (error) {
     failure = error instanceof Error ? error.message : "Exception review failed.";
   }
 
   revalidatePath(`/app/purchase-orders/${purchaseOrderId}`);
+  if (rememberUnitAlias) revalidatePath("/app/memory");
   redirect(
     detailUrl(
       purchaseOrderId,
-      failure ?? "Exception accepted.",
+      failure ??
+        (rememberUnitAlias
+          ? "Exception accepted and unit alias remembered."
+          : "Exception accepted."),
       failure ? "error" : "ok",
     ),
   );
