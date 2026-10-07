@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getLocale } from "@/lib/locale";
 import {
   PURCHASE_ORDER_FIELD_MEMORY_TARGETS,
@@ -77,6 +78,30 @@ function scalarTypeLabel(type: string, fi: boolean) {
   return type.replaceAll("_", " ");
 }
 
+async function loadWorkspaceCustomers(
+  supabase: SupabaseClient,
+  organizationId: string,
+) {
+  const pageSize = 500;
+  const customers: any[] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id,name")
+      .eq("organization_id", organizationId)
+      .order("name")
+      .range(from, from + pageSize - 1);
+
+    if (error) throw error;
+    customers.push(...(data ?? []));
+
+    if (!data || data.length < pageSize) break;
+  }
+
+  return customers;
+}
+
 export default async function MemoryPage() {
   const [{ supabase, workspace }, locale] = await Promise.all([
     requireWorkspace(),
@@ -89,7 +114,7 @@ export default async function MemoryPage() {
     dateStyle: "medium",
   });
 
-  const [{ data: memories }, { data: allCustomers }] = await Promise.all([
+  const [{ data: memories }, allCustomers] = await Promise.all([
     supabase
       .from("workspace_memory_entries")
       .select(
@@ -104,12 +129,7 @@ export default async function MemoryPage() {
       ])
       .order("updated_at", { ascending: false })
       .limit(750),
-    supabase
-      .from("customers")
-      .select("id,name")
-      .eq("organization_id", workspace.id)
-      .order("name")
-      .limit(500),
+    loadWorkspaceCustomers(supabase, workspace.id),
   ]);
 
   const rows = memories ?? [];
