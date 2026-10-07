@@ -301,7 +301,8 @@ export default async function MemoryPage() {
                 <article
                   key={memory.id}
                   className={
-                    "memory-app-v2-row memory-m3-row" +
+                    "memory-app-v2-row memory-m3-row motion-memory-row motion-memory-state-" +
+                    state +
                     (disabled ? " is-disabled" : "")
                   }
                 >
@@ -555,7 +556,8 @@ export default async function MemoryPage() {
                 <article
                   key={memory.id}
                   className={
-                    "grid gap-5 p-6 lg:grid-cols-[1fr_1.15fr_1.15fr_180px]" +
+                    "grid gap-5 p-6 lg:grid-cols-[1fr_1.15fr_1.15fr_180px] motion-memory-row motion-memory-state-" +
+                    state +
                     (disabled ? " opacity-60" : "")
                   }
                 >
