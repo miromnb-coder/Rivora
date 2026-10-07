@@ -101,7 +101,14 @@ test("M4 unit memory can only be learned from accepted equal-quantity unit misma
   );
   assert.match(migration, /'alias_only', true/);
   assert.match(migration, /'evidence', 'accepted_unit_mismatch'/);
+  assert.match(migration, /from public\.purchase_order_lines pol/);
+  assert.match(migration, /from public\.quote_lines ql/);
+  assert.equal(
+    migration.includes("line_row.po_snapshot ->> 'quantity'"),
+    false,
+  );
 });
+
 
 test("M4 privileged mutations remain service-role-only and actor-bound", () => {
   for (const signature of [
