@@ -1,4 +1,4 @@
-export const PO_RECONCILIATION_VERSION = "deterministic-v1";
+export const PO_RECONCILIATION_VERSION = "deterministic-v2-memory";
 
 export type ReconciliationExceptionCode =
   | "product_identity_review"
@@ -46,6 +46,20 @@ export type QuoteLineInput = {
   lineTotal: number;
 };
 
+export type UnitMemoryAlias = {
+  memoryId: string;
+  sourceUnit: string;
+  targetUnit: string;
+};
+
+export type ReconciliationMemoryContext = {
+  unit_memory?: {
+    memory_id: string;
+    source_unit: string;
+    target_unit: string;
+  };
+};
+
 export type ReconciliationLineResult = {
   poLineId: string | null;
   quoteLineId: string | null;
@@ -56,6 +70,7 @@ export type ReconciliationLineResult = {
   reviewStatus: "not_required" | "open";
   poSnapshot: PurchaseOrderLineInput | null;
   quoteSnapshot: QuoteLineInput | null;
+  memoryContext: ReconciliationMemoryContext;
 };
 
 export type PurchaseOrderReconciliationResult = {
@@ -70,6 +85,7 @@ export type PurchaseOrderReconciliationResult = {
     exceptionLines: number;
     extraPurchaseOrderLines: number;
     missingQuoteLines: number;
+    memoryAssistedLines: number;
   };
 };
 
@@ -121,6 +137,49 @@ function normalizeUnit(value: string | null | undefined) {
   return unit;
 }
 
+function normalizeUnitMemoryKey(value: string | null | undefined) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s.]+/g, "");
+}
+
+function resolvePoUnit(
+  value: string | null | undefined,
+  unitAliases: ReadonlyMap<string, UnitMemoryAlias>,
+) {
+  const original = String(value ?? "").trim();
+  const normalized = normalizeUnit(original);
+  const alias = unitAliases.get(normalizeUnitMemoryKey(original));
+  if (!alias) return { normalized, alias: null as UnitMemoryAlias | null };
+
+  const target = normalizeUnit(alias.targetUnit);
+  if (!target || target === normalized) {
+    return { normalized, alias: null as UnitMemoryAlias | null };
+  }
+
+  return { normalized: target, alias };
+}
+
+function unitComparison(
+  poUnit: string | null | undefined,
+  quoteUnit: string | null | undefined,
+  unitAliases: ReadonlyMap<string, UnitMemoryAlias>,
+) {
+  const po = resolvePoUnit(poUnit, unitAliases);
+  const quote = normalizeUnit(quoteUnit);
+  const alias =
+    po.alias && po.normalized && quote && po.normalized === quote
+      ? po.alias
+      : null;
+
+  return {
+    poUnit: po.normalized,
+    quoteUnit: quote,
+    alias,
+  };
+}
+
 function nearlyEqual(left: number, right: number, tolerance: number) {
   return Math.abs(left - right) <= tolerance;
 }
@@ -155,7 +214,8 @@ function buildCandidate(
   po: PurchaseOrderLineInput,
   quote: QuoteLineInput,
   poIndex: number,
-  quoteIndex: number
+  quoteIndex: number,
+  unitAliases: ReadonlyMap<string, UnitMemoryAlias>,
 ): Candidate | null {
   const poSku = normalizeIdentifier(po.customerSku);
   const poMpn = normalizeIdentifier(po.manufacturerPartNumber);
@@ -206,7 +266,8 @@ function buildCandidate(
   if (!method) return null;
 
   if (nearlyEqual(po.quantity, quote.quantity, 0.0001)) score += 1;
-  if (normalizeUnit(po.unit) && normalizeUnit(po.unit) === normalizeUnit(quote.unit)) score += 0.5;
+  const units = unitComparison(po.unit, quote.unit, unitAliases);
+  if (units.poUnit && units.poUnit === units.quoteUnit) score += 0.5;
   if (po.lineNumber === quote.lineNumber) score += 0.1;
 
   return { poIndex, quoteIndex, score, method, fuzzy };
@@ -215,7 +276,8 @@ function buildCandidate(
 function comparePair(
   po: PurchaseOrderLineInput,
   quote: QuoteLineInput,
-  candidate: Candidate
+  candidate: Candidate,
+  unitAliases: ReadonlyMap<string, UnitMemoryAlias>,
 ): ReconciliationExceptionCode[] {
   const exceptions: ReconciliationExceptionCode[] = [];
 
@@ -225,9 +287,8 @@ function comparePair(
     exceptions.push("quantity_mismatch");
   }
 
-  const poUnit = normalizeUnit(po.unit);
-  const quoteUnit = normalizeUnit(quote.unit);
-  if (poUnit && quoteUnit && poUnit !== quoteUnit) {
+  const units = unitComparison(po.unit, quote.unit, unitAliases);
+  if (units.poUnit && units.quoteUnit && units.poUnit !== units.quoteUnit) {
     exceptions.push("unit_mismatch");
   }
 
@@ -248,13 +309,24 @@ function comparePair(
 
 export function reconcilePurchaseOrder(
   purchaseOrderLines: PurchaseOrderLineInput[],
-  quoteLines: QuoteLineInput[]
+  quoteLines: QuoteLineInput[],
+  options: {
+    unitAliases?: ReadonlyMap<string, UnitMemoryAlias>;
+  } = {},
 ): PurchaseOrderReconciliationResult {
   const candidates: Candidate[] = [];
+  const unitAliases =
+    options.unitAliases ?? new Map<string, UnitMemoryAlias>();
 
   purchaseOrderLines.forEach((po, poIndex) => {
     quoteLines.forEach((quote, quoteIndex) => {
-      const candidate = buildCandidate(po, quote, poIndex, quoteIndex);
+      const candidate = buildCandidate(
+        po,
+        quote,
+        poIndex,
+        quoteIndex,
+        unitAliases,
+      );
       if (candidate) candidates.push(candidate);
     });
   });
@@ -274,7 +346,18 @@ export function reconcilePurchaseOrder(
 
     const po = purchaseOrderLines[candidate.poIndex]!;
     const quote = quoteLines[candidate.quoteIndex]!;
-    const exceptionCodes = comparePair(po, quote, candidate);
+    const exceptionCodes = comparePair(po, quote, candidate, unitAliases);
+    const units = unitComparison(po.unit, quote.unit, unitAliases);
+    const memoryContext: ReconciliationMemoryContext =
+      units.alias && units.poUnit === units.quoteUnit
+        ? {
+            unit_memory: {
+              memory_id: units.alias.memoryId,
+              source_unit: String(po.unit ?? "").trim(),
+              target_unit: units.alias.targetUnit,
+            },
+          }
+        : {};
 
     pairedPo.add(candidate.poIndex);
     pairedQuote.add(candidate.quoteIndex);
@@ -288,6 +371,7 @@ export function reconcilePurchaseOrder(
       reviewStatus: exceptionCodes.length ? "open" : "not_required",
       poSnapshot: po,
       quoteSnapshot: quote,
+      memoryContext,
     });
   }
 
@@ -303,6 +387,7 @@ export function reconcilePurchaseOrder(
       reviewStatus: "open",
       poSnapshot: po,
       quoteSnapshot: null,
+      memoryContext: {},
     });
   });
 
@@ -318,6 +403,7 @@ export function reconcilePurchaseOrder(
       reviewStatus: "open",
       poSnapshot: null,
       quoteSnapshot: quote,
+      memoryContext: {},
     });
   });
 
@@ -346,6 +432,9 @@ export function reconcilePurchaseOrder(
       exceptionLines: results.filter((line) => line.exceptionCodes.length > 0).length,
       extraPurchaseOrderLines: results.filter((line) => line.lineKind === "extra_po").length,
       missingQuoteLines: results.filter((line) => line.lineKind === "missing_quote").length,
+      memoryAssistedLines: results.filter(
+        (line) => Boolean(line.memoryContext.unit_memory),
+      ).length,
     },
   };
 }
