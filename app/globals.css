@@ -19435,3 +19435,86 @@ textarea:focus-visible {
     animation: none;
   }
 }
+
+
+/* Editorial grid refinement — full viewport rules + navigation drafting cells */
+@media (min-width: 721px) {
+  .minimal-direction::before,
+  .minimal-direction::after {
+    z-index: 12;
+  }
+
+  .minimal-direction .nav-v2 {
+    position: relative;
+    overflow: visible;
+  }
+
+  .minimal-direction .nav-v2-brand,
+  .minimal-direction .nav-v2-actions {
+    position: relative;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+
+  .minimal-direction .nav-v2-brand::after,
+  .minimal-direction .nav-v2-actions::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    bottom: -10px;
+    width: 1px;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        var(--draft-line) 0 var(--draft-dash),
+        transparent var(--draft-dash) calc(var(--draft-dash) + var(--draft-gap))
+      );
+  }
+
+  .minimal-direction .nav-v2-brand::after {
+    right: -14px;
+  }
+
+  .minimal-direction .nav-v2-actions::before {
+    left: -14px;
+  }
+
+  .minimal-direction .nav-v2::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    width: 100vw;
+    height: 1px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        to right,
+        var(--draft-line) 0 var(--draft-dash),
+        transparent var(--draft-dash) calc(var(--draft-dash) + var(--draft-gap))
+      );
+  }
+
+  .minimal-direction .v2-section::before,
+  .minimal-direction .faq-v2::before,
+  .minimal-direction .pricing-lead-v2::before,
+  .minimal-direction .final-cta-v2::before {
+    left: 50%;
+    right: auto;
+    width: 100vw;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 980px) and (min-width: 721px) {
+  .minimal-direction .nav-v2-brand::after {
+    right: -10px;
+  }
+
+  .minimal-direction .nav-v2-actions::before {
+    left: -10px;
+  }
+}
