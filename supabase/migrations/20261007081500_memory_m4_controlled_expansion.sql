@@ -395,7 +395,7 @@ declare
   normalized_source text := lower(trim(coalesce(target_source, '')));
   normalized_key text;
   normalized_target text;
-  target_entity_type text;
+  normalized_entity_type text;
   existing public.workspace_memory_entries;
   memory_id uuid;
 begin
@@ -438,7 +438,7 @@ begin
     normalized_type,
     target_target_value
   );
-  target_entity_type := case
+  normalized_entity_type := case
     when normalized_type = 'customer_unit_alias' then 'unit'
     else 'po_field'
   end;
@@ -488,7 +488,7 @@ begin
       normalized_type,
       trim(target_source_value),
       normalized_key,
-      target_entity_type,
+      normalized_entity_type,
       null,
       normalized_target,
       100,
@@ -507,7 +507,7 @@ begin
   else
     update public.workspace_memory_entries
     set source_value = trim(target_source_value),
-        target_entity_type = target_entity_type,
+        target_entity_type = normalized_entity_type,
         target_entity_id = null,
         target_value = normalized_target,
         confidence = 100,
