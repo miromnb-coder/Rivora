@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   toPurchaseOrderRows,
+  toPurchaseOrderRowsWithFieldMemory,
 } from "../lib/rivora/imports.ts";
 import {
   validatePurchaseOrderExtraction,
@@ -178,4 +179,77 @@ test("toPurchaseOrderRows rejects inconsistent discounted commercial values", ()
       ]),
     /inconsistent unit price, discount and line total/i,
   );
+});
+
+
+test("M4 structured PO import uses verified customer field-header memory", () => {
+  const result = toPurchaseOrderRowsWithFieldMemory(
+    [
+      {
+        Artikelnr: "CUS-77",
+        Beschreibung: "Industrial relay",
+        Bestellmenge: "4",
+        Einheit: "ST",
+      },
+    ],
+    [
+      {
+        memoryId: "mem-sku",
+        sourceHeader: "Artikelnr",
+        targetField: "customer_sku",
+      },
+      {
+        memoryId: "mem-description",
+        sourceHeader: "Beschreibung",
+        targetField: "description",
+      },
+      {
+        memoryId: "mem-quantity",
+        sourceHeader: "Bestellmenge",
+        targetField: "quantity",
+      },
+      {
+        memoryId: "mem-unit",
+        sourceHeader: "Einheit",
+        targetField: "unit",
+      },
+    ],
+  );
+
+  assert.equal(result.rows[0]?.customerSku, "CUS-77");
+  assert.equal(result.rows[0]?.description, "Industrial relay");
+  assert.equal(result.rows[0]?.quantity, 4);
+  assert.equal(result.rows[0]?.unit, "ST");
+  assert.deepEqual(
+    result.usedMemories.map((memory) => memory.memoryId).sort(),
+    ["mem-description", "mem-quantity", "mem-sku", "mem-unit"],
+  );
+});
+
+test("M4 explicit PO header memory owns a header over generic aliases", () => {
+  const result = toPurchaseOrderRowsWithFieldMemory(
+    [
+      {
+        SKU: "Pump with customer naming",
+        "Custom SKU": "CUS-88",
+        Quantity: "2",
+      },
+    ],
+    [
+      {
+        memoryId: "mem-description",
+        sourceHeader: "SKU",
+        targetField: "description",
+      },
+      {
+        memoryId: "mem-custom-sku",
+        sourceHeader: "Custom SKU",
+        targetField: "customer_sku",
+      },
+    ],
+  );
+
+  assert.equal(result.rows[0]?.customerSku, "CUS-88");
+  assert.equal(result.rows[0]?.description, "Pump with customer naming");
+  assert.equal(result.rows[0]?.quantity, 2);
 });
