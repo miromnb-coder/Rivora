@@ -1092,13 +1092,29 @@ begin
       raise exception 'Unit memory requires a paired PO and quote line';
     end if;
 
-    po_unit := nullif(trim(coalesce(line_row.po_snapshot ->> 'unit', '')), '');
-    quote_unit := nullif(trim(coalesce(line_row.quote_snapshot ->> 'unit', '')), '');
-    po_quantity := nullif(line_row.po_snapshot ->> 'quantity', '')::numeric;
-    quote_quantity := nullif(line_row.quote_snapshot ->> 'quantity', '')::numeric;
+    select
+      nullif(trim(coalesce(pol.unit, '')), ''),
+      pol.quantity
+    into po_unit, po_quantity
+    from public.purchase_order_lines pol
+    where pol.id = line_row.po_line_id
+      and pol.purchase_order_id = line_row.purchase_order_id
+      and pol.organization_id = line_row.organization_id;
+
+    select
+      nullif(trim(coalesce(ql.unit, '')), ''),
+      ql.quantity
+    into quote_unit, quote_quantity
+    from public.quote_lines ql
+    join public.purchase_order_reconciliations r
+      on r.id = line_row.reconciliation_id
+     and r.quote_id = ql.quote_id
+     and r.organization_id = ql.organization_id
+    where ql.id = line_row.quote_line_id
+      and ql.organization_id = line_row.organization_id;
 
     if po_unit is null or quote_unit is null then
-      raise exception 'Unit memory requires both source and target units';
+      raise exception 'Unit memory requires original PO and quote unit evidence';
     end if;
 
     if po_quantity is null
