@@ -13850,11 +13850,11 @@ textarea:focus-visible {
   min-height: 64px;
   margin-top: 10px;
   padding: 0 12px 0 18px;
-  border: 1px solid rgba(218, 222, 218, .82);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, .86);
-  box-shadow: 0 10px 34px rgba(23, 28, 24, .055);
-  backdrop-filter: blur(20px) saturate(145%);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .minimal-direction .nav-v2-signin {
@@ -13986,10 +13986,11 @@ textarea:focus-visible {
     min-height: 58px;
     margin-top: 7px;
     padding: 0 9px 0 12px;
-    border: 1px solid rgba(222, 225, 221, .88);
-    border-radius: 17px;
-    background: rgba(255, 255, 255, .9);
-    box-shadow: 0 7px 24px rgba(23, 28, 24, .05);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
   .minimal-direction .nav-v2-brand .nodra-logo-lockup-image {
