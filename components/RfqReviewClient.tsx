@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { demoRfq, products } from "@/lib/demo-data";
+import { MotionToast } from "@/components/MotionToast";
 
 const money = new Intl.NumberFormat("en-FI", { style: "currency", currency: "EUR" });
 
@@ -11,6 +12,7 @@ export function RfqReviewClient() {
   );
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({ l1: true, l3: true });
   const [remembered, setRemembered] = useState<Record<string, boolean>>({ l1: true, l3: true });
+  const [toast, setToast] = useState<string | null>(null);
 
   const resolved = demoRfq.lines.filter((line) => selections[line.id]).length;
   const total = useMemo(() => demoRfq.lines.reduce((sum, line) => {
@@ -35,7 +37,7 @@ export function RfqReviewClient() {
             const tone = confidence >= 90 ? "green" : confidence >= 65 ? "amber" : "red";
             const selected = products.find((p) => p.id === selections[line.id]);
             return (
-              <div key={line.id} className="p-5">
+              <div key={line.id} className="p-5 motion-rfq-extraction-flow">
                 <div className="grid gap-5 lg:grid-cols-[1fr_1.35fr_.65fr]">
                   <div>
                     <div className="flex items-center gap-2"><span className="text-xs font-bold text-[var(--muted)]">LINE {line.lineNumber}</span><span className={`status ${tone}`}>{confidence ? `${confidence}%` : "No match"}</span></div>
@@ -58,8 +60,32 @@ export function RfqReviewClient() {
                   </div>
 
                   <div className="flex flex-col items-start justify-center gap-2 lg:items-end">
-                    <button disabled={!selected} onClick={() => setConfirmed((s) => ({ ...s, [line.id]: true }))} className={`btn-primary min-w-28 ${!selected ? "opacity-40" : ""}`}>{confirmed[line.id] ? "Confirmed ✓" : "Confirm"}</button>
-                    <label className="flex items-center gap-2 text-xs text-[var(--muted)]"><input type="checkbox" checked={!!remembered[line.id]} onChange={(e) => setRemembered((s) => ({ ...s, [line.id]: e.target.checked }))} /> Remember for customer</label>
+                    <button
+                      disabled={!selected}
+                      onClick={() => {
+                        setConfirmed((s) => ({ ...s, [line.id]: true }));
+                        setToast("Product match confirmed");
+                      }}
+                      className={`btn-primary min-w-28 motion-state-badge ${!selected ? "opacity-40" : ""}`}
+                    >
+                      {confirmed[line.id] ? "Confirmed ✓" : "Confirm"}
+                    </button>
+                    <label className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                      <input
+                        type="checkbox"
+                        checked={!!remembered[line.id]}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setRemembered((s) => ({ ...s, [line.id]: checked }));
+                          setToast(
+                            checked
+                              ? "Verified mapping marked to remember"
+                              : "Mapping removed from remembered choices",
+                          );
+                        }}
+                      />{" "}
+                      Remember for customer
+                    </label>
                   </div>
                 </div>
               </div>
@@ -72,6 +98,11 @@ export function RfqReviewClient() {
         <div><div className="text-xs font-bold uppercase tracking-wider text-white/50">Draft quote value</div><div className="mt-1 text-2xl font-extrabold">{money.format(total)}</div><div className="mt-1 text-xs text-white/55">Demo catalogue prices · no ERP write-back</div></div>
         <button disabled={Object.values(confirmed).filter(Boolean).length < demoRfq.lines.length} className="rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-[#10251b] disabled:cursor-not-allowed disabled:opacity-30">Create quote draft</button>
       </div>
+      <MotionToast
+        message={toast}
+        tone="success"
+        onDismiss={() => setToast(null)}
+      />
     </>
   );
 }
