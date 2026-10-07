@@ -19226,29 +19226,33 @@ textarea:focus-visible {
   isolation: isolate;
 }
 
-.minimal-direction::before,
-.minimal-direction::after {
+.minimal-direction::before {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
+  inset: 0;
   pointer-events: none;
-  z-index: 0;
-  background:
+  z-index: 12;
+  --draft-guide-inset: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2));
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      var(--draft-line) 0 var(--draft-dash),
+      transparent var(--draft-dash) calc(var(--draft-dash) + var(--draft-gap))
+    ),
     repeating-linear-gradient(
       to bottom,
       var(--draft-line) 0 var(--draft-dash),
       transparent var(--draft-dash) calc(var(--draft-dash) + var(--draft-gap))
     );
-}
-
-.minimal-direction::before {
-  left: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2));
+  background-size: 1px 100%, 1px 100%;
+  background-position:
+    var(--draft-guide-inset) 0,
+    calc(100% - var(--draft-guide-inset)) 0;
+  background-repeat: no-repeat;
 }
 
 .minimal-direction::after {
-  right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2));
+  content: none;
 }
 
 .minimal-direction > * {
@@ -19369,14 +19373,6 @@ textarea:focus-visible {
 }
 
 @media (max-width: 980px) {
-  .minimal-direction::before {
-    left: var(--page-gutter);
-  }
-
-  .minimal-direction::after {
-    right: var(--page-gutter);
-  }
-
   .minimal-direction .v2-section::before,
   .minimal-direction .faq-v2::before,
   .minimal-direction .pricing-lead-v2::before,
@@ -19398,8 +19394,7 @@ textarea:focus-visible {
     --draft-line-soft: rgba(29, 34, 30, .035);
   }
 
-  .minimal-direction::before,
-  .minimal-direction::after {
+  .minimal-direction::before {
     display: none;
   }
 
@@ -19439,10 +19434,6 @@ textarea:focus-visible {
 
 /* Editorial grid refinement — full viewport rules + navigation drafting cells */
 @media (min-width: 721px) {
-  .minimal-direction::before,
-  .minimal-direction::after {
-    z-index: 12;
-  }
 
   .minimal-direction .nav-v2 {
     position: relative;
