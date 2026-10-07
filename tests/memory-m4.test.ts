@@ -51,7 +51,7 @@ test("M4 extends the canonical memory core with scalar targets without weakening
   assert.match(migration, /add column if not exists target_value text/);
   assert.match(
     migration,
-    /target_entity_type in ('product', 'customer', 'unit', 'po_field')/,
+    /target_entity_type in \\('product', 'customer', 'unit', 'po_field'\\)/,
   );
   assert.match(
     migration,
