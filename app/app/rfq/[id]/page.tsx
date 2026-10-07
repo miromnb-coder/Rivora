@@ -217,7 +217,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
       </section>
 
       {rfq.extraction_provider ? (
-        <section className="rfq-review-v2-extraction">
+        <section className="rfq-review-v2-extraction motion-extraction-summary">
           <div>
             <span>{text.extraction}</span>
             <b>{String(rfq.extraction_provider).toUpperCase()} · {rfq.extraction_model}</b>
@@ -292,13 +292,13 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                   ? text.needsReview
                   : rfqReviewStatusLabel(String(line.review_status), fi);
             const lineState = (
-              <div className={`rfq-review-v2-state ${tone}`}>
+              <div className={`rfq-review-v2-state ${tone} motion-state-badge`}>
                 {stateLabel}
               </div>
             );
 
             return (
-              <article key={line.id} className={`rfq-review-v2-line ${tone}`}>
+              <article key={line.id} className={`rfq-review-v2-line ${tone} motion-rfq-extraction-flow`}>
                 <div className="rfq-review-v2-source">
                   <div className="rfq-review-v2-line-meta">
                     <span>{text.line} {line.line_number}</span>
@@ -319,7 +319,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
                   </div>
 
                   {memoryExplanation ? (
-                    <div className="rfq-review-v2-memory-explanation">
+                    <div className="rfq-review-v2-memory-explanation motion-memory-used">
                       <div className="rfq-review-v2-memory-explanation-head">
                         <span>{fi ? "Muistettu vastine" : "Remembered mapping"}</span>
                         <strong>
