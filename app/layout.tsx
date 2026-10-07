@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { NavigationProgress } from "@/components/NavigationProgress";
 import "./globals.css";
+import "./motion.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://averomira.com"),
