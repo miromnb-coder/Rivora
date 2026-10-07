@@ -374,11 +374,13 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [aiQuestion, setAiQuestion] = useState("");
   const [aiMessages, setAiMessages] = useState<SupportAiMessage[]>([]);
   const [aiAsking, setAiAsking] = useState(false);
+  const [aiSent, setAiSent] = useState(false);
   const [aiError, setAiError] = useState("");
   const [supportUnreadCount, setSupportUnreadCount] = useState(0);
   const [showHelpLibrary, setShowHelpLibrary] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
+  const aiSuccessTimerRef = useRef<number | null>(null);
   const previousPathRef = useRef(pathname);
 
   const filteredArticles = useMemo(() => {
@@ -437,8 +439,17 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     previousPathRef.current = pathname;
     setAiQuestion("");
     setAiMessages([]);
+    setAiSent(false);
     setAiError("");
   }, [pathname]);
+
+  useEffect(() => {
+    return () => {
+      if (aiSuccessTimerRef.current) {
+        window.clearTimeout(aiSuccessTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleContextHelp = (event: Event) => {
@@ -532,6 +543,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     setAiMessages([...previousMessages, userMessage]);
     setAiQuestion("");
     setAiError("");
+    if (aiSuccessTimerRef.current) {
+      window.clearTimeout(aiSuccessTimerRef.current);
+      aiSuccessTimerRef.current = null;
+    }
+    setAiSent(false);
     setAiAsking(true);
 
     try {
@@ -590,6 +606,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
           articleIds: Array.isArray(data.articleIds) ? data.articleIds : [],
         },
       ]);
+      setAiSent(true);
+      aiSuccessTimerRef.current = window.setTimeout(() => {
+        setAiSent(false);
+        aiSuccessTimerRef.current = null;
+      }, 900);
     } catch (error) {
       setAiError(
         error instanceof Error
@@ -684,7 +705,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     <>
       <button
         type="button"
-        className="support-launcher"
+        className={"support-launcher" + (open ? " is-open" : "")}
         aria-label={fi ? "Avaa Averomira Help Center" : "Open Averomira Help Center"}
         aria-expanded={open}
         onClick={() => {
@@ -852,10 +873,36 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       />
                       <button
                         type="submit"
+                        className={
+                          "support-ai-submit-motion" +
+                          (aiAsking ? " is-working" : aiSent ? " is-success" : "")
+                        }
                         disabled={aiAsking || aiQuestion.trim().length < 3}
-                        aria-label={fi ? "Lähetä kysymys" : "Send question"}
+                        aria-label={
+                          aiAsking
+                            ? fi
+                              ? "Averomira AI hakee vastausta"
+                              : "Averomira AI is checking"
+                            : aiSent
+                              ? fi
+                                ? "Vastaus valmis"
+                                : "Answer ready"
+                              : fi
+                                ? "Lähetä kysymys"
+                                : "Send question"
+                        }
                       >
-                        <ArrowIcon />
+                        {aiAsking ? (
+                          <span className="motion-dots" aria-hidden="true">
+                            <i />
+                            <i />
+                            <i />
+                          </span>
+                        ) : aiSent ? (
+                          <span aria-hidden="true">✓</span>
+                        ) : (
+                          <ArrowIcon />
+                        )}
                       </button>
                     </form>
 
