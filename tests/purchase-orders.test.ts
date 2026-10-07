@@ -253,3 +253,20 @@ test("M4 explicit PO header memory owns a header over generic aliases", () => {
   assert.equal(result.rows[0]?.description, "Pump with customer naming");
   assert.equal(result.rows[0]?.quantity, 2);
 });
+
+
+test("M4 keeps built-in PO column alias priority independent of file column order", () => {
+  const result = toPurchaseOrderRowsWithFieldMemory(
+    [
+      {
+        Description: "Priority test",
+        Quantity: "2",
+        Price: "9.99",
+        "Unit Price": "125.50",
+      },
+    ],
+    [],
+  );
+
+  assert.equal(result.rows[0]?.unitPrice, 125.5);
+});
