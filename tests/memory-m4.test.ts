@@ -228,4 +228,7 @@ test("Smart Memory management exposes controlled PO fields but no manual unit-me
     memoryActions,
     /disable_customer_scalar_memory_server/,
   );
+  assert.match(memoryPage, /loadWorkspaceCustomers/);
+  assert.match(memoryPage, /\.range\(from, from \+ pageSize - 1\)/);
+  assert.equal(memoryPage.includes(".limit(500)"), false);
 });
