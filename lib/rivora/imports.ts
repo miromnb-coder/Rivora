@@ -286,16 +286,20 @@ function purchaseOrderFieldPicker(
     return value;
   }
 
-  const staticTargets = new Set(aliases.map(normalizeHeader));
-  for (const [header, rawValue] of entries) {
-    const normalizedHeader = normalizeHeader(header);
-    // An explicit verified customer field memory owns this header. Do not let a
-    // generic built-in alias reinterpret the same column as a different field.
-    if (memoryByHeader.has(normalizedHeader)) continue;
-    if (!staticTargets.has(normalizedHeader)) continue;
+  // Preserve the existing built-in alias priority. The aliases array is
+  // intentionally ordered from most specific to more generic names
+  // ("unit price" before "price", for example). Customer memory still owns a
+  // header completely, so a generic built-in alias cannot reinterpret it.
+  for (const alias of aliases) {
+    const target = normalizeHeader(alias);
+    const hit = entries.find(([header, rawValue]) => {
+      const normalizedHeader = normalizeHeader(header);
+      if (normalizedHeader !== target) return false;
+      if (memoryByHeader.has(normalizedHeader)) return false;
+      return Boolean(String(rawValue ?? "").trim());
+    });
 
-    const value = String(rawValue ?? "").trim();
-    if (value) return value;
+    if (hit) return String(hit[1] ?? "").trim();
   }
 
   return "";
