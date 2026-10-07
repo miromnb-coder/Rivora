@@ -19214,3 +19214,224 @@ textarea:focus-visible {
     animation: none;
   }
 }
+
+
+/* Homepage editorial grid + technical drafting */
+.minimal-direction {
+  --draft-line: rgba(29, 34, 30, .075);
+  --draft-line-soft: rgba(29, 34, 30, .045);
+  --draft-dash: 5px;
+  --draft-gap: 8px;
+  position: relative;
+  isolation: isolate;
+}
+
+.minimal-direction::before,
+.minimal-direction::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      var(--draft-line) 0 var(--draft-dash),
+      transparent var(--draft-dash) calc(var(--draft-dash) + var(--draft-gap))
+    );
+}
+
+.minimal-direction::before {
+  left: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2));
+}
+
+.minimal-direction::after {
+  right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2));
+}
+
+.minimal-direction > * {
+  position: relative;
+  z-index: 1;
+}
+
+.minimal-direction .v2-section,
+.minimal-direction .faq-v2,
+.minimal-direction .pricing-lead-v2,
+.minimal-direction .final-cta-v2,
+.minimal-direction .minimal-hero {
+  position: relative;
+}
+
+.minimal-direction .v2-section::before,
+.minimal-direction .faq-v2::before,
+.minimal-direction .pricing-lead-v2::before,
+.minimal-direction .final-cta-v2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2));
+  right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2));
+  height: 1px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--draft-line) 0 var(--draft-dash),
+      transparent var(--draft-dash) calc(var(--draft-dash) + var(--draft-gap))
+    );
+}
+
+.minimal-direction .minimal-hero::after,
+.minimal-direction .v2-section::after,
+.minimal-direction .faq-v2::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2));
+  width: 9px;
+  height: 9px;
+  pointer-events: none;
+  border-left: 1px solid var(--draft-line);
+  border-top: 1px solid var(--draft-line);
+}
+
+.minimal-direction .marketing-shell,
+.minimal-direction .minimal-hero-inner,
+.minimal-direction .v2-section-copy,
+.minimal-direction .product-showcase,
+.minimal-direction .workflow-showcase,
+.minimal-direction .confidence-showcase,
+.minimal-direction .faq-v2-inner,
+.minimal-direction .pricing-lead-grid,
+.minimal-direction .final-cta-v2-card {
+  position: relative;
+}
+
+.minimal-direction .v2-section-copy::before,
+.minimal-direction .faq-v2-copy::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  border-left: 1px solid var(--draft-line-soft);
+  border-top: 1px solid var(--draft-line-soft);
+}
+
+.minimal-direction .product-showcase::before,
+.minimal-direction .workflow-showcase::before,
+.minimal-direction .confidence-showcase::before,
+.minimal-direction .final-cta-v2-card::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+  border:
+    1px solid transparent;
+  background:
+    linear-gradient(var(--draft-line-soft), var(--draft-line-soft)) left top / 18px 1px no-repeat,
+    linear-gradient(var(--draft-line-soft), var(--draft-line-soft)) left top / 1px 18px no-repeat,
+    linear-gradient(var(--draft-line-soft), var(--draft-line-soft)) right top / 18px 1px no-repeat,
+    linear-gradient(var(--draft-line-soft), var(--draft-line-soft)) right top / 1px 18px no-repeat,
+    linear-gradient(var(--draft-line-soft), var(--draft-line-soft)) left bottom / 18px 1px no-repeat,
+    linear-gradient(var(--draft-line-soft), var(--draft-line-soft)) left bottom / 1px 18px no-repeat,
+    linear-gradient(var(--draft-line-soft), var(--draft-line-soft)) right bottom / 18px 1px no-repeat,
+    linear-gradient(var(--draft-line-soft), var(--draft-line-soft)) right bottom / 1px 18px no-repeat;
+  z-index: 2;
+}
+
+.minimal-direction .workflow-showcase-stage,
+.minimal-direction .product-resolution-cell,
+.minimal-direction .product-resolution-memory,
+.minimal-direction .memory-showcase-step,
+.minimal-direction .ai-showcase-source,
+.minimal-direction .ai-showcase-evidence,
+.minimal-direction .ai-showcase-decision {
+  position: relative;
+}
+
+.minimal-direction .workflow-showcase-stage::before,
+.minimal-direction .product-resolution-cell::before,
+.minimal-direction .memory-showcase-step::before,
+.minimal-direction .ai-showcase-source::before,
+.minimal-direction .ai-showcase-decision::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 14px;
+  height: 1px;
+  background: var(--draft-line-soft);
+  box-shadow: 0 4px 0 var(--draft-line-soft);
+}
+
+@media (max-width: 980px) {
+  .minimal-direction::before {
+    left: var(--page-gutter);
+  }
+
+  .minimal-direction::after {
+    right: var(--page-gutter);
+  }
+
+  .minimal-direction .v2-section::before,
+  .minimal-direction .faq-v2::before,
+  .minimal-direction .pricing-lead-v2::before,
+  .minimal-direction .final-cta-v2::before {
+    left: var(--page-gutter);
+    right: var(--page-gutter);
+  }
+
+  .minimal-direction .minimal-hero::after,
+  .minimal-direction .v2-section::after,
+  .minimal-direction .faq-v2::after {
+    left: var(--page-gutter);
+  }
+}
+
+@media (max-width: 720px) {
+  .minimal-direction {
+    --draft-line: rgba(29, 34, 30, .055);
+    --draft-line-soft: rgba(29, 34, 30, .035);
+  }
+
+  .minimal-direction::before,
+  .minimal-direction::after {
+    display: none;
+  }
+
+  .minimal-direction .v2-section::before,
+  .minimal-direction .faq-v2::before,
+  .minimal-direction .pricing-lead-v2::before,
+  .minimal-direction .final-cta-v2::before {
+    left: 16px;
+    right: 16px;
+  }
+
+  .minimal-direction .minimal-hero::after,
+  .minimal-direction .v2-section::after,
+  .minimal-direction .faq-v2::after,
+  .minimal-direction .v2-section-copy::before,
+  .minimal-direction .faq-v2-copy::before {
+    display: none;
+  }
+
+  .minimal-direction .product-showcase::before,
+  .minimal-direction .workflow-showcase::before,
+  .minimal-direction .confidence-showcase::before,
+  .minimal-direction .final-cta-v2-card::before {
+    inset: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .minimal-direction::before,
+  .minimal-direction::after,
+  .minimal-direction .v2-section::before,
+  .minimal-direction .faq-v2::before {
+    animation: none;
+  }
+}

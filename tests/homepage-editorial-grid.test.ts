@@ -1,0 +1,23 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import test from "node:test";
+
+const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
+
+test("homepage editorial grid exposes subtle drafting guides", () => {
+  assert.match(css, /Homepage editorial grid \+ technical drafting/);
+  assert.match(css, /--draft-line:/);
+  assert.match(css, /repeating-linear-gradient\(\s*to bottom/);
+  assert.match(css, /repeating-linear-gradient\(\s*to right/);
+  assert.match(css, /\.minimal-direction::before/);
+  assert.match(css, /\.minimal-direction::after/);
+});
+
+test("technical drafting marks stay decorative and reduce on mobile", () => {
+  assert.match(css, /pointer-events: none/);
+  assert.match(css, /\.product-showcase::before/);
+  assert.match(css, /\.workflow-showcase::before/);
+  assert.match(css, /@media \(max-width: 720px\)/);
+  assert.match(css, /\.minimal-direction::before,\s*\.minimal-direction::after \{\s*display: none;/);
+});
