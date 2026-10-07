@@ -363,6 +363,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         .filter((article): article is HelpArticle => Boolean(article))
     : [];
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [view, setView] = useState<PanelView>({ kind: "home" });
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("product");
@@ -381,6 +382,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const searchRef = useRef<HTMLInputElement>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
   const aiSuccessTimerRef = useRef<number | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
   const previousPathRef = useRef(pathname);
 
   const filteredArticles = useMemo(() => {
@@ -448,8 +450,38 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       if (aiSuccessTimerRef.current) {
         window.clearTimeout(aiSuccessTimerRef.current);
       }
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
     };
   }, []);
+
+  function openSupport() {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setClosing(false);
+    setOpen(true);
+  }
+
+  function closeSupport() {
+    if (!open || closing) return;
+
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    setClosing(true);
+    closeTimerRef.current = window.setTimeout(
+      () => {
+        setOpen(false);
+        setClosing(false);
+        closeTimerRef.current = null;
+      },
+      reducedMotion ? 0 : 180,
+    );
+  }
 
   useEffect(() => {
     const handleContextHelp = (event: Event) => {
@@ -459,7 +491,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
 
       setQuery("");
       setView({ kind: "article", articleId });
-      setOpen(true);
+      openSupport();
     };
 
     window.addEventListener(SUPPORT_OPEN_EVENT, handleContextHelp);
@@ -470,7 +502,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") closeSupport();
     };
 
     document.addEventListener("keydown", onKeyDown);
@@ -705,11 +737,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     <>
       <button
         type="button"
-        className={"support-launcher" + (open ? " is-open" : "")}
+        className={"support-launcher" + (open && !closing ? " is-open" : "")}
         aria-label={fi ? "Avaa Averomira Help Center" : "Open Averomira Help Center"}
         aria-expanded={open}
         onClick={() => {
-          setOpen(true);
+          openSupport();
           if (view.kind === "success") setView({ kind: "home" });
         }}
       >
@@ -723,12 +755,12 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       </button>
 
       {open ? (
-        <div className="support-center-layer">
+        <div className={"support-center-layer" + (closing ? " is-closing" : "")}>
           <button
             type="button"
             className="support-center-backdrop"
             aria-label={fi ? "Sulje Help Center" : "Close Help Center"}
-            onClick={() => setOpen(false)}
+            onClick={closeSupport}
           />
 
           <section
@@ -774,7 +806,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
               <button
                 type="button"
                 className="support-center-close"
-                onClick={() => setOpen(false)}
+                onClick={closeSupport}
                 aria-label={fi ? "Sulje" : "Close"}
               >
                 <CloseIcon />
