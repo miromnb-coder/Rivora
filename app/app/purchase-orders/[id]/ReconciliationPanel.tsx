@@ -140,6 +140,7 @@ export function ReconciliationPanel({
   const headerOpen = reconciliation.header_review_status === "open";
   const openCount = openLineCount + (headerOpen ? 1 : 0);
   const approved = reconciliation.status === "approved";
+  const memoryAssistedLines = Number(summary.memoryAssistedLines ?? 0);
 
   return (
     <section className="surface mt-6 overflow-hidden">
@@ -156,6 +157,13 @@ export function ReconciliationPanel({
           <p className="mt-2 text-sm text-[var(--muted)]">
             {(linkedQuote?.quote_number || "—") + " · " + (fi ? "ajo" : "run") + " #" + reconciliation.run_number + " · " + reconciliation.algorithm_version}
           </p>
+          {memoryAssistedLines > 0 ? (
+            <div className="mt-3 inline-flex rounded-full border border-[#bad8c5] bg-[var(--green-soft)] px-3 py-1 text-xs font-semibold text-[var(--green-dark)]">
+              {fi
+                ? `Älykäs muisti auttoi ${memoryAssistedLines} rivillä`
+                : `Smart Memory assisted ${memoryAssistedLines} line${memoryAssistedLines === 1 ? "" : "s"}`}
+            </div>
+          ) : null}
         </div>
         <span className={"rounded-full border px-4 py-2 text-sm font-bold " + (approved || reconciliation.status === "matched" ? "border-[#bad8c5] bg-[var(--green-soft)] text-[var(--green-dark)]" : "border-[#e5cfac] bg-[#fff8ed] text-[#7f5719]")}>
           {approved ? (fi ? "Hyväksytty" : "Approved") : reconciliation.status === "matched" ? (fi ? "Täsmää" : "Matched") : String(openCount) + " " + (fi ? "avointa" : "open")}
@@ -217,6 +225,17 @@ export function ReconciliationPanel({
               const quote = snap(line.quote_snapshot);
               const accepted = line.review_status === "accepted";
               const quoteNet = quote?.quantity ? Number(quote.lineTotal) / Number(quote.quantity) : null;
+              const memoryContext = snap(line.memory_context);
+              const unitMemory = snap(memoryContext?.unit_memory);
+              const poQuantity = Number(po?.quantity);
+              const quoteQuantity = Number(quote?.quantity);
+              const canRememberUnitAlias =
+                codes.includes("unit_mismatch") &&
+                Boolean(po?.unit) &&
+                Boolean(quote?.unit) &&
+                Number.isFinite(poQuantity) &&
+                Number.isFinite(quoteQuantity) &&
+                Math.abs(poQuantity - quoteQuantity) <= 0.0001;
 
               return (
                 <article key={line.id} className={"rounded-2xl border p-5 " + (accepted ? "border-[#bad8c5] bg-[#fbfdfb]" : "border-[#e5cfac] bg-[#fffdfa]")}>
@@ -254,14 +273,56 @@ export function ReconciliationPanel({
                     </div>
                   </div>
 
+                  {unitMemory ? (
+                    <div className="mt-4 rounded-xl border border-[#bad8c5] bg-[var(--green-soft)] p-4 text-sm text-[var(--green-dark)]">
+                      <strong className="block">
+                        {fi ? "Älykäs muisti tulkitsi yksikön." : "Smart Memory interpreted the unit."}
+                      </strong>
+                      <span className="mt-1 block">
+                        {String(unitMemory.source_unit || po?.unit || "—")} →{" "}
+                        {String(unitMemory.target_unit || quote?.unit || "—")}
+                      </span>
+                      <small className="mt-1 block opacity-80">
+                        {fi
+                          ? "Tämä on vain yksikköalias. Määrää ei muunnettu."
+                          : "This is a unit alias only. Quantity was not converted."}
+                      </small>
+                    </div>
+                  ) : null}
+
                   {accepted ? (
                     line.review_note ? <div className="mt-4 rounded-xl bg-[var(--green-soft)] p-3 text-sm text-[var(--green-dark)]">{line.review_note}</div> : null
                   ) : canReview && !locked ? (
-                    <form action={acceptPurchaseOrderException} className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
+                    <form action={acceptPurchaseOrderException} className="mt-4 space-y-3">
                       <input type="hidden" name="purchaseOrderId" value={purchaseOrder.id} />
                       <input type="hidden" name="reconciliationLineId" value={line.id} />
-                      <input name="reviewNote" maxLength={2000} className="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm" placeholder={fi ? "Miksi poikkeama hyväksytään? (valinnainen)" : "Why is this difference accepted? (optional)"} />
-                      <button className="upload-v2-secondary-btn">{fi ? "Hyväksy poikkeama" : "Accept difference"}</button>
+
+                      {canRememberUnitAlias ? (
+                        <label className="flex items-start gap-3 rounded-xl border border-[#d8ded9] bg-white p-4 text-sm">
+                          <input
+                            type="checkbox"
+                            name="rememberUnitAlias"
+                            className="mt-0.5"
+                          />
+                          <span>
+                            <strong className="block">
+                              {fi
+                                ? `Muista yksikköalias ${String(po?.unit)} → ${String(quote?.unit)} tälle asiakkaalle`
+                                : `Remember unit alias ${String(po?.unit)} → ${String(quote?.unit)} for this customer`}
+                            </strong>
+                            <small className="mt-1 block text-[var(--muted)]">
+                              {fi
+                                ? "Muisti koskee vain vastaavaa yksikkönimeä tulevissa PO-vertailuissa. Se ei tee määrämuunnosta."
+                                : "Memory only treats the unit names as equivalent in future PO comparisons. It does not convert quantities."}
+                            </small>
+                          </span>
+                        </label>
+                      ) : null}
+
+                      <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                        <input name="reviewNote" maxLength={2000} className="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm" placeholder={fi ? "Miksi poikkeama hyväksytään? (valinnainen)" : "Why is this difference accepted? (optional)"} />
+                        <button className="upload-v2-secondary-btn">{fi ? "Hyväksy poikkeama" : "Accept difference"}</button>
+                      </div>
                     </form>
                   ) : null}
                 </article>

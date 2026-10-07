@@ -4,6 +4,7 @@ import {
   reconcilePurchaseOrder,
   type PurchaseOrderLineInput,
   type QuoteLineInput,
+  type UnitMemoryAlias,
 } from "@/lib/rivora/po-reconciliation";
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
@@ -79,6 +80,31 @@ export async function reconcilePurchaseOrderForWorkspace({
   if (!poRows?.length) throw new Error("Purchase order has no lines to reconcile.");
   if (!quoteRows?.length) throw new Error("Linked quote has no lines to reconcile.");
 
+  const { data: unitMemoryRows, error: unitMemoryError } = await supabase
+    .from("workspace_memory_entries")
+    .select("id,source_value,source_key,target_value")
+    .eq("organization_id", organizationId)
+    .eq("customer_id", purchaseOrder.customer_id)
+    .eq("scope", "customer")
+    .eq("memory_type", "customer_unit_alias")
+    .eq("target_entity_type", "unit")
+    .eq("verification_state", "verified");
+
+  if (unitMemoryError) throw unitMemoryError;
+
+  const unitAliases = new Map<string, UnitMemoryAlias>();
+  for (const memory of unitMemoryRows ?? []) {
+    const sourceKey = String(memory.source_key ?? "").trim();
+    const targetUnit = String(memory.target_value ?? "").trim();
+    if (!sourceKey || !targetUnit) continue;
+
+    unitAliases.set(sourceKey, {
+      memoryId: String(memory.id),
+      sourceUnit: String(memory.source_value ?? ""),
+      targetUnit,
+    });
+  }
+
   const purchaseOrderLines: PurchaseOrderLineInput[] = poRows.map((line: any) => ({
     id: String(line.id),
     lineNumber: Number(line.line_number),
@@ -120,7 +146,11 @@ export async function reconcilePurchaseOrderForWorkspace({
     };
   });
 
-  const reconciliation = reconcilePurchaseOrder(purchaseOrderLines, quoteLines);
+  const reconciliation = reconcilePurchaseOrder(
+    purchaseOrderLines,
+    quoteLines,
+    { unitAliases },
+  );
   const headerExceptions: string[] = [];
 
   if (
@@ -151,6 +181,7 @@ export async function reconcilePurchaseOrderForWorkspace({
     review_status: line.reviewStatus,
     po_snapshot: line.poSnapshot,
     quote_snapshot: line.quoteSnapshot,
+    memory_context: line.memoryContext,
   }));
 
   const { data: reconciliationId, error: commitError } = await supabase.rpc(

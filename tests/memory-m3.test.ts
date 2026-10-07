@@ -125,7 +125,7 @@ test("M3 mutation RPCs stay actor-bound and service-role-only", () => {
 
 test("Smart Memory settings read the M1 canonical memory table", () => {
   assert.match(memoryPage, /from\("workspace_memory_entries"\)/);
-  assert.match(memoryPage, /memory_type", "customer_sku_product"/);
+  assert.match(memoryPage, /customer_sku_product/);
   assert.match(memoryPage, /verification_state/);
   assert.match(memoryPage, /use_count/);
   assert.equal(memoryPage.includes('from("customer_product_mappings")'), false);

@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import {
   parseTabularFile,
+  PURCHASE_ORDER_FIELD_MEMORY_TARGETS,
   sourceTypeFromName,
-  toPurchaseOrderRows,
+  toPurchaseOrderRowsWithFieldMemory,
+  type PurchaseOrderFieldMemory,
+  type PurchaseOrderFieldMemoryTarget,
 } from "@/lib/rivora/imports";
 import { reconcilePurchaseOrderForWorkspace } from "@/lib/rivora/po-reconciliation-service";
 
@@ -134,7 +137,48 @@ export async function POST(request: Request) {
       customerId = customer.id;
     }
 
-    const rows = toPurchaseOrderRows(await parseTabularFile(file));
+    const { data: fieldMemoryRows, error: fieldMemoryError } = await supabase
+      .from("workspace_memory_entries")
+      .select("id,source_value,target_value")
+      .eq("organization_id", workspace.id)
+      .eq("customer_id", customerId)
+      .eq("scope", "customer")
+      .eq("memory_type", "customer_po_field_alias")
+      .eq("target_entity_type", "po_field")
+      .eq("verification_state", "verified");
+
+    if (fieldMemoryError) throw fieldMemoryError;
+
+    const allowedFieldTargets = new Set<string>(
+      PURCHASE_ORDER_FIELD_MEMORY_TARGETS,
+    );
+    const fieldMemories: PurchaseOrderFieldMemory[] = [];
+    for (const memory of fieldMemoryRows ?? []) {
+      const targetField = String(memory.target_value ?? "");
+      const sourceHeader = String(memory.source_value ?? "").trim();
+      if (!sourceHeader || !allowedFieldTargets.has(targetField)) continue;
+
+      fieldMemories.push({
+        memoryId: String(memory.id),
+        sourceHeader,
+        targetField: targetField as PurchaseOrderFieldMemoryTarget,
+      });
+    }
+
+    const parsed = toPurchaseOrderRowsWithFieldMemory(
+      await parseTabularFile(file),
+      fieldMemories,
+    );
+    const rows = parsed.rows;
+    const memoryContext = parsed.usedMemories.length
+      ? {
+          po_field_memories: parsed.usedMemories.map((memory) => ({
+            memory_id: memory.memoryId,
+            source_header: memory.sourceHeader,
+            target_field: memory.targetField,
+          })),
+        }
+      : {};
     const sha256 = await sha256ForFile(file);
     const currency =
       normalizeCurrency(currencyInput) ||
@@ -154,6 +198,7 @@ export async function POST(request: Request) {
         status: "processing",
         currency,
         order_date: normalizeDate(orderDateInput),
+        memory_context: memoryContext,
         created_by: String(context.claims.sub),
       })
       .select("id")

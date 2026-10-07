@@ -148,3 +148,65 @@ test("reconciliation accepts gross PO unit price when line total proves the same
   assert.ok(!result.lines[0]?.exceptionCodes.includes("unit_price_mismatch"));
   assert.ok(!result.lines[0]?.exceptionCodes.includes("line_total_mismatch"));
 });
+
+
+test("M4 verified unit alias suppresses only the unit mismatch and preserves source snapshots", () => {
+  const unitAliases = new Map([
+    [
+      "st",
+      {
+        memoryId: "memory-unit-st",
+        sourceUnit: "ST",
+        targetUnit: "pcs",
+      },
+    ],
+  ]);
+
+  const withoutMemory = reconcilePurchaseOrder(
+    [poLine({ unit: "ST" })],
+    [quoteLine({ unit: "pcs" })],
+  );
+  assert.ok(withoutMemory.lines[0]?.exceptionCodes.includes("unit_mismatch"));
+
+  const withMemory = reconcilePurchaseOrder(
+    [poLine({ unit: "ST" })],
+    [quoteLine({ unit: "pcs" })],
+    { unitAliases },
+  );
+
+  assert.ok(!withMemory.lines[0]?.exceptionCodes.includes("unit_mismatch"));
+  assert.equal(withMemory.summary.memoryAssistedLines, 1);
+  assert.deepEqual(withMemory.lines[0]?.memoryContext, {
+    unit_memory: {
+      memory_id: "memory-unit-st",
+      source_unit: "ST",
+      target_unit: "pcs",
+    },
+  });
+  assert.equal(withMemory.lines[0]?.poSnapshot?.unit, "ST");
+  assert.equal(withMemory.lines[0]?.poSnapshot?.quantity, 10);
+});
+
+test("M4 unit memory never hides a quantity mismatch", () => {
+  const unitAliases = new Map([
+    [
+      "st",
+      {
+        memoryId: "memory-unit-st",
+        sourceUnit: "ST",
+        targetUnit: "pcs",
+      },
+    ],
+  ]);
+
+  const result = reconcilePurchaseOrder(
+    [poLine({ unit: "ST", quantity: 12 })],
+    [quoteLine({ unit: "pcs", quantity: 10 })],
+    { unitAliases },
+  );
+
+  assert.ok(result.lines[0]?.exceptionCodes.includes("quantity_mismatch"));
+  assert.ok(!result.lines[0]?.exceptionCodes.includes("unit_mismatch"));
+  assert.equal(result.lines[0]?.poSnapshot?.quantity, 12);
+  assert.equal(result.lines[0]?.quoteSnapshot?.quantity, 10);
+});

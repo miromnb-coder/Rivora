@@ -39,6 +39,34 @@ export type PurchaseOrderImportRow = {
   discountPercent: number;
   lineTotal: number | null;
 };
+export const PURCHASE_ORDER_FIELD_MEMORY_TARGETS = [
+  "customer_sku",
+  "description",
+  "manufacturer",
+  "manufacturer_part_number",
+  "quantity",
+  "unit",
+  "unit_price",
+  "net_unit_price",
+  "discount_percent",
+  "line_total",
+] as const;
+
+export type PurchaseOrderFieldMemoryTarget =
+  (typeof PURCHASE_ORDER_FIELD_MEMORY_TARGETS)[number];
+
+export type PurchaseOrderFieldMemory = {
+  memoryId: string;
+  sourceHeader: string;
+  targetField: PurchaseOrderFieldMemoryTarget;
+};
+
+export type PurchaseOrderFieldMemoryUse = {
+  memoryId: string;
+  sourceHeader: string;
+  targetField: PurchaseOrderFieldMemoryTarget;
+};
+
 
 function normalizeHeader(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9åäö]+/g, "");
@@ -236,7 +264,51 @@ export function toRfqRows(rows: RawRow[]): RfqImportRow[] {
 }
 
 
-export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
+function purchaseOrderFieldPicker(
+  row: RawRow,
+  field: PurchaseOrderFieldMemoryTarget,
+  aliases: string[],
+  memoryByHeader: Map<string, PurchaseOrderFieldMemory>,
+  usedMemories: Map<string, PurchaseOrderFieldMemoryUse>,
+) {
+  const entries = Object.entries(row);
+
+  for (const [header, rawValue] of entries) {
+    const memory = memoryByHeader.get(normalizeHeader(header));
+    const value = String(rawValue ?? "").trim();
+    if (!memory || memory.targetField !== field || !value) continue;
+
+    usedMemories.set(memory.memoryId, {
+      memoryId: memory.memoryId,
+      sourceHeader: header,
+      targetField: memory.targetField,
+    });
+    return value;
+  }
+
+  // Preserve the existing built-in alias priority. The aliases array is
+  // intentionally ordered from most specific to more generic names
+  // ("unit price" before "price", for example). Customer memory still owns a
+  // header completely, so a generic built-in alias cannot reinterpret it.
+  for (const alias of aliases) {
+    const target = normalizeHeader(alias);
+    const hit = entries.find(([header, rawValue]) => {
+      const normalizedHeader = normalizeHeader(header);
+      if (normalizedHeader !== target) return false;
+      if (memoryByHeader.has(normalizedHeader)) return false;
+      return Boolean(String(rawValue ?? "").trim());
+    });
+
+    if (hit) return String(hit[1] ?? "").trim();
+  }
+
+  return "";
+}
+
+function parsePurchaseOrderRows(
+  rows: RawRow[],
+  fieldMemories: PurchaseOrderFieldMemory[],
+) {
   if (rows.length > MAX_PURCHASE_ORDER_ROWS) {
     throw new Error(`Purchase order has too many rows. Maximum is ${MAX_PURCHASE_ORDER_ROWS.toLocaleString("en-US")}.`);
   }
@@ -244,25 +316,95 @@ export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
     throw new Error("Purchase order file has no order rows.");
   }
 
-  return rows.map((row, index) => {
+  const memoryByHeader = new Map<string, PurchaseOrderFieldMemory>();
+  for (const memory of fieldMemories) {
+    const key = normalizeHeader(memory.sourceHeader);
+    if (!key) continue;
+
+    const existing = memoryByHeader.get(key);
+    if (existing && existing.targetField !== memory.targetField) {
+      throw new Error(
+        `Customer PO field memory is ambiguous for header "${memory.sourceHeader}".`,
+      );
+    }
+    memoryByHeader.set(key, memory);
+  }
+
+  const usedMemories = new Map<string, PurchaseOrderFieldMemoryUse>();
+
+  const parsedRows = rows.map((row, index) => {
+    const field = (
+      target: PurchaseOrderFieldMemoryTarget,
+      aliases: string[],
+    ) =>
+      purchaseOrderFieldPicker(
+        row,
+        target,
+        aliases,
+        memoryByHeader,
+        usedMemories,
+      );
+
     const customerSku =
-      pick(row, ["customer sku", "sku", "item code", "part number", "product code", "tuotenumero", "nimike"]) || null;
+      field("customer_sku", [
+        "customer sku",
+        "sku",
+        "item code",
+        "part number",
+        "product code",
+        "tuotenumero",
+        "nimike",
+      ]) || null;
     const description =
-      pick(row, ["description", "product name", "item description", "kuvaus", "tuotenimi"]) || "";
-    const manufacturer = pick(row, ["manufacturer", "brand", "valmistaja"]) || null;
+      field("description", [
+        "description",
+        "product name",
+        "item description",
+        "kuvaus",
+        "tuotenimi",
+      ]) || "";
+    const manufacturer =
+      field("manufacturer", ["manufacturer", "brand", "valmistaja"]) || null;
     const manufacturerPartNumber =
-      pick(row, ["manufacturer part number", "mpn", "manufacturer sku", "valmistajan tuotenumero"]) || null;
-    const quantity = parseNumber(pick(row, ["quantity", "qty", "amount", "ordered quantity", "määrä", "kpl"]));
-    const unit = pick(row, ["unit", "uom", "yksikkö"]) || "pcs";
+      field("manufacturer_part_number", [
+        "manufacturer part number",
+        "mpn",
+        "manufacturer sku",
+        "valmistajan tuotenumero",
+      ]) || null;
+    const quantity = parseNumber(
+      field("quantity", [
+        "quantity",
+        "qty",
+        "amount",
+        "ordered quantity",
+        "määrä",
+        "kpl",
+      ]),
+    );
+    const unit =
+      field("unit", ["unit", "uom", "yksikkö"]) || "pcs";
     const explicitNetUnitPrice = parseNumber(
-      pick(row, ["net unit price", "net price", "nettohinta", "netto yksikköhinta"])
+      field("net_unit_price", [
+        "net unit price",
+        "net price",
+        "nettohinta",
+        "netto yksikköhinta",
+      ]),
     );
     const grossUnitPrice = parseNumber(
-      pick(row, ["unit price", "price", "gross unit price", "hinta", "yksikköhinta", "bruttohinta"])
+      field("unit_price", [
+        "unit price",
+        "price",
+        "gross unit price",
+        "hinta",
+        "yksikköhinta",
+        "bruttohinta",
+      ]),
     );
     const discountPercent =
       parseNumber(
-        pick(row, [
+        field("discount_percent", [
           "discount percent",
           "discount %",
           "discount_percent",
@@ -270,20 +412,26 @@ export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
           "alennusprosentti",
           "alennus %",
           "alennus",
-        ])
+        ]),
       ) ?? 0;
     const lineTotal = parseNumber(
-      pick(row, ["line total", "total", "row total", "sum", "rivisumma"])
+      field("line_total", [
+        "line total",
+        "total",
+        "row total",
+        "sum",
+        "rivisumma",
+      ]),
     );
 
     if (!customerSku && !manufacturerPartNumber && !description) {
       throw new Error(
-        `Purchase order row ${index + 2} is missing a product identifier and description.`
+        `Purchase order row ${index + 2} is missing a product identifier and description.`,
       );
     }
     if (quantity == null || quantity <= 0) {
       throw new Error(
-        `Purchase order row ${index + 2} has a missing or invalid quantity.`
+        `Purchase order row ${index + 2} has a missing or invalid quantity.`,
       );
     }
     if (grossUnitPrice != null && grossUnitPrice < 0) {
@@ -317,7 +465,7 @@ export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
       Math.abs(quantity * unitPrice - lineTotal) > 0.02
     ) {
       throw new Error(
-        `Purchase order row ${index + 2} has inconsistent unit price, discount and line total.`
+        `Purchase order row ${index + 2} has inconsistent unit price, discount and line total.`,
       );
     }
 
@@ -333,4 +481,24 @@ export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
       lineTotal,
     };
   });
+
+  return {
+    rows: parsedRows,
+    usedMemories: [...usedMemories.values()],
+  };
 }
+
+export function toPurchaseOrderRows(rows: RawRow[]): PurchaseOrderImportRow[] {
+  return parsePurchaseOrderRows(rows, []).rows;
+}
+
+export function toPurchaseOrderRowsWithFieldMemory(
+  rows: RawRow[],
+  fieldMemories: PurchaseOrderFieldMemory[],
+): {
+  rows: PurchaseOrderImportRow[];
+  usedMemories: PurchaseOrderFieldMemoryUse[];
+} {
+  return parsePurchaseOrderRows(rows, fieldMemories);
+}
+

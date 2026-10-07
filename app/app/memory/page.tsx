@@ -1,9 +1,17 @@
 import Link from "next/link";
-import { requireWorkspace } from "@/lib/rivora/workspace";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getLocale } from "@/lib/locale";
 import {
+  PURCHASE_ORDER_FIELD_MEMORY_TARGETS,
+  type PurchaseOrderFieldMemoryTarget,
+} from "@/lib/rivora/imports";
+import { requireWorkspace } from "@/lib/rivora/workspace";
+import {
+  createCustomerPoFieldMemory,
   deleteCustomerMemoryMapping,
+  deleteCustomerScalarMemory,
   updateCustomerMemoryMapping,
+  updateCustomerPoFieldMemory,
 } from "./actions";
 
 function memoryStateLabel(state: string, fi: boolean) {
@@ -28,11 +36,70 @@ function memorySourceLabel(
   const labels: Record<string, [string, string]> = {
     manual_confirmation: ["Ihmisen vahvistama", "Human confirmed"],
     approved_quote: ["Hyväksytystä tarjouksesta", "From approved quote"],
-    approved_po_reconciliation: ["Hyväksytystä PO-tarkistuksesta", "From approved PO review"],
-    verified_erp_mapping: ["Vahvistetusta ERP-vastineesta", "From verified ERP mapping"],
+    approved_po_reconciliation: [
+      "Hyväksytystä PO-tarkistuksesta",
+      "From approved PO review",
+    ],
+    verified_erp_mapping: [
+      "Vahvistetusta ERP-vastineesta",
+      "From verified ERP mapping",
+    ],
     system_import: ["Järjestelmätuonti", "System import"],
   };
   return labels[source]?.[fi ? 0 : 1] ?? source.replaceAll("_", " ");
+}
+
+function poFieldLabel(field: string, fi: boolean) {
+  const labels: Record<string, [string, string]> = {
+    customer_sku: ["Asiakkaan SKU", "Customer SKU"],
+    description: ["Kuvaus", "Description"],
+    manufacturer: ["Valmistaja", "Manufacturer"],
+    manufacturer_part_number: [
+      "Valmistajan tuotenumero",
+      "Manufacturer part number",
+    ],
+    quantity: ["Määrä", "Quantity"],
+    unit: ["Yksikkö", "Unit"],
+    unit_price: ["Bruttoyksikköhinta", "Gross unit price"],
+    net_unit_price: ["Nettoyksikköhinta", "Net unit price"],
+    discount_percent: ["Alennus %", "Discount %"],
+    line_total: ["Rivisumma", "Line total"],
+  };
+  return labels[field]?.[fi ? 0 : 1] ?? field.replaceAll("_", " ");
+}
+
+function scalarTypeLabel(type: string, fi: boolean) {
+  if (type === "customer_unit_alias") {
+    return fi ? "Yksikköalias" : "Unit alias";
+  }
+  if (type === "customer_po_field_alias") {
+    return fi ? "PO-saraketulkinta" : "PO column interpretation";
+  }
+  return type.replaceAll("_", " ");
+}
+
+async function loadWorkspaceCustomers(
+  supabase: SupabaseClient,
+  organizationId: string,
+) {
+  const pageSize = 500;
+  const customers: any[] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id,name")
+      .eq("organization_id", organizationId)
+      .order("name")
+      .range(from, from + pageSize - 1);
+
+    if (error) throw error;
+    customers.push(...(data ?? []));
+
+    if (!data || data.length < pageSize) break;
+  }
+
+  return customers;
 }
 
 export default async function MemoryPage() {
@@ -41,45 +108,60 @@ export default async function MemoryPage() {
     getLocale(),
   ]);
   const fi = locale === "fi";
-  const canEdit = ["owner", "admin", "member"].includes(workspace.role);
-  const canDelete = ["owner", "admin"].includes(workspace.role);
+  const canEditProduct = ["owner", "admin", "member"].includes(workspace.role);
+  const canManageControlled = ["owner", "admin"].includes(workspace.role);
   const dateFormatter = new Intl.DateTimeFormat(fi ? "fi-FI" : "en-US", {
     dateStyle: "medium",
   });
 
-  const { data: memories } = await supabase
-    .from("workspace_memory_entries")
-    .select(
-      "id,customer_id,source_value,target_entity_id,confidence,verification_state,source,source_entity_type,source_entity_id,metadata,verified_at,last_used_at,use_count,created_at,updated_at",
-    )
-    .eq("organization_id", workspace.id)
-    .eq("scope", "customer")
-    .eq("memory_type", "customer_sku_product")
-    .order("updated_at", { ascending: false })
-    .limit(500);
-
-  const rows = memories ?? [];
-  const customerIds = Array.from(
-    new Set(rows.map((row: any) => String(row.customer_id || "")).filter(Boolean)),
-  );
-  const productIds = Array.from(
-    new Set(rows.map((row: any) => String(row.target_entity_id || "")).filter(Boolean)),
-  );
-
-  const [{ data: customers }, { data: products }] = await Promise.all([
-    customerIds.length
-      ? supabase.from("customers").select("id,name").in("id", customerIds)
-      : Promise.resolve({ data: [] as any[] }),
-    productIds.length
-      ? supabase
-          .from("products")
-          .select("id,sku,name,manufacturer,active")
-          .in("id", productIds)
-      : Promise.resolve({ data: [] as any[] }),
+  const [{ data: memories }, allCustomers] = await Promise.all([
+    supabase
+      .from("workspace_memory_entries")
+      .select(
+        "id,customer_id,memory_type,source_value,target_entity_id,target_value,confidence,verification_state,source,source_entity_type,source_entity_id,metadata,verified_at,last_used_at,use_count,created_at,updated_at",
+      )
+      .eq("organization_id", workspace.id)
+      .eq("scope", "customer")
+      .in("memory_type", [
+        "customer_sku_product",
+        "customer_unit_alias",
+        "customer_po_field_alias",
+      ])
+      .order("updated_at", { ascending: false })
+      .limit(750),
+    loadWorkspaceCustomers(supabase, workspace.id),
   ]);
 
+  const rows = memories ?? [];
+  const productRows = rows.filter(
+    (row: any) => String(row.memory_type) === "customer_sku_product",
+  );
+  const controlledRows = rows.filter((row: any) =>
+    ["customer_unit_alias", "customer_po_field_alias"].includes(
+      String(row.memory_type),
+    ),
+  );
+
+  const productIds = Array.from(
+    new Set(
+      productRows
+        .map((row: any) => String(row.target_entity_id || ""))
+        .filter(Boolean),
+    ),
+  );
+
+  const { data: products } = productIds.length
+    ? await supabase
+        .from("products")
+        .select("id,sku,name,manufacturer,active")
+        .in("id", productIds)
+    : { data: [] as any[] };
+
   const customerById = new Map(
-    (customers ?? []).map((customer: any) => [String(customer.id), customer]),
+    (allCustomers ?? []).map((customer: any) => [
+      String(customer.id),
+      customer,
+    ]),
   );
   const productById = new Map(
     (products ?? []).map((product: any) => [String(product.id), product]),
@@ -106,8 +188,8 @@ export default async function MemoryPage() {
       ? "Näe, mitä Averomira muistaa — ja hallitse sitä."
       : "See what Averomira remembers — and control it.",
     description: fi
-      ? "Vain vahvistettua muistia käytetään uusissa tarjouspyynnöissä. Jokainen asiakaskohtainen vastine näyttää lähteen, vahvistustilan ja käyttöhistorian."
-      : "Only verified memory is reused on new RFQs. Every customer-specific mapping shows its source, verification state and usage history.",
+      ? "Vain vahvistettua muistia käytetään uudelleen. Tuotevastineiden lisäksi hallittu laajennus voi muistaa asiakaskohtaisia yksikköaliasia ja rakenteisten PO-tiedostojen sarakeotsikoita."
+      : "Only verified memory is reused. Alongside product mappings, controlled expansion can remember customer-specific unit aliases and structured PO column headers.",
     active: fi ? "Aktiiviset muistot" : "Active memories",
     verified: fi ? "Vahvistetut" : "Verified",
     review: fi ? "Vaatii tarkistuksen" : "Needs review",
@@ -121,12 +203,13 @@ export default async function MemoryPage() {
     input: fi ? "Muistettu tunniste" : "Remembered identifier",
     product: fi ? "Katalogituote" : "Catalogue product",
     state: fi ? "Tila" : "State",
-    source: fi ? "Lähde" : "Source",
     confidence: fi ? "Varmuus" : "Confidence",
     verifiedAt: fi ? "Vahvistettu" : "Verified",
     lastUsed: fi ? "Viimeksi käytetty" : "Last used",
     never: fi ? "Ei vielä käytetty" : "Not used yet",
-    unavailable: fi ? "Tuote ei ole enää saatavilla" : "Product is no longer available",
+    unavailable: fi
+      ? "Tuote ei ole enää saatavilla"
+      : "Product is no longer available",
     inactive: fi ? "Tuote ei ole aktiivinen" : "Product is inactive",
     productSku: fi ? "Katalogin SKU" : "Catalogue SKU",
     save: fi ? "Tallenna / vahvista" : "Save / verify",
@@ -135,8 +218,8 @@ export default async function MemoryPage() {
       : "I confirm this mapping should be removed from active memory.",
     delete: fi ? "Poista muistista" : "Remove from memory",
     disabledNote: fi
-      ? "Tämä muisti säilyy audit trailissa, mutta sitä ei enää käytetä matchingissa."
-      : "This memory remains in the audit trail but is no longer used for matching.",
+      ? "Tämä muisti säilyy audit trailissa, mutta sitä ei enää käytetä."
+      : "This memory remains in the audit trail but is no longer reused.",
     empty: fi ? "Muisti on vielä tyhjä" : "No memory yet",
     emptyTitle: fi
       ? "Älykäs muisti kasvaa ihmisen vahvistamista päätöksistä."
@@ -144,18 +227,6 @@ export default async function MemoryPage() {
     emptyBody: fi
       ? "Vahvista tuote RFQ Review -näkymässä ja valitse “Muista tämä vastine tälle asiakkaalle”."
       : "Confirm a product in RFQ Review and choose “Remember this mapping for this customer”.",
-    step1: fi ? "Ihminen vahvistaa" : "Human confirms",
-    step1Body: fi
-      ? "Tuoteosuma hyväksytään RFQ Review:ssa."
-      : "A product match is approved in RFQ Review.",
-    step2: fi ? "Muisti tallentuu verified-tilaan" : "Memory becomes verified",
-    step2Body: fi
-      ? "Asiakkaan tunniste linkitetään katalogituotteeseen audit trailin kanssa."
-      : "The customer identifier is linked to a catalogue product with an audit trail.",
-    step3: fi ? "Seuraava RFQ saa ehdotuksen" : "The next RFQ gets a suggestion",
-    step3Body: fi
-      ? "Muistettu vastine priorisoidaan, mutta ihminen vahvistaa sen edelleen."
-      : "The remembered mapping is prioritized, but a person still confirms it.",
   };
 
   return (
@@ -172,26 +243,35 @@ export default async function MemoryPage() {
         </div>
       </header>
 
-      <section className="memory-app-v2-summary" aria-label="Smart Memory summary">
+      <section
+        className="memory-app-v2-summary"
+        aria-label="Smart Memory summary"
+      >
         <div>
           <span>{text.active}</span>
           <strong>{activeRows.length}</strong>
-          <small>{fi ? "käytettävissä olevaa vastinetta" : "available mappings"}</small>
+          <small>
+            {fi ? "käytettävissä olevaa muistia" : "available memories"}
+          </small>
         </div>
         <div>
           <span>{text.verified}</span>
           <strong>{verifiedRows.length}</strong>
-          <small>{fi ? "voidaan ehdottaa uudelleen" : "eligible for reuse"}</small>
+          <small>{fi ? "saa käyttää uudelleen" : "eligible for reuse"}</small>
         </div>
         <div>
           <span>{text.review}</span>
           <strong>{reviewRows.length}</strong>
-          <small>{fi ? "ei käytetä automaattisesti" : "never reused automatically"}</small>
+          <small>
+            {fi ? "ei käytetä uudelleen" : "never reused automatically"}
+          </small>
         </div>
         <div>
           <span>{text.uses}</span>
           <strong>{totalUses}</strong>
-          <small>{fi ? "idempotenttia muistiosumaa" : "idempotent memory matches"}</small>
+          <small>
+            {fi ? "idempotenttia muistiosumaa" : "idempotent memory uses"}
+          </small>
         </div>
       </section>
 
@@ -204,9 +284,9 @@ export default async function MemoryPage() {
           <span>{text.newest}</span>
         </div>
 
-        {rows.length ? (
+        {productRows.length ? (
           <div className="memory-app-v2-rows">
-            {rows.map((memory: any) => {
+            {productRows.map((memory: any) => {
               const customer = customerById.get(String(memory.customer_id));
               const product = productById.get(String(memory.target_entity_id));
               const state = String(memory.verification_state || "proposed");
@@ -220,12 +300,24 @@ export default async function MemoryPage() {
               return (
                 <article
                   key={memory.id}
-                  className={"memory-app-v2-row memory-m3-row" + (disabled ? " is-disabled" : "")}
+                  className={
+                    "memory-app-v2-row memory-m3-row" +
+                    (disabled ? " is-disabled" : "")
+                  }
                 >
                   <div className="memory-app-v2-customer">
                     <span>{text.customer}</span>
-                    <strong>{customer?.name ?? (fi ? "Tuntematon asiakas" : "Unknown customer")}</strong>
-                    <small>{memorySourceLabel(String(memory.source || ""), metadata, fi)}</small>
+                    <strong>
+                      {customer?.name ??
+                        (fi ? "Tuntematon asiakas" : "Unknown customer")}
+                    </strong>
+                    <small>
+                      {memorySourceLabel(
+                        String(memory.source || ""),
+                        metadata,
+                        fi,
+                      )}
+                    </small>
                   </div>
 
                   <div className="memory-app-v2-input">
@@ -236,20 +328,36 @@ export default async function MemoryPage() {
                     </p>
                   </div>
 
-                  <div className="memory-app-v2-arrow" aria-hidden="true">→</div>
+                  <div
+                    className="memory-app-v2-arrow"
+                    aria-hidden="true"
+                  >
+                    →
+                  </div>
 
                   <div className="memory-app-v2-product">
                     <span>{text.product}</span>
                     <h3>{product?.sku ?? "—"}</h3>
                     <p>{product?.name ?? text.unavailable}</p>
-                    {product?.manufacturer ? <small>{product.manufacturer}</small> : null}
+                    {product?.manufacturer ? (
+                      <small>{product.manufacturer}</small>
+                    ) : null}
                     {product && product.active === false ? (
-                      <small className="memory-m3-warning">{text.inactive}</small>
+                      <small className="memory-m3-warning">
+                        {text.inactive}
+                      </small>
                     ) : null}
 
-                    {canEdit && !disabled ? (
-                      <form action={updateCustomerMemoryMapping} className="memory-m3-edit">
-                        <input type="hidden" name="memoryId" value={memory.id} />
+                    {canEditProduct && !disabled ? (
+                      <form
+                        action={updateCustomerMemoryMapping}
+                        className="memory-m3-edit"
+                      >
+                        <input
+                          type="hidden"
+                          name="memoryId"
+                          value={memory.id}
+                        />
                         <label>
                           <span>{text.productSku}</span>
                           <input
@@ -259,7 +367,9 @@ export default async function MemoryPage() {
                             aria-label={text.productSku}
                           />
                         </label>
-                        <button className="btn-secondary">{text.save}</button>
+                        <button className="btn-secondary">
+                          {text.save}
+                        </button>
                       </form>
                     ) : null}
                   </div>
@@ -268,7 +378,8 @@ export default async function MemoryPage() {
                     <span>{text.uses}</span>
                     <strong>{uses}</strong>
                     <small>
-                      {text.confidence}: {Math.round(Number(memory.confidence ?? 0))}%
+                      {text.confidence}:{" "}
+                      {Math.round(Number(memory.confidence ?? 0))}%
                     </small>
                     <small>
                       {text.verifiedAt}:{" "}
@@ -284,15 +395,30 @@ export default async function MemoryPage() {
                     </small>
 
                     {disabled ? (
-                      <p className="memory-m3-disabled-note">{text.disabledNote}</p>
-                    ) : canDelete ? (
-                      <form action={deleteCustomerMemoryMapping} className="memory-m3-delete">
-                        <input type="hidden" name="memoryId" value={memory.id} />
+                      <p className="memory-m3-disabled-note">
+                        {text.disabledNote}
+                      </p>
+                    ) : canManageControlled ? (
+                      <form
+                        action={deleteCustomerMemoryMapping}
+                        className="memory-m3-delete"
+                      >
+                        <input
+                          type="hidden"
+                          name="memoryId"
+                          value={memory.id}
+                        />
                         <label>
-                          <input name="confirmDelete" type="checkbox" required />
+                          <input
+                            name="confirmDelete"
+                            type="checkbox"
+                            required
+                          />
                           <span>{text.deleteConfirm}</span>
                         </label>
-                        <button className="btn-secondary">{text.delete}</button>
+                        <button className="btn-secondary">
+                          {text.delete}
+                        </button>
                       </form>
                     ) : null}
                   </div>
@@ -309,23 +435,299 @@ export default async function MemoryPage() {
         )}
       </section>
 
+      <section className="surface mt-14 overflow-hidden">
+        <div className="border-b border-[var(--line)] p-6">
+          <div className="upload-v2-section-label">
+            {fi ? "M4 · Hallittu laajennus" : "M4 · Controlled expansion"}
+          </div>
+          <h2 className="mt-2 text-2xl font-bold">
+            {fi
+              ? "Muista turvallisia asiakaskohtaisia tulkintoja."
+              : "Remember safe customer-specific interpretations."}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+            {fi
+              ? "Yksikkömuisti syntyy vain hyväksytyn PO-poikkeaman yhteydessä ja käsittelee pelkän aliasnimen — ei määrämuunnosta. PO-sarakemuisti koskee vain CSV/XLSX-tuonteja ja vain alla sallittuja kenttiä."
+              : "Unit memory is learned only while a PO exception is accepted and treats unit names as aliases only — never as a quantity conversion. PO column memory applies only to CSV/XLSX imports and the allow-listed fields below."}
+          </p>
+        </div>
+
+        <div className="grid gap-px bg-[var(--line)] md:grid-cols-2">
+          <div className="bg-white p-5">
+            <strong className="block text-sm">
+              {fi ? "Yksikköaliasit" : "Unit aliases"}
+            </strong>
+            <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+              {fi
+                ? "Esim. asiakkaan “ST” voidaan muistaa vastaamaan “pcs”, mutta vain kun ihminen hyväksyy yhtä suurten määrien unit mismatch -poikkeaman."
+                : "For example, a customer's “ST” may be remembered as “pcs”, but only when a person accepts an equal-quantity unit mismatch."}
+            </p>
+          </div>
+          <div className="bg-white p-5">
+            <strong className="block text-sm">
+              {fi ? "PO-saraketulkinnat" : "PO column interpretations"}
+            </strong>
+            <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+              {fi
+                ? "Esim. “Bestellmenge” → määrä. Muisti tulkitsee vain otsikon; se ei muuta tiedoston arvoja."
+                : "For example, “Bestellmenge” → quantity. Memory interprets the header only; it does not change file values."}
+            </p>
+          </div>
+        </div>
+
+        {canManageControlled ? (
+          <div className="border-t border-[var(--line)] bg-[#fafbfa] p-6">
+            <div className="upload-v2-section-label">
+              {fi
+                ? "Lisää PO-saraketulkinta"
+                : "Add PO column interpretation"}
+            </div>
+            <form
+              action={createCustomerPoFieldMemory}
+              className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end"
+            >
+              <label>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                  {text.customer}
+                </span>
+                <select
+                  name="customerId"
+                  required
+                  className="mt-2 w-full rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm"
+                >
+                  <option value="">
+                    {fi ? "Valitse asiakas" : "Choose customer"}
+                  </option>
+                  {(allCustomers ?? []).map((customer: any) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                  {fi ? "Asiakkaan sarakeotsikko" : "Customer column header"}
+                </span>
+                <input
+                  name="sourceHeader"
+                  required
+                  maxLength={120}
+                  placeholder="Bestellmenge"
+                  className="mt-2 w-full rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm"
+                />
+              </label>
+              <label>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                  {fi ? "Tulkitaan kentäksi" : "Interpret as"}
+                </span>
+                <select
+                  name="targetField"
+                  required
+                  className="mt-2 w-full rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm"
+                >
+                  {PURCHASE_ORDER_FIELD_MEMORY_TARGETS.map(
+                    (field: PurchaseOrderFieldMemoryTarget) => (
+                      <option key={field} value={field}>
+                        {poFieldLabel(field, fi)}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
+              <button className="upload-v2-secondary-btn">
+                {fi ? "Tallenna vahvistettu tulkinta" : "Save verified interpretation"}
+              </button>
+            </form>
+          </div>
+        ) : null}
+
+        <div className="divide-y divide-[var(--line)]">
+          {controlledRows.length ? (
+            controlledRows.map((memory: any) => {
+              const customer = customerById.get(String(memory.customer_id));
+              const state = String(memory.verification_state || "proposed");
+              const disabled = state === "disabled";
+              const isField =
+                String(memory.memory_type) === "customer_po_field_alias";
+
+              return (
+                <article
+                  key={memory.id}
+                  className={
+                    "grid gap-5 p-6 lg:grid-cols-[1fr_1.15fr_1.15fr_180px]" +
+                    (disabled ? " opacity-60" : "")
+                  }
+                >
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      {text.customer}
+                    </span>
+                    <strong className="mt-2 block text-sm">
+                      {customer?.name ??
+                        (fi ? "Tuntematon asiakas" : "Unknown customer")}
+                    </strong>
+                    <small className="mt-1 block text-[var(--muted)]">
+                      {scalarTypeLabel(String(memory.memory_type), fi)}
+                    </small>
+                  </div>
+
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      {fi ? "Asiakkaan arvo" : "Customer value"}
+                    </span>
+                    <strong className="mt-2 block">
+                      {memory.source_value || "—"}
+                    </strong>
+                    <small className="mt-1 block text-[var(--muted)]">
+                      {memorySourceLabel(
+                        String(memory.source || ""),
+                        memory.metadata &&
+                          typeof memory.metadata === "object"
+                          ? (memory.metadata as Record<string, unknown>)
+                          : null,
+                        fi,
+                      )}
+                    </small>
+                  </div>
+
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      {fi ? "Vahvistettu tulkinta" : "Verified interpretation"}
+                    </span>
+                    <strong className="mt-2 block">
+                      {isField
+                        ? poFieldLabel(String(memory.target_value || ""), fi)
+                        : String(memory.target_value || "—")}
+                    </strong>
+
+                    {isField && canManageControlled && !disabled ? (
+                      <form
+                        action={updateCustomerPoFieldMemory}
+                        className="mt-3 flex flex-wrap gap-2"
+                      >
+                        <input
+                          type="hidden"
+                          name="memoryId"
+                          value={memory.id}
+                        />
+                        <select
+                          name="targetField"
+                          defaultValue={String(memory.target_value || "")}
+                          className="min-w-[200px] flex-1 rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm"
+                        >
+                          {PURCHASE_ORDER_FIELD_MEMORY_TARGETS.map(
+                            (field: PurchaseOrderFieldMemoryTarget) => (
+                              <option key={field} value={field}>
+                                {poFieldLabel(field, fi)}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                        <button className="btn-secondary">
+                          {fi ? "Vaihda" : "Change"}
+                        </button>
+                      </form>
+                    ) : !isField ? (
+                      <small className="mt-2 block text-[var(--muted)]">
+                        {fi
+                          ? "Yksikköalias voidaan oppia vain PO-poikkeaman ihmishyväksynnästä."
+                          : "Unit aliases can only be learned from a human-approved PO exception."}
+                      </small>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      {text.state}
+                    </span>
+                    <strong className="mt-2 block text-sm">
+                      {memoryStateLabel(state, fi)}
+                    </strong>
+                    <small className="mt-1 block text-[var(--muted)]">
+                      {Number(memory.use_count ?? 0)} {text.uses.toLowerCase()}
+                    </small>
+                    <small className="mt-1 block text-[var(--muted)]">
+                      {memory.last_used_at
+                        ? dateFormatter.format(new Date(memory.last_used_at))
+                        : text.never}
+                    </small>
+
+                    {disabled ? (
+                      <p className="mt-3 text-xs text-[var(--muted)]">
+                        {text.disabledNote}
+                      </p>
+                    ) : canManageControlled ? (
+                      <form
+                        action={deleteCustomerScalarMemory}
+                        className="mt-3 space-y-2"
+                      >
+                        <input
+                          type="hidden"
+                          name="memoryId"
+                          value={memory.id}
+                        />
+                        <label className="flex items-start gap-2 text-xs text-[var(--muted)]">
+                          <input
+                            name="confirmDelete"
+                            type="checkbox"
+                            required
+                            className="mt-0.5"
+                          />
+                          <span>
+                            {fi
+                              ? "Poista aktiivisesta muistista"
+                              : "Remove from active memory"}
+                          </span>
+                        </label>
+                        <button className="btn-secondary">
+                          {text.delete}
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })
+          ) : (
+            <div className="p-6 text-sm text-[var(--muted)]">
+              {fi
+                ? "Hallittuja M4-muistoja ei ole vielä. Yksikköaliasit syntyvät PO Review:ssa; PO-saraketulkintoja owner/admin voi lisätä yllä."
+                : "No controlled M4 memories yet. Unit aliases are learned in PO Review; owners/admins can add PO column interpretations above."}
+            </div>
+          )}
+        </div>
+      </section>
+
       <section className="memory-app-v2-explainer">
         <div>
           <span>1</span>
-          <b>{text.step1}</b>
-          <small>{text.step1Body}</small>
+          <b>{fi ? "Ihminen vahvistaa" : "Human confirms"}</b>
+          <small>
+            {fi
+              ? "Tuotevastine, PO-poikkeama tai sallittu saraketulkinta vahvistetaan eksplisiittisesti."
+              : "A product mapping, PO exception or allow-listed column interpretation is explicitly confirmed."}
+          </small>
         </div>
         <i aria-hidden="true">→</i>
         <div>
           <span>2</span>
-          <b>{text.step2}</b>
-          <small>{text.step2Body}</small>
+          <b>{fi ? "Muisti säilyttää provenance-tiedon" : "Memory keeps provenance"}</b>
+          <small>
+            {fi
+              ? "Lähde, vahvistaja, käyttö ja alkuperäinen tulkinta säilyvät audit trailissa."
+              : "Source, reviewer, usage and original interpretation remain auditable."}
+          </small>
         </div>
         <i aria-hidden="true">→</i>
         <div>
           <span>3</span>
-          <b>{text.step3}</b>
-          <small>{text.step3Body}</small>
+          <b>{fi ? "Vain verified-muisti auttaa" : "Only verified memory assists"}</b>
+          <small>
+            {fi
+              ? "Muisti voi priorisoida tai tulkita ennalta rajatun asian, mutta se ei tee kaupallista päätöstä."
+              : "Memory may prioritize or interpret a narrowly defined fact, but it does not make a commercial decision."}
+          </small>
         </div>
       </section>
     </div>

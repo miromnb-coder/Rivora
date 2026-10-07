@@ -63,7 +63,7 @@ export default async function PurchaseOrderDetailPage({
   const { data: purchaseOrder } = await supabase
     .from("purchase_orders")
     .select(
-      "id,customer_id,quote_id,po_number,quote_reference,status,currency,order_date,source_type,source_file_name,overall_confidence,extraction_provider,extraction_model,extraction_confidence,extraction_warnings,processing_error,received_at,created_at,updated_at,customers(name),quotes(quote_number,status,currency)"
+      "id,customer_id,quote_id,po_number,quote_reference,status,currency,order_date,source_type,source_file_name,overall_confidence,extraction_provider,extraction_model,extraction_confidence,extraction_warnings,processing_error,memory_context,received_at,created_at,updated_at,customers(name),quotes(quote_number,status,currency)"
     )
     .eq("id", id)
     .eq("organization_id", workspace.id)
@@ -116,7 +116,7 @@ export default async function PurchaseOrderDetailPage({
       ? supabase
           .from("purchase_order_reconciliation_lines")
           .select(
-            "id,reconciliation_id,purchase_order_id,po_line_id,quote_line_id,line_kind,match_method,match_score,exception_codes,review_status,review_note,reviewed_at,po_snapshot,quote_snapshot"
+            "id,reconciliation_id,purchase_order_id,po_line_id,quote_line_id,line_kind,match_method,match_score,exception_codes,review_status,review_note,reviewed_at,po_snapshot,quote_snapshot,memory_context"
           )
           .eq("reconciliation_id", reconciliation.id)
           .eq("organization_id", workspace.id)
@@ -138,6 +138,17 @@ export default async function PurchaseOrderDetailPage({
     : (purchaseOrder as any).quotes;
   const warnings = Array.isArray(purchaseOrder.extraction_warnings)
     ? purchaseOrder.extraction_warnings.filter((item): item is string => typeof item === "string")
+    : [];
+  const poMemoryContext =
+    purchaseOrder.memory_context &&
+    typeof purchaseOrder.memory_context === "object"
+      ? (purchaseOrder.memory_context as Record<string, unknown>)
+      : {};
+  const poFieldMemories = Array.isArray(poMemoryContext.po_field_memories)
+    ? poMemoryContext.po_field_memories.filter(
+        (item): item is Record<string, unknown> =>
+          Boolean(item) && typeof item === "object",
+      )
     : [];
   const money = new Intl.NumberFormat(displayLocale, {
     style: "currency",
@@ -222,6 +233,35 @@ export default async function PurchaseOrderDetailPage({
               <li key={`${index}-${warning}`}>{warning}</li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {poFieldMemories.length ? (
+        <section className="surface mt-6 border border-[#bad8c5] bg-[#fbfdfb] p-5">
+          <div className="upload-v2-section-label">
+            {fi ? "Älykäs muisti · saraketulkinta" : "Smart Memory · column interpretation"}
+          </div>
+          <h2 className="mt-2 text-lg font-bold">
+            {fi
+              ? "Aiemmin vahvistettuja PO-sarakkeita käytettiin tässä tuonnissa."
+              : "Previously verified PO column meanings were used in this import."}
+          </h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            {fi
+              ? "Muisti tulkitsi vain sarakeotsikon. Alkuperäistä tiedostoa tai sen arvoja ei muutettu."
+              : "Memory interpreted the column header only. The original file and its values were not changed."}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {poFieldMemories.map((memory, index) => (
+              <span
+                key={String(memory.memory_id || index)}
+                className="rounded-full border border-[#bad8c5] bg-white px-3 py-1 text-xs font-semibold text-[var(--green-dark)]"
+              >
+                {String(memory.source_header || "—")} →{" "}
+                {String(memory.target_field || "—").replaceAll("_", " ")}
+              </span>
+            ))}
+          </div>
         </section>
       ) : null}
 
