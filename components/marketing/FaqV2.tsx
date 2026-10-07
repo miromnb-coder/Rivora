@@ -201,35 +201,23 @@ export function FaqV2({ locale }: { locale: Locale }) {
             );
           })}
 
-          <div className="faq-v2-ask">
-            <div className="faq-v2-ask-heading">
-              <div>
-                <span>{fi ? "Kysy jotain muuta" : "Ask something else"}</span>
-                <p>
-                  {fi
-                    ? "AI vastaa vain Averomiran tämänhetkisen julkisen tuotetiedon perusteella."
-                    : "AI answers only from Averomira's current public product knowledge."}
-                </p>
-              </div>
-              <span className="faq-v2-ai-badge">AI</span>
-            </div>
-
-            <form className="faq-v2-ask-form" onSubmit={askAveromira}>
+          <div className="faq-v2-ai-item">
+            <form className="faq-v2-ai-form" onSubmit={askAveromira}>
               <label className="sr-only" htmlFor="faq-v2-question">
-                {fi ? "Kysy Averomirasta" : "Ask about Averomira"}
+                {fi ? "Kysy jotain muuta tekoälyltä" : "Ask something else with AI"}
               </label>
               <input
                 id="faq-v2-question"
                 type="text"
                 value={question}
-                onChange={(event) => setQuestion(event.target.value)}
+                onChange={(event) => {
+                  setQuestion(event.target.value);
+                  if (askResult) setAskResult(null);
+                  if (askError) setAskError("");
+                }}
                 maxLength={500}
                 autoComplete="off"
-                placeholder={
-                  fi
-                    ? "Esim. voiko Averomira käsitellä PDF-tarjouspyynnön?"
-                    : "E.g. can Averomira process a PDF RFQ?"
-                }
+                placeholder={fi ? "Kysy jotain muuta tekoälyltä" : "Ask something else with AI"}
               />
               <input
                 className="faq-v2-honeypot"
@@ -244,23 +232,31 @@ export function FaqV2({ locale }: { locale: Locale }) {
               <button
                 type="submit"
                 disabled={asking || question.trim().length < 3}
-                aria-label={fi ? "Lähetä kysymys" : "Send question"}
+                aria-label={
+                  asking
+                    ? fi
+                      ? "Haetaan vastausta"
+                      : "Getting answer"
+                    : fi
+                      ? "Lähetä kysymys tekoälylle"
+                      : "Send question to AI"
+                }
               >
-                <span>{asking ? (fi ? "Haetaan" : "Thinking") : fi ? "Kysy" : "Ask"}</span>
-                <i aria-hidden="true">→</i>
+                <span aria-hidden="true">{asking ? "···" : "→"}</span>
               </button>
             </form>
 
-            <div className="faq-v2-ask-status" aria-live="polite">
-              {askError ? <p className="faq-v2-ask-error">{askError}</p> : null}
-
+            <div className="faq-v2-ai-status" aria-live="polite" aria-atomic="true">
+              {askError ? <p className="faq-v2-ai-error">{askError}</p> : null}
               {askResult ? (
-                <div className={askResult.supported ? "faq-v2-ai-answer" : "faq-v2-ai-answer is-unsupported"}>
-                  <span>{askResult.supported ? (fi ? "Averomira AI" : "Averomira AI") : fi ? "Rajattu vastaus" : "Limited answer"}</span>
+                <div
+                  className={
+                    askResult.supported
+                      ? "faq-v2-ai-response"
+                      : "faq-v2-ai-response is-unsupported"
+                  }
+                >
                   <p>{askResult.answer}</p>
-                  <a href="#demo">
-                    {fi ? "Keskustele pilotista" : "Discuss the pilot"} <span aria-hidden="true">→</span>
-                  </a>
                 </div>
               ) : null}
             </div>

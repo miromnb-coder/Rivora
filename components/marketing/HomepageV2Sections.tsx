@@ -28,44 +28,45 @@ export function ProofStripV2({ locale }: { locale: Locale }) {
 export function ProductResolutionV2({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   return (
-    <section className="marketing-shell v2-section" id="resolution">
+    <section className="marketing-shell v2-section resolution-v3" id="resolution">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Tuotteiden ratkaisu" : "Product resolution"}</SectionLabel>
         <h2>{fi ? "Löydä asiakkaan tuoteriville oikea myytävä tuote nopeammin." : "Resolve each customer line to the product you actually sell."}</h2>
         <p>{fi ? "Averomira vertaa asiakkaan SKU:t, vanhat tuotenimet ja valmistajakoodit omaan katalogiisi. Epävarmat osumat jäävät tarkistettaviksi ennen tarjousta." : "Averomira compares customer SKUs, legacy names and manufacturer codes against your catalogue. Uncertain matches stay visible for review before quoting."}</p>
       </div>
 
-      <div className="resolution-proof">
-        <div className="resolution-source">
-          <span className="resolution-kicker">{fi ? "Asiakkaan rivi" : "Customer line"}</span>
-          <b>PUMP-37A</b>
-          <strong>{fi ? "Kiertovesipumppu" : "Circulation pump"}</strong>
-          <small>10 {fi ? "kpl" : "pcs"}</small>
+      <div className="product-showcase product-resolution-showcase">
+        <div className="product-showcase-toolbar">
+          <div>
+            <span>RFQ #1048</span>
+            <strong>{fi ? "Esimerkkiasiakas" : "Example customer"}</strong>
+          </div>
+          <span className="product-showcase-status">{fi ? "Tuoterivi ratkaistu" : "Line resolved"}</span>
         </div>
 
-        <div className="resolution-rail" aria-hidden="true">
-          <span />
-          <i>→</i>
-          <span />
+        <div className="product-resolution-grid">
+          <div className="product-resolution-cell is-source">
+            <span>01 · {fi ? "Asiakkaan rivi" : "Customer line"}</span>
+            <strong>PUMP-37A</strong>
+            <p>{fi ? "Kiertovesipumppu · 10 kpl" : "Circulation pump · 10 pcs"}</p>
+          </div>
+
+          <div className="product-resolution-memory">
+            <span>02 · {fi ? "Asiakaskohtainen muisti" : "Customer memory"}</span>
+            <strong>100%</strong>
+            <p>{fi ? "Ihmisen vahvistama vastine" : "Human-confirmed mapping"}</p>
+          </div>
+
+          <div className="product-resolution-cell is-result">
+            <span>03 · {fi ? "Myytävä tuote" : "Sellable product"}</span>
+            <strong>GRU-98561418</strong>
+            <p>Grundfos ALPHA2 25-60</p>
+          </div>
         </div>
 
-        <div className="resolution-memory">
-          <span className="resolution-kicker">{fi ? "Asiakaskohtainen muisti" : "Customer memory"}</span>
-          <b>100%</b>
-          <small>{fi ? "Vahvistettu vastine" : "Confirmed mapping"}</small>
-        </div>
-
-        <div className="resolution-rail" aria-hidden="true">
-          <span />
-          <i>→</i>
-          <span />
-        </div>
-
-        <div className="resolution-result">
-          <span className="resolution-kicker">{fi ? "Kanoninen tuote" : "Canonical product"}</span>
-          <b>GRU-98561418</b>
-          <strong>Grundfos ALPHA2 25-60</strong>
-          <small>{fi ? "Tallennettu tarkka osuma" : "Exact saved match"}</small>
+        <div className="product-showcase-footer">
+          <span>{fi ? "Lähde säilyy näkyvissä" : "Source stays visible"}</span>
+          <span>{fi ? "Vahvistettu vastine voidaan käyttää uudelleen" : "Confirmed mapping can be reused"}</span>
         </div>
       </div>
     </section>
@@ -75,47 +76,46 @@ export function ProductResolutionV2({ locale }: { locale: Locale }) {
 export function CustomerMemoryV2({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   return (
-    <section className="marketing-shell v2-section memory-v2" id="memory">
+    <section className="marketing-shell v2-section memory-v3" id="memory">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Asiakaskohtainen muisti" : "Customer memory"}</SectionLabel>
         <h2>{fi ? "Jokainen korjaus muuttuu uudelleenkäytettäväksi tiedoksi." : "Every correction becomes reusable knowledge."}</h2>
         <p>{fi ? "Kun tiimisi vahvistaa osuman, Averomira muistaa sen kyseiselle asiakkaalle ja käyttää vastinetta seuraavassa tarjouspyynnössä." : "When your team confirms a match, Averomira remembers it for that customer and applies the mapping automatically on the next RFQ."}</p>
       </div>
 
-      <div className="memory-v2-proof">
-        <div className="memory-v2-customer">
-          <span>{fi ? "Esimerkkiasiakas" : "Example customer"}</span>
-          <small>{fi ? "Asiakaskohtainen tuotemuisti" : "Customer-specific product memory"}</small>
+      <div className="product-showcase memory-showcase">
+        <div className="product-showcase-toolbar">
+          <div>
+            <span>{fi ? "Tuotemuisti" : "Product memory"}</span>
+            <strong>{fi ? "Esimerkkiasiakas" : "Example customer"}</strong>
+          </div>
+          <span className="product-showcase-status is-verified">{fi ? "Vahvistettu" : "Verified"}</span>
         </div>
 
-        <div className="memory-v2-flow">
-          <div>
-            <span>{fi ? "Edellinen tarjouspyyntö" : "Previous RFQ"}</span>
-            <b>PUMP-37A</b>
-            <small>{fi ? "Ihmisen vahvistama" : "Human confirmed"}</small>
+        <div className="memory-showcase-flow">
+          <div className="memory-showcase-step">
+            <span>01 · {fi ? "Edellinen tarjouspyyntö" : "Previous RFQ"}</span>
+            <strong>PUMP-37A</strong>
+            <p>{fi ? "Käyttäjä vahvistaa tuotteen kerran." : "A user confirms the product once."}</p>
           </div>
 
-          <i aria-hidden="true">→</i>
-
-          <div className="memory-v2-saved">
-            <span>{fi ? "Tallennettu vastine" : "Saved mapping"}</span>
-            <b>GRU-98561418</b>
-            <small>ALPHA2 25-60</small>
+          <div className="memory-showcase-step is-saved">
+            <span>02 · {fi ? "Tallennettu vastine" : "Saved mapping"}</span>
+            <strong>GRU-98561418</strong>
+            <p>ALPHA2 25-60</p>
           </div>
 
-          <i aria-hidden="true">→</i>
-
-          <div>
-            <span>{fi ? "Seuraava tarjouspyyntö" : "Next RFQ"}</span>
-            <b>100%</b>
-            <small>{fi ? "Asiakaskohtainen muisti" : "Customer memory"}</small>
+          <div className="memory-showcase-step">
+            <span>03 · {fi ? "Seuraava tarjouspyyntö" : "Next RFQ"}</span>
+            <strong>100%</strong>
+            <p>{fi ? "Vastine löytyy asiakaskohtaisesta muistista." : "The mapping is found from customer memory."}</p>
           </div>
         </div>
 
-        <div className="memory-v2-note">
+        <div className="memory-showcase-reuse">
           <span>{fi ? "Opi kerran" : "Learn once"}</span>
-          <i />
-          <span>{fi ? "Käytä uudelleen automaattisesti" : "Reuse automatically"}</span>
+          <i aria-hidden="true" />
+          <strong>{fi ? "käytä uudelleen seuraavassa tilauksessa" : "reuse on the next order"}</strong>
         </div>
       </div>
     </section>
@@ -137,24 +137,35 @@ export function HowItWorksV2({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <section className="marketing-shell v2-section how-v2" id="how-it-works">
+    <section className="marketing-shell v2-section how-v3" id="how-it-works">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Näin se toimii" : "How it works"}</SectionLabel>
         <h2>{fi ? "Yksi hallittu polku tarjouspyynnöstä ERP-valmiiksi tilaukseksi." : "One controlled path from RFQ to ERP-ready order."}</h2>
         <p>{fi ? "Averomira yhdistää tuoteratkaisun, tarjouksen, asiakkaan PO:n tarkistuksen ja ERP-valmistelun samaan tilauscaseen." : "Averomira connects product resolution, quoting, customer PO review and ERP preparation in one order case."}</p>
       </div>
 
-      <div className="how-v2-grid">
-        {steps.map((step) => (
-          <article key={step.n} className="how-v2-step">
-            <div className="how-v2-top">
-              <span className="how-v2-number">{step.n}</span>
-              <span className="how-v2-meta">{step.meta}</span>
-            </div>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
-          </article>
-        ))}
+      <div className="workflow-showcase">
+        <div className="workflow-showcase-header">
+          <div>
+            <span>{fi ? "Tilauscase" : "Order case"}</span>
+            <strong>#1048</strong>
+          </div>
+          <p>RFQ → Quote → PO → ERP</p>
+        </div>
+
+        <div className="workflow-showcase-track">
+          {steps.map((step, index) => (
+            <article key={step.n} className="workflow-showcase-stage">
+              <div className="workflow-showcase-index">
+                <span>{step.n}</span>
+                {index < steps.length - 1 ? <i aria-hidden="true" /> : null}
+              </div>
+              <span className="workflow-showcase-meta">{step.meta}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -177,44 +188,44 @@ export function ConfidenceSystemV2({ locale }: { locale: Locale }) {
   ] as const;
 
   return (
-    <section className="marketing-shell v2-section confidence-v2" id="confidence">
+    <section className="marketing-shell v2-section confidence-v3" id="confidence">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "Varmuusjärjestelmä" : "Confidence system"}</SectionLabel>
         <h2>{fi ? "Nopeat ehdotukset, mutta kaupallinen päätös pysyy ihmisellä." : "Fast suggestions, while the commercial decision stays with your team."}</h2>
         <p>{fi ? "Averomira näyttää vahvat tuoteosumat nopeasti ja nostaa epävarmat tapaukset tarkistukseen. Tuotevalinta vahvistetaan ennen tarjousta, joten automaatio ei piilota päätöstä käyttäjältä." : "Averomira surfaces strong product matches quickly and routes uncertain cases for review. Product selection is confirmed before quoting, so automation never hides the decision from the user."}</p>
       </div>
 
-      <div className="confidence-v2-proof">
-        <div className="confidence-v2-head">
+      <div className="confidence-showcase">
+        <div className="confidence-showcase-threshold">
+          <div>
+            <span>{fi ? "Tarkistusraja" : "Review threshold"}</span>
+            <strong>90%</strong>
+          </div>
+          <p>{fi ? "Alle rajan oleva osuma ohjataan tarkistukseen. Vahva osuma näkyy nopeana ehdotuksena, mutta käyttäjä vahvistaa tuotteen ennen tarjousta." : "Matches below the threshold are routed to review. Strong matches are shown as fast suggestions, while the user confirms the product before quoting."}</p>
+        </div>
+
+        <div className="confidence-showcase-scale" aria-hidden="true">
+          <span />
+          <i />
+        </div>
+
+        <div className="confidence-showcase-head">
           <span>{fi ? "Osumamenetelmä" : "Match method"}</span>
           <span>{fi ? "Varmuus" : "Confidence"}</span>
           <span>{fi ? "Reitti" : "Route"}</span>
         </div>
 
-        <div className="confidence-v2-table">
-          {rows.map(([method, confidence, route]) => {
+        <div className="confidence-showcase-rows">
+          {rows.map(([method, confidenceValue, route]) => {
             const review = route === "Review" || route === "Tarkista";
             return (
-              <div key={method} className={review ? "confidence-v2-row is-review" : "confidence-v2-row"}>
+              <div key={method} className={review ? "confidence-showcase-row is-review" : "confidence-showcase-row"}>
                 <span>{method}</span>
-                <b>{confidence}</b>
+                <strong>{confidenceValue}</strong>
                 <em>{route}</em>
               </div>
             );
           })}
-        </div>
-
-        <div className="confidence-v2-threshold">
-          <span>{fi ? "Esimerkkikynnys tarkistukselle" : "Example review threshold"}</span>
-          <b>90%</b>
-          <div className="confidence-v2-scale" aria-hidden="true">
-            <i />
-            <strong />
-          </div>
-          <div className="confidence-v2-scale-labels">
-            <span>{fi ? "Tarkistus" : "Review"}</span>
-            <span>{fi ? "Nopea ehdotus" : "Fast suggestion"}</span>
-          </div>
         </div>
       </div>
     </section>
@@ -224,62 +235,56 @@ export function ConfidenceSystemV2({ locale }: { locale: Locale }) {
 export function AiExtractionV2({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
   return (
-    <section className="marketing-shell v2-section ai-v2" id="ai-extraction">
+    <section className="marketing-shell v2-section ai-v3" id="ai-extraction">
       <div className="v2-section-copy">
         <SectionLabel>{fi ? "AI-poiminta" : "AI extraction"}</SectionLabel>
         <h2>{fi ? "AI jäsentää. Averomira näyttää perustelut. Sinä hyväksyt." : "AI structures. Averomira shows the evidence. You approve."}</h2>
         <p>{fi ? "Jokainen rivi säilyttää lähteen, poimintatuloksen, osumamenetelmän ja varmuuden näkyvissä, jotta tiimisi voi tarkistaa päätökset mustan laatikon sijaan." : "Every line keeps its source, extraction result, match method and confidence visible so your team can review decisions instead of trusting a black box."}</p>
       </div>
 
-      <div className="ai-v2-proof">
-        <div className="ai-v2-source">
-          <span className="ai-v2-kicker">{fi ? "Lähde · Sivu 2" : "Source · Page 2"}</span>
-          <b>PUMP-37A</b>
-          <strong>Circulation pump</strong>
-          <small>10 {fi ? "kpl" : "pcs"}</small>
+      <div className="product-showcase ai-showcase">
+        <div className="product-showcase-toolbar">
+          <div>
+            <span>RFQ #1048 · {fi ? "Rivi 03" : "Line 03"}</span>
+            <strong>{fi ? "Poiminta ja tuoteosuma" : "Extraction and product match"}</strong>
+          </div>
+          <span className="product-showcase-status">{fi ? "Valmis tarkistettavaksi" : "Ready for review"}</span>
         </div>
 
-        <div className="ai-v2-chain" aria-label="Audit trail">
-          <div>
-            <span>01</span>
-            <b>{fi ? "Lähde" : "Source"}</b>
-            <small>PDF · {fi ? "Sivu 2" : "Page 2"}</small>
+        <div className="ai-showcase-grid">
+          <div className="ai-showcase-source">
+            <span>{fi ? "Lähde · Sivu 2" : "Source · Page 2"}</span>
+            <strong>PUMP-37A</strong>
+            <p>Circulation pump</p>
+            <small>10 {fi ? "kpl" : "pcs"}</small>
           </div>
-          <i>→</i>
-          <div>
-            <span>02</span>
-            <b>{fi ? "Poiminta" : "Extraction"}</b>
-            <small>96% {fi ? "varmuus" : "confidence"}</small>
-          </div>
-          <i>→</i>
-          <div>
-            <span>03</span>
-            <b>{fi ? "Tuoteosuma" : "Product match"}</b>
-            <small>99% · {fi ? "Tarkka SKU" : "Exact SKU"}</small>
-          </div>
-          <i>→</i>
-          <div>
-            <span>04</span>
-            <b>{fi ? "Tarkistus" : "Review"}</b>
-            <small>{fi ? "Valmis vahvistettavaksi" : "Ready to approve"}</small>
-          </div>
-        </div>
 
-        <div className="ai-v2-result">
-          <div>
-            <span>{fi ? "Osunut tuote" : "Matched product"}</span>
-            <b>GRU-98561418</b>
-            <small>Grundfos ALPHA2 25-60</small>
+          <div className="ai-showcase-evidence">
+            <div>
+              <span>01</span>
+              <p>{fi ? "Poiminta" : "Extraction"}</p>
+              <strong>96%</strong>
+            </div>
+            <div>
+              <span>02</span>
+              <p>{fi ? "Tarkka SKU" : "Exact SKU"}</p>
+              <strong>99%</strong>
+            </div>
+            <div>
+              <span>03</span>
+              <p>{fi ? "Lähde säilytetty" : "Source preserved"}</p>
+              <strong>✓</strong>
+            </div>
           </div>
-          <div>
-            <span>{fi ? "Menetelmä" : "Method"}</span>
-            <b>{fi ? "Tarkka SKU" : "Exact SKU"}</b>
-            <small>{fi ? "Lähde säilytetty" : "Source preserved"}</small>
-          </div>
-          <div>
-            <span>Confidence</span>
-            <b>99%</b>
-            <small>{fi ? "Yli 90 % kynnyksen" : "Above 90% threshold"}</small>
+
+          <div className="ai-showcase-decision">
+            <span>{fi ? "Ehdotettu tuote" : "Suggested product"}</span>
+            <strong>GRU-98561418</strong>
+            <p>Grundfos ALPHA2 25-60</p>
+            <div>
+              <span>{fi ? "Menetelmä" : "Method"} · {fi ? "Tarkka SKU" : "Exact SKU"}</span>
+              <b>99%</b>
+            </div>
           </div>
         </div>
       </div>
