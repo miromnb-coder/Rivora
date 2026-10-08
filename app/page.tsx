@@ -1,19 +1,6 @@
-import { MarketingNav } from "@/components/marketing/MarketingNav";
-import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { MinimalShaderHero } from "@/components/marketing/MinimalShaderHero";
-import { PricingLeadCapture } from "@/components/marketing/PricingLeadCapture";
-import { FaqV2 } from "@/components/marketing/FaqV2";
+import { AtelierHomepage } from "@/components/marketing/AtelierHomepage";
 import { getLocale } from "@/lib/locale";
-import {
-  ProofStripV2,
-  HowItWorksV2,
-  ProductResolutionV2,
-  CustomerMemoryV2,
-  ConfidenceSystemV2,
-  AiExtractionV2,
-  BeforeAfterV2,
-  FinalCtaV2,
-} from "@/components/marketing/HomepageV2Sections";
+import "./atelier.css";
 
 export default async function Home() {
   const locale = await getLocale();
@@ -23,35 +10,16 @@ export default async function Home() {
     name: "Averomira",
     url: "https://averomira.com",
     logo: "https://averomira.com/icon.svg",
-    description:
-      "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
+    description: "Averomira helps industrial sales teams move customer orders from RFQ to reviewed quote, purchase order reconciliation and ERP-ready sales order.",
   };
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationStructuredData).replace(/</g, "\\u003c"),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData).replace(/</g, "\\u003c") }}
       />
-      <main className="marketing-page minimal-direction">
-      <div className="marketing-shell">
-        <MarketingNav locale={locale} />
-      </div>
-      <MinimalShaderHero locale={locale} />
-      <ProofStripV2 locale={locale} />
-      <HowItWorksV2 locale={locale} />
-      <ProductResolutionV2 locale={locale} />
-      <CustomerMemoryV2 locale={locale} />
-      <ConfidenceSystemV2 locale={locale} />
-      <AiExtractionV2 locale={locale} />
-      <BeforeAfterV2 locale={locale} />
-      <FaqV2 locale={locale} />
-      <PricingLeadCapture locale={locale} />
-      <FinalCtaV2 locale={locale} />
-        <MarketingFooter locale={locale} />
-      </main>
+      <AtelierHomepage locale={locale} />
     </>
   );
 }

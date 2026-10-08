@@ -36,6 +36,14 @@ const faqContent: Record<Locale, FaqItem[]> = {
         "Averomira vertaa asiakkaan SKU:ita, tuotenimiä ja valmistajakoodeja omaan tuotekatalogiisi. Kun käyttäjä vahvistaa vastineen, se voidaan tallentaa asiakaskohtaiseen tuotemuistiin ja käyttää myöhemmissä tarjouspyynnöissä.",
     },
     {
+      question: "Miten ostotilaus tarkistetaan tarjoukseen nähden?",
+      answer: "Averomira vertaa saapuneen ostotilauksen rivejä tarjoukseen ja nostaa esimerkiksi määrä-, hinta- tai tuote-erot käyttäjän tarkistettaviksi ennen hyväksyntää.",
+    },
+    {
+      question: "Mitä pilotti maksaa?",
+      answer: "Averomira Pilot maksaa 990 €/kk ja sen minimijakso on kolme kuukautta, yhteensä 2 970 €. Onboarding ja suora tuki sisältyvät. Tarkempi käyttöönottolaajuus sovitaan yhdessä.",
+    },
+    {
       question: "Toimiiko Averomira Microsoft Business Centralin kanssa?",
       answer:
         "Averomirassa on Business Central -integraatio ERP-valmiin myyntitilausluonnoksen valmistelua varten. Käyttöönotto riippuu yrityksesi Business Central -ympäristöstä, käyttöoikeuksista ja tarvittavista tuote- ja asiakasvastineista.",
@@ -71,6 +79,14 @@ const faqContent: Record<Locale, FaqItem[]> = {
       question: "How do product matching and customer memory work?",
       answer:
         "Averomira compares customer SKUs, product names and manufacturer codes against your product catalogue. Once a user confirms a mapping, it can be stored as customer-specific product memory and reused on later RFQs.",
+    },
+    {
+      question: "How is a purchase order checked against a quote?",
+      answer: "Averomira compares incoming PO lines with the quotation and brings differences in quantity, price or product information to a user for review before approval.",
+    },
+    {
+      question: "What does the pilot cost?",
+      answer: "Averomira Pilot is €990/month with a three-month minimum, totaling €2,970. Onboarding and direct support are included. The implementation scope is agreed together.",
     },
     {
       question: "Does Averomira work with Microsoft Business Central?",
