@@ -74,7 +74,7 @@ export function HeroMatch({ locale }: { locale: Locale }) {
           <div className="atelier-suggestion-column">
             <div className="atelier-ui-kicker"><span>02 / {fi ? "KATALOGIN EHDOTUS" : "CATALOGUE SUGGESTION"}</span></div>
             <div className={"atelier-suggestion " + (selected ? "is-selected" : "")}>
-              <div className="atelier-suggestion-heading"><span className="atelier-cube" aria-hidden="true">◇</span><span className="atelier-status-review">{confirmed ? (fi ? "Vahvistettu" : "Confirmed") : (fi ? "Tarkistettava" : "Review match")}</span></div>
+              <div className="atelier-suggestion-heading"><span className="atelier-status-review">{confirmed ? (fi ? "Vahvistettu" : "Confirmed") : (fi ? "Tarkistettava" : "Review match")}</span></div>
               <strong>Circulation pump 25-60</strong>
               <p>CAT-1042 <span>·</span> DN25 <span>·</span> 230 V</p>
               <div className="atelier-suggestion-footer">
@@ -82,7 +82,7 @@ export function HeroMatch({ locale }: { locale: Locale }) {
                 <button type="button" onClick={() => { setSelected(true); setConfirmed(!confirmed); }} aria-pressed={confirmed}>{confirmed ? (fi ? "Vahvistettu ✓" : "Confirmed ✓") : (fi ? "Vahvista osuma" : "Confirm match")} <span aria-hidden="true">→</span></button>
               </div>
             </div>
-            <div className="atelier-muted-row"><span>◇</span><span>Additional catalogue results</span><span>2</span></div>
+            <div className="atelier-muted-row atelier-more-results"><span>Additional catalogue results</span><span>2</span></div>
           </div>
         </div>
         <div className="atelier-ui-bottom"><span>{fi ? "Asiakkaan kuvaus" : "Customer description"}</span><span aria-hidden="true">→</span><span>{fi ? "Oman katalogin tuote" : "Your catalogue product"}</span><span className="atelier-human-note">{fi ? "Ihmisen vahvistus" : "Human confirmation"}</span></div>
