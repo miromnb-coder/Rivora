@@ -46,7 +46,7 @@ export function AtelierNav({ locale }: { locale: Locale }) {
 }
 
 function UiHeader({ label, meta }: { label: string; meta: string }) {
-  return <div className="atelier-ui-header"><span className="atelier-ui-mark" aria-hidden="true">A<span>·</span></span><strong>{label}</strong><span className="atelier-ui-meta">{meta}</span></div>;
+  return <div className="atelier-ui-header"><strong>{label}</strong><span className="atelier-ui-meta">{meta}</span></div>;
 }
 
 export function HeroMatch({ locale }: { locale: Locale }) {
