@@ -7,6 +7,10 @@ import type { Locale } from "@/lib/locale";
 
 const stages = ["Request", "Match", "Quote", "PO Check", "ERP Draft"] as const;
 type Stage = (typeof stages)[number];
+const stageNames: Record<Locale, readonly string[]> = {
+  en: stages,
+  fi: ["Pyyntö", "Osuma", "Tarjous", "PO-tarkistus", "ERP-luonnos"],
+};
 
 export function AtelierNav({ locale }: { locale: Locale }) {
   const fi = locale === "fi";
@@ -126,11 +130,11 @@ export function WorkflowExperience({ locale }: { locale: Locale }) {
     <div className="atelier-workflow-experience">
       <div className="atelier-workflow-tabs" role="tablist" aria-label={locale === "fi" ? "Tilauspolun vaiheet" : "Order workflow stages"}>
         {stages.map((stage, index) => <button key={stage} id={"atelier-tab-" + index} role="tab" type="button" aria-selected={active === index} aria-controls="atelier-stage-panel" tabIndex={active === index ? 0 : -1} onClick={() => setActive(index)} onKeyDown={(event) => { if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); const next = (active + (event.key === "ArrowRight" ? 1 : stages.length - 1)) % stages.length; setActive(next); document.getElementById("atelier-tab-" + next)?.focus(); } }}>
-          <span>0{index + 1}</span>{stage}
+          <span>0{index + 1}</span>{stageNames[locale][index]}
         </button>)}
       </div>
       <div className="atelier-workflow-panel" id="atelier-stage-panel" role="tabpanel" aria-labelledby={"atelier-tab-" + active} tabIndex={0}>
-        <div className="atelier-workflow-copy"><span className="atelier-eyebrow">0{active + 1} / 05 · {content.labels[active]}</span><h3>{stages[active]}</h3><p>{content.descriptions[active]}</p><span className="atelier-example-label">{locale === "fi" ? "Havainnollistava esimerkki · sama tilaus kaikissa vaiheissa" : "Illustrative example · the same order throughout"}</span></div>
+        <div className="atelier-workflow-copy"><span className="atelier-eyebrow">0{active + 1} / 05 · {content.labels[active]}</span><h3>{stageNames[locale][active]}</h3><p>{content.descriptions[active]}</p><span className="atelier-example-label">{locale === "fi" ? "Havainnollistava esimerkki · sama tilaus kaikissa vaiheissa" : "Illustrative example · the same order throughout"}</span></div>
         <div className="atelier-workflow-visual" key={active}><StageVisual stage={stages[active]} locale={locale} /></div>
       </div>
     </div>
