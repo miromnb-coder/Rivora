@@ -246,12 +246,18 @@
 .atelier-page .faq-v2-item.is-open .faq-v2-answer-wrap { grid-template-rows: 1fr; opacity: 1; }
 .atelier-page .faq-v2-answer { min-height: 0; overflow: hidden; }
 .atelier-page .faq-v2-answer p { max-width: 620px; padding: 0 20px 19px 0; color: #62594f; font-size: 13px; line-height: 1.7; }
-.atelier-page .faq-v2-ai-item { margin-top: 20px; }
-.atelier-page .faq-v2-ai-form { display: flex; border: 1px solid #d9cdbf; border-radius: 6px; background: white; }
-.atelier-page .faq-v2-ai-form input { width: 100%; min-width: 0; padding: 13px; border: 0; background: transparent; color: var(--at-ink); font-size: 13px; }
-.atelier-page .faq-v2-ai-form button { width: 46px; flex: 0 0 46px; border: 0; background: #f0e8dc; color: var(--at-mocha); cursor: pointer; }
-.atelier-page .faq-v2-ai-form button:disabled { opacity: .5; cursor: default; }
-.atelier-page .faq-v2-ai-status { margin-top: 9px; color: #554b41; font-size: 13px; }
+/* Keep the AI question field visually integrated with the FAQ rows. */
+.atelier-page .faq-v2-ai-item { margin-top: 0; border-bottom: 1px solid #d9ccbb; transition: border-color .2s ease; }
+.atelier-page .faq-v2-ai-item:focus-within { border-bottom-color: var(--at-bronze); }
+.atelier-page .faq-v2-ai-form { display: flex; align-items: center; gap: 12px; min-height: 63px; border: 0; border-radius: 0; background: transparent; }
+.atelier-page .faq-v2-ai-form input:not(.faq-v2-honeypot) { flex: 1; width: 100%; min-width: 0; padding: 17px 0; border: 0; border-radius: 0; background: transparent; color: var(--at-ink); font-size: 14px; outline: 0; }
+.atelier-page .faq-v2-ai-form input:not(.faq-v2-honeypot)::placeholder { color: #7b7167; opacity: 1; }
+.atelier-page .faq-v2-ai-form input:not(.faq-v2-honeypot):focus-visible { outline: 2px solid var(--at-bronze); outline-offset: 2px; border-radius: 2px; }
+.atelier-page .faq-v2-ai-form button { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; padding: 0; border: 0; border-radius: 50%; background: #eee7dd; color: var(--at-mocha); font-size: 19px; cursor: pointer; transition: background .18s ease, color .18s ease; }
+.atelier-page .faq-v2-ai-form button:not(:disabled):hover { background: var(--at-mocha); color: #fff8f1; }
+.atelier-page .faq-v2-ai-form button:disabled { opacity: .72; cursor: default; }
+.atelier-page .faq-v2-ai-status { margin-top: 0; color: #554b41; font-size: 13px; }
+.atelier-page .faq-v2-ai-status:not(:empty) { padding: 3px 0 16px; }
 
 /* Close */
 .atelier-final { padding: 100px 0; background: var(--at-mocha); color: #fff8f1; }
