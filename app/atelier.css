@@ -88,8 +88,7 @@
 .atelier-connection.is-active i { opacity: 1; }
 .atelier-suggestion { min-height: 138px; padding: 11px; border: 1px solid #e8ded0; border-radius: 7px; transition: background .35s ease, border-color .35s ease; }
 .atelier-suggestion.is-selected { border-color: var(--at-gold); background: #fffbf2; }
-.atelier-suggestion-heading { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 12px; }
-.atelier-cube { width: 24px; height: 24px; display: grid; place-items: center; color: #8e6f47; background: #f3eee6; border-radius: 5px; font-size: 18px; }
+.atelier-suggestion-heading { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-bottom: 12px; }
 .atelier-status-review { display: inline-flex; padding: 4px 6px; color: #795719; background: #faf1de; border-radius: 4px; font-size: 9px; font-weight: 700; }
 .atelier-suggestion p { margin-top: 5px; }
 .atelier-suggestion p span { color: #b5a99b; }
@@ -98,6 +97,7 @@
 .atelier-suggestion-footer button { flex: 0 0 auto; padding: 5px 6px; border: 1px solid #c9b796; border-radius: 4px; background: #fffaf0; color: #654c24; font-size: 9px; font-weight: 700; cursor: pointer; }
 .atelier-suggestion-footer button[aria-pressed="true"] { color: #416047; background: #eef3ed; border-color: #9aad9e; }
 .atelier-suggestion-column .atelier-muted-row { margin-top: 8px; }
+.atelier-more-results span:first-child { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .atelier-ui-bottom { display: flex; align-items: center; gap: 10px; border-top: 1px solid #ece4d9; padding: 12px 17px; color: #746a60; font-size: 9px; }
 .atelier-ui-bottom > span:nth-child(2) { color: #a68445; }
 .atelier-human-note { margin-left: auto; color: #56705b; font-weight: 700; }
