@@ -41,12 +41,11 @@ test("Motion System v1 has a global reduced-motion escape hatch", () => {
   assert.match(motionCss, /transition-duration: 0\.01ms !important/);
 });
 
-test("sidebar uses one measured active indicator and animated accordion state", () => {
-  assert.match(appNav, /app-sidebar-v2-active-indicator/);
-  assert.match(appNav, /getBoundingClientRect\(\)/);
-  assert.match(appNav, /aria-hidden=\{!open\}/);
-  assert.doesNotMatch(appNav, /className="app-sidebar-v2-subnav" hidden=\{!open\}/);
-  assert.match(motionCss, /app-sidebar-v2-order-group\.is-open > \.app-sidebar-v2-subnav/);
+test("sidebar uses direct navigation with active and loading feedback", () => {
+  assert.match(appNav, /aria-current=/);
+  assert.match(appNav, /aria-busy=/);
+  assert.match(appNav, /is-pending/);
+  assert.doesNotMatch(appNav, /app-sidebar-v2-active-indicator|function Chevron|ordersOpen|settingsOpen/);
 });
 
 test("Support AI morphs through idle, working and success states", () => {
