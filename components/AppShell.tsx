@@ -4,6 +4,7 @@ import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/locale";
 import { AppNav } from "@/components/AppNav";
+import { AppLocation } from "@/components/AppLocation";
 import { SupportCenter } from "@/components/support/SupportCenter";
 import { RivoraMark } from "@/components/marketing/RivoraMark";
 
@@ -36,31 +37,6 @@ export function AppShell({
     [copy.settings, "/app/settings", "settings"],
   ];
 
-  const orderSubItems: Array<readonly [string, string]> = [
-    [copy.allOrders, "/app/orders"],
-    [copy.attentionOrders, "/app/orders?view=attention"],
-    [copy.quoteStage, "/app/orders?view=quote"],
-    [copy.purchaseOrders, "/app/orders?view=po"],
-    [copy.erpOrders, "/app/orders?view=erp"],
-    [copy.completedOrders, "/app/orders?view=done"],
-  ];
-
-  const smartMemorySettings = locale === "fi" ? "Älykäs muisti" : "Smart memory";
-  const settingsSubItems: Array<readonly [string, string]> = [
-    [copy.companySettings, "/app/settings#company"],
-    [copy.quoteSettings, "/app/settings#quote-settings"],
-    [copy.brandSettings, "/app/settings#brand"],
-    [smartMemorySettings, "/app/memory"],
-    [copy.businessCentralSettings, "/app/settings#erp"],
-    [copy.userSettings, "/app/settings#users"],
-    ...(["owner", "admin"].includes(workspaceRole)
-      ? ([[copy.operationsSettings, "/app/settings/operations"]] as Array<readonly [string, string]>)
-      : []),
-    ...(supportOperator
-      ? ([[locale === "fi" ? "Tukipyynnöt" : "Support inbox", "/app/settings/support"]] as Array<readonly [string, string]>)
-      : []),
-  ];
-
   return (
     <div className="app-shell-v2 min-h-screen">
       <aside className="app-sidebar-v2">
@@ -71,7 +47,7 @@ export function AppShell({
           <div className="app-sidebar-v2-product">{copy.product}</div>
         </div>
 
-        <AppNav items={nav} orderSubItems={orderSubItems} settingsSubItems={settingsSubItems} />
+        <AppNav items={nav} locale={locale} />
 
         <div className="app-sidebar-v2-account">
           <LocaleSwitcher locale={locale} label={copy.language} />
@@ -93,12 +69,12 @@ export function AppShell({
         <span>{workspaceName}</span>
       </header>
 
-      <main className="app-main-v2">{children}</main>
+      <main className="app-main-v2"><AppLocation locale={locale} />{children}</main>
 
       <SupportCenter locale={locale} />
 
       <div className="app-mobile-bottom-nav">
-        <AppNav items={nav} orderSubItems={[]} settingsSubItems={[]} compact />
+        <AppNav items={nav} compact locale={locale} />
       </div>
     </div>
   );
