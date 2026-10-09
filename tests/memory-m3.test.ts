@@ -36,8 +36,8 @@ const memoryActions = readFileSync(
   join(process.cwd(), "app/app/memory/actions.ts"),
   "utf8",
 );
-const appShell = readFileSync(
-  join(process.cwd(), "components/AppShell.tsx"),
+const settingsPage = readFileSync(
+  join(process.cwd(), "app/app/settings/page.tsx"),
   "utf8",
 );
 const appNav = readFileSync(
@@ -163,9 +163,9 @@ test("RFQ Review renders remembered mapping provenance without bypassing review"
   );
 });
 
-test("Smart Memory appears under Settings navigation", () => {
-  assert.match(appShell, /"Älykäs muisti"/);
-  assert.match(appShell, /\[smartMemorySettings, "\/app\/memory"\]/);
+test("Smart Memory remains reachable from the Settings page", () => {
+  assert.match(settingsPage, /"Älykäs muisti"/);
+  assert.match(settingsPage, /"\/app\/memory"/);
   assert.match(appNav, /pathname === "\/app\/memory"/);
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type NavItem = readonly [label: string, href: string, id: string];
@@ -18,7 +18,9 @@ function isItemActive(pathname: string, href: string, id: string) {
       pathname.startsWith("/app/rfq/") ||
       pathname.startsWith("/app/quotes") ||
       pathname.startsWith("/app/purchase-orders") ||
-      pathname.startsWith("/app/sales-orders")
+      pathname.startsWith("/app/sales-orders") ||
+      pathname === "/app/upload" ||
+      pathname.startsWith("/app/templates")
     );
   }
 
@@ -103,307 +105,27 @@ function NavIcon({ id }: { id: string }) {
   );
 }
 
-function Chevron({ open }: { open: boolean }) {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={open ? "is-open" : ""}
-    >
-      <path d="m6 8 4 4 4-4" />
-    </svg>
-  );
-}
-
-function hrefPath(href: string) {
-  return href.split(/[?#]/)[0];
-}
-
-function currentLocationKey(pathname: string) {
-  if (typeof window === "undefined") return pathname;
-  return pathname + window.location.search + window.location.hash;
-}
-
-export function AppNav({
-  items,
-  orderSubItems = [],
-  settingsSubItems = [],
-  compact = false,
-}: {
+export function AppNav({ items, compact = false, locale = "fi" }: {
   items: readonly NavItem[];
-  orderSubItems?: readonly SubItem[];
-  settingsSubItems?: readonly SubItem[];
   compact?: boolean;
+  locale?: "fi" | "en";
 }) {
   const pathname = usePathname();
-  const ordersActive = isItemActive(pathname, "/app/orders", "orders");
-  const settingsActive = isItemActive(pathname, "/app/settings", "settings");
   const [pendingHref, setPendingHref] = useState<string | null>(null);
-  const [ordersOpen, setOrdersOpen] = useState(ordersActive);
-  const [settingsOpen, setSettingsOpen] = useState(settingsActive);
-  const [activeSubHref, setActiveSubHref] = useState<string | null>(null);
-  const navRef = useRef<HTMLElement | null>(null);
-  const [activeIndicator, setActiveIndicator] = useState({
-    top: 0,
-    height: 0,
-    opacity: 0,
-  });
-
-  useEffect(() => {
-    setPendingHref(null);
-
-    if (ordersActive && orderSubItems.length) {
-      setOrdersOpen(true);
-      setSettingsOpen(false);
-    } else if (settingsActive && settingsSubItems.length) {
-      setSettingsOpen(true);
-      setOrdersOpen(false);
-    }
-
-    setActiveSubHref(currentLocationKey(pathname));
-  }, [pathname, ordersActive, settingsActive, orderSubItems.length, settingsSubItems.length]);
-
-  useEffect(() => {
-    const syncHash = () => setActiveSubHref(currentLocationKey(pathname));
-    window.addEventListener("hashchange", syncHash);
-    return () => window.removeEventListener("hashchange", syncHash);
-  }, [pathname]);
-
-  useEffect(() => {
-    const syncIndicator = () => {
-      const nav = navRef.current;
-      if (!nav) return;
-
-      const target =
-        nav.querySelector<HTMLElement>(".app-sidebar-v2-sublink.is-active") ??
-        nav.querySelector<HTMLElement>(".app-sidebar-v2-link.is-active") ??
-        nav.querySelector<HTMLElement>(
-          ".app-sidebar-v2-order-group.is-active .app-sidebar-v2-link",
-        );
-
-      if (!target) {
-        setActiveIndicator((current) => ({ ...current, opacity: 0 }));
-        return;
-      }
-
-      const navRect = nav.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      setActiveIndicator({
-        top: targetRect.top - navRect.top,
-        height: targetRect.height,
-        opacity: 1,
-      });
-    };
-
-    const frame = window.requestAnimationFrame(syncIndicator);
-    window.addEventListener("resize", syncIndicator);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", syncIndicator);
-    };
-  }, [activeSubHref, compact, ordersOpen, pathname, settingsOpen]);
-
-  useEffect(() => {
-    if (pathname !== "/app/settings" || !settingsSubItems.length) return;
-
-    const ids = ["company", "quote-settings", "brand", "business-central", "users"];
-    let frame = 0;
-
-    const syncSectionFromScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const anchorLine = Math.min(window.innerHeight * 0.34, 260);
-        let activeId = ids[0];
-
-        for (const id of ids) {
-          const element = document.getElementById(id);
-          if (!element) continue;
-          const top = element.getBoundingClientRect().top;
-          if (top <= anchorLine) activeId = id;
-        }
-
-        const nearBottom =
-          window.innerHeight + window.scrollY >=
-          document.documentElement.scrollHeight - 12;
-        if (nearBottom) activeId = ids[ids.length - 1];
-
-        setActiveSubHref(`/app/settings#${activeId}`);
-      });
-    };
-
-    syncSectionFromScroll();
-    window.addEventListener("scroll", syncSectionFromScroll, { passive: true });
-    window.addEventListener("resize", syncSectionFromScroll);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", syncSectionFromScroll);
-      window.removeEventListener("resize", syncSectionFromScroll);
-    };
-  }, [pathname, settingsSubItems.length]);
-
+  useEffect(() => { setPendingHref(null); }, [pathname]);
   return (
-    <nav
-      ref={navRef}
-      className={"app-sidebar-v2-nav" + (compact ? " is-compact" : "")}
-      aria-label="Application navigation"
-    >
-      <span
-        className="app-sidebar-v2-active-indicator"
-        aria-hidden="true"
-        style={{
-          height: activeIndicator.height,
-          opacity: activeIndicator.opacity,
-          transform: `translate3d(0, ${activeIndicator.top}px, 0)`,
-        }}
-      />
+    <nav className={"app-sidebar-v2-nav" + (compact ? " is-compact" : "")}
+      aria-label={locale === "fi" ? "Sovelluksen päävalikko" : "Application main navigation"}>
       {items.map(([label, href, id]) => {
         const active = isItemActive(pathname, href, id);
-        const pending = pendingHref === href && !active;
-        const subItems =
-          id === "orders"
-            ? orderSubItems
-            : id === "settings"
-              ? settingsSubItems
-              : [];
-        const expandable = subItems.length > 0;
-        const open = id === "orders" ? ordersOpen : settingsOpen;
-
-        if (expandable) {
-          return (
-            <div
-              key={href}
-              className={
-                "app-sidebar-v2-order-group" +
-                (active ? " is-active" : "") +
-                (open ? " is-open" : "")
-              }
-            >
-              <div className="app-sidebar-v2-order-parent">
-                <Link
-                  href={href}
-                  prefetch
-                  onClick={() => {
-                    setPendingHref(href);
-                    setActiveSubHref(href);
-                  }}
-                  aria-current={active ? "page" : undefined}
-                  className={
-                    "app-sidebar-v2-link app-sidebar-v2-link-" +
-                    id +
-                    (active ? " is-active" : "") +
-                    (pending ? " is-pending" : "")
-                  }
-                >
-                  <span className="app-nav-main">
-                    <span className="app-nav-icon"><NavIcon id={id} /></span>
-                    <span className="app-nav-label">{label}</span>
-                  </span>
-                  {pending ? <span className="app-nav-pending-dot" aria-hidden="true" /> : null}
-                </Link>
-                <button
-                  type="button"
-                  className="app-sidebar-v2-chevron"
-                  aria-label={open ? `Collapse ${label} menu` : `Expand ${label} menu`}
-                  aria-expanded={open}
-                  onClick={() => {
-                    if (id === "orders") {
-                      setOrdersOpen((value) => {
-                        const next = !value;
-                        if (next) setSettingsOpen(false);
-                        return next;
-                      });
-                    } else {
-                      setSettingsOpen((value) => {
-                        const next = !value;
-                        if (next) setOrdersOpen(false);
-                        return next;
-                      });
-                    }
-                  }}
-                >
-                  <Chevron open={open} />
-                </button>
-              </div>
-
-              <div
-                className="app-sidebar-v2-subnav"
-                aria-hidden={!open}
-              >
-                {subItems.map(([subLabel, subHref]) => {
-                  const targetPath = hrefPath(subHref);
-                  const currentKey = activeSubHref || pathname;
-                  let subActive = false;
-
-                  if (id === "orders") {
-                    subActive =
-                      pathname === targetPath &&
-                      (currentKey === subHref ||
-                        (subHref === "/app/orders" &&
-                          !currentKey.includes("?view=")));
-                  } else if (id === "settings") {
-                    if (subHref === "/app/memory") {
-                      subActive = pathname === "/app/memory";
-                    } else if (subHref === "/app/settings#business-central") {
-                      subActive =
-                        pathname.startsWith("/app/settings/business-central") ||
-                        currentKey === subHref;
-                    } else if (subHref === "/app/settings/support") {
-                      subActive = pathname.startsWith("/app/settings/support");
-                    } else {
-                      subActive =
-                        pathname === "/app/settings" &&
-                        (currentKey === subHref ||
-                          (subHref === "/app/settings#company" &&
-                            !currentKey.includes("#")));
-                    }
-                  }
-
-                  return (
-                    <Link
-                      key={subHref}
-                      href={subHref}
-                      prefetch
-                      onClick={() => {
-                        setPendingHref(subHref);
-                        setActiveSubHref(subHref);
-                      }}
-                      aria-current={subActive ? "page" : undefined}
-                      className={"app-sidebar-v2-sublink" + (subActive ? " is-active" : "")}
-                    >
-                      <span>{subLabel}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        }
-
+        const pending = pendingHref === href && pathname !== href;
         return (
-          <Link
-            key={href}
-            href={href}
-            prefetch
-            onClick={() => {
-              if (!active) setPendingHref(href);
-            }}
-            aria-current={active ? "page" : undefined}
-            className={
-              "app-sidebar-v2-link app-sidebar-v2-link-" +
-              id +
-              (active ? " is-active" : "") +
-              (pending ? " is-pending" : "")
-            }
-          >
+          <Link key={href} href={href} prefetch
+            onClick={() => { if (pathname !== href) setPendingHref(href); }}
+            aria-current={pathname === href ? "page" : active ? "location" : undefined}
+            aria-busy={pending || undefined}
+            className={"app-sidebar-v2-link app-sidebar-v2-link-" + id +
+              (active ? " is-active" : "") + (pending ? " is-pending" : "")}>
             <span className="app-nav-main">
               <span className="app-nav-icon"><NavIcon id={id} /></span>
               <span className="app-nav-label">{label}</span>

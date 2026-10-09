@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/AppShell";
+import "./navigation.css";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { canManageWorkspaceFeature } from "@/lib/rivora/features";

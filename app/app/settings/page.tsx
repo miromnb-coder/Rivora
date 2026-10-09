@@ -16,6 +16,7 @@ import {
   getErpProviderCapability,
 } from "@/lib/rivora/erp";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isSupportOperatorEmail } from "@/lib/rivora/support-operator";
 import {
   disconnectBusinessCentralConnectionAction,
   saveBusinessCentralConnectionAction,
@@ -127,6 +128,35 @@ export default async function SettingsPage({
           </p>
         </div>
       </header>
+
+      <nav aria-label={fi ? "Asetusten osiot" : "Settings sections"}
+        className="mb-7 flex flex-wrap gap-2 border-b border-[var(--app-line)] pb-5">
+        {([
+          ["#company", fi ? "Yritys" : "Company"],
+          ["#quote-settings", fi ? "Tarjoukset" : "Quotes"],
+          ["#brand", fi ? "Brändi" : "Brand"],
+          ["#erp", "Business Central"],
+          ["#users", fi ? "Käyttäjät" : "Users"],
+          ["/app/memory", fi ? "Älykäs muisti" : "Smart memory"],
+        ] as const).map(([href, label]) => (
+          <Link key={href} href={href}
+            className="inline-flex min-h-10 items-center rounded-[7px] border border-[var(--app-line)] bg-white px-3 text-[13px] font-semibold text-[var(--app-ink)] hover:bg-[var(--app-selected)]">
+            {label}
+          </Link>
+        ))}
+        {canManage ? (
+          <Link href="/app/settings/operations"
+            className="inline-flex min-h-10 items-center rounded-[7px] border border-[var(--app-line)] bg-white px-3 text-[13px] font-semibold text-[var(--app-ink)] hover:bg-[var(--app-selected)]">
+            {fi ? "Toiminnan hallinta" : "Operations"}
+          </Link>
+        ) : null}
+        {isSupportOperatorEmail(typeof claims.email === "string" ? claims.email : null) ? (
+          <Link href="/app/settings/support"
+            className="inline-flex min-h-10 items-center rounded-[7px] border border-[var(--app-line)] bg-white px-3 text-[13px] font-semibold text-[var(--app-ink)] hover:bg-[var(--app-selected)]">
+            {fi ? "Tukipyynnöt" : "Support inbox"}
+          </Link>
+        ) : null}
+      </nav>
 
       {message ? (
         <div
