@@ -5,6 +5,7 @@ import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { canManageWorkspaceFeature } from "@/lib/rivora/features";
 import { isSupportOperatorEmail } from "@/lib/rivora/support-operator";
+import "./atelier-app.css";
 
 export const metadata: Metadata = {
   robots: {

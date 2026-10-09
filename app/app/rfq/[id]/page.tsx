@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Breadcrumbs, StatusBadge } from "@/components/ui/AtelierPrimitives";
 import { notFound } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -168,9 +169,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="app-page-v2 rfq-review-v2">
-      <Link href="/app/inbox" className="rfq-review-v2-back">
-        ← {text.inbox}
-      </Link>
+      <Breadcrumbs label={fi ? "Murupolku" : "Breadcrumbs"} items={[{ label: text.inbox, href: "/app/inbox" }, { label: rfq.reference || text.review }]} />
 
       <header className="rfq-review-v2-head">
         <div>
@@ -188,9 +187,9 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
           </p>
         </div>
 
-        <div className={`rfq-review-v2-status ${rfq.status === "ready" ? "ready" : "review"}`}>
+        <StatusBadge tone={rfq.status === "ready" ? "success" : rfq.status === "needs_review" ? "review" : rfq.status === "processing" ? "info" : rfq.status === "failed" ? "error" : "unknown"} className="rfq-review-v2-status">
           {rfqStatusLabel(String(rfq.status), fi)}
-        </div>
+        </StatusBadge>
       </header>
 
       <section className="rfq-review-v2-summary">

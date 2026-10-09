@@ -2,11 +2,15 @@ import Link from "next/link";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getDictionary } from "@/lib/i18n";
 import { formatLocale, getLocale } from "@/lib/locale";
+import { PageHeader, StatusBadge } from "@/components/ui/AtelierPrimitives";
 
 function statusTone(status: string) {
-  if (status === "ready" || status === "quoted") return "ready";
+  if (status === "ready" || status === "confirmed") return "success";
+  if (status === "quoted" || status === "processing") return "info";
   if (status === "needs_review") return "review";
-  return "open";
+  if (status === "failed") return "error";
+  if (status === "open") return "open";
+  return "unknown";
 }
 
 function statusLabel(status: string, locale: "fi" | "en") {
@@ -50,18 +54,12 @@ export default async function InboxPage() {
 
   return (
     <div className="app-page-v2 inbox-v2">
-      <header className="inbox-v2-head">
-        <div>
-          <div className="app-kicker-v2">{copy.kicker}</div>
-          <h1>{copy.title}</h1>
-          <p>{copy.description}</p>
-        </div>
-        <Link href="/app/upload" className="inbox-v2-primary">
+      <PageHeader className="inbox-v2-head" eyebrow={copy.kicker} title={copy.title} description={copy.description}
+        action={<Link href="/app/upload" className="inbox-v2-primary">
           {copy.process} <span aria-hidden="true">→</span>
-        </Link>
-      </header>
+        </Link>} />
 
-      <section className="inbox-v2-summary" aria-label="RFQ summary">
+      <section className="inbox-v2-summary" aria-label={locale === "fi" ? "Tarjouspyyntöjen yhteenveto" : "RFQ summary"}>
         <Link href="#requests" className="inbox-v2-summary-item is-review">
           <span>{copy.needsReview}</span><strong>{needsReview}</strong><small>{copy.humanRequired}</small>
         </Link>
@@ -87,7 +85,7 @@ export default async function InboxPage() {
                 <Link key={item.id} href={`/app/rfq/${item.id}`} className="inbox-v2-row">
                   <div className="inbox-v2-row-main">
                     <div className="inbox-v2-row-topline">
-                      <span className={`inbox-v2-state ${statusTone(item.status)}`}>{statusLabel(item.status, locale)}</span>
+                      <StatusBadge tone={statusTone(item.status)}>{statusLabel(item.status, locale)}</StatusBadge>
                       <span>{String(item.source_type).toUpperCase()}</span><span>{item.lineCount} {copy.lines}</span>
                     </div>
                     <h3>{item.reference || copy.untitled}</h3><p>{item.customerName}</p>

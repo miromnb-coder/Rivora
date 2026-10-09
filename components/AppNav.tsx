@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type NavItem = readonly [label: string, href: string, id: string];
@@ -136,11 +136,13 @@ export function AppNav({
   orderSubItems = [],
   settingsSubItems = [],
   compact = false,
+  locale = "fi",
 }: {
   items: readonly NavItem[];
   orderSubItems?: readonly SubItem[];
   settingsSubItems?: readonly SubItem[];
   compact?: boolean;
+  locale?: "fi" | "en";
 }) {
   const pathname = usePathname();
   const ordersActive = isItemActive(pathname, "/app/orders", "orders");
@@ -254,7 +256,7 @@ export function AppNav({
     <nav
       ref={navRef}
       className={"app-sidebar-v2-nav" + (compact ? " is-compact" : "")}
-      aria-label="Application navigation"
+      aria-label={locale === "fi" ? "Sovelluksen navigaatio" : "Application navigation"}
     >
       <span
         className="app-sidebar-v2-active-indicator"
@@ -266,6 +268,15 @@ export function AppNav({
         }}
       />
       {items.map(([label, href, id]) => {
+        const groupLabel = id === "dashboard"
+          ? (locale === "fi" ? "Yleiskuva" : "Overview")
+          : id === "leads" || (id === "orders" && !items.some((item) => item[2] === "leads"))
+            ? (locale === "fi" ? "Myyntityö" : "Sales work")
+            : id === "customers"
+              ? (locale === "fi" ? "Tiedot" : "Records")
+              : id === "settings"
+                ? (locale === "fi" ? "Hallinta" : "Administration")
+                : null;
         const active = isItemActive(pathname, href, id);
         const pending = pendingHref === href && !active;
         const subItems =
@@ -279,8 +290,9 @@ export function AppNav({
 
         if (expandable) {
           return (
-            <div
-              key={href}
+            <Fragment key={href}>
+              {groupLabel && !compact ? <span className="atelier-nav-group-label">{groupLabel}</span> : null}
+              <div
               className={
                 "app-sidebar-v2-order-group" +
                 (active ? " is-active" : "") +
@@ -295,7 +307,7 @@ export function AppNav({
                     setPendingHref(href);
                     setActiveSubHref(href);
                   }}
-                  aria-current={active ? "page" : undefined}
+                  aria-current={pathname === href && !subItems.some(([, subHref]) => hrefPath(subHref) === pathname) ? "page" : undefined}
                   className={
                     "app-sidebar-v2-link app-sidebar-v2-link-" +
                     id +
@@ -312,7 +324,7 @@ export function AppNav({
                 <button
                   type="button"
                   className="app-sidebar-v2-chevron"
-                  aria-label={open ? `Collapse ${label} menu` : `Expand ${label} menu`}
+                  aria-label={locale === "fi" ? `${open ? "Sulje" : "Avaa"} ${label}` : `${open ? "Collapse" : "Expand"} ${label} menu`}
                   aria-expanded={open}
                   onClick={() => {
                     if (id === "orders") {
@@ -337,6 +349,7 @@ export function AppNav({
               <div
                 className="app-sidebar-v2-subnav"
                 aria-hidden={!open}
+                inert={!open}
               >
                 {subItems.map(([subLabel, subHref]) => {
                   const targetPath = hrefPath(subHref);
@@ -384,19 +397,21 @@ export function AppNav({
                   );
                 })}
               </div>
-            </div>
+              </div>
+            </Fragment>
           );
         }
 
         return (
-          <Link
-            key={href}
+          <Fragment key={href}>
+            {groupLabel && !compact ? <span className="atelier-nav-group-label">{groupLabel}</span> : null}
+            <Link
             href={href}
             prefetch
             onClick={() => {
               if (!active) setPendingHref(href);
             }}
-            aria-current={active ? "page" : undefined}
+            aria-current={pathname === href ? "page" : undefined}
             className={
               "app-sidebar-v2-link app-sidebar-v2-link-" +
               id +
@@ -409,7 +424,8 @@ export function AppNav({
               <span className="app-nav-label">{label}</span>
             </span>
             {pending ? <span className="app-nav-pending-dot" aria-hidden="true" /> : null}
-          </Link>
+            </Link>
+          </Fragment>
         );
       })}
     </nav>

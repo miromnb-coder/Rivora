@@ -7,6 +7,7 @@ import {
   getBusinessCentralConfigurationStatus,
 } from "@/lib/rivora/erp/business-central";
 import { getErpProviderCapability } from "@/lib/rivora/erp";
+import { PageHeader } from "@/components/ui/AtelierPrimitives";
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
@@ -427,27 +428,15 @@ export default async function AppHome() {
 
   return (
     <div className="app-page-v2 dashboard-page">
-      <header className="dashboard-hero">
-        <div className="dashboard-hero-copy">
-          <div className="app-kicker-v2">{fi ? "Työpöytä" : "Workspace"}</div>
-          <div className="dashboard-title-row">
-            <h1>{fi ? "Vaatii huomiota" : "Needs attention"}</h1>
-            <span className="dashboard-attention-count" aria-label={fi ? `${dedupedTasks.length} huomiota vaativaa casea` : `${dedupedTasks.length} cases need attention`}>
-              {dedupedTasks.length}
-            </span>
-          </div>
-          <p>
-            {fi
-              ? "Näet ensin caset, jotka tarvitsevat päätöksen juuri nyt."
-              : "Averomira puts the work needing a human decision first. Everything else stays in the background."}
-          </p>
-        </div>
-
-        <Link href="/app/upload" className="upload-v2-primary-btn dashboard-primary-cta">
+      <PageHeader className="dashboard-hero" eyebrow={fi ? "Työpöytä" : "Workspace"}
+        title={<span className="dashboard-title-row"><span>{fi ? "Vaatii huomiota" : "Needs attention"}</span><span className="dashboard-attention-count" aria-label={fi ? `${dedupedTasks.length} huomiota vaativaa casea` : `${dedupedTasks.length} cases need attention`}>{dedupedTasks.length}</span></span>}
+        description={fi
+          ? "Näet ensin caset, jotka tarvitsevat päätöksen juuri nyt."
+          : "Averomira puts the work needing a human decision first. Everything else stays in the background."}
+        action={<Link href="/app/upload" className="upload-v2-primary-btn dashboard-primary-cta">
           <span aria-hidden="true">+</span>
           {fi ? "Uusi tarjouspyyntö" : "New RFQ"}
-        </Link>
-      </header>
+        </Link>} />
 
       <section className="dashboard-section dashboard-attention-section" aria-labelledby="dashboard-tasks-heading">
         <div className="dashboard-section-head">

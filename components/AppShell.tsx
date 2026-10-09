@@ -1,9 +1,8 @@
-import Link from "next/link";
-import { signOut } from "@/app/app/actions";
-import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/locale";
 import { AppNav } from "@/components/AppNav";
+import { AppSidebar } from "@/components/AppSidebar";
+import { AppHeader } from "@/components/AppHeader";
 import { SupportCenter } from "@/components/support/SupportCenter";
 
 export function AppShell({
@@ -61,43 +60,34 @@ export function AppShell({
   ];
 
   return (
-    <div className="app-shell-v2 min-h-screen">
-      <aside className="app-sidebar-v2">
-        <div className="app-sidebar-v2-top">
-          <Link href="/app" className="app-sidebar-v2-brand nodra-wordmark" aria-label="Averomira">
-            Averomira
-          </Link>
-          <div className="app-sidebar-v2-product">{copy.product}</div>
-        </div>
+    <div className="app-shell-v2 atelier-app min-h-screen">
+      <a className="atelier-skip-link" href="#app-main-content">
+        {locale === "fi" ? "Siirry sisältöön" : "Skip to content"}
+      </a>
+      <AppSidebar
+        productLabel={copy.product}
+        workspaceLabel={copy.workspace}
+        workspaceName={workspaceName}
+        workspaceRole={workspaceRole}
+        locale={locale}
+      >
+        <AppNav items={nav} orderSubItems={orderSubItems} settingsSubItems={settingsSubItems} locale={locale} />
+      </AppSidebar>
+      <AppHeader
+        workspaceName={workspaceName}
+        workspaceLabel={copy.workspace}
+        userEmail={userEmail}
+        locale={locale}
+        languageLabel={copy.language}
+        signOutLabel={copy.signOut}
+      />
 
-        <AppNav items={nav} orderSubItems={orderSubItems} settingsSubItems={settingsSubItems} />
-
-        <div className="app-sidebar-v2-account">
-          <LocaleSwitcher locale={locale} label={copy.language} />
-          <div className="app-sidebar-v2-account-label">{copy.workspace}</div>
-          <div className="app-sidebar-v2-account-name">{workspaceName}</div>
-          <div className="app-sidebar-v2-role">{workspaceRole}</div>
-          {userEmail ? <div className="app-sidebar-v2-email">{userEmail}</div> : null}
-
-          <form action={signOut}>
-            <button className="app-sidebar-v2-signout">{copy.signOut}</button>
-          </form>
-        </div>
-      </aside>
-
-      <header className="app-mobile-topbar">
-        <Link href="/app" className="app-mobile-brand nodra-wordmark" aria-label="Averomira">
-          Averomira
-        </Link>
-        <span>{workspaceName}</span>
-      </header>
-
-      <main className="app-main-v2">{children}</main>
+      <main id="app-main-content" className="app-main-v2" tabIndex={-1}>{children}</main>
 
       <SupportCenter locale={locale} />
 
       <div className="app-mobile-bottom-nav">
-        <AppNav items={nav} orderSubItems={[]} settingsSubItems={[]} compact />
+        <AppNav items={nav} orderSubItems={[]} settingsSubItems={[]} compact locale={locale} />
       </div>
     </div>
   );
