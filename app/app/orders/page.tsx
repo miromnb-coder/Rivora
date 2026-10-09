@@ -295,7 +295,7 @@ export default async function OrdersPage({
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <div className="app-kicker-v2">{fi ? "Tilaukset" : "Orders"}</div>
-          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[#202320] md:text-4xl">
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--app-ink)] md:text-4xl">
             {fi ? "Tilaukset" : "Orders"}
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
@@ -317,8 +317,8 @@ export default async function OrdersPage({
             className={
               "whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition " +
               (view === id
-                ? "border-[#dedfdb] bg-[#f3f3f0] text-[#202320]"
-                : "border-[var(--line)] bg-white text-[var(--muted)] hover:text-[#171a18]")
+                ? "border-[#dedfdb] bg-[#f3f3f0] text-[var(--app-ink)]"
+                : "border-[var(--line)] bg-white text-[var(--muted)] hover:text-[var(--app-ink)]")
             }
           >
             {label}
@@ -343,7 +343,7 @@ export default async function OrdersPage({
                 <Link
                   key={row.key}
                   href={row.href}
-                  className="group grid gap-3 px-5 py-4 transition hover:bg-[#fafaf8] md:grid-cols-[1.35fr_1fr_.8fr_1fr_auto] md:items-center md:gap-4"
+                  className="group grid gap-3 px-5 py-4 transition hover:bg-[var(--app-paper)] md:grid-cols-[1.35fr_1fr_.8fr_1fr_auto] md:items-center md:gap-4"
                 >
                   <div>
                     <strong className="block text-sm">{row.customer}</strong>
@@ -365,7 +365,7 @@ export default async function OrdersPage({
                   <strong className="text-sm">{row.nextAction}</strong>
                   <span className="flex items-center gap-3 text-xs font-semibold text-[var(--muted)]">
                     {new Date(row.updatedAt).toLocaleDateString(displayLocale)}
-                    <span className="text-[#171a18] transition group-hover:translate-x-1">→</span>
+                    <span className="text-[var(--app-ink)] transition group-hover:translate-x-1">→</span>
                   </span>
                 </Link>
               );

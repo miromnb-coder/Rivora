@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getLocale } from "@/lib/locale";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { requestPasswordReset } from "./actions";
+import { RivoraMark } from "@/components/marketing/RivoraMark";
 
 export const metadata: Metadata = {
   robots: {
@@ -28,7 +29,7 @@ export default async function ForgotPasswordPage({
     <main className="nodra-auth min-h-screen px-5 py-12">
       <div className="mx-auto max-w-md">
         <div className="mb-7 flex items-start justify-between gap-4">
-          <Link href="/" className="text-2xl font-extrabold tracking-[-.04em] text-[#171a18]">Averomira</Link>
+          <Link href="/" className="auth-brand" aria-label="Averomira"><RivoraMark withSymbol /></Link>
           <LocaleSwitcher locale={locale} label="" />
         </div>
 
@@ -68,7 +69,7 @@ export default async function ForgotPasswordPage({
             </button>
           </form>
 
-          <Link href="/login" className="mt-5 block text-center text-xs font-semibold text-[#5f6560] hover:text-[#171a18]">
+          <Link href="/login" className="mt-5 block text-center text-xs font-semibold text-[var(--app-muted)] hover:text-[var(--app-ink)]">
             ← {fi ? "Takaisin kirjautumiseen" : "Back to sign in"}
           </Link>
         </div>

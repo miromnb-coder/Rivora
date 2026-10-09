@@ -41,7 +41,7 @@ export default async function ProductDetailPage({
   return (
     <div className="app-page-v2 product-detail-page">
       <div className="mb-5">
-        <Link href="/app/products" className="text-[13px] font-semibold text-[#5f645f] hover:text-[var(--app-ink)]">
+        <Link href="/app/products" className="text-[13px] font-semibold text-[var(--app-muted)] hover:text-[var(--app-ink)]">
           ← {fi ? "Tuotteet" : "Products"}
         </Link>
       </div>
@@ -147,8 +147,8 @@ export default async function ProductDetailPage({
           </h2>
 
           {mapping?.external_number ? (
-            <div className="mt-3.5 border-y border-[#ecede9] py-3.5">
-              <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.045em] text-[#858a86]">
+            <div className="mt-3.5 border-y border-[var(--app-line)] py-3.5">
+              <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.045em] text-[var(--app-muted)]">
                 BC item no.
               </span>
               <strong className="mt-1 block break-words text-sm font-semibold leading-5 text-[var(--app-ink)]">

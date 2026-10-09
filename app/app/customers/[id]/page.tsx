@@ -62,7 +62,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
   return (
     <div className="app-page-v2 customer-detail-page">
       <div className="mb-5">
-        <Link href="/app/customers" className="text-[13px] font-semibold text-[#5f645f] hover:text-[var(--app-ink)]">
+        <Link href="/app/customers" className="text-[13px] font-semibold text-[var(--app-muted)] hover:text-[var(--app-ink)]">
           ← {text.customers}
         </Link>
       </div>
@@ -94,19 +94,19 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
         >
           <input type="hidden" name="customerId" value={customer.id} />
           <label>
-            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[#6e736f]">
+            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[var(--app-muted)]">
               {fi ? "Asiakasyrityksen nimi" : "Customer company name"}
             </span>
             <input name="name" required defaultValue={customer.name} />
           </label>
           <label>
-            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[#6e736f]">
+            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[var(--app-muted)]">
               {text.externalId}
             </span>
             <input name="externalId" defaultValue={customer.external_id || ""} />
           </label>
           <label>
-            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[#6e736f]">
+            <span className="settings-field-label !text-[10px] !font-semibold !tracking-[.035em] !text-[var(--app-muted)]">
               {text.domain}
             </span>
             <input name="emailDomain" defaultValue={customer.email_domain || ""} placeholder="customer.com" />
@@ -123,7 +123,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
             <div className="upload-v2-section-label">{text.contacts}</div>
             <div className="mt-2.5">
               {(contacts ?? []).map((contact) => (
-                <article key={contact.id} className="border-t border-[#ecede9] py-3.5 first:border-t-0">
+                <article key={contact.id} className="border-t border-[var(--app-line)] py-3.5 first:border-t-0">
                   <div className="min-w-0">
                     <strong className="break-words text-sm font-semibold leading-5 text-[var(--app-ink)]">
                       {contact.name}
@@ -140,7 +140,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
 
                   <a
                     href={`mailto:${contact.email}`}
-                    className="mt-2 block break-words text-xs font-semibold leading-[18px] text-[#3b403c]"
+                    className="mt-2 block break-words text-xs font-semibold leading-[18px] text-[var(--app-ink)]"
                   >
                     {contact.email}
                   </a>
@@ -201,7 +201,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                   <Link
                     key={quote.id}
                     href={`/app/quotes/${quote.id}`}
-                    className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[#ecede9] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_120px_140px_20px] md:gap-4"
+                    className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[var(--app-line)] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_120px_140px_20px] md:gap-4"
                   >
                     <div className="min-w-0">
                       <strong className="block truncate text-sm font-semibold leading-5 text-[var(--app-ink)]">
@@ -242,7 +242,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                   <Link
                     key={rfq.id}
                     href={`/app/rfq/${rfq.id}`}
-                    className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[#ecede9] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_110px_120px_20px] md:gap-4"
+                    className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 border-b border-[var(--app-line)] px-0.5 py-3 transition hover:bg-white/70 md:grid-cols-[minmax(0,1fr)_110px_120px_20px] md:gap-4"
                   >
                     <div className="min-w-0">
                       <strong className="block truncate text-sm font-semibold leading-5 text-[var(--app-ink)]">
@@ -282,10 +282,10 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                   return (
                     <div
                       key={mapping.id}
-                      className="grid min-h-[72px] grid-cols-[1fr_auto] items-center gap-x-3.5 gap-y-2.5 border-b border-[#ecede9] px-0.5 py-[13px] md:grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)_80px] md:gap-4"
+                      className="grid min-h-[72px] grid-cols-[1fr_auto] items-center gap-x-3.5 gap-y-2.5 border-b border-[var(--app-line)] px-0.5 py-[13px] md:grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)_80px] md:gap-4"
                     >
                       <div className="min-w-0">
-                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.customerLanguage}</span>
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[var(--app-muted)]">{text.customerLanguage}</span>
                         <strong className="mt-0.5 block break-words text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
                           {mapping.customer_sku || text.noSku}
                         </strong>
@@ -297,7 +297,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                       <span className="justify-self-end text-[#8e938f]">→</span>
 
                       <div className="min-w-0">
-                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.canonical}</span>
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[var(--app-muted)]">{text.canonical}</span>
                         <strong className="mt-0.5 block break-words text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
                           {product?.sku || text.unavailable}
                         </strong>
@@ -305,7 +305,7 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
                       </div>
 
                       <div className="text-right md:text-left">
-                        <span className="block text-[10px] font-semibold leading-[14px] text-[#858a86]">{text.uses}</span>
+                        <span className="block text-[10px] font-semibold leading-[14px] text-[var(--app-muted)]">{text.uses}</span>
                         <strong className="mt-0.5 block text-[18px] font-semibold leading-6 text-[var(--app-ink)]">
                           {Number(mapping.times_used ?? 0)}
                         </strong>

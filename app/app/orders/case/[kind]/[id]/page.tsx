@@ -548,7 +548,7 @@ export default async function OrderCasePage({
   return (
     <div className="app-page-v2 case-workspace-v1">
       <div className="mb-6">
-        <Link href="/app/orders" className="text-sm font-semibold text-[var(--muted)] hover:text-[#171a18]">
+        <Link href="/app/orders" className="text-sm font-semibold text-[var(--muted)] hover:text-[var(--app-ink)]">
           ← {fi ? "Tilaukset" : "Orders"}
         </Link>
       </div>

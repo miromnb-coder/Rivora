@@ -6,6 +6,7 @@ import { getLocale } from "@/lib/locale";
 import { getOnboardingCopy } from "@/lib/i18n/extra";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { signOut } from "@/app/app/actions";
+import { RivoraMark } from "@/components/marketing/RivoraMark";
 
 export const metadata: Metadata = {
   robots: {
@@ -45,7 +46,7 @@ export default async function OnboardingPage({
     return (
       <main className="nodra-auth min-h-screen px-5 py-12">
         <div className="mx-auto max-w-lg">
-          <div className="mb-5 flex justify-end"><LocaleSwitcher locale={locale} label="" /></div>
+          <div className="mb-5 flex items-start justify-between gap-4"><div className="auth-brand"><RivoraMark withSymbol /></div><LocaleSwitcher locale={locale} label="" /></div>
           <div className="surface p-7">
             <div className="kicker">{fi ? "Kutsu vaaditaan" : "Invitation required"}</div>
             <h1 className="mt-2 text-3xl font-extrabold tracking-[-.04em]">
@@ -68,7 +69,7 @@ export default async function OnboardingPage({
   return (
     <main className="nodra-auth min-h-screen px-5 py-12">
       <div className="mx-auto max-w-lg">
-        <div className="mb-5 flex justify-end"><LocaleSwitcher locale={locale} label="" /></div>
+        <div className="mb-5 flex items-start justify-between gap-4"><div className="auth-brand"><RivoraMark withSymbol /></div><LocaleSwitcher locale={locale} label="" /></div>
         <div className="surface p-7">
           <div className="kicker">{copy.kicker}</div>
           <h1 className="mt-2 text-3xl font-extrabold tracking-[-.04em]">{copy.title}</h1>

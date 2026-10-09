@@ -71,7 +71,7 @@ export default async function BusinessCentralSettingsPage({
       <div className="mb-5">
         <Link
           href="/app/settings#erp"
-          className="text-[13px] font-semibold text-[#5f645f] hover:text-[var(--app-ink)]"
+          className="text-[13px] font-semibold text-[var(--app-muted)] hover:text-[var(--app-ink)]"
         >
           ← {fi ? "Asetukset" : "Settings"}
         </Link>
@@ -140,39 +140,39 @@ export default async function BusinessCentralSettingsPage({
           </span>
         </div>
 
-        <div className="mt-5 grid border-y border-[#e5e6e2] sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-5 grid border-y border-[var(--app-line)] sm:grid-cols-2 xl:grid-cols-4">
           <div className="min-w-0 py-3.5 sm:pr-4">
-            <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[#858a86]">
+            <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[var(--app-muted)]">
               {fi ? "Ympäristö" : "Environment"}
             </span>
-            <strong className="mt-1 block break-words text-[13px] font-semibold leading-[18px] text-[#3b403c]">
+            <strong className="mt-1 block break-words text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
               {config.environment || "—"}
             </strong>
           </div>
 
-          <div className="min-w-0 border-t border-[#e5e6e2] py-3.5 sm:border-l sm:border-t-0 sm:pl-4 xl:pr-4">
-            <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[#858a86]">
+          <div className="min-w-0 border-t border-[var(--app-line)] py-3.5 sm:border-l sm:border-t-0 sm:pl-4 xl:pr-4">
+            <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[var(--app-muted)]">
               Company ID
             </span>
-            <strong className="mt-1 block break-words text-[12px] font-semibold leading-[18px] tracking-[-.01em] text-[#3b403c]">
+            <strong className="mt-1 block break-words text-[12px] font-semibold leading-[18px] tracking-[-.01em] text-[var(--app-ink)]">
               {config.companyId || "—"}
             </strong>
           </div>
 
-          <div className="min-w-0 border-t border-[#e5e6e2] py-3.5 sm:pr-4 xl:border-l xl:border-t-0 xl:pl-4">
-            <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[#858a86]">
+          <div className="min-w-0 border-t border-[var(--app-line)] py-3.5 sm:pr-4 xl:border-l xl:border-t-0 xl:pl-4">
+            <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[var(--app-muted)]">
               {fi ? "Asiakkaat" : "Customers"}
             </span>
-            <strong className="mt-1 block text-[13px] font-semibold leading-[18px] text-[#3b403c]">
+            <strong className="mt-1 block text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
               {mappedCustomers}/{customers?.length ?? 0}
             </strong>
           </div>
 
-          <div className="min-w-0 border-t border-[#e5e6e2] py-3.5 sm:border-l sm:pl-4 xl:border-t-0">
-            <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[#858a86]">
+          <div className="min-w-0 border-t border-[var(--app-line)] py-3.5 sm:border-l sm:pl-4 xl:border-t-0">
+            <span className="block text-[10px] font-semibold uppercase leading-[14px] tracking-[.05em] text-[var(--app-muted)]">
               {fi ? "Tuotteet" : "Products"}
             </span>
-            <strong className="mt-1 block text-[13px] font-semibold leading-[18px] text-[#3b403c]">
+            <strong className="mt-1 block text-[13px] font-semibold leading-[18px] text-[var(--app-ink)]">
               {mappedProducts}/{products?.length ?? 0}
             </strong>
           </div>
@@ -193,7 +193,7 @@ export default async function BusinessCentralSettingsPage({
             return (
               <div
                 key={customer.id}
-                className="grid min-w-0 gap-3 border-b border-[#ecede9] py-3.5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.82fr)] lg:items-center lg:gap-6"
+                className="grid min-w-0 gap-3 border-b border-[var(--app-line)] py-3.5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.82fr)] lg:items-center lg:gap-6"
               >
                 <div className="min-w-0">
                   <strong className="block break-words text-sm font-semibold leading-5 text-[var(--app-ink)]">
@@ -273,7 +273,7 @@ export default async function BusinessCentralSettingsPage({
             return (
               <div
                 key={product.id}
-                className="grid min-w-0 gap-3 border-b border-[#ecede9] py-3.5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.82fr)] lg:items-center lg:gap-6"
+                className="grid min-w-0 gap-3 border-b border-[var(--app-line)] py-3.5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.82fr)] lg:items-center lg:gap-6"
               >
                 <div className="min-w-0">
                   <strong className="block break-words text-sm font-semibold leading-5 text-[var(--app-ink)]">

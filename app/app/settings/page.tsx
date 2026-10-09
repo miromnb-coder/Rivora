@@ -222,7 +222,7 @@ export default async function SettingsPage({
               <input name="logo" type="file" accept="image/png,image/jpeg" className="mt-2 block w-full rounded-[10px] border border-[var(--line)] bg-white px-3 py-2.5 text-sm" />
               <small className="mt-2 block text-xs text-[var(--muted)]">PNG / JPEG · max 2 MB</small>
             </label>
-            <div className="flex min-h-32 flex-col justify-center gap-3 rounded-2xl border border-[var(--line)] bg-[#fafaf8] p-5">
+            <div className="flex min-h-32 flex-col justify-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--app-paper)] p-5">
               {logoDataUrl ? (
                 <Image
                   src={logoDataUrl}
@@ -354,7 +354,7 @@ export default async function SettingsPage({
             ) : null}
 
             {canManage ? (
-              <form action={saveBusinessCentralConnectionAction} className="mt-5 grid gap-4 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-5 sm:grid-cols-2">
+              <form action={saveBusinessCentralConnectionAction} className="mt-5 grid gap-4 rounded-xl border border-[var(--line)] bg-[var(--app-paper)] p-5 sm:grid-cols-2">
                 <label className="sm:col-span-2">
                   <span className="settings-field-label">Microsoft tenant ID</span>
                   <input
@@ -442,7 +442,7 @@ export default async function SettingsPage({
             </div>
           </div>
         ) : erpCapability.availability === "unsupported" ? (
-          <div className="mt-5 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-5">
+          <div className="mt-5 rounded-xl border border-[var(--line)] bg-[var(--app-paper)] p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <strong className="block">
@@ -493,7 +493,7 @@ export default async function SettingsPage({
             </p>
           </div>
         ) : (
-          <div className="mt-5 rounded-xl border border-[var(--line)] bg-[#fafaf8] p-5">
+          <div className="mt-5 rounded-xl border border-[var(--line)] bg-[var(--app-paper)] p-5">
             <strong className="block">{fi ? "ERP-vienti ei ole käytössä" : "ERP export is disabled"}</strong>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
               {fi

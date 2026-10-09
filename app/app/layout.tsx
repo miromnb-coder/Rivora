@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
@@ -17,12 +16,6 @@ export const metadata: Metadata = {
   },
 };
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-app-inter",
-});
-
 export const dynamic = "force-dynamic";
 
 export default async function ProductLayout({ children }: { children: React.ReactNode }) {
@@ -37,7 +30,7 @@ export default async function ProductLayout({ children }: { children: React.Reac
   );
 
   return (
-    <div className={inter.variable}>
+    <div>
       <AppShell
         workspaceName={workspace.name}
         workspaceRole={workspace.role}

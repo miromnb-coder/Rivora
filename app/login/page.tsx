@@ -4,6 +4,7 @@ import { login } from "./actions";
 import { getDictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { RivoraMark } from "@/components/marketing/RivoraMark";
 
 export const metadata: Metadata = {
   robots: {
@@ -29,7 +30,7 @@ export default async function LoginPage({
       <div className="mx-auto max-w-md">
         <div className="mb-7 flex items-start justify-between gap-4">
           <div>
-            <div className="text-2xl font-extrabold tracking-[-.04em] text-[#171a18]">Averomira</div>
+            <div className="auth-brand"><RivoraMark withSymbol /></div>
             <div className="mt-2 text-sm text-[var(--muted)]">{copy.product}</div>
           </div>
           <LocaleSwitcher locale={locale} label="" />
@@ -59,7 +60,7 @@ export default async function LoginPage({
             <div className="pt-2">
               <button formAction={login} className="btn-primary w-full">{copy.signIn}</button>
             </div>
-            <Link href="/forgot-password" className="block text-center text-xs font-semibold text-[#5f6560] hover:text-[#171a18]">
+            <Link href="/forgot-password" className="block text-center text-xs font-semibold text-[var(--app-muted)] hover:text-[var(--app-ink)]">
               {locale === "fi" ? "Unohditko salasanan?" : "Forgot your password?"}
             </Link>
             <p className="mt-4 text-center text-xs leading-5 text-[var(--muted)]">
