@@ -7,7 +7,7 @@ export default async function PrivacyPage() {
 
   const sections = fi
     ? [
-        ["1. Rekisterinpitäjä ja yhteys", "Averomira käsittelee palveluun ja verkkosivuun liittyviä henkilötietoja. Tietosuojaa koskevissa asioissa voit ottaa yhteyttä osoitteeseen miro@averomira.com."],
+        ["1. Rekisterinpitäjä ja yhteys", "Rekisterinpitäjä on Miro Ensio Saastamoinen, yksityinen elinkeinonharjoittaja (Averomira-palvelu). Tietosuojaa koskevissa asioissa voit ottaa yhteyttä osoitteeseen miro@averomira.com."],
         ["2. Mitä tietoja käsittelemme", "Voimme käsitellä yhteystietoja, yritys- ja työroolitietoja, kirjautumis- ja käyttäjätilitietoja, palvelun käyttöön liittyviä teknisiä tietoja sekä sisältöä, jonka käyttäjä toimittaa palveluun, kuten tarjouspyyntöjä, asiakas- ja tuotetietoja."],
         ["3. Miksi tietoja käsitellään", "Tietoja käytetään palvelun toimittamiseen, käyttäjätilien hallintaan, pilotin ja asiakassuhteen hoitamiseen, viestintään, tietoturvaan, virheiden selvittämiseen ja palvelun kehittämiseen. Käsittely perustuu tilanteesta riippuen sopimukseen, sopimusta edeltäviin toimiin tai oikeutettuun etuun."],
         ["4. Palveluntarjoajat", "Averomira käyttää palvelun toteuttamisessa ulkopuolisia teknisiä palveluntarjoajia esimerkiksi hostingiin, tietokantaan ja tunnistautumiseen, sähköpostien toimitukseen sekä AI-avusteiseen käsittelyyn. Näihin voivat kuulua Vercel, Supabase, Resend ja OpenAI. Palveluntarjoajille annetaan vain palvelun tuottamiseen tarvittavia tietoja."],
@@ -15,10 +15,11 @@ export default async function PrivacyPage() {
         ["6. Tietojen sijainti ja siirrot", "Tietoja pyritään käsittelemään EU/ETA-alueella, kun se on käytettyjen palveluiden osalta mahdollista. Jos tietoja siirretään ETA-alueen ulkopuolelle, käytetään soveltuvia suojatoimia, kuten EU:n vakiosopimuslausekkeita, kun niitä tarvitaan."],
         ["7. Oikeutesi", "Soveltuvan lain mukaan sinulla voi olla oikeus saada pääsy henkilötietoihisi, pyytää niiden oikaisua tai poistamista, rajoittaa käsittelyä, vastustaa käsittelyä ja saada tiedot siirrettyä. Voit myös tehdä valituksen toimivaltaiselle tietosuojaviranomaiselle."],
         ["8. Yritysasiakkaiden aineisto", "Kun Averomira käsittelee yritysasiakkaan palveluun tuomaa henkilötietoa asiakkaan puolesta, asiakas toimii lähtökohtaisesti rekisterinpitäjänä ja Averomira henkilötietojen käsittelijänä. Tarkemmat käsittelyehdot voidaan sopia erillisessä sopimuksessa tai tietojenkäsittelysopimuksessa."],
-        ["9. Muutokset", "Tätä tietosuojakuvausta voidaan päivittää palvelun kehittyessä tai sääntelyn muuttuessa. Olennaiset muutokset merkitään tälle sivulle."],
+        ["9. B2B-asiakashankinta ja suoramarkkinointi", "Voimme käyttää yritysten yhteyshenkilöiden julkisia ammatillisia yhteystietoja (nimi, työrooli, työnantaja, työsähköposti), yhteydenottohistoriaa ja vastauksia Averomiran yritysasiakashankintaan. Tietoja kerätään esimerkiksi yritysten verkkosivuilta, julkisista yritystietolähteistä ja yhteyshenkilöiltä itseltään. Henkilötietojen käsittely perustuu tapauskohtaisen arvioinnin jälkeen oikeutettuun etuun, kun sen edellytykset täyttyvät; sähköpostimarkkinoinnissa noudatetaan lisäksi soveltuvia suoramarkkinointisääntöjä. Markkinointia varten kerättyjä tietoja säilytetään vain niin kauan kuin tarpeellista, ja tarpeellisuus tarkistetaan säännöllisesti. Voit milloin tahansa maksutta vastustaa suoramarkkinointia vastaamalla saamaasi viestiin tai lähettämällä sähköpostia osoitteeseen miro@averomira.com. Tämän jälkeen tietojasi ei enää käytetä suoramarkkinointiin; kiellon noudattamiseen tarvittava vähimmäistieto voidaan säilyttää."],
+        ["10. Muutokset", "Tätä tietosuojakuvausta voidaan päivittää palvelun kehittyessä tai sääntelyn muuttuessa. Olennaiset muutokset merkitään tälle sivulle."],
       ]
     : [
-        ["1. Controller and contact", "Averomira processes personal data related to the service and website. For privacy questions, contact miro@averomira.com."],
+        ["1. Controller and contact", "The data controller is Miro Ensio Saastamoinen, a Finnish sole trader operating the Averomira service. For privacy questions, contact miro@averomira.com."],
         ["2. Data we process", "We may process contact details, company and job-role information, account and authentication information, technical usage data, and content users submit to the service, such as RFQs, customer information and product data."],
         ["3. Why we process data", "Data is used to provide the service, manage accounts, operate pilots and customer relationships, communicate with users, protect security, investigate errors and improve the service. Depending on the situation, processing is based on a contract, steps taken before entering a contract, or legitimate interests."],
         ["4. Service providers", "Averomira uses technical service providers for hosting, database and authentication, email delivery and AI-assisted processing. These may include Vercel, Supabase, Resend and OpenAI. Providers receive only the data needed to deliver the relevant service."],
@@ -26,7 +27,8 @@ export default async function PrivacyPage() {
         ["6. Data location and transfers", "Where supported by the services used, data is processed in the EU/EEA. Where data is transferred outside the EEA, appropriate safeguards such as the EU Standard Contractual Clauses are used when required."],
         ["7. Your rights", "Under applicable law, you may have rights to access, correct or delete your personal data, restrict or object to processing, and receive portable data. You may also lodge a complaint with the competent data protection authority."],
         ["8. Customer data", "Where Averomira processes personal data submitted by a business customer on that customer's behalf, the customer generally acts as controller and Averomira as processor. More detailed processing terms may be agreed in a separate agreement or data processing agreement."],
-        ["9. Changes", "This privacy notice may be updated as the service develops or legal requirements change. Material changes will be reflected on this page."],
+        ["9. B2B outreach and direct marketing", "We may process publicly available professional contact details of business representatives (name, job role, employer, work email), outreach history and replies to introduce Averomira to relevant businesses. Data may be obtained from company websites, public business directories and the contacts themselves. Where applicable and following a case-specific assessment, processing is based on legitimate interests; direct email marketing must additionally comply with applicable marketing rules. We retain prospect information only as long as necessary and periodically review that necessity. You may object to direct marketing at any time, free of charge, by replying to our email or contacting miro@averomira.com. We will stop using your data for direct marketing and may retain only the minimum information needed to honour the objection."],
+        ["10. Changes", "This privacy notice may be updated as the service develops or legal requirements change. Material changes will be reflected on this page."],
       ];
 
   return (
@@ -45,7 +47,7 @@ export default async function PrivacyPage() {
             {fi ? "Tietosuojakuvaus" : "Privacy notice"}
           </h1>
           <p className="mt-4 text-sm text-[#747975]">
-            {fi ? "Päivitetty 26.9.2026" : "Updated 26 September 2026"}
+            {fi ? "Päivitetty 9.10.2026" : "Updated 9 October 2026"}
           </p>
         </header>
 
