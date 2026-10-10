@@ -16,10 +16,12 @@ test("website and AI assistant agree on the new monthly price", () => {
     assert.match(source, /790/);
     assert.doesNotMatch(source, /990|2.?970/);
   }
-  assert.match(pricing, /No 3-month minimum/);
-  assert.match(faq, /no three-month minimum/);
+  assert.match(pricing, /Simple monthly pricing/);
+  assert.match(faq, /billed monthly/);
   assert.match(assistantKnowledge, /no three-month minimum term/);
   assert.match(terms, /tilausehdot/);
+  assert.doesNotMatch(pricing, /no three-month minimum|kolmen kuukauden minimijaksoa|Ei 3 kk minimijaksoa/i);
+  assert.doesNotMatch(faq, /no three-month minimum|kolmen kuukauden minimijaksoa/i);
 });
 
 test("ERP positioning makes Business Central an example, not a prerequisite", () => {
