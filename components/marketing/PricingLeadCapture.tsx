@@ -94,8 +94,8 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
         </h2>
         <p>
           {fi
-            ? "Yksi selkeä kuukausitilaus ilman kolmen kuukauden minimijaksoa. Nykyiset ydintoiminnot sekä sovittu käyttöönotto ja tuki kuuluvat kokonaisuuteen."
-            : "One monthly subscription with no three-month minimum. Current core features, agreed onboarding and support are included."}
+            ? "Yksi selkeä kuukausitilaus. Nykyiset ydintoiminnot sekä sovittu käyttöönotto ja tuki kuuluvat kokonaisuuteen."
+            : "One clear monthly subscription. Current core features, agreed onboarding and support are included."}
         </p>
 
         <div className="pricing-fit">
@@ -121,8 +121,8 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
             </div>
             <p>
               {fi
-                ? "790 €/kk + alv. Ei kolmen kuukauden minimijaksoa. Uudet asiakaskohtaiset ERP-integraatiot arvioidaan ja hinnoitellaan erikseen."
-                : "€790/month excluding VAT, with no three-month minimum. New customer-specific ERP integrations are assessed and priced separately."}
+                ? "790 €/kk + alv. Uudet asiakaskohtaiset ERP-integraatiot arvioidaan ja hinnoitellaan erikseen."
+                : "€790/month excluding VAT. New customer-specific ERP integrations are assessed and priced separately."}
             </p>
           </div>
 
@@ -160,7 +160,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
           <div className="lead-capture-proof">
             <span>{fi ? "790 €/kk + alv" : "€790/month + VAT"}</span>
             <i />
-            <span>{fi ? "Ei 3 kk minimijaksoa" : "No 3-month minimum"}</span>
+            <span>{fi ? "Selkeä kuukausihinnoittelu" : "Simple monthly pricing"}</span>
             <i />
             <span>{fi ? "Onboarding sisältyy" : "Onboarding included"}</span>
           </div>
