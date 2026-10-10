@@ -116,7 +116,7 @@ test("tabular business imports have workload-specific row ceilings", () => {
   };
   assert.throws(
     () => toCatalogueRows(Array.from({ length: 25001 }, () => catalogueRow)),
-    /Maximum is 25,000/,
+    /25 000/,
   );
 });
 
