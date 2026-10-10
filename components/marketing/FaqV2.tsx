@@ -41,7 +41,7 @@ const faqContent: Record<Locale, FaqItem[]> = {
     },
     {
       question: "Mitä Averomira maksaa?",
-      answer: "Averomira maksaa 790 €/kk + alv. Tilaus on kuukausittainen ilman kolmen kuukauden minimijaksoa. Sovittu käyttöönotto ja tuki sisältyvät; uudet ERP-räätälöinnit arvioidaan ja hinnoitellaan erikseen.",
+      answer: "Averomira maksaa 790 €/kk + alv. Tilaus laskutetaan kuukausittain. Sovittu käyttöönotto ja tuki sisältyvät; uudet ERP-räätälöinnit arvioidaan ja hinnoitellaan erikseen.",
     },
     {
       question: "Voiko Averomiran yhdistää muuhun ERP-järjestelmään?",
@@ -90,7 +90,7 @@ const faqContent: Record<Locale, FaqItem[]> = {
     },
     {
       question: "How much does Averomira cost?",
-      answer: "Averomira costs €790/month excluding VAT. The subscription is monthly with no three-month minimum. Agreed onboarding and support are included; custom ERP integrations are assessed and priced separately.",
+      answer: "Averomira costs €790/month excluding VAT. The subscription is billed monthly. Agreed onboarding and support are included; custom ERP integrations are assessed and priced separately.",
     },
     {
       question: "Can Averomira connect to another ERP?",
