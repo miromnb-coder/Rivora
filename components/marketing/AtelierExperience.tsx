@@ -18,8 +18,8 @@ export function AtelierNav({ locale }: { locale: Locale }) {
   const links = [
     ["#workflow", fi ? "Työnkulku" : "Workflow"],
     ["#product", fi ? "Tuote" : "Product"],
-    ["#business-central", "Business Central"],
-    ["#pricing", fi ? "Pilotti" : "Pilot"],
+    ["#integrations", fi ? "Integraatiot" : "Integrations"],
+    ["#pricing", fi ? "Hinnoittelu" : "Pricing"],
   ];
   return (
     <header className="atelier-header">
@@ -30,7 +30,7 @@ export function AtelierNav({ locale }: { locale: Locale }) {
         </nav>
         <div className="atelier-nav-actions">
           <Link href="/login" className="atelier-login">{fi ? "Kirjaudu" : "Log in"}</Link>
-          <a className="atelier-button atelier-button-dark atelier-nav-cta" href="#demo">{fi ? "Keskustellaan pilotista" : "Discuss your pilot"} <span aria-hidden="true">↗</span></a>
+          <a className="atelier-button atelier-button-dark atelier-nav-cta" href="#demo">{fi ? "Keskustellaan Averomirasta" : "Discuss Averomira"} <span aria-hidden="true">↗</span></a>
         </div>
         <button className="atelier-menu-toggle" type="button" aria-label={fi ? "Avaa valikko" : "Open menu"} aria-expanded={open} aria-controls="atelier-mobile-menu" onClick={() => setOpen(!open)}>
           <span /><span />
@@ -98,9 +98,9 @@ const copy = {
       "Compare customer descriptions and references with your own catalogue. Confirm the correct mapping.",
       "Prepare a quotation from reviewed lines, then check the commercial details before sending.",
       "Compare an incoming purchase order against the quotation. Review differences before approval.",
-      "Prepare a draft sales order for Microsoft Business Central after the required review and mapping."
+      "After review and mapping, prepare a sales order draft. Native ERP export currently supports Business Central only."
     ],
-    labels: ["RFQ intake", "Product resolution", "Quote builder", "PO reconciliation", "Business Central"],
+    labels: ["RFQ intake", "Product resolution", "Quote builder", "PO reconciliation", "ERP preparation"],
   },
   fi: {
     descriptions: [
@@ -108,9 +108,9 @@ const copy = {
       "Vertaa asiakkaan kuvauksia ja koodeja omaan katalogiin. Vahvista oikea vastine.",
       "Valmistele tarjous tarkistetuista riveistä ja tarkista kaupalliset tiedot ennen lähetystä.",
       "Vertaa saapunutta ostotilausta tarjoukseen. Tarkista erot ennen hyväksyntää.",
-      "Valmistele myyntitilausluonnos Business Centraliin tarkistusten ja vastineiden jälkeen."
+      "Valmistele myyntitilausluonnos tarkistusten jälkeen. Natiivi ERP-siirto tukee tällä hetkellä vain Business Centralia."
     ],
-    labels: ["RFQ-käsittely", "Tuoteosuma", "Tarjous", "PO-tarkistus", "Business Central"],
+    labels: ["RFQ-käsittely", "Tuoteosuma", "Tarjous", "PO-tarkistus", "ERP-valmistelu"],
   },
 };
 

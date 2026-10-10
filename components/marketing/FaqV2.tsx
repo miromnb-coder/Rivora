@@ -40,13 +40,17 @@ const faqContent: Record<Locale, FaqItem[]> = {
       answer: "Averomira vertaa saapuneen ostotilauksen rivejä tarjoukseen ja nostaa esimerkiksi määrä-, hinta- tai tuote-erot käyttäjän tarkistettaviksi ennen hyväksyntää.",
     },
     {
-      question: "Mitä pilotti maksaa?",
-      answer: "Averomira Pilot maksaa 990 €/kk ja sen minimijakso on kolme kuukautta, yhteensä 2 970 €. Onboarding ja suora tuki sisältyvät. Tarkempi käyttöönottolaajuus sovitaan yhdessä.",
+      question: "Mitä Averomira maksaa?",
+      answer: "Averomira maksaa 790 €/kk + alv. Tilaus on kuukausittainen ilman kolmen kuukauden minimijaksoa. Sovittu käyttöönotto ja tuki sisältyvät; uudet ERP-räätälöinnit arvioidaan ja hinnoitellaan erikseen.",
+    },
+    {
+      question: "Voiko Averomiran yhdistää muuhun ERP-järjestelmään?",
+      answer: "Muun ERP:n yhdistämismahdollisuus selvitetään tapauskohtaisesti. Business Central on ainoa valmis natiivi ERP-integraatio. Uusien ERP-yhteyksien toteutettavuus ja hinta arvioidaan erikseen.",
     },
     {
       question: "Toimiiko Averomira Microsoft Business Centralin kanssa?",
       answer:
-        "Averomirassa on Business Central -integraatio ERP-valmiin myyntitilausluonnoksen valmistelua varten. Käyttöönotto riippuu yrityksesi Business Central -ympäristöstä, käyttöoikeuksista ja tarvittavista tuote- ja asiakasvastineista.",
+        "Kyllä. Business Central on tällä hetkellä Averomiran ainoa valmis natiivi ERP-integraatio. Myyntitilausluonnoksen siirto edellyttää käyttöönottoa, käyttöoikeuksia sekä tuote- ja asiakasvastineita.",
     },
     {
       question: "Tekeekö Averomira kaupalliset päätökset automaattisesti?",
@@ -56,7 +60,7 @@ const faqContent: Record<Locale, FaqItem[]> = {
     {
       question: "Korvaako Averomira nykyisen ERP-järjestelmän?",
       answer:
-        "Ei. Averomira on suunniteltu toimimaan ERP:n rinnalla. Se vähentää käsityötä ennen ERP-kirjausta ja auttaa siirtämään tarkistetun tilausdatan hallitusti nykyiseen järjestelmään.",
+        "Ei. Averomiran tarjouspyyntöjen käsittelyä, tarjouksia ja tilausten tarkistusta voi käyttää myös ilman ERP-integraatiota. Automaattinen ERP-siirto edellyttää tuettua ja käyttöönotettua yhteyttä.",
     },
   ],
   en: [
@@ -85,13 +89,17 @@ const faqContent: Record<Locale, FaqItem[]> = {
       answer: "Averomira compares incoming PO lines with the quotation and brings differences in quantity, price or product information to a user for review before approval.",
     },
     {
-      question: "What does the pilot cost?",
-      answer: "Averomira Pilot is €990/month with a three-month minimum, totaling €2,970. Onboarding and direct support are included. The implementation scope is agreed together.",
+      question: "How much does Averomira cost?",
+      answer: "Averomira costs €790/month excluding VAT. The subscription is monthly with no three-month minimum. Agreed onboarding and support are included; custom ERP integrations are assessed and priced separately.",
+    },
+    {
+      question: "Can Averomira connect to another ERP?",
+      answer: "Connections to other ERPs are considered case by case. Business Central is the only available native integration. Feasibility and pricing for new ERP connections are assessed separately.",
     },
     {
       question: "Does Averomira work with Microsoft Business Central?",
       answer:
-        "Averomira includes a Business Central integration for preparing ERP-ready sales order drafts. Setup depends on your Business Central environment, permissions and the customer and product mappings required for your workflow.",
+        "Yes. Business Central is currently Averomira’s only native ERP integration. Creating a draft sales order requires configuration, permissions, and customer and product mappings.",
     },
     {
       question: "Does Averomira make commercial decisions automatically?",
@@ -101,7 +109,7 @@ const faqContent: Record<Locale, FaqItem[]> = {
     {
       question: "Does Averomira replace our ERP?",
       answer:
-        "No. Averomira is designed to work alongside your ERP. It reduces manual work before ERP entry and helps move reviewed order data into the system you already use.",
+        "No. Averomira’s RFQ, quoting and order-review workflow can be used without an ERP integration. Automatic ERP export requires a supported and configured connection.",
     },
   ],
 };
@@ -176,8 +184,8 @@ export function FaqV2({ locale }: { locale: Locale }) {
           <h2 id="faq-v2-title">{fi ? "Usein kysyttyä Averomirasta." : "Common questions about Averomira."}</h2>
           <p>
             {fi
-              ? "Lyhyet vastaukset tuotteesta, työnkulusta ja integraatioista ennen pilotin aloittamista."
-              : "Short answers about the product, workflow and integrations before starting a pilot."}
+              ? "Lyhyet vastaukset tuotteesta, työnkulusta ja integraatioista ennen käyttöönottoa."
+              : "Short answers about the product, workflow and integrations before onboarding."}
           </p>
         </div>
 

@@ -68,7 +68,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
         "Quote Builder + PDF + sähköpostilähetys",
         "Onboarding ja suora tuki sisältyvät",
         "Ei setup-maksua",
-        "Ei käyttäjäkohtaista hinnoittelua pilotin aikana",
+        "Ei käyttäjäkohtaista hinnoittelua",
       ]
     : [
         "Complete RFQ → quote workflow",
@@ -78,7 +78,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
         "Quote Builder + PDF + email delivery",
         "Onboarding and direct support included",
         "No setup fee",
-        "No per-user pricing during the pilot",
+        "No per-user pricing",
       ];
 
   return (
@@ -89,17 +89,17 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
         </div>
         <h2>
           {fi
-            ? "Aloita Averomira Pilotilla."
-            : "Start with the Averomira Pilot."}
+            ? "Averomira selkeällä kuukausihinnalla."
+            : "Averomira with straightforward monthly pricing."}
         </h2>
         <p>
           {fi
-            ? "Yksi sopimus, koko nykyinen Averomira ja selkeä kolmen kuukauden pilotti. Ei pakettivertailua, setup-maksua tai käyttäjäkohtaista hinnoittelua pilotin aikana."
-            : "One agreement, the full Averomira product and a clear three-month pilot. No package comparison, setup fee or per-user pricing during the pilot."}
+            ? "Yksi selkeä kuukausitilaus ilman kolmen kuukauden minimijaksoa. Nykyiset ydintoiminnot sekä sovittu käyttöönotto ja tuki kuuluvat kokonaisuuteen."
+            : "One monthly subscription with no three-month minimum. Current core features, agreed onboarding and support are included."}
         </p>
 
         <div className="pricing-fit">
-          <span>{fi ? "Pilotti sopii parhaiten, kun" : "The pilot is a strong fit when"}</span>
+          <span>{fi ? "Averomira sopii parhaiten, kun" : "Averomira is a strong fit when"}</span>
           <div className="pricing-fit-grid">
             <p>{fi ? "Tarjouspyyntöjä tulee toistuvasti PDF-, XLSX- tai CSV-muodossa." : "RFQs arrive repeatedly as PDF, XLSX or CSV files."}</p>
             <p>{fi ? "Tuoterivit pitää yhdistää omaan katalogiin ennen tarjousta." : "Line items need to be resolved against your own catalogue before quoting."}</p>
@@ -112,17 +112,17 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
         <article className="pricing-lead-card pricing-lead-card-single">
           <div className="pricing-pilot-main">
             <span className="pricing-lead-eyebrow">
-              {fi ? "3 kuukauden minimijakso" : "3-month minimum"}
+              {fi ? "Kuukausittainen tilaus" : "Monthly subscription"}
             </span>
-            <h3>Averomira Pilot</h3>
+            <h3>Averomira</h3>
             <div className="pricing-pilot-price">
-              <strong>990 €</strong>
+              <strong>790 €</strong>
               <span>{fi ? "/ kk" : "/ month"}</span>
             </div>
             <p>
               {fi
-                ? "Ensimmäisen kolmen kuukauden kokonaisarvo on 2 970 €. Pilotin jälkeen sopimus voi jatkua 990 €/kk samalla laajuudella."
-                : "The first three months total €2,970. After the pilot, the agreement can continue at €990/month with the same scope."}
+                ? "790 €/kk + alv. Ei kolmen kuukauden minimijaksoa. Uudet asiakaskohtaiset ERP-integraatiot arvioidaan ja hinnoitellaan erikseen."
+                : "€790/month excluding VAT, with no three-month minimum. New customer-specific ERP integrations are assessed and priced separately."}
             </p>
           </div>
 
@@ -134,7 +134,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
             </ul>
 
             <button type="button" onClick={scrollToPilotForm}>
-              {fi ? "Aloita pilotti" : "Start the pilot"}{" "}
+              {fi ? "Keskustele käyttöönotosta" : "Discuss onboarding"}{" "}
               <span aria-hidden="true">→</span>
             </button>
           </div>
@@ -144,7 +144,7 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
       <div className="lead-capture-v2" id="demo" ref={formRef}>
         <div className="lead-capture-copy">
           <div className="v2-section-label">
-            {fi ? "Aloita Averomira Pilot" : "Start the Averomira Pilot"}
+            {fi ? "Kysy Averomirasta" : "Ask about Averomira"}
           </div>
           <h3>
             {fi
@@ -153,14 +153,14 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
           </h3>
           <p>
             {fi
-              ? "Käymme yhdessä läpi nykyisen prosessin ja sovitaan, miten ensimmäiset oikeat tarjouspyynnöt viedään Averomiran läpi pilotin aikana."
-              : "We will review your current process together and agree how the first real RFQs will be run through Averomira during the pilot."}
+              ? "Käymme läpi nykyisen prosessinne ja sovimme käyttöönoton laajuudesta sekä mahdollisista ERP-yhteyksistä."
+              : "We will review your current process and agree on onboarding and any ERP integration requirements."}
           </p>
 
           <div className="lead-capture-proof">
-            <span>{fi ? "990 €/kk" : "€990/month"}</span>
+            <span>{fi ? "790 €/kk + alv" : "€790/month + VAT"}</span>
             <i />
-            <span>{fi ? "3 kk minimijakso" : "3-month minimum"}</span>
+            <span>{fi ? "Ei 3 kk minimijaksoa" : "No 3-month minimum"}</span>
             <i />
             <span>{fi ? "Onboarding sisältyy" : "Onboarding included"}</span>
           </div>
@@ -252,8 +252,8 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
                   ? "Lähetetään…"
                   : "Sending…"
                 : fi
-                  ? "Pyydä Averomira Pilot"
-                  : "Request Averomira Pilot"}
+                  ? "Ota yhteyttä"
+                  : "Get in touch"}
               {submitState !== "submitting" && (
                 <span aria-hidden="true">→</span>
               )}
@@ -268,8 +268,8 @@ export function PricingLeadCapture({ locale }: { locale: Locale }) {
           {submitState === "sent" && (
             <div className="lead-form-message success" role="status">
               {fi
-                ? "Pyyntö vastaanotettu. Olemme yhteydessä pilotin käynnistämisestä."
-                : "Request received. We will follow up about starting the pilot."}
+                ? "Pyyntö vastaanotettu. Olemme yhteydessä Averomiran käyttöönotosta."
+                : "Request received. We will follow up about Averomira onboarding."}
             </div>
           )}
 
