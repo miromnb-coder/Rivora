@@ -138,7 +138,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (looksLikeSupportSecret(question)) {
+    // Client-supplied history is untrusted too: block likely secrets before an AI request.
+    const unsafeHistory = history.some((item) => looksLikeSupportSecret(item.text));
+    if (looksLikeSupportSecret(question) || unsafeHistory) {
       operationalLog("warn", "support_ai_secret_blocked", {
         requestId,
         organizationId: context.workspace.id,
