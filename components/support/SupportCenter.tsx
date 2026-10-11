@@ -14,6 +14,7 @@ import { supportEscalationDraft } from "@/lib/rivora/support-escalation";
 
 type PanelView =
   | { kind: "home" }
+  | { kind: "help" }
   | { kind: "article"; articleId: string }
   | { kind: "contact" }
   | { kind: "tickets" }
@@ -134,10 +135,10 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
   const [aiSent, setAiSent] = useState(false);
   const [aiError, setAiError] = useState("");
   const [supportUnreadCount, setSupportUnreadCount] = useState(0);
-  const [showHelpLibrary, setShowHelpLibrary] = useState(false);
   const [contextChanged, setContextChanged] = useState(false);
+  const [articleReturnView, setArticleReturnView] = useState<"home" | "help">("home");
   const searchRef = useRef<HTMLInputElement>(null);
-  const aiInputRef = useRef<HTMLInputElement>(null);
+  const aiInputRef = useRef<HTMLTextAreaElement>(null);
   const aiThreadRef = useRef<HTMLDivElement>(null);
   const aiSuccessTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
@@ -521,14 +522,16 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
             aria-modal="true"
             aria-labelledby="support-center-title"
           >
-            <header className="support-center-header">
+            <header className={"support-center-header" + (view.kind === "home" ? " is-ai-home" : "")}>
               <div>
-                <span>AVEROMIRA SUPPORT</span>
+                <span>{view.kind === "home" ? "AVEROMIRA" : "AVEROMIRA SUPPORT"}</span>
                 <h2 id="support-center-title">
                   {view.kind === "home"
                     ? fi
-                      ? "Miten voimme auttaa?"
-                      : "How can we help?"
+                      ? "Averomira AI"
+                      : "Averomira AI"
+                    : view.kind === "help"
+                      ? fi ? "Ohjeet" : "Help articles"
                     : view.kind === "contact"
                       ? fi
                         ? "Ota yhteyttä tukeen"
@@ -550,11 +553,21 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
                 {view.kind === "home" ? (
                   <p className="support-center-header-subtitle">
                     {fi
-                      ? "Tuki, ohjeet ja vastaukset yhdessä paikassa."
-                      : "Support, guidance and answers in one place."}
+                      ? "Älykäs avustajasi Averomirassa"
+                      : "Your intelligent Averomira assistant."}
                   </p>
                 ) : null}
               </div>
+              {view.kind === "home" && aiMessages.length ? (
+                <button type="button" className="support-ai-new-chat"
+                  onClick={() => {
+                    setAiMessages([]); setAiQuestion(""); setAiError(""); setContextChanged(false);
+                    window.setTimeout(() => aiInputRef.current?.focus(), 0);
+                  }}
+                  aria-label={fi ? "Uusi keskustelu" : "New conversation"}
+                  title={fi ? "Uusi keskustelu" : "New conversation"}
+                >+</button>
+              ) : null}
               <button
                 type="button"
                 className="support-center-close"
@@ -565,36 +578,16 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
               </button>
             </header>
 
-            <div className="support-center-body">
-              {view.kind === "home" ? (
-                <>
-                  <section className="support-ai-card" aria-labelledby="support-ai-title">
-                    <div className="support-ai-head">
-                      <div>
-                        <span>AVEROMIRA AI</span>
-                        <strong id="support-ai-title">
-                          {fi ? "Kysy Averomira AI:lta" : "Ask Averomira AI"}
-                        </strong>
-                        <p>
-                          {routeContext
-                            ? fi
-                              ? `AI tietää, että olet näkymässä: ${routeContext.title}.`
-                              : `AI knows you are in: ${routeContext.title}.`
-                            : fi
-                              ? "AI käyttää vain hyväksyttyä Averomira-tukitietoa."
-                              : "AI uses only approved Averomira support knowledge."}
-                        </p>
-                      </div>
-                      <span className="support-ai-readonly">
-                        {fi ? "Vain ohjeet" : "Read-only"}
-                      </span>
-                    </div>
+            <div className={"support-center-body" + (view.kind === "home" ? " is-ai-home" : "")}>
 
+              {view.kind === "home" ? (
+                <div className="support-ai-shell">
+                  <div className="support-ai-scroll" aria-label={fi ? "AI-keskustelu" : "AI conversation"}>
                     {aiMessages.length === 0 ? (
                       <SupportQuickPrompts
                         locale={locale}
                         contextTitle={routeContext?.title}
-                        articles={(contextArticles.length ? contextArticles : ["new-rfq", "rfq-review", "business-central"]
+                        articles={(contextArticles.length ? contextArticles : ["po-exceptions", "new-rfq", "business-central"]
                           .map((id) => articles.find((article) => article.id === id))
                           .filter((article): article is HelpArticle => Boolean(article))).slice(0, 3)}
                         onPick={(question) => {
@@ -641,9 +634,7 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
                                     <button
                                       key={article.id}
                                       type="button"
-                                      onClick={() =>
-                                        setView({ kind: "article", articleId: article.id })
-                                      }
+                                      onClick={() => { setArticleReturnView("home"); setView({ kind: "article", articleId: article.id }); }}
                                     >
                                       {article.title} <ArrowIcon />
                                     </button>
@@ -662,110 +653,105 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
                       </div>
                     ) : null}
 
-                    <form className="support-ai-form" onSubmit={askSupportAi}>
-                      <label className="sr-only" htmlFor="support-ai-question">
-                        {fi ? "Kysy Averomira AI:lta" : "Ask Averomira AI"}
-                      </label>
-                      <input
-                        ref={aiInputRef}
-                        id="support-ai-question"
-                        value={aiQuestion}
-                        onChange={(event) => setAiQuestion(event.target.value)}
-                        maxLength={700}
-                        autoComplete="off"
-                        placeholder={
-                          fi
-                            ? "Kysy mitä tahansa Averomirasta…"
-                            : "Ask anything about Averomira…"
-                        }
-                      />
-                      <button
-                        type="submit"
-                        className={
-                          "support-ai-submit-motion" +
-                          (aiAsking ? " is-working" : aiSent ? " is-success" : "")
-                        }
-                        disabled={aiAsking || aiQuestion.trim().length < 3}
-                        aria-label={
-                          aiAsking
-                            ? fi
-                              ? "Averomira AI hakee vastausta"
-                              : "Averomira AI is checking"
-                            : aiSent
-                              ? fi
-                                ? "Vastaus valmis"
-                                : "Answer ready"
-                              : fi
-                                ? "Lähetä kysymys"
-                                : "Send question"
-                        }
-                      >
-                        {aiAsking ? (
-                          <span className="motion-dots" aria-hidden="true">
-                            <i />
-                            <i />
-                            <i />
-                          </span>
-                        ) : aiSent ? (
-                          <span aria-hidden="true">✓</span>
-                        ) : (
-                          <ArrowIcon />
-                        )}
-                      </button>
-                    </form>
 
-                    {recordContextAvailable ? <label className="support-ai-record-toggle">
-                      <input
-                        type="checkbox"
-                        checked={useCurrentRecord}
-                        onChange={(event) => setUseCurrentRecord(event.target.checked)}
-                      />
-                      <span>{fi
-                        ? "Käytä nykyisen näkymän tietoja vastauksessa (vain luku)"
-                        : "Use current page data in this answer (read-only)"}</span>
-                    </label> : null}
-                    <div className="support-ai-meta">
-                      <span>
-                        {fi
-                          ? "Älä lähetä salasanoja, Client Secretejä, API-avaimia tai tokeneita."
-                          : "Do not send passwords, Client Secrets, API keys or tokens."}
-                      </span>
-                      {aiMessages.length ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAiMessages([]);
-                            setAiQuestion("");
-                            setAiError("");
-                            window.setTimeout(() => aiInputRef.current?.focus(), 0);
-                          }}
-                        >
-                          {fi ? "Tyhjennä keskustelu" : "Clear conversation"}
-                        </button>
-                      ) : null}
-                    </div>
-
-                    {aiError ? (
-                      <p className="support-ai-error" role="alert">
-                        {aiError}
-                      </p>
-                    ) : null}
-
+                    {aiError ? <p className="support-ai-error" role="alert">{aiError}</p> : null}
                     {aiMessages.some((item) => item.role === "assistant") || aiError ? (
                       <button
                         type="button"
                         className="support-ai-escalate"
                         onClick={openContactFromAi}
                       >
-                        {fi
-                          ? "Luo tukipyyntö tästä keskustelusta"
-                          : "Create a support request from this conversation"}{" "}
+                        {fi ? "Luo tukipyyntö tästä keskustelusta" : "Create a support request from this conversation"}
                         <ArrowIcon />
                       </button>
                     ) : null}
-                  </section>
+                  </div>
 
-                  {!aiMessages.length && !query.trim() && routeContext && contextArticles.length ? (
+                  <div className="support-ai-bottom">
+                    {recordContextAvailable ? (
+                      <label className="support-ai-record-toggle">
+                        <input
+                          type="checkbox"
+                          checked={useCurrentRecord}
+                          onChange={(event) => setUseCurrentRecord(event.target.checked)}
+                        />
+                        <span>{fi
+                          ? "Hyödynnä tämän näkymän tietoja (vain luku)"
+                          : "Use current page data (read-only)"}</span>
+                      </label>
+                    ) : null}
+                    <form className="support-ai-form" onSubmit={askSupportAi}>
+                      <label className="sr-only" htmlFor="support-ai-question">
+                        {fi ? "Kysy Averomira AI:lta" : "Ask Averomira AI"}
+                      </label>
+                      <textarea
+                        ref={aiInputRef}
+                        id="support-ai-question"
+                        value={aiQuestion}
+                        onChange={(event) => setAiQuestion(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                            event.preventDefault();
+                            event.currentTarget.form?.requestSubmit();
+                          }
+                        }}
+                        maxLength={700}
+                        rows={2}
+                        autoComplete="off"
+                        placeholder={fi ? "Kysy Averomira AI:lta…" : "Ask Averomira AI…"}
+                      />
+                      <div className="support-ai-compose-bottom">
+                        <span>{fi ? "AI-avustaja · vain ohjeistus" : "AI assistant · guidance only"}</span>
+                        <button
+                          type="submit"
+                          className={"support-ai-submit-motion" + (aiAsking ? " is-working" : aiSent ? " is-success" : "")}
+                          disabled={aiAsking || aiQuestion.trim().length < 3}
+                          aria-label={aiAsking
+                            ? (fi ? "Averomira AI hakee vastausta" : "Averomira AI is checking")
+                            : (fi ? "Lähetä kysymys" : "Send question")}
+                        >
+                          {aiAsking ? (
+                            <span className="motion-dots" aria-hidden="true"><i /><i /><i /></span>
+                          ) : aiSent ? (
+                            <span aria-hidden="true">✓</span>
+                          ) : (
+                            <span aria-hidden="true">↑</span>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                    <nav className="support-home-actions" aria-label={fi ? "Tukikeskuksen navigaatio" : "Support navigation"}>
+                      <button type="button" className="support-home-action"
+                        onClick={() => { setView({ kind: "help" }); setQuery(""); window.setTimeout(() => searchRef.current?.focus(), 0); }}>
+                        <BookIcon /><span>{fi ? "Ohjeet" : "Help"}</span>
+                      </button>
+                      <button type="button" className="support-home-action" onClick={() => setView({ kind: "tickets" })}>
+                        <TicketIcon /><span>{fi ? "Tukipyynnöt" : "Tickets"}</span>
+                        {supportUnreadCount > 0 ? <i className="support-nav-count">{supportUnreadCount > 9 ? "9+" : supportUnreadCount}</i> : null}
+                      </button>
+                      <button type="button" className="support-home-action" onClick={openContact}>
+                        <HeadsetIcon /><span>{fi ? "Ota yhteyttä" : "Contact"}</span>
+                      </button>
+                    </nav>
+                    <p className="support-ai-privacy">
+                      {fi ? "Älä jaa salasanoja tai API-avaimia." : "Never share passwords or API keys."}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+
+              {view.kind === "help" ? (
+                <section className="support-help-library support-help-library-page">
+                  <button type="button" className="support-back" onClick={() => { setView({ kind: "home" }); setQuery(""); }}>
+                    <ArrowIcon left /> {fi ? "Takaisin AI-avustajaan" : "Back to AI assistant"}
+                  </button>
+                  <div className="support-help-library-head">
+                    <div>
+                      <span>{fi ? "OHJEKESKUS" : "HELP CENTER"}</span>
+                      <strong>{fi ? "Etsi ohjeita" : "Find help articles"}</strong>
+                    </div>
+                  </div>
+                  {routeContext && contextArticles.length ? (
                     <div className="support-context-section support-context-section-v2">
                       <div className="support-context-section-head">
                         <div>
@@ -776,139 +762,43 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
                       </div>
                       <div className="support-context-links">
                         {contextArticles.slice(0, 3).map((article) => (
-                          <button
-                            key={article.id}
-                            type="button"
-                            onClick={() => setView({ kind: "article", articleId: article.id })}
-                          >
-                            <span>{article.title}</span>
-                            <ArrowIcon />
+                          <button key={article.id} type="button"
+                            onClick={() => { setArticleReturnView("help"); setView({ kind: "article", articleId: article.id }); }}>
+                            <span>{article.title}</span><ArrowIcon />
                           </button>
                         ))}
                       </div>
                     </div>
                   ) : null}
-
-                  <div className="support-home-actions">
-                    <button
-                      type="button"
-                      className="support-home-action"
-                      onClick={() => {
-                        setShowHelpLibrary(true);
-                        window.setTimeout(() => searchRef.current?.focus(), 0);
-                      }}
-                    >
-                      <span className="support-home-action-icon"><BookIcon /></span>
-                      <span className="support-home-action-copy">
-                        <strong>{fi ? "Ohjeet" : "Help articles"}</strong>
-                        <small>{fi ? "Selaa oppaita ja vastauksia." : "Browse guides and answers."}</small>
-                      </span>
-                      <ArrowIcon />
-                    </button>
-
-                    <button
-                      type="button"
-                      className="support-home-action"
-                      onClick={() => setView({ kind: "tickets" })}
-                    >
-                      <span className="support-home-action-icon"><TicketIcon /></span>
-                      <span className="support-home-action-copy">
-                        <strong>{fi ? "Omat tukipyynnöt" : "My support requests"}</strong>
-                        <small>{fi ? "Seuraa tilaa ja vastaa tukeen." : "Track status and reply to support."}</small>
-                      </span>
-                      <span className="support-home-action-end">
-                        {supportUnreadCount > 0 ? <i>{supportUnreadCount > 9 ? "9+" : supportUnreadCount}</i> : null}
-                        <ArrowIcon />
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="support-home-action"
-                      onClick={openContact}
-                    >
-                      <span className="support-home-action-icon"><HeadsetIcon /></span>
-                      <span className="support-home-action-copy">
-                        <strong>{fi ? "Ota yhteyttä tukeen" : "Contact support"}</strong>
-                        <small>{fi ? "Lähetä tukipyyntö tiimillemme." : "Send a request to our team."}</small>
-                      </span>
-                      <ArrowIcon />
-                    </button>
-                  </div>
-
-                  {showHelpLibrary || query.trim() ? (
-                    <section className="support-help-library">
-                      <div className="support-help-library-head">
-                        <div>
-                          <span>{fi ? "OHJEKESKUS" : "HELP CENTER"}</span>
-                          <strong>{fi ? "Etsi kaikista ohjeista" : "Search all help articles"}</strong>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowHelpLibrary(false);
-                            setQuery("");
-                          }}
-                        >
-                          {fi ? "Sulje" : "Close"}
+                  <label className="support-search">
+                    <span className="sr-only">{fi ? "Hae ohjeista" : "Search help"}</span>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                      <circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" />
+                    </svg>
+                    <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)}
+                      placeholder={fi ? "Hae ohjeista…" : "Search help…"} />
+                  </label>
+                  <div className="support-help-section">
+                    <div className="support-help-section-head">
+                      <span>{query.trim() ? (fi ? "Hakutulokset" : "Search results") : (fi ? "Kaikki ohjeet" : "All help articles")}</span>
+                      <small>{filteredArticles.length}</small>
+                    </div>
+                    <div className="support-help-list">
+                      {filteredArticles.map((article) => (
+                        <button key={article.id} type="button" onClick={() => { setArticleReturnView("help"); setView({ kind: "article", articleId: article.id }); }}>
+                          <span><strong>{article.title}</strong><small>{article.summary}</small></span>
+                          <ArrowIcon />
                         </button>
-                      </div>
-
-                      <label className="support-search">
-                        <span className="sr-only">{fi ? "Hae ohjeista" : "Search help"}</span>
-                        <svg
-                          width="17"
-                          height="17"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          aria-hidden="true"
-                        >
-                          <circle cx="11" cy="11" r="6.5" />
-                          <path d="m16 16 4 4" />
-                        </svg>
-                        <input
-                          ref={searchRef}
-                          value={query}
-                          onChange={(event) => setQuery(event.target.value)}
-                          placeholder={fi ? "Hae ohjeista…" : "Search help…"}
-                        />
-                      </label>
-
-                      <div className="support-help-section">
-                        <div className="support-help-section-head">
-                          <span>{query.trim() ? (fi ? "Hakutulokset" : "Search results") : (fi ? "Kaikki ohjeet" : "All help articles")}</span>
-                          <small>{filteredArticles.length}</small>
+                      ))}
+                      {filteredArticles.length === 0 ? (
+                        <div className="support-empty">
+                          {fi ? "Tällä haulla ei löytynyt ohjetta." : "No help article matched this search."}
                         </div>
-
-                        <div className="support-help-list">
-                          {filteredArticles.map((article) => (
-                            <button
-                              key={article.id}
-                              type="button"
-                              onClick={() => setView({ kind: "article", articleId: article.id })}
-                            >
-                              <span>
-                                <strong>{article.title}</strong>
-                                <small>{article.summary}</small>
-                              </span>
-                              <ArrowIcon />
-                            </button>
-                          ))}
-                          {filteredArticles.length === 0 ? (
-                            <div className="support-empty">
-                              {fi
-                                ? "Tällä haulla ei löytynyt ohjetta."
-                                : "No help article matched this search."}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </section>
-                  ) : null}
-                </>
+                      ) : null}
+                    </div>
+                  </div>
+                </section>
               ) : null}
 
               {view.kind === "tickets" || view.kind === "ticket" ? (
@@ -928,9 +818,9 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
                   <button
                     type="button"
                     className="support-back"
-                    onClick={() => setView({ kind: "home" })}
+                    onClick={() => setView({ kind: articleReturnView })}
                   >
-                    <ArrowIcon left /> {fi ? "Kaikki ohjeet" : "All help articles"}
+                    <ArrowIcon left /> {fi ? "Takaisin" : "Back"}
                   </button>
                   <div className="support-article-copy">
                     {selectedArticle.body.map((paragraph) => (
