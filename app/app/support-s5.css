@@ -104,3 +104,11 @@
   font-size: 12px;
   line-height: 1.55;
 }
+
+.app-shell-v2 .support-ai-evidence-label {
+  display: block;
+  margin-top: 9px;
+  color: var(--app-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
