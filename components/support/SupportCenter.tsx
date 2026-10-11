@@ -760,7 +760,7 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
                       </button>
                     </nav>
                     <p className="support-ai-privacy">
-                      {fi ? "Älä jaa salasanoja tai API-avaimia." : "Never share passwords or API keys."}
+                      {fi ? "Älä lähetä salasanoja, Client Secretejä, API-avaimia tai tokeneita." : "Do not send passwords, Client Secrets, API keys or tokens."}
                     </p>
                   </div>
                 </div>
