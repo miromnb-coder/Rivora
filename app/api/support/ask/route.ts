@@ -124,7 +124,9 @@ export async function POST(request: Request) {
     const question = text(body.question);
     const contextPath = normalizeContextPath(body.contextPath);
     const history = normalizeHistory(body.history);
-    const useCurrentRecord = body.useCurrentRecord === true;
+    // S7 remains disabled in deployments until the separate tenant/RLS release gate.
+    const useCurrentRecord = body.useCurrentRecord === true &&
+      process.env.AVEROMIRA_SUPPORT_RECORD_CONTEXT_ENABLED === "true";
 
     if (question.length < 3 || question.length > 700) {
       return NextResponse.json(
