@@ -1,4 +1,4 @@
-import { helpArticles } from "./support-knowledge";
+import { helpArticles } from "./support-knowledge.ts";
 import type { Locale } from "@/lib/locale";
 
 export const SUPPORT_AI_ARTICLE_IDS = helpArticles.fi.map((article) => article.id);
