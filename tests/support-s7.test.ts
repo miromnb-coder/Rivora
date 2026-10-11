@@ -82,6 +82,8 @@ test("S7 hides mapping counts from non-admin users", async () => {
 
 test("S7 only reads aggregate facts and requires explicit client opt-in", () => {
   assert.match(src, /const useCurrentRecord = body\.useCurrentRecord === true/);
+  assert.match(src, /AVEROMIRA_SUPPORT_RECORD_CONTEXT_ENABLED === "true"/);
+  assert.match(ui, /recordContextAvailable \? <label/);
   assert.match(src, /readSupportEvidence\(context\.supabase, context\.workspace\.id, context\.workspace\.role, contextPath\)/);
   assert.match(src, /supportEvidenceExcerpt\(recordEvidence\)/);
   assert.match(ui, /checked=\{useCurrentRecord\}/);
