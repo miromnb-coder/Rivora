@@ -11,7 +11,7 @@ const layout = readFileSync(join(process.cwd(), "app/app/layout.tsx"), "utf8");
 test("S5 quick prompts remain user-initiated and source-driven", () => {
   assert.match(center, /<SupportQuickPrompts/);
   assert.match(center, /contextArticles\.length/);
-  assert.match(prompts, /onPick\(article\.title\)/);
+  assert.match(prompts, /onPick\(question\)/);
   assert.match(center, /setAiQuestion\(question\)/);
   assert.match(center, /\/api\/support\/ask/);
 });
@@ -34,7 +34,7 @@ test("S5 does not remove support ticket escalation or accessibility labels", () 
 test("S5 scoped styles provide mobile coverage and readable customer bubbles", () => {
   assert.match(layout, /import "\.\/support-s5\.css";/);
   assert.match(styles, /height: 100dvh/);
-  assert.match(styles, /grid-template-columns: repeat\(3, minmax\(0,1fr\)\)/);
+  assert.match(styles, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /support-ai-message\.is-user > p/);
-  assert.match(styles, /color: #fff/);
+  assert.match(styles, /color: #ffffff/);
 });
