@@ -157,7 +157,7 @@ language plpgsql security definer set search_path='' as $$
 declare j private.operation_jobs;
 begin
  select * into j from private.operation_jobs where id=p_id for update;
- if not found or j.state<>'running' or j.generation<>p_generation or j.lease_token<>p_token or j.lease_until<=now() then raise exception 'OPERATION_STALE_LEASE'; end if;
+ if not found or j.state<>'running' or j.generation is distinct from p_generation or j.lease_token is distinct from p_token or j.lease_until<=now() then raise exception 'OPERATION_STALE_LEASE'; end if;
  if j.cancel_requested then raise exception 'OPERATION_CANCELLED'; end if;
  if j.type in('rfq_pdf_process','po_pdf_process') and not private.operation_actor_allowed(j.organization_id,j.actor_id) then raise exception 'OPERATION_PERMISSION'; end if;
  return j;
@@ -178,7 +178,7 @@ begin
  if j.type not in('rfq_pdf_process','po_pdf_process') or j.entity_id is not null or octet_length(p_result::text)>4194304 or jsonb_typeof(p_result->'extraction')<>'object' then raise exception 'OPERATION_INVALID_CHECKPOINT'; end if;
  if p_result->'billing' is null or (p_result#>>'{billing,microUsd}') is null then raise exception 'OPERATION_INVALID_USAGE'; end if;
  if p_result->'billing' is not null then
- if (p_result#>>'{billing,microUsd}')::bigint<0 then raise exception 'OPERATION_INVALID_USAGE'; end if;
+ if (p_result#>>'{billing,microUsd}')::bigint<0 or (p_result#>>'{usage,input_tokens}') is null or (p_result#>>'{usage,output_tokens}') is null or (p_result#>>'{usage,input_tokens}')::bigint<0 or (p_result#>>'{usage,output_tokens}')::bigint<0 then raise exception 'OPERATION_INVALID_USAGE'; end if;
  update private.ai_usage_ledger set state='settled',actual_micro_usd=(p_result#>>'{billing,microUsd}')::bigint,input_tokens=(p_result#>>'{usage,input_tokens}')::bigint,output_tokens=(p_result#>>'{usage,output_tokens}')::bigint,provider_response_id=left(p_result->>'responseId',200),settled_at=now() where job_id=j.id and generation=j.generation and state='reserved';
  if not found then raise exception 'OPERATION_NO_RESERVATION'; end if;
  end if;
@@ -190,7 +190,7 @@ declare j private.operation_jobs;
 begin
  -- Cancellation and revocation must still be persisted by the current owner.
  select * into j from private.operation_jobs where id=p_id for update;
- if not found or j.state<>'running' or j.generation<>p_generation or j.lease_token<>p_token or j.lease_until<=now() then raise exception 'OPERATION_STALE_LEASE'; end if;
+ if not found or j.state<>'running' or j.generation is distinct from p_generation or j.lease_token is distinct from p_token or j.lease_until<=now() then raise exception 'OPERATION_STALE_LEASE'; end if;
  if p_state not in('retry_wait','blocked','needs_review','succeeded','dead','cancelled') or (p_code is not null and p_code !~ '^[a-z_]{1,64}$') then raise exception 'OPERATION_INVALID_STATE'; end if;
  if p_state='succeeded' and j.type in('rfq_pdf_process','po_pdf_process') and (j.entity_id is null or j.stage not in('matching_completed','reconciliation_completed')) then raise exception 'OPERATION_NOT_PUBLISHED'; end if;
  if j.cancel_requested then p_state:='cancelled'; end if;
@@ -231,7 +231,7 @@ begin
  select * into r from private.ai_usage_ledger where job_id=j.id and generation=j.generation for update;
  if not found then raise exception 'OPERATION_NO_RESERVATION'; end if;
  if r.state<>'reserved' then return; end if;
- if not p_unknown and (p_actual is null or p_actual<0 or p_input<0 or p_output<0) then raise exception 'OPERATION_INVALID_USAGE'; end if;
+ if p_unknown is null or (not p_unknown and (p_actual is null or p_actual<0 or p_input is null or p_output is null or p_input<0 or p_output<0)) then raise exception 'OPERATION_INVALID_USAGE'; end if;
  update private.ai_usage_ledger set state=case when p_unknown then 'billed_unknown' else 'settled' end,actual_micro_usd=case when p_unknown then null else p_actual end,input_tokens=p_input,output_tokens=p_output,provider_response_id=left(p_response,200),settled_at=now() where id=r.id;
  -- Over-reservation usage remains recorded and blocks subsequent budget calls.
  if p_unknown then update private.operation_jobs set unknown_calls=unknown_calls+1 where id=j.id; end if;
@@ -251,7 +251,7 @@ begin
  select * into j from private.operation_jobs where id=p_id and organization_id=p_org for update;
  if not found or j.actor_id is distinct from auth.uid() then raise exception 'OPERATION_FORBIDDEN'; end if;
  if j.type not in('rfq_pdf_process','po_pdf_process') then raise exception 'OPERATION_UNSAFE_RETRY'; end if;
- if p_action='cancel' and j.state in('queued','retry_wait','blocked','running') then
+ if p_action='cancel' and j.entity_id is null and j.state in('queued','retry_wait','blocked','running') then
  update private.operation_jobs set cancel_requested=true,state=case when state='running' then state else 'cancelled' end,updated_at=now() where id=j.id;
  elsif p_action='retry' and j.state in('blocked','dead') and j.error_code in('config','budget','network','provider_rate','provider_unavailable','database') and j.created_at+make_interval(secs=>j.max_age_seconds)>now() then
  update private.operation_jobs set state='queued',error_code=null,updated_at=now(),available_at=now() where id=j.id;

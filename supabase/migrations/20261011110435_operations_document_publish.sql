@@ -1,14 +1,17 @@
 begin;
 -- Owner has only the tables needed by the fenced document publication functions.
 grant select,update(role) on public.organization_members to averomira_operations_owner;
-grant select,insert,update on public.customers,public.rfqs,public.rfq_lines,public.rfq_files,public.purchase_orders,public.purchase_order_lines,public.purchase_order_files,public.ai_extractions to averomira_operations_owner;
+drop policy if exists operations_member_lock on public.organization_members;
+create policy operations_member_lock on public.organization_members for update to averomira_operations_owner using(true) with check(true);
+grant update(status) on public.quotes to averomira_operations_owner;
+grant select,insert,update on public.customers,public.rfqs,public.rfq_lines,public.rfq_files,public.purchase_orders,public.purchase_order_lines,public.purchase_order_files,public.ai_extractions,public.purchase_order_reconciliations,public.purchase_order_reconciliation_lines to averomira_operations_owner;
 grant select on public.quotes,public.quote_lines,public.products,public.workspace_memory_entries to averomira_operations_owner;
 grant insert on public.activity_events to averomira_operations_owner;
 grant usage on sequence public.activity_events_id_seq to averomira_operations_owner;
 grant execute on function private.has_org_role(uuid,text[]),private.is_org_member(uuid) to averomira_operations_owner;
 grant execute on function public.refresh_rfq_matches_with_memory_server(uuid,uuid),public.commit_purchase_order_reconciliation(uuid,uuid,text,jsonb,jsonb,jsonb) to averomira_operations_owner;
 do $$ declare t text; begin
- foreach t in array array['customers','rfqs','rfq_lines','rfq_files','purchase_orders','purchase_order_lines','purchase_order_files','ai_extractions','quotes','quote_lines','products','workspace_memory_entries','activity_events'] loop
+ foreach t in array array['customers','rfqs','rfq_lines','rfq_files','purchase_orders','purchase_order_lines','purchase_order_files','purchase_order_reconciliations','purchase_order_reconciliation_lines','ai_extractions','quotes','quote_lines','products','workspace_memory_entries','activity_events'] loop
  execute format('drop policy if exists operations_owner_access on public.%I',t);
  execute format('create policy operations_owner_access on public.%I for all to averomira_operations_owner using(true) with check(true)',t);
  end loop;

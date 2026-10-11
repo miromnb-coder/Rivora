@@ -39,7 +39,9 @@ equal(Number(sql("select sum(reserved_micro_usd) from private.ai_usage_ledger wh
 for(const j of budgetJobs)invoke('operation_finish',j,['retry_wait','budget',1]);
 equal(sql("select state from private.ai_usage_ledger limit 1"),'billed_unknown','uncertain reservation remains charged, not free');
 sql("update private.operation_limits set daily_micro_usd=1000000,monthly_micro_usd=1000000;update private.operation_jobs set available_at=now(),attempt_count=0 where state='retry_wait';");
-const stale=claim();invoke('operation_reserve_ai',stale,['m','fixture-v1',100]);
+const stale=claim();
+assert.throws(()=>worker(fn('operation_heartbeat',[stale.id,stale.generation,null])));checks++;console.log('PASS: null lease token cannot bypass fencing');
+invoke('operation_reserve_ai',stale,['m','fixture-v1',100]);
 const checkpoint={extraction:{document_type:stale.type==='po_pdf_process'?'purchase_order':'rfq',customer_name:'Synthetic buyer',reference:'Synthetic',overall_confidence:90,warnings:[],lines:[{customer_sku:'SYNTHETIC',description:'Synthetic line',quantity:1,unit:'pcs',confidence:90,source_page:1}]},model:'m',responseId:'synthetic',usage:{input_tokens:1,output_tokens:1},billing:{microUsd:2}};
 invoke('operation_checkpoint',stale,[checkpoint]);
 sql(`update private.operation_jobs set lease_until=now()-interval '1 second' where id=${lit(stale.id)};`);worker('select private.operation_monitor(false);');

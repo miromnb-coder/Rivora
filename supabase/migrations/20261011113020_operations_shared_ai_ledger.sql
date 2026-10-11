@@ -35,7 +35,7 @@ end $$;
 create or replace function public.settle_ai_usage_server(p_id uuid,p_actual bigint,p_input bigint,p_output bigint,p_response text,p_unknown boolean) returns void
 language plpgsql security definer set search_path='' as $$
 begin
- if not p_unknown and (p_actual is null or p_actual<0 or p_input is null or p_output is null or p_input<0 or p_output<0) then raise exception 'OPERATION_INVALID_USAGE'; end if;
+ if p_unknown is null or (not p_unknown and (p_actual is null or p_actual<0 or p_input is null or p_output is null or p_input<0 or p_output<0)) then raise exception 'OPERATION_INVALID_USAGE'; end if;
  update private.ai_usage_ledger set state=case when p_unknown then 'billed_unknown' else 'settled' end,actual_micro_usd=case when p_unknown then null else p_actual end,input_tokens=p_input,output_tokens=p_output,provider_response_id=left(p_response,200),settled_at=now() where id=p_id and job_id is null and state='reserved';
 end $$;
 alter function public.reserve_ai_usage_server(uuid,uuid,text,uuid,text,text,bigint) owner to averomira_operations_owner;

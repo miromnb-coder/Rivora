@@ -70,7 +70,8 @@ export default async function OperationsSettingsPage() {
     throw new Error(`Operational readiness query failed: ${queryError.message}`);
   }
 
-  const { data: operationMetrics, error: metricsError } = await context.supabase.rpc("operation_metrics", { p_org: workspace.id });
+  const [{data:operationMetrics,error:metricsError},{data:capabilities,error:capabilityError}] = await Promise.all([context.supabase.rpc("operation_metrics",{p_org:workspace.id}),context.supabase.rpc("operation_capabilities",{p_org:workspace.id})]);
+  const schemaReady=!metricsError && !capabilityError && capabilities?.catalogueReady===true && capabilities?.operationsReady===true;
 
   const capability = getErpProviderCapability(workspace.erpProvider);
   const adapter = getErpAdapter(workspace.erpProvider);
@@ -91,6 +92,7 @@ export default async function OperationsSettingsPage() {
   const emailFailures = emailFailuresResult.count ?? 0;
 
   const runtimeReady =
+    schemaReady &&
     emailConfigured &&
     extractionConfigured &&
     erpReady &&
@@ -99,8 +101,8 @@ export default async function OperationsSettingsPage() {
   const checks = [
     {
       label: fi ? "Tietokanta" : "Database",
-      ok: true,
-      detail: fi
+      ok: schemaReady,
+      detail: !schemaReady ? (fi?"Tietokannan schema-valmius vaatii tarkistuksen.":"Database schema readiness needs review.") : fi
         ? "Supabase-yhteys ja workspace-rajattu operatiivinen kysely toimivat."
         : "Supabase connection and workspace-scoped operational queries are working.",
     },
