@@ -40,6 +40,7 @@ export default async function ProductLayout({ children }: { children: React.Reac
         locale={locale}
         leadsEnabled={leadsEnabled}
         supportOperator={supportOperator}
+        supportRecordEnabled={process.env.AVEROMIRA_SUPPORT_RECORD_CONTEXT_ENABLED === "true"}
       >
         {children}
       </AppShell>
