@@ -249,7 +249,8 @@ export async function POST(request: Request) {
       .map((item) => `${item.role === "user" ? "USER" : "ASSISTANT"}: ${item.text}`)
       .join("\n");
 
-    const client = new OpenAI({ apiKey });
+    // S8: bounded provider wait and no hidden SDK retries; failures can escalate to human support.
+    const client = new OpenAI({ apiKey, timeout: 20_000, maxRetries: 0 });
     const response = await client.responses.create({
       model,
       max_output_tokens: 500,
@@ -323,6 +324,16 @@ export async function POST(request: Request) {
         `Support AI response did not complete (status: ${response.status}).`,
       );
     }
+
+    // S8: usage telemetry contains only numeric token counts, never the question or AI answer.
+    const usage = response.usage;
+    operationalLog("info", "support_ai_usage", {
+      requestId,
+      organizationId: context.workspace.id,
+      model,
+      inputTokens: Number.isSafeInteger(usage?.input_tokens) ? usage?.input_tokens : null,
+      outputTokens: Number.isSafeInteger(usage?.output_tokens) ? usage?.output_tokens : null,
+    });
 
     const output = response.output_text?.trim();
     if (!output) throw new Error("Support AI returned no answer.");
