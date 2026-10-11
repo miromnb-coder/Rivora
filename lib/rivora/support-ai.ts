@@ -1,19 +1,7 @@
+import { helpArticles } from "./support-knowledge";
 import type { Locale } from "@/lib/locale";
 
-export const SUPPORT_AI_ARTICLE_IDS = [
-  "new-rfq",
-  "rfq-review",
-  "catalogue",
-  "quotes",
-  "purchase-order",
-  "business-central",
-  "smart-memory",
-  "rfq-why-review",
-  "business-central-client-id",
-  "business-central-mapping",
-  "po-exceptions",
-  "quote-locking",
-] as const;
+export const SUPPORT_AI_ARTICLE_IDS = helpArticles.fi.map((article) => article.id);
 
 export type SupportAiArticleId = (typeof SUPPORT_AI_ARTICLE_IDS)[number];
 
