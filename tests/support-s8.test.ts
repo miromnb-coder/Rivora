@@ -54,3 +54,13 @@ test("S8 subject and body remain within current ticket API bounds", () => {
   assert.ok(draft.subject.length <= 160);
   assert.ok(draft.body.length <= 5000);
 });
+
+test("S8 provider requests are bounded and only numeric usage metadata is logged", () => {
+  assert.match(aiRoute, /timeout: 20_000/);
+  assert.match(aiRoute, /maxRetries: 0/);
+  assert.match(aiRoute, /support_ai_usage/);
+  assert.match(aiRoute, /inputTokens/);
+  assert.match(aiRoute, /outputTokens/);
+  assert.doesNotMatch(aiRoute.slice(aiRoute.indexOf('"support_ai_usage"'), aiRoute.indexOf("const output =")), /question:|answer:|history:/);
+  assert.match(center, /\|\| aiError \? \(/);
+});
