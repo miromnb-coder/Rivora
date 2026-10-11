@@ -31,6 +31,7 @@ type SupportAiMessage = {
   text: string;
   path?: string;
   requestId?: string;
+  recordVerified?: boolean;
   supported?: boolean;
   articleIds?: string[];
 };
@@ -382,6 +383,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
           role: "assistant",
           path: pathname,
           requestId: data.requestId,
+          recordVerified: data.recordVerified === true,
           text: data.answer || "",
           supported: data.supported === true,
           articleIds: Array.isArray(data.articleIds) ? data.articleIds : [],
@@ -622,6 +624,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                                 : "Averomira AI"}
                             </span>
                             <p>{item.text}</p>
+                            {item.role === "assistant" && item.recordVerified ? (
+                              <small className="support-ai-evidence-label">
+                                {fi ? "Perustuu tarkistettuun näkymän tilaan" : "Based on verified page state"}
+                              </small>
+                            ) : null}
 
                             {item.role === "assistant" && item.articleIds?.length ? (
                               <div className="support-ai-related">
@@ -744,7 +751,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </p>
                     ) : null}
 
-                    {aiMessages.some((item) => item.role === "assistant") ? (
+                    {aiMessages.some((item) => item.role === "assistant") || aiError ? (
                       <button
                         type="button"
                         className="support-ai-escalate"
