@@ -8,6 +8,7 @@ import { supportContextForPath } from "@/lib/rivora/support-context";
 import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
 import { SupportTicketTracker } from "@/components/support/SupportTicketTracker";
 import { helpArticles, type HelpArticle } from "@/lib/rivora/support-knowledge";
+import { SupportQuickPrompts } from "./SupportQuickPrompts";
 
 
 type PanelView =
@@ -27,6 +28,7 @@ type SupportAiMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
+  path?: string;
   supported?: boolean;
   articleIds?: string[];
 };
@@ -128,8 +130,10 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [aiError, setAiError] = useState("");
   const [supportUnreadCount, setSupportUnreadCount] = useState(0);
   const [showHelpLibrary, setShowHelpLibrary] = useState(false);
+  const [contextChanged, setContextChanged] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
+  const aiThreadRef = useRef<HTMLDivElement>(null);
   const aiSuccessTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const previousPathRef = useRef(pathname);
@@ -188,10 +192,12 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   useEffect(() => {
     if (previousPathRef.current === pathname) return;
     previousPathRef.current = pathname;
+    // Keep the thread visible across navigation; previous records are never
+    // reused as AI history for the current record.
     setAiQuestion("");
-    setAiMessages([]);
     setAiSent(false);
     setAiError("");
+    setContextChanged(aiMessages.length > 0);
   }, [pathname]);
 
   useEffect(() => {
@@ -268,6 +274,12 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     };
   }, [open, view.kind]);
 
+  useEffect(() => {
+    if (aiThreadRef.current) {
+      aiThreadRef.current.scrollTop = aiThreadRef.current.scrollHeight;
+    }
+  }, [aiMessages, aiAsking]);
+
   function openContact() {
     setView({ kind: "contact" });
     setFormError("");
@@ -318,12 +330,14 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       id: `user-${Date.now()}`,
       role: "user",
       text: question,
+      path: pathname,
     };
 
     const previousMessages = aiMessages;
     setAiMessages([...previousMessages, userMessage]);
     setAiQuestion("");
     setAiError("");
+    setContextChanged(false);
     if (aiSuccessTimerRef.current) {
       window.clearTimeout(aiSuccessTimerRef.current);
       aiSuccessTimerRef.current = null;
@@ -344,7 +358,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
           locale,
           question,
           contextPath: currentPath,
-          history: previousMessages.slice(-6).map((item) => ({
+          history: previousMessages.filter((item) => item.path === pathname).slice(-6).map((item) => ({
             role: item.role,
             text: item.text,
           })),
@@ -382,6 +396,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         {
           id: `assistant-${Date.now()}`,
           role: "assistant",
+          path: pathname,
           text: data.answer || "",
           supported: data.supported === true,
           articleIds: Array.isArray(data.articleIds) ? data.articleIds : [],
@@ -587,8 +602,27 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </span>
                     </div>
 
+                    {aiMessages.length === 0 ? (
+                      <SupportQuickPrompts
+                        locale={locale}
+                        contextTitle={routeContext?.title}
+                        articles={(contextArticles.length ? contextArticles : ["new-rfq", "rfq-review", "business-central"]
+                          .map((id) => articles.find((article) => article.id === id))
+                          .filter((article): article is HelpArticle => Boolean(article))).slice(0, 3)}
+                        onPick={(question) => {
+                          setAiQuestion(question);
+                          window.setTimeout(() => aiInputRef.current?.focus(), 0);
+                        }}
+                      />
+                    ) : null}
+                    {contextChanged ? (
+                      <p className="support-ai-context-changed" role="status">
+                        {fi ? "Näkymä vaihtui. Seuraava kysymys käyttää tämän sivun kontekstia."
+                            : "The page changed. Your next question uses this page's context."}
+                      </p>
+                    ) : null}
                     {aiMessages.length ? (
-                      <div className="support-ai-thread" aria-live="polite">
+                      <div ref={aiThreadRef} className="support-ai-thread" aria-live="polite">
                         {aiMessages.map((item) => (
                           <div
                             key={item.id}
@@ -648,8 +682,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                         autoComplete="off"
                         placeholder={
                           fi
-                            ? "Esim. miksi tämä rivi vaatii tarkistuksen?"
-                            : "E.g. why does this line need review?"
+                            ? "Kysy mitä tahansa Averomirasta…"
+                            : "Ask anything about Averomira…"
                         }
                       />
                       <button
@@ -728,7 +762,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                     ) : null}
                   </section>
 
-                  {!query.trim() && routeContext && contextArticles.length ? (
+                  {!aiMessages.length && !query.trim() && routeContext && contextArticles.length ? (
                     <div className="support-context-section support-context-section-v2">
                       <div className="support-context-section-head">
                         <div>
