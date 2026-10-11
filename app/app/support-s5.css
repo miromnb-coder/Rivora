@@ -103,18 +103,7 @@
 .support-s5-welcome-title {
   display: flex;
   align-items: flex-start;
-  gap: 13px;
   min-width: 0;
-}
-.support-s5-sparkle {
-  flex: 0 0 43px;
-  width: 43px;
-  height: 43px;
-  border-radius: 12px;
-  background: #f1f0ed;
-  display: grid;
-  place-items: center;
-  color: #343834;
 }
 .support-s5-welcome-title > div { min-width: 0; }
 .support-s5-welcome-title strong {
@@ -267,8 +256,8 @@
   transition: border-color .16s ease, box-shadow .16s ease;
 }
 .app-shell-v2 .support-ai-form:focus-within {
-  border-color: #adafa7;
-  box-shadow: 0 0 0 3px rgba(42, 45, 39, .055);
+  border-color: #aead9f;
+  box-shadow: none;
 }
 .app-shell-v2 .support-ai-form > textarea {
   display: block;
@@ -276,15 +265,25 @@
   min-height: 65px;
   max-height: min(26dvh, 180px);
   resize: vertical;
-  border: 0;
-  border-radius: 16px 16px 0 0;
-  outline: none;
+  /* Override global app textarea !important rules: only the composer container
+     owns the border and focus indication, avoiding doubled outlines. */
+  border: 0 !important;
+  border-radius: 16px 16px 0 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
   padding: 14px 15px 5px;
-  background: transparent;
+  background: transparent !important;
   color: #272b26;
   font: inherit;
   font-size: 14px;
   line-height: 1.45;
+}
+.app-shell-v2 .support-ai-form > textarea:focus,
+.app-shell-v2 .support-ai-form > textarea:focus-visible {
+  border: 0 !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
 }
 .app-shell-v2 .support-ai-form > textarea::placeholder { color: #94968f; }
 .app-shell-v2 .support-ai-compose-bottom {
