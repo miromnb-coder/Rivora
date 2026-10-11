@@ -62,11 +62,11 @@ test("S2 includes focused contextual articles for review decisions and ERP setup
   }
 
   assert.match(
-    supportCenter,
+    articleSource,
     /Client ID is not the Client Secret|Client ID ei ole sama asia kuin Client Secret/,
   );
   assert.match(
-    supportCenter,
+    articleSource,
     /ei ohita RFQ Review -vahvistusta|does not bypass RFQ Review confirmation/,
   );
 });
