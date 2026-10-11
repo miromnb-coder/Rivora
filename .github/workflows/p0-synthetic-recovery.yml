@@ -32,6 +32,8 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install synthetic test tools
+        run: sudo apt-get update && sudo apt-get install -y age ripgrep
       - name: Start isolated synthetic PostgreSQL 17.6
         run: |
           docker run --detach --name averomira-catalogue-test --network none \
@@ -43,8 +45,6 @@ jobs:
           exit 1
       - run: npm run test:catalogue:sql
       - run: node scripts/test-catalogue-concurrency.mjs
-      - name: Install synthetic backup encryption tool
-        run: sudo apt-get update && sudo apt-get install -y age
       - name: Synthetic database logical backup and restore
         run: bash scripts/test-p0-native-recovery.sh
       - run: npm test
