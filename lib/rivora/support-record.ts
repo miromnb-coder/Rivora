@@ -20,6 +20,14 @@ export type RecordTarget =
 
 export function supportRecordTarget(path: string): RecordTarget | null {
   const clean = path.split("?")[0].split("#")[0];
+  const caseRoute = new RegExp("^/app/orders/case/(rfq|quote|po|sales)/(" + UUID + ")$", "i").exec(clean);
+  if (caseRoute) {
+    const kinds = { rfq: "rfq", quote: "quote", po: "purchase_order", sales: "sales_order" } as const;
+    return {
+      kind: kinds[caseRoute[1].toLowerCase() as keyof typeof kinds],
+      id: caseRoute[2].toLowerCase(),
+    };
+  }
   const record = RECORD_ROUTE.exec(clean);
   if (record) {
     const kind = ({ rfq: "rfq", quotes: "quote", "purchase-orders": "purchase_order", "sales-orders": "sales_order" } as const)[record[1].toLowerCase() as "rfq" | "quotes" | "purchase-orders" | "sales-orders"];
