@@ -193,6 +193,8 @@ begin
  if not found or j.state<>'running' or j.generation is distinct from p_generation or j.lease_token is distinct from p_token or j.lease_until<=now() then raise exception 'OPERATION_STALE_LEASE'; end if;
  if p_state not in('retry_wait','blocked','needs_review','succeeded','dead','cancelled') or (p_code is not null and p_code !~ '^[a-z_]{1,64}$') then raise exception 'OPERATION_INVALID_STATE'; end if;
  if p_state='succeeded' and j.type in('rfq_pdf_process','po_pdf_process') and (j.entity_id is null or j.stage not in('matching_completed','reconciliation_completed')) then raise exception 'OPERATION_NOT_PUBLISHED'; end if;
+ if p_state='succeeded' and j.type in('support_notification','incident_notification') and j.stage<>'notification_accepted' then raise exception 'OPERATION_NOT_DELIVERED'; end if;
+ if p_state='succeeded' and j.type='email_reconcile' and j.stage<>'email_reconciled' then raise exception 'OPERATION_NOT_RECONCILED'; end if;
  if j.cancel_requested then p_state:='cancelled'; end if;
  if j.type in('rfq_pdf_process','po_pdf_process') and not private.operation_actor_allowed(j.organization_id,j.actor_id) then p_state:='blocked';p_code:='permission'; end if;
  if p_state='retry_wait' and (j.attempt_count>=j.max_attempts or now()+make_interval(secs=>greatest(1,p_delay))>j.created_at+make_interval(secs=>j.max_age_seconds)) then p_state:='dead';p_code:='retry_exhausted'; end if;

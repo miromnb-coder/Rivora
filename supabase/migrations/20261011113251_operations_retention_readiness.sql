@@ -1,5 +1,9 @@
 begin;
-grant select,update(payload,plan) on private.catalogue_imports to averomira_operations_owner;
+grant select(id,expires_at,payload,plan),update(payload,plan) on private.catalogue_imports to averomira_operations_owner;
+drop policy if exists operations_owner_catalogue_cleanup_select on private.catalogue_imports;
+create policy operations_owner_catalogue_cleanup_select on private.catalogue_imports for select to averomira_operations_owner using(true);
+drop policy if exists operations_owner_catalogue_cleanup_update on private.catalogue_imports;
+create policy operations_owner_catalogue_cleanup_update on private.catalogue_imports for update to averomira_operations_owner using(true) with check(true);
 create or replace function private.operation_cleanup_candidates() returns jsonb
 language plpgsql security definer set search_path='' as $$
 declare n integer;
