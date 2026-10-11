@@ -370,6 +370,21 @@
   cursor: pointer;
   transition: color .15s ease, background .15s ease;
 }
+/* The pre-2.1 tile styles positioned the last span as an arrow.
+   Reset that legacy rule so all footer labels remain inline with their icons. */
+.app-shell-v2 .support-home-action > span:last-child:not(.support-home-action-end) {
+  position: static;
+  inset: auto;
+  transform: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+.app-shell-v2 .support-home-action > span {
+  min-width: 0;
+  white-space: nowrap;
+}
 .app-shell-v2 .support-home-action > svg {
   flex: 0 0 17px;
   width: 17px;
