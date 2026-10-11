@@ -9,6 +9,7 @@ import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
 import { SupportTicketTracker } from "@/components/support/SupportTicketTracker";
 import { helpArticles, type HelpArticle } from "@/lib/rivora/support-knowledge";
 import { SupportQuickPrompts } from "./SupportQuickPrompts";
+import { supportEscalationDraft } from "@/lib/rivora/support-escalation";
 
 
 type PanelView =
@@ -29,6 +30,7 @@ type SupportAiMessage = {
   role: "user" | "assistant";
   text: string;
   path?: string;
+  requestId?: string;
   supported?: boolean;
   articleIds?: string[];
 };
@@ -124,6 +126,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [aiQuestion, setAiQuestion] = useState("");
+  const [useCurrentRecord, setUseCurrentRecord] = useState(false);
+  const [escalationReview, setEscalationReview] = useState(false);
   const [aiMessages, setAiMessages] = useState<SupportAiMessage[]>([]);
   const [aiAsking, setAiAsking] = useState(false);
   const [aiSent, setAiSent] = useState(false);
@@ -195,6 +199,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     // Keep the thread visible across navigation; previous records are never
     // reused as AI history for the current record.
     setAiQuestion("");
+    setUseCurrentRecord(false);
     setAiSent(false);
     setAiError("");
     setContextChanged(aiMessages.length > 0);
@@ -286,36 +291,12 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   }
 
   function openContactFromAi() {
-    const lastUser = [...aiMessages].reverse().find((item) => item.role === "user");
-    const conversation = aiMessages
-      .slice(-6)
-      .map((item) =>
-        `${item.role === "user" ? (fi ? "Käyttäjä" : "User") : "Averomira AI"}: ${item.text}`,
-      )
-      .join("\n\n");
-
+    const draft = supportEscalationDraft(aiMessages, pathname, locale);
     if (pathname.includes("business-central")) setCategory("integration");
     else setCategory("product");
-
-    const fallbackSubject = fi
-      ? "Support AI -kysymys vaatii tarkistuksen"
-      : "Support AI question needs review";
-    setSubject(
-      lastUser?.text
-        ? `${fi ? "Support AI" : "Support AI"}: ${lastUser.text}`.slice(0, 160)
-        : fallbackSubject,
-    );
-    setMessage(
-      [
-        fi
-          ? "Haluan tukea seuraavaan Support AI -keskusteluun:"
-          : "I need support with the following Support AI conversation:",
-        conversation,
-      ]
-        .filter(Boolean)
-        .join("\n\n")
-        .slice(0, 5000),
-    );
+    setSubject(draft.subject);
+    setMessage(draft.body);
+    setEscalationReview(true);
     setScreenshot(null);
     setFormError("");
     setView({ kind: "contact" });
@@ -358,6 +339,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
           locale,
           question,
           contextPath: currentPath,
+          useCurrentRecord,
           history: previousMessages.filter((item) => item.path === pathname).slice(-6).map((item) => ({
             role: item.role,
             text: item.text,
@@ -370,6 +352,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         answer?: string;
         articleIds?: string[];
         sensitiveInputBlocked?: boolean;
+        recordVerified?: boolean;
+        requestId?: string;
         error?: string;
       };
 
@@ -397,6 +381,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
           id: `assistant-${Date.now()}`,
           role: "assistant",
           path: pathname,
+          requestId: data.requestId,
           text: data.answer || "",
           supported: data.supported === true,
           articleIds: Array.isArray(data.articleIds) ? data.articleIds : [],
@@ -426,6 +411,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     setMessage("");
     setScreenshot(null);
     setFormError("");
+    setEscalationReview(false);
   }
 
   async function submitSupport(event: FormEvent<HTMLFormElement>) {
@@ -721,6 +707,16 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </button>
                     </form>
 
+                    <label className="support-ai-record-toggle">
+                      <input
+                        type="checkbox"
+                        checked={useCurrentRecord}
+                        onChange={(event) => setUseCurrentRecord(event.target.checked)}
+                      />
+                      <span>{fi
+                        ? "Käytä nykyisen näkymän tietoja vastauksessa (vain luku)"
+                        : "Use current page data in this answer (read-only)"}</span>
+                    </label>
                     <div className="support-ai-meta">
                       <span>
                         {fi
@@ -952,6 +948,14 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                   >
                     <ArrowIcon left /> {fi ? "Takaisin Help Centeriin" : "Back to Help Center"}
                   </button>
+
+                  {escalationReview ? (
+                    <p className="support-ai-escalation-review" role="status">
+                      {fi
+                        ? "Keskustelun turvallinen yhteenveto on lisätty luonnokseen. Tarkista ja muokkaa viesti ennen lähettämistä. Mitään ei ole vielä lähetetty."
+                        : "A filtered conversation summary was added to this draft. Review or edit it before sending. Nothing has been sent."}
+                    </p>
+                  ) : null}
 
                   <p className="support-contact-note">
                     {fi
