@@ -620,6 +620,7 @@ export function CatalogueImport({
               disabled={Boolean(busy)}
               onClick={() => {
                 setInspection(null);
+                setFile(null);
                 setIssues([]);
                 setIssueCount(0);
                 requestId.current = null;
