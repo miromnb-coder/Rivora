@@ -16,6 +16,7 @@ export function AppShell({
   locale,
   leadsEnabled,
   supportOperator,
+  supportRecordEnabled,
 }: {
   children: React.ReactNode;
   workspaceName: string;
@@ -24,6 +25,7 @@ export function AppShell({
   locale: Locale;
   leadsEnabled: boolean;
   supportOperator: boolean;
+  supportRecordEnabled: boolean;
 }) {
   const copy = getDictionary(locale).nav;
   const nav: Array<readonly [string, string, string]> = [
@@ -71,7 +73,7 @@ export function AppShell({
 
       <main className="app-main-v2"><AppLocation locale={locale} />{children}</main>
 
-      <SupportCenter locale={locale} />
+      <SupportCenter locale={locale} recordContextAvailable={supportRecordEnabled} />
 
       <div className="app-mobile-bottom-nav">
         <AppNav items={nav} compact locale={locale} />

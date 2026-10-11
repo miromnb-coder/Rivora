@@ -7,13 +7,10 @@ import type { Locale } from "@/lib/locale";
 import { supportContextForPath } from "@/lib/rivora/support-context";
 import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
 import { SupportTicketTracker } from "@/components/support/SupportTicketTracker";
+import { helpArticles, type HelpArticle } from "@/lib/rivora/support-knowledge";
+import { SupportQuickPrompts } from "./SupportQuickPrompts";
+import { supportEscalationDraft } from "@/lib/rivora/support-escalation";
 
-type HelpArticle = {
-  id: string;
-  title: string;
-  summary: string;
-  body: string[];
-};
 
 type PanelView =
   | { kind: "home" }
@@ -32,256 +29,13 @@ type SupportAiMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
+  path?: string;
+  requestId?: string;
+  recordVerified?: boolean;
   supported?: boolean;
   articleIds?: string[];
 };
 
-const helpArticles: Record<Locale, HelpArticle[]> = {
-  fi: [
-    {
-      id: "new-rfq",
-      title: "Uuden tarjouspyynnön lisääminen",
-      summary: "Näin tuot asiakkaan RFQ:n Averomiraan.",
-      body: [
-        "Avaa Työpöydältä Uusi tarjouspyyntö. Valitse asiakas ja lisää tarjouspyynnön tiedosto.",
-        "Averomira jäsentää tarjouspyynnön riveiksi ja vie sen tarkistukseen ennen kuin kaupallinen työ jatkuu.",
-        "Tarkista aina poimitut määrät, tunnisteet ja epävarmat rivit ennen hyväksymistä.",
-      ],
-    },
-    {
-      id: "rfq-review",
-      title: "RFQ Review ja tuoteosumat",
-      summary: "Mitä tehdä, kun rivi vaatii tarkistuksen.",
-      body: [
-        "RFQ Review näyttää asiakkaan pyytämän rivin, ehdotetun tuotteen ja osuman perusteen.",
-        "Epävarma tai muistista tullut osuma ei ohita ihmisen tarkistusta. Vahvista oikea tuote ennen tarjouksen jatkamista.",
-        "Jos oikeaa tuotetta ei löydy katalogista, tarkista ensin tuotetiedot tai lisää tuote katalogiin yrityksesi prosessin mukaisesti.",
-      ],
-    },
-    {
-      id: "catalogue",
-      title: "Tuotekatalogi",
-      summary: "Tuotteiden lisääminen ja tuotetietojen ylläpito.",
-      body: [
-        "Tuotteet-näkymässä ylläpidetään Averomiran käyttämää tuotekatalogia.",
-        "Pidä SKU, nimi ja mahdollinen valmistajan tuotenumero ajan tasalla, jotta tuoteosumat toimivat mahdollisimman luotettavasti.",
-        "Katalogimuutokset eivät saa korvata jo hyväksytyn tarjouksen kaupallisia tietoja jälkikäteen.",
-      ],
-    },
-    {
-      id: "quotes",
-      title: "Tarjouksen tarkistus ja lähetys",
-      summary: "Mitä tarkistaa ennen asiakkaalle lähettämistä.",
-      body: [
-        "Tarkista tuotteet, määrät, hinnat, alennukset, voimassaoloaika ja vastaanottaja ennen hyväksymistä.",
-        "Averomira estää keskeneräisen hinnoittelun viemisen hyväksyttyyn tarjoukseen.",
-        "Hyväksymisen jälkeen kaupalliset tiedot lukitaan prosessin eheyden säilyttämiseksi.",
-      ],
-    },
-    {
-      id: "purchase-order",
-      title: "Ostotilauksen tarkistaminen",
-      summary: "Näin käsittelet asiakkaan PO:n ja tarjouspoikkeamat.",
-      body: [
-        "Averomira vertaa ostotilausta tarjoukseen ja nostaa päätöstä vaativat erot näkyviin.",
-        "Tarkista erityisesti tuote, määrä, hinta, valuutta ja mahdollinen tarjousviite.",
-        "Poikkeama kannattaa ratkaista ennen ERP-valmiin tilauksen muodostamista.",
-      ],
-    },
-    {
-      id: "business-central",
-      title: "Microsoft Business Central",
-      summary: "Yhteys, vastineet ja ERP-valmis tilaus.",
-      body: [
-        "Business Central -integraatio tarvitsee oikean ympäristön, käyttöoikeudet sekä asiakkaiden ja tuotteiden vastineet.",
-        "Jos työjonossa näkyy Täydennä Business Central -vastineet, avaa tehtävä ja täydennä puuttuvat ERP-vastineet ennen etenemistä.",
-        "Averomira ei arvaa puuttuvia vastineita hiljaisesti.",
-      ],
-    },
-    {
-      id: "smart-memory",
-      title: "Älykäs muisti",
-      summary: "Miten vahvistettuja tuotevastineita käytetään uudelleen.",
-      body: [
-        "Älykäs muisti voi hyödyntää aiemmin vahvistettuja asiakaskohtaisia tuotevastineita.",
-        "Vain vahvistettua muistia saa käyttää uudelleen. Muistista tullut ehdotus pysyy silti käyttäjän tarkistettavana.",
-        "Muistin tietoja voi tarkastella Asetukset-valikon Älykäs muisti -kohdasta.",
-      ],
-    },
-    {
-      id: "rfq-why-review",
-      title: "Miksi tuoterivi jäi tarkistettavaksi?",
-      summary: "Miten Averomira päättää, mikä vaatii ihmisen vahvistuksen.",
-      body: [
-        "Rivi jää tarkistettavaksi, kun Averomira ei voi vahvistaa tuotetta turvallisesti ilman ihmisen päätöstä tai kun prosessin käytäntö vaatii erillisen vahvistuksen.",
-        "Tarkka SKU-osuma tai muistettu vastine voi nostaa oikean tuotteen vahvaksi ehdokkaaksi, mutta se ei ohita RFQ Review -vahvistusta.",
-        "Tarkista asiakkaan tunniste, kuvaus, määrä ja ehdotetun tuotteen tiedot. Vahvista vasta, kun ehdotus vastaa asiakkaan pyyntöä.",
-      ],
-    },
-    {
-      id: "business-central-client-id",
-      title: "Mistä löydän Business Centralin Client ID:n?",
-      summary: "Application (client) ID löytyy Microsoft Entra -sovellusrekisteröinnistä.",
-      body: [
-        "Avaa Microsoft Entra -hallinnassa se App registration, jota Averomiran Business Central -yhteys käyttää.",
-        "Avaa sovelluksen Overview / Yleiskatsaus. Kopioi Application (client) ID -arvo Averomiran Business Central -asetuksiin.",
-        "Client ID ei ole sama asia kuin Client Secret. Älä lähetä Client Secretiä tukipyyntöön tai kuvakaappaukseen.",
-      ],
-    },
-    {
-      id: "business-central-mapping",
-      title: "Miksi Business Central -vastine puuttuu?",
-      summary: "Asiakas tai tuote tarvitsee vahvistetun ERP-vastineen ennen vientiä.",
-      body: [
-        "Averomira tarvitsee Business Centralissa käytettävän asiakasnumeron ja item-numeron ennen ERP-valmiin tilauksen vientiä.",
-        "Jos vastine puuttuu tai sitä ei ole vielä vahvistettu, työjono näyttää tehtävän Täydennä Business Central -vastineet.",
-        "Täytä tai tarkista vastine Business Central -vastineet -näkymässä. Averomira ei korvaa puuttuvaa ERP-tunnistetta arvaamalla.",
-      ],
-    },
-    {
-      id: "po-exceptions",
-      title: "Mitä ostotilauksen poikkeama tarkoittaa?",
-      summary: "Näin tulkitset PO:n ja hyväksytyn tarjouksen erot.",
-      body: [
-        "PO-tarkistus vertaa asiakkaan ostotilausta hyväksyttyyn tarjoukseen ja nostaa esiin kohdat, joissa tiedot eivät vastaa toisiaan.",
-        "Poikkeama voi liittyä esimerkiksi tuotteeseen, määrään, hintaan, valuuttaan tai tarjousviitteeseen.",
-        "Tarkista poikkeaman lähdetiedot ja tee päätös ennen hyväksyntää. ERP-valmis tilaus muodostetaan vasta tarkistetusta reconciliationista.",
-      ],
-    },
-    {
-      id: "quote-locking",
-      title: "Miksi tarjouksen tiedot ovat lukittu?",
-      summary: "Hyväksyntä lukitsee kaupalliset tiedot prosessin eheyden vuoksi.",
-      body: [
-        "Kun tarjous hyväksytään, Averomira lukitsee keskeiset kaupalliset tiedot, jotta hyväksytty sisältö ei muutu huomaamatta.",
-        "Jos tarjous on vielä Ready-tilassa ja tarvitsee muutoksia, palauta se luonnokseksi ennen hyväksyntää.",
-        "Jo lähetetyn tarjouksen muuttamisen sijaan käsittele tarvittava muutos yrityksesi hyväksytyn prosessin mukaisesti.",
-      ],
-    },
-  ],
-  en: [
-    {
-      id: "new-rfq",
-      title: "Add a new RFQ",
-      summary: "Bring a customer RFQ into Averomira.",
-      body: [
-        "From the dashboard, choose New RFQ, select the customer and add the RFQ file.",
-        "Averomira structures the request into line items and routes it to review before commercial work continues.",
-        "Always review extracted quantities, identifiers and uncertain lines before approval.",
-      ],
-    },
-    {
-      id: "rfq-review",
-      title: "RFQ Review and product matches",
-      summary: "What to do when a line needs review.",
-      body: [
-        "RFQ Review shows the requested line, the suggested product and why it was suggested.",
-        "An uncertain or remembered match never bypasses human review. Confirm the correct product before continuing.",
-        "If the right item is missing, review or update the product catalogue according to your company process.",
-      ],
-    },
-    {
-      id: "catalogue",
-      title: "Product catalogue",
-      summary: "Add and maintain product data.",
-      body: [
-        "The Products view contains the catalogue Averomira uses for matching.",
-        "Keep SKU, product name and manufacturer part number current to improve matching quality.",
-        "Catalogue changes must not silently rewrite commercial data on an already approved quote.",
-      ],
-    },
-    {
-      id: "quotes",
-      title: "Review and send a quote",
-      summary: "What to verify before sending a quote.",
-      body: [
-        "Review products, quantities, prices, discounts, validity and recipient before approval.",
-        "Averomira prevents incomplete pricing from moving into an approved quote.",
-        "After approval, core commercial fields are locked to preserve process integrity.",
-      ],
-    },
-    {
-      id: "purchase-order",
-      title: "Review a purchase order",
-      summary: "Handle customer POs and quote differences.",
-      body: [
-        "Averomira compares the purchase order with the quote and surfaces differences that require a decision.",
-        "Review product, quantity, price, currency and quote reference in particular.",
-        "Resolve material differences before preparing the ERP-ready order.",
-      ],
-    },
-    {
-      id: "business-central",
-      title: "Microsoft Business Central",
-      summary: "Connection, mappings and ERP-ready orders.",
-      body: [
-        "Business Central requires the correct environment, permissions and customer/product mappings.",
-        "If the work queue shows Complete Business Central mappings, open the task and complete the missing ERP mappings.",
-        "Averomira does not silently guess missing mappings.",
-      ],
-    },
-    {
-      id: "smart-memory",
-      title: "Smart memory",
-      summary: "How confirmed product mappings are reused.",
-      body: [
-        "Smart memory can reuse customer-specific product mappings that were confirmed earlier.",
-        "Only verified memory can be reused, and a remembered suggestion still remains reviewable by the user.",
-        "Memory entries can be reviewed under Settings > Smart memory.",
-      ],
-    },
-    {
-      id: "rfq-why-review",
-      title: "Why does this product line need review?",
-      summary: "How Averomira decides what needs human confirmation.",
-      body: [
-        "A line stays in review when Averomira cannot safely confirm the product without a human decision or when the workflow policy requires explicit confirmation.",
-        "An exact SKU match or remembered mapping can make a product a strong candidate, but it does not bypass RFQ Review confirmation.",
-        "Check the customer identifier, description, quantity and suggested product details. Confirm only when the suggestion matches the customer's request.",
-      ],
-    },
-    {
-      id: "business-central-client-id",
-      title: "Where do I find the Business Central Client ID?",
-      summary: "The Application (client) ID is in the Microsoft Entra app registration.",
-      body: [
-        "Open the App registration in Microsoft Entra that your Averomira Business Central connection uses.",
-        "Open the app's Overview page and copy the Application (client) ID into the Business Central settings in Averomira.",
-        "The Client ID is not the Client Secret. Do not include a Client Secret in a support request or screenshot.",
-      ],
-    },
-    {
-      id: "business-central-mapping",
-      title: "Why is a Business Central mapping missing?",
-      summary: "A customer or product needs a verified ERP mapping before export.",
-      body: [
-        "Averomira needs the Business Central customer number and item number used by the ERP before an ERP-ready order can be exported.",
-        "If a mapping is missing or not yet verified, the work queue shows a Complete Business Central mappings task.",
-        "Complete or verify the mapping in the Business Central mappings view. Averomira does not guess missing ERP identifiers.",
-      ],
-    },
-    {
-      id: "po-exceptions",
-      title: "What does a purchase-order exception mean?",
-      summary: "How to interpret differences between the PO and approved quote.",
-      body: [
-        "PO review compares the customer's purchase order with the approved quote and surfaces fields that do not match.",
-        "An exception can involve the product, quantity, price, currency or quote reference.",
-        "Review the source values and make the decision before approval. The ERP-ready order is created only from a reviewed reconciliation.",
-      ],
-    },
-    {
-      id: "quote-locking",
-      title: "Why are quote fields locked?",
-      summary: "Approval locks commercial data to preserve process integrity.",
-      body: [
-        "When a quote is approved, Averomira locks core commercial fields so approved content cannot change silently.",
-        "If a quote is still Ready and needs changes, return it to draft before approval.",
-        "For an already sent quote, handle the required change through your company's approved commercial process instead of silently rewriting the sent quote.",
-      ],
-    },
-  ],
-};
 
 function HelpIcon() {
   return (
@@ -352,7 +106,7 @@ function HeadsetIcon() {
   );
 }
 
-export function SupportCenter({ locale }: { locale: Locale }) {
+export function SupportCenter({ locale, recordContextAvailable }: { locale: Locale; recordContextAvailable: boolean }) {
   const fi = locale === "fi";
   const pathname = usePathname();
   const articles = helpArticles[locale];
@@ -373,14 +127,18 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [aiQuestion, setAiQuestion] = useState("");
+  const [useCurrentRecord, setUseCurrentRecord] = useState(false);
+  const [escalationReview, setEscalationReview] = useState(false);
   const [aiMessages, setAiMessages] = useState<SupportAiMessage[]>([]);
   const [aiAsking, setAiAsking] = useState(false);
   const [aiSent, setAiSent] = useState(false);
   const [aiError, setAiError] = useState("");
   const [supportUnreadCount, setSupportUnreadCount] = useState(0);
   const [showHelpLibrary, setShowHelpLibrary] = useState(false);
+  const [contextChanged, setContextChanged] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
+  const aiThreadRef = useRef<HTMLDivElement>(null);
   const aiSuccessTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const previousPathRef = useRef(pathname);
@@ -439,10 +197,13 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   useEffect(() => {
     if (previousPathRef.current === pathname) return;
     previousPathRef.current = pathname;
+    // Keep the thread visible across navigation; previous records are never
+    // reused as AI history for the current record.
     setAiQuestion("");
-    setAiMessages([]);
+    setUseCurrentRecord(false);
     setAiSent(false);
     setAiError("");
+    setContextChanged(aiMessages.length > 0);
   }, [pathname]);
 
   useEffect(() => {
@@ -519,42 +280,24 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     };
   }, [open, view.kind]);
 
+  useEffect(() => {
+    if (aiThreadRef.current) {
+      aiThreadRef.current.scrollTop = aiThreadRef.current.scrollHeight;
+    }
+  }, [aiMessages, aiAsking]);
+
   function openContact() {
     setView({ kind: "contact" });
     setFormError("");
   }
 
   function openContactFromAi() {
-    const lastUser = [...aiMessages].reverse().find((item) => item.role === "user");
-    const conversation = aiMessages
-      .slice(-6)
-      .map((item) =>
-        `${item.role === "user" ? (fi ? "Käyttäjä" : "User") : "Averomira AI"}: ${item.text}`,
-      )
-      .join("\n\n");
-
+    const draft = supportEscalationDraft(aiMessages, pathname, locale);
     if (pathname.includes("business-central")) setCategory("integration");
     else setCategory("product");
-
-    const fallbackSubject = fi
-      ? "Support AI -kysymys vaatii tarkistuksen"
-      : "Support AI question needs review";
-    setSubject(
-      lastUser?.text
-        ? `${fi ? "Support AI" : "Support AI"}: ${lastUser.text}`.slice(0, 160)
-        : fallbackSubject,
-    );
-    setMessage(
-      [
-        fi
-          ? "Haluan tukea seuraavaan Support AI -keskusteluun:"
-          : "I need support with the following Support AI conversation:",
-        conversation,
-      ]
-        .filter(Boolean)
-        .join("\n\n")
-        .slice(0, 5000),
-    );
+    setSubject(draft.subject);
+    setMessage(draft.body);
+    setEscalationReview(true);
     setScreenshot(null);
     setFormError("");
     setView({ kind: "contact" });
@@ -569,12 +312,14 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       id: `user-${Date.now()}`,
       role: "user",
       text: question,
+      path: pathname,
     };
 
     const previousMessages = aiMessages;
     setAiMessages([...previousMessages, userMessage]);
     setAiQuestion("");
     setAiError("");
+    setContextChanged(false);
     if (aiSuccessTimerRef.current) {
       window.clearTimeout(aiSuccessTimerRef.current);
       aiSuccessTimerRef.current = null;
@@ -595,7 +340,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
           locale,
           question,
           contextPath: currentPath,
-          history: previousMessages.slice(-6).map((item) => ({
+          useCurrentRecord,
+          history: previousMessages.filter((item) => item.path === pathname).slice(-6).map((item) => ({
             role: item.role,
             text: item.text,
           })),
@@ -607,6 +353,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         answer?: string;
         articleIds?: string[];
         sensitiveInputBlocked?: boolean;
+        recordVerified?: boolean;
+        requestId?: string;
         error?: string;
       };
 
@@ -633,6 +381,9 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         {
           id: `assistant-${Date.now()}`,
           role: "assistant",
+          path: pathname,
+          requestId: data.requestId,
+          recordVerified: data.recordVerified === true,
           text: data.answer || "",
           supported: data.supported === true,
           articleIds: Array.isArray(data.articleIds) ? data.articleIds : [],
@@ -662,6 +413,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     setMessage("");
     setScreenshot(null);
     setFormError("");
+    setEscalationReview(false);
   }
 
   async function submitSupport(event: FormEvent<HTMLFormElement>) {
@@ -838,8 +590,27 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </span>
                     </div>
 
+                    {aiMessages.length === 0 ? (
+                      <SupportQuickPrompts
+                        locale={locale}
+                        contextTitle={routeContext?.title}
+                        articles={(contextArticles.length ? contextArticles : ["new-rfq", "rfq-review", "business-central"]
+                          .map((id) => articles.find((article) => article.id === id))
+                          .filter((article): article is HelpArticle => Boolean(article))).slice(0, 3)}
+                        onPick={(question) => {
+                          setAiQuestion(question);
+                          window.setTimeout(() => aiInputRef.current?.focus(), 0);
+                        }}
+                      />
+                    ) : null}
+                    {contextChanged ? (
+                      <p className="support-ai-context-changed" role="status">
+                        {fi ? "Näkymä vaihtui. Seuraava kysymys käyttää tämän sivun kontekstia."
+                            : "The page changed. Your next question uses this page's context."}
+                      </p>
+                    ) : null}
                     {aiMessages.length ? (
-                      <div className="support-ai-thread" aria-live="polite">
+                      <div ref={aiThreadRef} className="support-ai-thread" aria-live="polite">
                         {aiMessages.map((item) => (
                           <div
                             key={item.id}
@@ -853,6 +624,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                                 : "Averomira AI"}
                             </span>
                             <p>{item.text}</p>
+                            {item.role === "assistant" && item.recordVerified ? (
+                              <small className="support-ai-evidence-label">
+                                {fi ? "Perustuu tarkistettuun näkymän tilaan" : "Based on verified page state"}
+                              </small>
+                            ) : null}
 
                             {item.role === "assistant" && item.articleIds?.length ? (
                               <div className="support-ai-related">
@@ -899,8 +675,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                         autoComplete="off"
                         placeholder={
                           fi
-                            ? "Esim. miksi tämä rivi vaatii tarkistuksen?"
-                            : "E.g. why does this line need review?"
+                            ? "Kysy mitä tahansa Averomirasta…"
+                            : "Ask anything about Averomira…"
                         }
                       />
                       <button
@@ -938,6 +714,16 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </button>
                     </form>
 
+                    {recordContextAvailable ? <label className="support-ai-record-toggle">
+                      <input
+                        type="checkbox"
+                        checked={useCurrentRecord}
+                        onChange={(event) => setUseCurrentRecord(event.target.checked)}
+                      />
+                      <span>{fi
+                        ? "Käytä nykyisen näkymän tietoja vastauksessa (vain luku)"
+                        : "Use current page data in this answer (read-only)"}</span>
+                    </label> : null}
                     <div className="support-ai-meta">
                       <span>
                         {fi
@@ -965,7 +751,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </p>
                     ) : null}
 
-                    {aiMessages.some((item) => item.role === "assistant") ? (
+                    {aiMessages.some((item) => item.role === "assistant") || aiError ? (
                       <button
                         type="button"
                         className="support-ai-escalate"
@@ -979,7 +765,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                     ) : null}
                   </section>
 
-                  {!query.trim() && routeContext && contextArticles.length ? (
+                  {!aiMessages.length && !query.trim() && routeContext && contextArticles.length ? (
                     <div className="support-context-section support-context-section-v2">
                       <div className="support-context-section-head">
                         <div>
@@ -1169,6 +955,14 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                   >
                     <ArrowIcon left /> {fi ? "Takaisin Help Centeriin" : "Back to Help Center"}
                   </button>
+
+                  {escalationReview ? (
+                    <p className="support-ai-escalation-review" role="status">
+                      {fi
+                        ? "Keskustelun turvallinen yhteenveto on lisätty luonnokseen. Tarkista ja muokkaa viesti ennen lähettämistä. Mitään ei ole vielä lähetetty."
+                        : "A filtered conversation summary was added to this draft. Review or edit it before sending. Nothing has been sent."}
+                    </p>
+                  ) : null}
 
                   <p className="support-contact-note">
                     {fi

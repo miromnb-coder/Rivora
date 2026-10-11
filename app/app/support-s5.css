@@ -1,0 +1,114 @@
+/* S5 / AI-first help panel — isolated to authenticated app. */
+.app-shell-v2 .support-center-panel { width: min(480px, calc(100vw - 28px)); }
+.app-shell-v2 .support-center-header { min-height: 90px; padding: 19px 22px 17px; }
+.app-shell-v2 .support-center-body { padding: 18px 20px max(25px, env(safe-area-inset-bottom)); }
+.app-shell-v2 .support-ai-card {
+  padding: 17px; border: 1px solid var(--app-line); border-radius: 16px;
+  background: #fff; box-shadow: none;
+}
+.app-shell-v2 .support-ai-head { padding-bottom: 9px; }
+.support-s5-welcome { padding: 12px 0 3px; }
+.support-s5-welcome-title { display: flex; align-items: flex-start; gap: 11px; }
+.support-s5-sparkle {
+  width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center;
+  background: var(--app-paper); border-radius: 10px; color: var(--app-ink); font-size: 21px;
+}
+.support-s5-welcome-title strong { display: block; margin-top: 1px; color: var(--app-ink); font-size: 15px; letter-spacing: -.025em; }
+.support-s5-welcome-title p { margin: 5px 0 0; color: var(--app-muted); font-size: 12px; line-height: 1.5; }
+.support-s5-context {
+  margin: 12px 0 0; padding: 9px 11px; border: 1px solid var(--app-line);
+  border-radius: 10px; background: var(--app-paper); color: var(--app-muted); font-size: 12px;
+}
+.support-s5-context strong { color: var(--app-ink); }
+.support-s5-prompts-label {
+  display: block; margin: 19px 0 9px; color: var(--app-muted);
+  font-size: 11px; font-weight: 800; letter-spacing: .09em;
+}
+.support-s5-prompts { display: grid; gap: 7px; }
+.support-s5-prompts button {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 43px; padding: 9px 11px; border: 1px solid var(--app-line);
+  border-radius: 10px; background: #fff; color: var(--app-ink);
+  font: inherit; font-size: 12px; font-weight: 650; text-align: left; cursor: pointer;
+}
+.support-s5-prompts button:hover, .support-s5-prompts button:focus-visible {
+  background: var(--app-paper); border-color: var(--app-input-border);
+}
+.support-s5-prompts button > span:last-child { flex: 0 0 auto; color: var(--app-muted); }
+.app-shell-v2 .support-ai-thread { max-height: min(50dvh, 500px); scroll-padding-bottom: 14px; }
+.app-shell-v2 .support-ai-message.is-user > span,
+.app-shell-v2 .support-ai-message.is-user > p { color: #fff; }
+.support-ai-context-changed {
+  margin: 12px 0 0; padding: 10px; border-radius: 9px;
+  background: var(--app-paper); color: var(--app-muted); font-size: 12px; line-height: 1.5;
+}
+.app-shell-v2 .support-ai-form { position: sticky; bottom: 0; z-index: 1; padding-top: 12px; background: #fff; }
+.app-shell-v2 .support-home-actions { margin-top: 16px; gap: 8px; }
+.app-shell-v2 .support-home-action { min-height: 94px; padding: 11px; box-shadow: none; }
+.app-shell-v2 .support-home-action-icon { width: 27px; height: 27px; }
+.app-shell-v2 .support-home-action-icon svg { width: 16px; height: 16px; }
+.app-shell-v2 .support-home-action-copy { margin-top: 8px; }
+.app-shell-v2 .support-home-action-copy small { display: none; }
+@media (max-width: 560px) {
+  .app-shell-v2 .support-center-panel { width: 100vw; max-width: none; height: 100dvh; }
+  .app-shell-v2 .support-center-header {
+    min-height: 82px; padding: max(16px, env(safe-area-inset-top)) 16px 13px;
+  }
+  .app-shell-v2 .support-center-body { padding: 14px 14px max(18px, env(safe-area-inset-bottom)); }
+  .app-shell-v2 .support-ai-card { padding: 14px; }
+  .app-shell-v2 .support-home-actions { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+  .app-shell-v2 .support-home-action { min-height: 90px; padding: 9px; justify-content: flex-start; }
+  .app-shell-v2 .support-home-action-icon { position: static; transform: none; width: 25px; height: 25px; }
+  .app-shell-v2 .support-home-action-copy { margin: 7px 0 0; }
+  .app-shell-v2 .support-home-action-copy strong { font-size: 11px; line-height: 1.25; }
+  .app-shell-v2 .support-home-action > span:last-child:not(.support-home-action-end),
+  .app-shell-v2 .support-home-action-end { top: 9px; right: 7px; bottom: auto; left: auto; transform: none; }
+  .app-shell-v2 .support-ai-form > input { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .support-s5-prompts button { transition: none; }
+}
+
+/* S7 explicit data permission and S8 escalation review */
+.app-shell-v2 .support-ai-record-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 10px 11px;
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+  color: var(--app-muted);
+  background: var(--app-paper);
+  cursor: pointer;
+}
+.app-shell-v2 .support-ai-record-toggle input {
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: var(--app-mocha);
+}
+.app-shell-v2 .support-ai-record-toggle span {
+  color: var(--app-ink);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.app-shell-v2 .support-ai-escalation-review {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid var(--app-line);
+  border-radius: 11px;
+  background: var(--app-paper);
+  color: var(--app-ink);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.app-shell-v2 .support-ai-evidence-label {
+  display: block;
+  margin-top: 9px;
+  color: var(--app-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
