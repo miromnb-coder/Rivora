@@ -18,7 +18,8 @@ export function workerAdapters(signal:AbortSignal):WorkerDependencies {
     if(!key) throw new OperationError("config");
     // Explicit, dedicated JWT role only; never reuse the service-role secret.
     try { const payload=JSON.parse(Buffer.from(key.split('.')[1],"base64url").toString()); if(payload.role!=="averomira_storage_reader" || !payload.exp || payload.exp<=Date.now()/1000) throw new Error(); } catch { throw new OperationError("config"); }
-    const storage=createClient(getSupabaseConfig().url,key,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:(input,init)=>fetch(input,{...init,signal})}});
+    const config=getSupabaseConfig();
+    const storage=createClient(config.url,config.key,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:`Bearer ${key}`},fetch:(input,init)=>fetch(input,{...init,signal})}});
     const {data,error}=await storage.storage.from("operation-inputs").download(job.input_ref);
     if(error || !data) throw new OperationError("invalid_file");
     const bytes=new Uint8Array(await data.arrayBuffer());

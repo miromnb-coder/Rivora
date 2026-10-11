@@ -1,6 +1,7 @@
 begin;
 do $$ begin
  if not exists(select from pg_roles where rolname='averomira_storage_reader') then create role averomira_storage_reader nologin nosuperuser nocreatedb nocreaterole noinherit nobypassrls; end if;
+ if exists(select from pg_roles where rolname='authenticator') then grant averomira_storage_reader to authenticator with inherit false,set true; end if;
 end $$;
 grant usage on schema storage,private to averomira_storage_reader;
 grant select on storage.objects to averomira_storage_reader;

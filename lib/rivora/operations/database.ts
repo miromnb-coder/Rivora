@@ -6,7 +6,7 @@ export function workerDatabase() {
   if (!value) throw new OperationError("config");
   const url = new URL(value);
   // The limited login is provisioned separately. Never fall back to postgres/service role.
-  if (!/^averomira_worker(?:\.[a-z0-9]{20})?$/.test(decodeURIComponent(url.username))) throw new OperationError("config");
+  if (!/^averomira_worker_login(?:\.[a-z0-9]{20})?$/.test(decodeURIComponent(url.username))) throw new OperationError("config");
   pool ??= postgres(value, { max: 1, ssl: "verify-full", prepare: false, connect_timeout: 5, idle_timeout: 20, max_lifetime: 60, onnotice: () => {} });
   return pool;
 }

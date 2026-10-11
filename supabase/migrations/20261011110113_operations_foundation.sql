@@ -3,7 +3,9 @@ begin;
 do $$ begin
  if not exists(select from pg_roles where rolname='averomira_operations_owner') then create role averomira_operations_owner nologin nosuperuser nocreatedb nocreaterole noinherit nobypassrls; end if;
  if not exists(select from pg_roles where rolname='averomira_worker') then create role averomira_worker nologin nosuperuser nocreatedb nocreaterole noinherit nobypassrls; end if;
+ if not exists(select from pg_roles where rolname='averomira_worker_login') then create role averomira_worker_login login password null nosuperuser nocreatedb nocreaterole inherit nobypassrls; end if;
 end $$;
+grant averomira_worker to averomira_worker_login with inherit true,set false;
 grant usage on schema private, public, auth to averomira_operations_owner;
 grant usage on schema private to averomira_worker;
 alter default privileges for role averomira_operations_owner in schema private revoke execute on functions from public;

@@ -26,9 +26,9 @@ Seitsemän päivän jälkeen onnistuneiden/peruttujen/dead-tehtävien ylimäär�
 
 ## Oikeudet ja ympäristöasetukset
 
-`averomira_worker`: NOLOGIN, ei BYPASSRLS:ää, DDL:ää, taulujen suoraa luku-/kirjoitusoikeutta tai yleistä service-rolea. Saa EXECUTE:n vain nimetyille worker-funktioille. `averomira_operations_owner`: NOLOGIN, yksityisten työtaulujen omistaja ja rajatut domain-taulujen oikeudet SECURITY DEFINER -funktioiden toteuttamiseksi. Funktioissa tyhjä search_path, tenant/entity-tarkistukset ja eksplisiittinen EXECUTE-revoke.
+`averomira_worker_login` on LOGIN-rooli ilman salasanaa migraation jälkeen. Erillinen hyväksytty provisiointi asettaa salasanan ja rajatun TLS/pooler-URL:n. Sillä on vain `averomira_worker`-roolin periytyvät RPC-oikeudet; synteettinen natiivitesti todentaa tämän. `averomira_worker`: NOLOGIN, ei BYPASSRLS:ää, DDL:ää, taulujen suoraa luku-/kirjoitusoikeutta tai yleistä service-rolea. Saa EXECUTE:n vain nimetyille worker-funktioille. `averomira_operations_owner`: NOLOGIN, yksityisten työtaulujen omistaja ja rajatut domain-taulujen oikeudet SECURITY DEFINER -funktioiden toteuttamiseksi. Funktioissa tyhjä search_path, tenant/entity-tarkistukset ja eksplisiittinen EXECUTE-revoke.
 
-`averomira_storage_reader`: vain operation-inputs-objektien SELECT aktiiviseen job-leaseen sidotulla RLS:llä; ei INSERT/UPDATE/DELETE-oikeutta. Aidon Storage JWT -roolin, authenticator-roolin jäsenyyden, tokenin allekirjoituksen/kierron ja poolerin TLS-yhteyden toimivuus on vielä todistettava täydellisessä stagingissa. Service-role-fallbackia ei ole.
+`averomira_storage_reader`: autentikaattori voi vaihtaa tähän rooliin vain rajatulla allekirjoitetulla JWT:llä; vain operation-inputs-objektien SELECT aktiiviseen job-leaseen sidotulla RLS:llä; ei INSERT/UPDATE/DELETE-oikeutta. Aidon Storage JWT -roolin, authenticator-roolin jäsenyyden, tokenin allekirjoituksen/kierron ja poolerin TLS-yhteyden toimivuus on vielä todistettava täydellisessä stagingissa. Service-role-fallbackia ei ole.
 
 Tarvittavat asetukset, joista mitään ei tässä työssä provisionoida tuotantoon:
 
