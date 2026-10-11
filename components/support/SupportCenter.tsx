@@ -140,6 +140,9 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
   const searchRef = useRef<HTMLInputElement>(null);
   const aiInputRef = useRef<HTMLTextAreaElement>(null);
   const aiThreadRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const aiSuccessTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const previousPathRef = useRef(pathname);
@@ -223,6 +226,7 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
       window.clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
     }
+    if (!open && typeof document !== "undefined") previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setClosing(false);
     setOpen(true);
   }
@@ -240,6 +244,8 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
         setOpen(false);
         setClosing(false);
         closeTimerRef.current = null;
+        const returnTo = previousFocusRef.current?.isConnected ? previousFocusRef.current : launcherRef.current;
+        returnTo?.focus();
       },
       reducedMotion ? 0 : 180,
     );
@@ -264,7 +270,25 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
     if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeSupport();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeSupport();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const items = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])',
+      )).filter((item) => item.getClientRects().length > 0);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!dialogRef.current.contains(document.activeElement)) {
+        event.preventDefault(); first.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
     };
 
     document.addEventListener("keydown", onKeyDown);
@@ -490,6 +514,7 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
     <>
       <button
         type="button"
+        ref={launcherRef}
         className={"support-launcher" + (open && !closing ? " is-open" : "")}
         aria-label={fi ? "Avaa Averomira Help Center" : "Open Averomira Help Center"}
         aria-expanded={open}
@@ -518,6 +543,7 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
 
           <section
             className="support-center-panel"
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="support-center-title"
@@ -582,7 +608,7 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
 
               {view.kind === "home" ? (
                 <div className="support-ai-shell">
-                  <div className="support-ai-scroll" aria-label={fi ? "AI-keskustelu" : "AI conversation"}>
+                  <div ref={aiThreadRef} className="support-ai-scroll" aria-label={fi ? "AI-keskustelu" : "AI conversation"}>
                     {aiMessages.length === 0 ? (
                       <SupportQuickPrompts
                         locale={locale}
@@ -603,7 +629,7 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
                       </p>
                     ) : null}
                     {aiMessages.length ? (
-                      <div ref={aiThreadRef} className="support-ai-thread" aria-live="polite">
+                      <div className="support-ai-thread" aria-live="polite">
                         {aiMessages.map((item) => (
                           <div
                             key={item.id}
