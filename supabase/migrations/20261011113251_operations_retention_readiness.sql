@@ -18,7 +18,7 @@ create or replace function public.operation_capabilities(p_org uuid) returns jso
 language plpgsql security definer set search_path='' as $$
 begin
  if not exists(select 1 from public.organization_members where organization_id=p_org and user_id=auth.uid()) then raise exception 'OPERATION_FORBIDDEN'; end if;
- return jsonb_build_object('schemaVersion',1,'catalogueReady',to_regprocedure('public.prepare_catalogue_import(uuid,uuid,jsonb,text,text)') is not null and to_regprocedure('public.commit_catalogue_import(uuid,uuid,boolean)') is not null and to_regclass('private.catalogue_versions') is not null and to_regclass('public.products_org_sku_identity') is not null,
+ return jsonb_build_object('schemaVersion',1,'catalogueReady',to_regprocedure('public.prepare_catalogue_import(uuid,uuid,jsonb,text,text)') is not null and to_regprocedure('public.commit_catalogue_import(uuid,uuid,boolean)') is not null and to_regclass('private.catalogue_versions') is not null and to_regclass('public.products_org_sku_identity') is not null and to_regclass('public.catalogue_field_maps') is not null and to_regclass('private.catalogue_imports') is not null and to_regprocedure('public.catalogue_sku_keys(text[])') is not null and to_regprocedure('public.catalogue_preview_action(uuid,uuid,integer,boolean)') is not null and exists(select 1 from pg_trigger where tgrelid='public.products'::regclass and tgname='catalogue_product_revision' and tgenabled<>'D'),
  'operationsReady',to_regprocedure('private.operation_claim(uuid,text)') is not null and to_regprocedure('private.operation_publish_document(uuid,bigint,uuid)') is not null and to_regclass('private.ai_usage_ledger') is not null);
 end $$;
 alter function public.operation_capabilities(uuid) owner to averomira_operations_owner;

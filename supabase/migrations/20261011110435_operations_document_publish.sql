@@ -94,7 +94,7 @@ begin
  if not found then raise exception 'OPERATION_PERMISSION'; end if;
  select jsonb_build_object('purchaseOrder',to_jsonb(po),'quote',to_jsonb(q),
  'poLines',(select jsonb_agg(to_jsonb(l)) from public.purchase_order_lines l where purchase_order_id=po.id and organization_id=j.organization_id),
- 'quoteLines',(select jsonb_agg(to_jsonb(l)||jsonb_build_object('product',to_jsonb(p),'sourceLine',to_jsonb(r))) from public.quote_lines l left join public.products p on p.id=l.product_id and p.organization_id=j.organization_id left join public.rfq_lines r on r.id=l.rfq_line_id and r.organization_id=j.organization_id where l.quote_id=q.id and l.organization_id=j.organization_id),
+ 'quoteLines',(select jsonb_agg(to_jsonb(l)||jsonb_build_object('product',to_jsonb(p),'sourceLine',to_jsonb(r))) from public.quote_lines l left join public.products p on p.id=l.product_id and p.organization_id=j.organization_id left join public.rfq_lines r on r.id=l.source_rfq_line_id and r.organization_id=j.organization_id where l.quote_id=q.id and l.organization_id=j.organization_id),
  'unitMemory',(select coalesce(jsonb_agg(jsonb_build_object('id',id,'source_key',source_key,'source_value',source_value,'target_value',target_value)),'[]') from public.workspace_memory_entries where organization_id=j.organization_id and customer_id=po.customer_id and scope='customer' and memory_type='customer_unit_alias' and verification_state='verified' and target_entity_type='unit')) into result;
  return result;
 end $$;
