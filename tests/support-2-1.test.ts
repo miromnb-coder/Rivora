@@ -79,3 +79,13 @@ test("2.1 covers phone and desktop heights and preserves reduced motion", () => 
   assert.match(styles, /@media \(max-height: 650px\)/);
   assert.match(styles, /prefers-reduced-motion: reduce/);
 });
+
+test("2.1 polish: welcome has no icon and composer uses one subtle focus border", () => {
+  assert.doesNotMatch(prompts, /support-s5-sparkle/);
+  assert.equal(styles.includes(".support-s5-sparkle {"), false);
+  assert.ok(styles.includes("border-color: #aead9f;\n  box-shadow: none;"));
+  assert.ok(styles.includes("border: 0 !important;"));
+  assert.ok(styles.includes("outline: none !important;"));
+  assert.ok(styles.includes(".support-ai-form > textarea:focus-visible"));
+  assert.ok(styles.includes("box-shadow: none !important;"));
+});

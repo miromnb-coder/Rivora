@@ -28,13 +28,6 @@ export function SupportQuickPrompts({ locale, contextTitle, articles, onPick }: 
   return (
     <div className="support-s5-welcome">
       <div className="support-s5-welcome-title">
-        <span className="support-s5-sparkle" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
-            strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m12 2 1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9L12 2Z" />
-            <path d="m19 17 .6 1.4L21 19l-1.4.6L19 21l-.6-1.4L17 19l1.4-.6L19 17Z" />
-          </svg>
-        </span>
         <div>
           <strong>{fi ? "Miten voin auttaa?" : "How can I help?"}</strong>
           <p>{fi
