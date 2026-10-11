@@ -1,4 +1,4 @@
-import { looksLikeSupportSecret } from "./support-ai";
+import { looksLikeSupportSecret } from "./support-ai.ts";
 
 export type EscalationEntry = {
   role: "user" | "assistant";
