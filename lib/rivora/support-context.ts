@@ -22,6 +22,18 @@ export function supportContextForPath(
   pathname: string,
   locale: Locale,
 ): SupportRouteContext | null {
+  // The unified order-case view is the default navigation destination for
+  // many dashboard tasks. Map it to the same approved help guidance.
+  const orderCase = /^\/app\/orders\/case\/(rfq|quote|po|sales)\/([^/?#]+)(?:[/?#]|$)/.exec(pathname);
+  if (orderCase) {
+    const route = {
+      rfq: "/app/rfq/",
+      quote: "/app/quotes/",
+      po: "/app/purchase-orders/",
+      sales: "/app/sales-orders/",
+    }[orderCase[1] as "rfq" | "quote" | "po" | "sales"];
+    return supportContextForPath(route + orderCase[2], locale);
+  }
   if (/^\/app\/rfq\/[^/]+/.test(pathname)) {
     return copy(
       locale,
