@@ -68,3 +68,39 @@
 @media (prefers-reduced-motion: reduce) {
   .support-s5-prompts button { transition: none; }
 }
+
+/* S7 explicit data permission and S8 escalation review */
+.app-shell-v2 .support-ai-record-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 10px 11px;
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+  color: var(--app-muted);
+  background: var(--app-paper);
+  cursor: pointer;
+}
+.app-shell-v2 .support-ai-record-toggle input {
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: var(--app-mocha);
+}
+.app-shell-v2 .support-ai-record-toggle span {
+  color: var(--app-ink);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.app-shell-v2 .support-ai-escalation-review {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid var(--app-line);
+  border-radius: 11px;
+  background: var(--app-paper);
+  color: var(--app-ink);
+  font-size: 12px;
+  line-height: 1.55;
+}
