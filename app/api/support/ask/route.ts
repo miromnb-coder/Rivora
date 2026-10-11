@@ -1,3 +1,4 @@
+import { trackedAiCall } from "@/lib/rivora/operations/shared-ai";
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import type { Locale } from "@/lib/locale";
@@ -237,10 +238,10 @@ export async function POST(request: Request) {
       .map((item) => `${item.role === "user" ? "USER" : "ASSISTANT"}: ${item.text}`)
       .join("\n");
 
-    const client = new OpenAI({ apiKey });
-    const response = await client.responses.create({
-      model,
-      max_output_tokens: 500,
+    const client = new OpenAI({ apiKey,timeout:30000,maxRetries:0 });
+    const response = await trackedAiCall({type:"support_ai",organizationId:context.workspace.id,actorId:String(context.claims.sub)},async pricing=>client.responses.create({
+      model:pricing?.model??model,
+      max_output_tokens:Math.min(500,pricing?.maxOutputTokens??500),
       input: [
         {
           role: "system",
@@ -298,7 +299,7 @@ export async function POST(request: Request) {
           schema: ANSWER_SCHEMA,
         },
       },
-    });
+    }));
 
     if (response.status !== "completed") {
       throw new Error(

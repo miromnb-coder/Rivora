@@ -46,6 +46,7 @@ sql(`update private.operation_jobs set lease_until=now()-interval '1 second' whe
 assert.throws(()=>invoke('operation_publish_document',stale));checks++;console.log('PASS: old generation cannot publish after lease recovery');
 equal(sql(`select stage from private.operation_jobs where id=${lit(stale.id)}`),'extraction_persisted','checkpoint survives worker termination');
 sql(`update private.operation_jobs set available_at=now()-interval '1 day' where id=${lit(stale.id)};`);
+sql(`update private.operation_limits set last_claim_at='-infinity' where scope_id=${lit(stale.organization_id)};`);
 const resumed=claim();equal(resumed.id,stale.id,'recovered job is claimed again');assert.ok(resumed.generation>stale.generation);checks++;
 equal(invoke('operation_publish_document',resumed),resumed.id,'checkpoint publishes stable business entity');
 equal(invoke('operation_publish_document',resumed),resumed.id,'second publication does not duplicate RFQ or PO');

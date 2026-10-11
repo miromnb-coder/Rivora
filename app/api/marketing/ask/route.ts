@@ -1,3 +1,4 @@
+import { trackedAiCall } from "@/lib/rivora/operations/shared-ai";
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import type { Locale } from "@/lib/locale";
@@ -156,11 +157,11 @@ export async function POST(request: Request) {
 
     const language = locale === "fi" ? "Finnish" : "English";
     const model = process.env.OPENAI_FAQ_MODEL?.trim() || "gpt-5.6-luna";
-    const client = new OpenAI({ apiKey });
+    const client = new OpenAI({ apiKey,timeout:30000,maxRetries:0 });
 
-    const response = await client.responses.create({
-      model,
-      max_output_tokens: 350,
+    const response = await trackedAiCall({type:"public_ai"}, async pricing => client.responses.create({
+      model:pricing?.model??model,
+      max_output_tokens:Math.min(350,pricing?.maxOutputTokens??350),
       input: [
         {
           role: "system",
@@ -195,7 +196,7 @@ export async function POST(request: Request) {
           schema: ANSWER_SCHEMA,
         },
       },
-    });
+    }));
 
     if (response.status !== "completed") {
       throw new Error(`FAQ response did not complete (status: ${response.status}).`);
@@ -229,7 +230,7 @@ export async function POST(request: Request) {
     operationalLog("info", "marketing_faq_ai_answered", {
       requestId,
       locale,
-      model,
+      model:response.model??model,
       questionLength: question.length,
     });
 

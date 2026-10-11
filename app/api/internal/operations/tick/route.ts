@@ -15,6 +15,7 @@ export async function GET(request:Request) {
  try {
   const shadow=process.env.AVEROMIRA_OPERATIONS_MODE!=="active";
   await workerCall("operation_monitor",[shadow]);
+  if(!shadow) await workerCall("operation_cleanup_candidates");
   let claimed=0;
   if(!shadow) for(let i=0;i<2 && deadline-Date.now()>40_000;i++) {
    const job=await workerCall<OperationJob|null>("operation_claim",[run,"phase2a-v1"]);if(!job) break;

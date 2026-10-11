@@ -1,3 +1,4 @@
+import { trackedAiCall } from "./operations/shared-ai.ts";
 import OpenAI from "openai";
 import {
   CATALOGUE_FIELDS,
@@ -9,6 +10,7 @@ import {
 export async function suggestCatalogueAiMapping(
   headers: string[],
   suggest?: (headers: string[]) => Promise<unknown>,
+  scope?: {organizationId:string;actorId:string},
 ) {
   if (!suggest && !process.env.OPENAI_API_KEY?.trim())
     return { unavailable: "AI ei ole käytettävissä. Valitse sarakkeet käsin." };
@@ -23,9 +25,9 @@ export async function suggestCatalogueAiMapping(
       timeout: 15_000,
       maxRetries: 0,
     });
-    const response = await client.chat.completions.create({
-      model: process.env.CATALOGUE_MAPPING_MODEL || "gpt-4.1-mini",
-      max_completion_tokens: 1500,
+    const response = await trackedAiCall({type:"catalogue_mapping",...scope}, async pricing => client.chat.completions.create({
+      model: pricing?.model ?? process.env.CATALOGUE_MAPPING_MODEL ?? "gpt-4.1-mini",
+      max_completion_tokens: Math.min(1500,pricing?.maxOutputTokens??1500),
       response_format: { type: "json_object" },
       messages: [
         {
@@ -34,7 +36,7 @@ export async function suggestCatalogueAiMapping(
         },
         { role: "user", content: JSON.stringify({ headers }) },
       ],
-    });
+    }));
     const mapping = JSON.parse(
       response.choices[0]?.message.content ?? "{}",
     ) as CatalogueMapping;

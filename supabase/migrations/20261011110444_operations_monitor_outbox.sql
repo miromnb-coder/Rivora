@@ -57,7 +57,7 @@ begin
  union all select organization_id,'queue:'||organization_id::text,'queue_delay','warning' from private.operation_jobs where state in('queued','retry_wait') and created_at<now()-interval '5 minutes' group by organization_id
  union all select organization_id,'erp:'||organization_id::text,'erp_review','warning' from public.erp_delivery_attempts where status in('partial','existing') or (status='pending' and created_at<now()-interval '10 minutes') group by organization_id
  union all select organization_id,'email:'||organization_id::text,'email_review','warning' from public.quote_email_attempts where status in('bounced','complained') or (status='pending' and created_at<now()-interval '10 minutes') group by organization_id
- union all select organization_id,'app:'||organization_id::text,'repeated_app_error','warning' from public.app_error_events where created_at>now()-interval '10 minutes' group by organization_id having count(*)>=5
+ union all select organization_id,'app:'||coalesce(organization_id::text,'system')||':'||md5(coalesce(error_digest,route,'unknown')),'repeated_app_error','warning' from public.app_error_events where created_at>now()-interval '10 minutes' group by organization_id,error_digest,route having count(*)>=5
  union all select null::uuid,'provider:openai','provider_outage','critical' from private.operation_jobs where error_code in('provider_rate','provider_unavailable') and updated_at>now()-interval '10 minutes' having count(*)>=5
  loop
  keys:=array_append(keys,r.k);perform private.operation_incident(r.organization_id,r.k,r.code,r.severity);
@@ -70,7 +70,7 @@ begin
  end loop;
  update private.operation_incidents set clean_checks=clean_checks+1,state=case when clean_checks>=1 then 'resolved' else state end where state='open' and not dedupe_key=any(keys) and code<>'erp_review';
  if not p_shadow and exists(select 1 from private.operation_limits where scope_id='00000000-0000-0000-0000-000000000000' and 'incident_notification'=any(enabled_types)) then
- for r in select * from private.operation_incidents where state='open' and observations>=2 and next_notify_at<=now() and (code<>'queue_delay' or not exists(select 1 from private.operation_incidents where dedupe_key='provider:openai' and state='open')) order by first_seen limit 20 loop
+ for r in select * from private.operation_incidents where state='open' and observations>=2 and next_notify_at<=now() and (code not in('queue_delay','dead_job') or not exists(select 1 from private.operation_incidents where dedupe_key='provider:openai' and state='open')) order by first_seen limit 20 loop
  key:=r.id::text||':'||to_char(now() at time zone 'UTC','YYYY-MM-DD');
  select organization_id into j.organization_id from private.operation_jobs where organization_id=coalesce(r.organization_id,organization_id) order by created_at limit 1;
  if j.organization_id is null then continue; end if;
