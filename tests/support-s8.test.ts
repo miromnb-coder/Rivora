@@ -62,5 +62,5 @@ test("S8 provider requests are bounded and only numeric usage metadata is logged
   assert.match(aiRoute, /inputTokens/);
   assert.match(aiRoute, /outputTokens/);
   assert.doesNotMatch(aiRoute.slice(aiRoute.indexOf('"support_ai_usage"'), aiRoute.indexOf("const output =")), /question:|answer:|history:/);
-  assert.match(center, /\|\| aiError \? \(/);
+  assert.match(center, /aiMessages\.some\(\(item\) => item\.role === "assistant"\) \|\| aiError \? \(/);
 });
