@@ -237,6 +237,7 @@ export async function POST(request: Request) {
     // Failure or missing records never fall back to cross-tenant / admin reads.
     const recordEvidence = useCurrentRecord
       ? await readSupportEvidence(context.supabase, context.workspace.id, context.workspace.role, contextPath)
+          .catch(() => null) // fail closed: support articles remain usable on database outages
       : null;
     const language = locale === "fi" ? "Finnish" : "English";
     const model =
