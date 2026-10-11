@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { Locale } from "@/lib/locale";
 import { getAuthContext } from "@/lib/rivora/workspace";
 import { supportContextForPath } from "@/lib/rivora/support-context";
+import { searchSupportArticles, supportKnowledgeExcerpt } from "@/lib/rivora/support-knowledge";
 import {
   SUPPORT_AI_ARTICLE_IDS,
   SUPPORT_AI_KNOWLEDGE,
@@ -227,6 +228,7 @@ export async function POST(request: Request) {
     }
 
     const routeContext = supportContextForPath(contextPath, locale);
+    const retrievedArticles = searchSupportArticles(question, locale, routeContext?.articleIds ?? []);
     const language = locale === "fi" ? "Finnish" : "English";
     const model =
       process.env.OPENAI_SUPPORT_MODEL?.trim() ||
@@ -265,6 +267,8 @@ export async function POST(request: Request) {
                 `Suggested article IDs for this area: ${routeContext?.articleIds.join(", ") || "none"}`,
                 "",
                 SUPPORT_AI_KNOWLEDGE,
+                "APPROVED ARTICLES FOR THIS QUESTION:",
+                supportKnowledgeExcerpt(retrievedArticles),
               ].join("\n"),
             },
           ],
@@ -336,10 +340,11 @@ export async function POST(request: Request) {
     }
 
     const allowed = new Set<string>(SUPPORT_AI_ARTICLE_IDS);
+    const retrievedIds = new Set(retrievedArticles.map((article) => article.id));
     const articleIds = Array.isArray(parsed.articleIds)
       ? parsed.articleIds
           .filter((value): value is string => typeof value === "string")
-          .filter((value) => allowed.has(value))
+          .filter((value) => allowed.has(value) && retrievedIds.has(value))
           .slice(0, 3)
       : [];
 
