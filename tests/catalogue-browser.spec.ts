@@ -62,6 +62,30 @@ test.beforeEach(() => {
     ('20000000-0000-0000-0000-000000000002','ABC-1','Other tenant',100,99);`);
 });
 
+test("returning to file selection clears the retained file before re-upload", async ({ page }) => {
+  await login(page);
+  await upload(page, "SKU;Name\\nSTALE;Old Item\\n", "previous.csv");
+  await expect(page.getByText(/previous\\.csv: 1 tuotetta/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Takaisin tiedoston valintaan" }).click();
+  const input = page.getByLabel(/Katalogitiedosto/);
+  const inspect = page.getByRole("button", { name: "Lue tiedosto ja tunnista sarakkeet" });
+  await expect(input).toHaveValue("");
+  await expect(inspect).toBeDisabled();
+
+  await input.setInputFiles({
+    name: "fresh.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("SKU;Name\\nNEW;Fresh Item\\n"),
+  });
+  await expect(inspect).toBeEnabled();
+  await inspect.click();
+  await expect(page.getByText(/fresh\\.csv: 1 tuotetta/)).toBeVisible();
+  await page.getByRole("button", { name: "Hyväksy kartta ja näytä muutokset" }).click();
+  await expect(page.getByText("NEW — Lisätään", { exact: true })).toBeVisible();
+  await expect(page.getByText("STALE — Lisätään", { exact: true })).toHaveCount(0);
+});
+
 test("manual mapping, saved maps, AI fallback and default merge reach actual PostgreSQL", async ({
   page,
 }) => {
