@@ -106,7 +106,7 @@ function HeadsetIcon() {
   );
 }
 
-export function SupportCenter({ locale }: { locale: Locale }) {
+export function SupportCenter({ locale, recordContextAvailable }: { locale: Locale; recordContextAvailable: boolean }) {
   const fi = locale === "fi";
   const pathname = usePathname();
   const articles = helpArticles[locale];
@@ -714,7 +714,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </button>
                     </form>
 
-                    <label className="support-ai-record-toggle">
+                    {recordContextAvailable ? <label className="support-ai-record-toggle">
                       <input
                         type="checkbox"
                         checked={useCurrentRecord}
@@ -723,7 +723,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       <span>{fi
                         ? "Käytä nykyisen näkymän tietoja vastauksessa (vain luku)"
                         : "Use current page data in this answer (read-only)"}</span>
-                    </label>
+                    </label> : null}
                     <div className="support-ai-meta">
                       <span>
                         {fi
