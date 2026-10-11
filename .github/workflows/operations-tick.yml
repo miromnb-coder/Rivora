@@ -1,0 +1,22 @@
+name: Operations bounded tick
+# A schedule may be added only after the separate activation and allowance review.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: averomira-operations-tick
+  cancel-in-progress: false
+jobs:
+  tick:
+    if: vars.AVEROMIRA_OPERATIONS_SCHEDULER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/operations-tick.mjs
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

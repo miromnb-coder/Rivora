@@ -22,6 +22,9 @@ for(let n=0;n<100;n++){
  auth(actor,`select public.begin_document_operation(${lit(org)},${lit(id)},${lit(type)},'{"fileName":"synthetic.pdf","customerName":"Synthetic buyer"}');select public.enqueue_document_operation(${lit(org)},${lit(id)},${lit('a'.repeat(64))},100,1);`);
 }
 equal(Number(sql('select count(*) from private.operation_jobs')),100,'100 durable document jobs accepted');
+equal(Number(sql('select min(max_attempts) from private.operation_jobs')),3,'default retry ceiling is three attempts');
+// This stress fixture forces several independent failure cases onto the same jobs.
+sql('update private.operation_jobs set max_attempts=10;');
 const firstId=jobIds[0];
 const duplicates=await Promise.all([0,1].map(()=>sqlAsync(`set role authenticated;select set_config('request.jwt.claim.sub',${lit(actors[0])},false);select public.enqueue_document_operation(${lit(orgs[0])},${lit(firstId)},${lit('a'.repeat(64))},100,1);`)));
 equal(duplicates,[firstId,firstId],'simultaneous duplicate/lost-response requests preserve job ID');
@@ -38,7 +41,7 @@ equal(reservations.filter(x=>x.status==='fulfilled').length,1,'parallel budget r
 equal(Number(sql("select sum(reserved_micro_usd) from private.ai_usage_ledger where state='reserved'")),100,'only accepted reservation is recorded');
 for(const j of budgetJobs)invoke('operation_finish',j,['retry_wait','budget',1]);
 equal(sql("select state from private.ai_usage_ledger limit 1"),'billed_unknown','uncertain reservation remains charged, not free');
-sql("update private.operation_limits set daily_micro_usd=1000000,monthly_micro_usd=1000000;update private.operation_jobs set available_at=now(),attempt_count=0 where state='retry_wait';");
+sql("update private.operation_limits set daily_micro_usd=1000000,monthly_micro_usd=1000000;update private.operation_jobs set available_at=now() where state='retry_wait';");
 const stale=claim();
 assert.throws(()=>worker(fn('operation_heartbeat',[stale.id,stale.generation,null])));checks++;console.log('PASS: null lease token cannot bypass fencing');
 invoke('operation_reserve_ai',stale,['m','fixture-v1',100]);
@@ -58,7 +61,7 @@ equal(Number(sql(`select count(*) from public.activity_events where event_type='
 const revoked=claim();sql(`delete from public.organization_members where organization_id=${lit(revoked.organization_id)} and user_id=${lit(revoked.actor_id)};`);
 assert.throws(()=>invoke('operation_heartbeat',revoked));checks++;console.log('PASS: execution rechecks current membership');
 invoke('operation_finish',revoked,['blocked','permission',0]);equal(sql(`select state from private.operation_jobs where id=${lit(revoked.id)}`),'blocked','revoked work remains blocked');
-sql(`insert into public.organization_members(organization_id,user_id,role) values (${lit(revoked.organization_id)},${lit(revoked.actor_id)},'owner');update private.operation_jobs set state='queued',available_at=now(),attempt_count=0 where id=${lit(revoked.id)};`);
+sql(`insert into public.organization_members(organization_id,user_id,role) values (${lit(revoked.organization_id)},${lit(revoked.actor_id)},'owner');update private.operation_jobs set state='queued',available_at=now() where id=${lit(revoked.id)};`);
 equal(JSON.parse(auth(actors[0],`select public.operation_status(${lit(orgs[0])},${lit(jobIds[1])});`)),[],'status never reveals another tenant job');
 assert.throws(()=>auth(actors[0],`select public.operation_status(${lit(orgs[1])},null);`));checks++;
 for(const [role,table,privilege] of [['averomira_worker','private.operation_jobs','UPDATE'],['authenticated','private.operation_jobs','SELECT'],['averomira_worker','public.rfqs','INSERT']])equal(sql(`select has_table_privilege(${lit(role)},${lit(table)},${lit(privilege)})`),'f',`${role} has no direct ${privilege} on ${table}`);

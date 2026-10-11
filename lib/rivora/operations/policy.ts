@@ -19,7 +19,7 @@ export function classifyFailure(error: unknown): FailureCode {
   if (e?.status === 429) return "provider_rate";
   if (e?.status && e.status >= 500) return "provider_unavailable";
   if (e?.name === "AbortError" || e?.name === "TimeoutError" || e?.name === "APIConnectionTimeoutError") return "timeout";
-  if (["ECONNRESET","ECONNREFUSED","ENOTFOUND","ETIMEDOUT"].includes(String(e?.code)) || e?.name === "APIConnectionError") return "network";
+  if (["ECONNRESET","ECONNREFUSED","ENOTFOUND","ETIMEDOUT","EAI_AGAIN","ENETUNREACH"].includes(String(e?.code)) || e?.name === "APIConnectionError") return "network";
   if (["40001","40P01","08006","57P01"].includes(String(e?.code))) return "database";
   return "internal";
 }

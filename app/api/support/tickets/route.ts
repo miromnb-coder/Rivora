@@ -1,3 +1,4 @@
+import {assertSupportProducerEnvironment} from "@/lib/rivora/operations/support-producer";
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -247,6 +248,7 @@ export async function POST(request: Request) {
     }
 
     const admin = createAdminClient();
+    await assertSupportProducerEnvironment();
     const { data, error } = await admin.rpc("create_support_ticket_server", {
       target_actor_id: context.claims.sub,
       target_organization_id: context.workspace.id,
