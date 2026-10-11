@@ -43,6 +43,8 @@ function fakeDb(tables: Record<string, Row[]>) {
 test("S7 accepts only exact allowlisted UUID record paths and known settings", () => {
   assert.deepEqual(supportRecordTarget("/app/rfq/" + ID), {kind:"rfq",id:ID});
   assert.deepEqual(supportRecordTarget("/app/quotes/" + ID + "?tab=1"), {kind:"quote",id:ID});
+  assert.deepEqual(supportRecordTarget("/app/orders/case/po/" + ID), {kind:"purchase_order",id:ID});
+  assert.deepEqual(supportRecordTarget("/app/orders/case/sales/" + ID), {kind:"sales_order",id:ID});
   assert.equal(supportRecordTarget("/app/rfq/../../settings"), null);
   assert.equal(supportRecordTarget("/app/quotes/not-an-id"), null);
   assert.equal(supportRecordTarget("/app/support/operator/tickets"), null);
@@ -85,4 +87,40 @@ test("S7 only reads aggregate facts and requires explicit client opt-in", () => 
   assert.match(ui, /checked=\{useCurrentRecord\}/);
   assert.match(ui, /setUseCurrentRecord\(false\)/);
   assert.match(src, /Set supported=true only when the answer is directly supported/);
+});
+
+test("S7 only reports persisted PO exception counts, not raw exception text", async () => {
+  const x = fakeDb({
+    purchase_orders: [{id:ID,organization_id:ORG,status:"needs_review",raw_description:"private"}],
+    purchase_order_reconciliations: [{id:"a",purchase_order_id:ID,organization_id:ORG,status:"needs_review",header_review_status:"open"}],
+    purchase_order_reconciliation_lines: [
+      {reconciliation_id:"a",organization_id:ORG,review_status:"open",exception_codes:["qty_change"],po_snapshot:"sensitive"},
+      {reconciliation_id:"a",organization_id:ORG,review_status:"accepted",exception_codes:["price_change"],po_snapshot:"sensitive"},
+    ],
+  });
+  const evidence = await readSupportEvidence(x.db as never, ORG, "member", "/app/orders/case/po/" + ID);
+  assert.deepEqual(evidence?.facts, {
+    hasReconciliation: true, reconciliationStatus:"needs_review", headerReviewStatus:"open",
+    linesInspected:2, completeLineCount:true, linesWithExceptions:2, unreviewedLines:1,
+  });
+  assert.doesNotMatch(supportEvidenceExcerpt(evidence), /sensitive|price_change|qty_change/);
+});
+
+test("S7 returns only safe quote and ERP attempt statuses", async () => {
+  const quote = fakeDb({
+    quotes: [{id:ID,organization_id:ORG,status:"approved",delivery_status:"delivered",recipient_email:"secret@example.test"}],
+    quote_lines: [{quote_id:ID,pricing_required:false,unit_price:99999}],
+  });
+  const qe = await readSupportEvidence(quote.db as never, ORG, "member", "/app/orders/case/quote/" + ID);
+  assert.equal(qe?.status, "approved");
+  assert.equal(qe?.facts.pricingRequired, 0);
+  assert.doesNotMatch(supportEvidenceExcerpt(qe), /99999|secret@example/);
+
+  const erp = fakeDb({
+    sales_order_drafts: [{id:ID,organization_id:ORG,status:"erp_failed",erp_error:"private error detail"}],
+    erp_delivery_attempts: [{sales_order_draft_id:ID,organization_id:ORG,status:"failed"}],
+  });
+  const se = await readSupportEvidence(erp.db as never, ORG, "owner", "/app/sales-orders/" + ID);
+  assert.equal(se?.facts.latestAttemptStatus, "failed");
+  assert.doesNotMatch(supportEvidenceExcerpt(se), /private error/);
 });
