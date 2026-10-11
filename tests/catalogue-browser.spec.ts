@@ -64,8 +64,8 @@ test.beforeEach(() => {
 
 test("returning to file selection clears the retained file before re-upload", async ({ page }) => {
   await login(page);
-  await upload(page, "SKU;Name\\nSTALE;Old Item\\n", "previous.csv");
-  await expect(page.getByText(/previous\\.csv: 1 tuotetta/)).toBeVisible();
+  await upload(page, "SKU;Name\nSTALE;Old Item\n", "previous.csv");
+  await expect(page.getByText(/previous\.csv: 1 tuotetta/)).toBeVisible();
 
   await page.getByRole("button", { name: "Takaisin tiedoston valintaan" }).click();
   const input = page.getByLabel(/Katalogitiedosto/);
@@ -76,11 +76,11 @@ test("returning to file selection clears the retained file before re-upload", as
   await input.setInputFiles({
     name: "fresh.csv",
     mimeType: "text/csv",
-    buffer: Buffer.from("SKU;Name\\nNEW;Fresh Item\\n"),
+    buffer: Buffer.from("SKU;Name\nNEW;Fresh Item\n"),
   });
   await expect(inspect).toBeEnabled();
   await inspect.click();
-  await expect(page.getByText(/fresh\\.csv: 1 tuotetta/)).toBeVisible();
+  await expect(page.getByText(/fresh\.csv: 1 tuotetta/)).toBeVisible();
   await page.getByRole("button", { name: "Hyväksy kartta ja näytä muutokset" }).click();
   await expect(page.getByText("NEW — Lisätään", { exact: true })).toBeVisible();
   await expect(page.getByText("STALE — Lisätään", { exact: true })).toHaveCount(0);
