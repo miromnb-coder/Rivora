@@ -1,3 +1,5 @@
+import "./catalogue-import.css";
+import { CatalogueImport } from "@/components/CatalogueImport";
 import { FilePicker } from "@/components/FilePicker";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { formatLocale, getLocale } from "@/lib/locale";
@@ -110,18 +112,9 @@ export default async function UploadPage({
           <span className={productsReady ? "is-ready" : "is-waiting"}>{productsReady ? copy.ready : copy.setupRequired}</span>
         </div>
 
-        <form action="/api/catalogue/import" method="post" encType="multipart/form-data" className="upload-v2-catalogue-form">
-          <FilePicker
-            variant="compact"
-            name="catalogue"
-            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            title={productsReady ? copy.replaceCatalogue : copy.chooseCatalogue}
-            hint={copy.catalogueHint}
-            required
-            locale={locale}
-          />
-          <button className="upload-v2-secondary-btn">{productsReady ? copy.replace : copy.import}</button>
-        </form>
+        <div className="catalogue-guided-import">
+          <CatalogueImport maximumFileMegabytes={process.env.VERCEL ? 4 : 10} canImport={["owner", "admin"].includes(workspace.role)} />
+        </div>
       </section>
 
       <section className="upload-v2-primary">

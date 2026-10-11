@@ -1,5 +1,6 @@
 import { parse } from "csv-parse/sync";
 import ExcelJS from "exceljs";
+import { mapCatalogueTable, suggestCatalogueMapping } from "./catalogue-file.ts";
 
 type RawRow = Record<string, string>;
 
@@ -186,54 +187,27 @@ export function sourceTypeFromName(name: string): "csv" | "excel" {
 }
 
 export function toCatalogueRows(rows: RawRow[]): CatalogueImportRow[] {
-  if (rows.length > MAX_CATALOGUE_ROWS) {
-    throw new Error(`Catalogue has too many rows. Maximum is ${MAX_CATALOGUE_ROWS.toLocaleString("en-US")}.`);
+  if (!rows.length || rows.length > MAX_CATALOGUE_ROWS)
+    throw new Error("Katalogissa tulee olla 1–25 000 tuotetta.");
+  const headers = Object.keys(rows[0]);
+  const result = mapCatalogueTable(
+    {
+      headers,
+      rows: rows.map((row) => headers.map((h) => row[h] ?? "")),
+      rowNumbers: rows.map((_, index) => index + 2),
+      delimiter: null,
+      format: "csv",
+      hash: "",
+    },
+    suggestCatalogueMapping(headers),
+  );
+  if (result.issues.length) {
+    const issue = result.issues[0];
+    throw new Error(
+      `Rivi ${issue.row}, sarake ${issue.column}, arvo "${issue.value}": ${issue.reason} ${issue.correction}`,
+    );
   }
-  if (!rows.length) {
-    throw new Error("Catalogue file has no product rows.");
-  }
-
-  return rows.map((row, index) => {
-    const sku = pick(row, ["sku", "product code", "item code", "item number", "tuotenumero", "nimike"]);
-    const name = pick(row, ["name", "product name", "description", "tuotenimi", "kuvaus"]);
-    if (!sku || !name) {
-      throw new Error(`Catalogue row ${index + 2} is missing SKU or product name.`);
-    }
-
-    const unitPrice = parseNumber(pick(row, ["price", "unit price", "sales price", "hinta"]));
-    if (unitPrice != null && unitPrice < 0) {
-      throw new Error(`Catalogue row ${index + 2} has a negative unit price.`);
-    }
-
-    const stockAliases = [
-      "stock",
-      "stock quantity",
-      "stock qty",
-      "stock_qty",
-      "available",
-      "inventory",
-      "saldo",
-      "varasto",
-      "varastomäärä",
-    ];
-    const stockQuantityProvided = hasHeader(row, stockAliases);
-    const stockQuantity = parseNumber(pick(row, stockAliases));
-    if (stockQuantity != null && stockQuantity < 0) {
-      throw new Error(`Catalogue row ${index + 2} has a negative stock quantity.`);
-    }
-
-    return {
-      sku,
-      name,
-      manufacturer: pick(row, ["manufacturer", "brand", "valmistaja"]) || null,
-      manufacturerPartNumber:
-        pick(row, ["manufacturer part number", "mpn", "manufacturer sku", "valmistajan tuotenumero"]) || null,
-      unit: pick(row, ["unit", "uom", "yksikkö"]) || "pcs",
-      unitPrice,
-      stockQuantity,
-      stockQuantityProvided,
-    };
-  });
+  return result.rows;
 }
 
 export function toRfqRows(rows: RawRow[]): RfqImportRow[] {

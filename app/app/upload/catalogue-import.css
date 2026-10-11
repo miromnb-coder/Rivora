@@ -1,0 +1,68 @@
+.upload-v2-setup > .catalogue-guided-import {
+  grid-column: 1 / -1;
+  display: block;
+  min-width: 0;
+  width: 100%;
+  margin-top: 12px;
+}
+.catalogue-guided-import input:not([type="radio"]):not([type="checkbox"]),
+.catalogue-guided-import select {
+  max-width: 100%;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-sm, 6px);
+  background: #fff;
+  color: var(--app-ink);
+}
+.catalogue-guided-import button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.catalogue-guided-import :focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: 3px;
+}
+
+.catalogue-guided-import [aria-current="step"] {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 640px) {
+  .catalogue-mapping-table,
+  .catalogue-mapping-table caption,
+  .catalogue-mapping-table tbody,
+  .catalogue-mapping-table tr,
+  .catalogue-mapping-table td {
+    display: block;
+    width: 100%;
+    max-width: none;
+  }
+
+  .catalogue-mapping-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .catalogue-mapping-table tr {
+    border-bottom: 1px solid var(--app-line);
+    padding: 8px 0;
+  }
+
+  .catalogue-mapping-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .catalogue-mapping-table select {
+    width: 100%;
+  }
+}

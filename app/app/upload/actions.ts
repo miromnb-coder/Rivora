@@ -6,7 +6,6 @@ import { requireWorkspace } from "@/lib/rivora/workspace";
 import {
   parseTabularFile,
   sourceTypeFromName,
-  toCatalogueRows,
   toRfqRows,
 } from "@/lib/rivora/imports";
 import { extractRfqFromPdf } from "@/lib/rivora/openai-rfq";
@@ -34,84 +33,10 @@ async function upsertCustomer(
   return data;
 }
 
-export async function importCatalogue(formData: FormData) {
-  const file = formData.get("catalogue");
-  let failure: string | null = null;
-  let summary = { total: 0, created: 0, updated: 0, missingPrice: 0, deactivated: 0 };
-
-  try {
-    if (!(file instanceof File)) throw new Error("Choose a catalogue file.");
-    const { supabase, workspace } = await requireWorkspace();
-    if (!["owner", "admin"].includes(workspace.role)) {
-      throw new Error("Owner or admin access is required to import the product catalogue.");
-    }
-
-    const rows = toCatalogueRows(await parseTabularFile(file));
-
-    // A catalogue import is allowed to omit stock entirely. In that case keep
-    // the existing value instead of silently replacing it with null.
-    const existingStock = new Map<string, number | null>();
-    const skus = [...new Set(rows.map((row) => row.sku))];
-    for (let index = 0; index < skus.length; index += 200) {
-      const batch = skus.slice(index, index + 200);
-      const { data: existingProducts, error: existingError } = await supabase
-        .from("products")
-        .select("sku,stock_quantity")
-        .eq("organization_id", workspace.id)
-        .in("sku", batch);
-      if (existingError) throw existingError;
-      for (const product of existingProducts ?? []) {
-        existingStock.set(
-          String(product.sku).toLowerCase(),
-          product.stock_quantity == null ? null : Number(product.stock_quantity),
-        );
-      }
-    }
-
-    const payload = rows.map((row) => ({
-      sku: row.sku,
-      name: row.name,
-      manufacturer: row.manufacturer,
-      manufacturer_part_number: row.manufacturerPartNumber,
-      unit: row.unit,
-      unit_price: row.unitPrice,
-      stock_quantity: row.stockQuantityProvided
-        ? row.stockQuantity
-        : existingStock.get(row.sku.toLowerCase()) ?? null,
-    }));
-
-    const { data, error } = await supabase.rpc("import_catalogue_rows", {
-      target_organization_id: workspace.id,
-      payload,
-    });
-
-    if (error) throw error;
-
-    const result = (data ?? {}) as {
-      total?: number;
-      created?: number;
-      updated?: number;
-      missing_price?: number;
-      deactivated?: number;
-    };
-
-    summary = {
-      total: Number(result.total ?? rows.length),
-      created: Number(result.created ?? 0),
-      updated: Number(result.updated ?? 0),
-      missingPrice: Number(result.missing_price ?? rows.filter((row) => row.unitPrice == null).length),
-      deactivated: Number(result.deactivated ?? 0),
-    };
-  } catch (error) {
-    failure = errorMessage(error);
-  }
-
-  if (failure) redirect(`/app/upload?catalogueError=${encodeURIComponent(failure)}`);
-
-  revalidatePath("/app/products");
-  redirect(
-    `/app/upload?catalogueImported=${summary.total}&catalogueCreated=${summary.created}&catalogueUpdated=${summary.updated}&catalogueMissingPrice=${summary.missingPrice}&catalogueDeactivated=${summary.deactivated}`
-  );
+// Legacy server-action entry point now directs users to the shared guided flow.
+export async function importCatalogue(_formData: FormData) {
+  await requireWorkspace();
+  redirect("/app/upload?catalogueError=" + encodeURIComponent("Käytä ohjattua katalogituontia ja vahvista esikatselu."));
 }
 
 export async function processRfq(formData: FormData) {

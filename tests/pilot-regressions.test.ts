@@ -37,11 +37,11 @@ test("catalogue parser accepts stock_qty without silently dropping stock", () =>
 test("catalogue parser rejects unsafe commercial rows", () => {
   assert.throws(
     () => toCatalogueRows([{ SKU: "BAD-1", Name: "Bad", Price: "-1" }]),
-    /negative unit price/
+    /Negatiivinen arvo/
   );
   assert.throws(
     () => toCatalogueRows([{ SKU: "", Name: "Missing SKU" }]),
-    /missing SKU or product name/
+    /SKU puuttuu/
   );
 });
 
