@@ -121,7 +121,8 @@ test("S1 Help Center is mounted globally in the authenticated app shell", () => 
   assert.match(appShell, /SupportCenter/);
   assert.match(appShell, /<SupportCenter locale=\{locale\}/);
   assert.match(supportCenter, /support-launcher/);
-  assert.match(supportCenter, /Miten voimme auttaa\?/);
+  assert.match(supportCenter, /Averomira AI/);
+  assert.doesNotMatch(supportCenter, /Miten voimme auttaa\?/);
   assert.match(supportCenter, /Lähetä tukipyyntö/);
   assert.match(supportCenter, /Kuvakaappaus \(valinnainen\)/);
 });
