@@ -1,3 +1,5 @@
+import { DocumentIntake } from "@/components/operations/DocumentIntake";
+import { operationsEnabled } from "@/lib/rivora/operations/policy";
 import Link from "next/link";
 import { FilePicker } from "@/components/FilePicker";
 import { formatLocale, getLocale } from "@/lib/locale";
@@ -126,7 +128,7 @@ export default async function PurchaseOrdersPage({
             </span>
           </div>
 
-          <form action={processPdfPurchaseOrder} className="mt-6 space-y-4">
+          {operationsEnabled() && process.env.AVEROMIRA_DOCUMENT_QUEUE_ENABLED === "true" ? <DocumentIntake fi={locale === "fi"} type="po_pdf_process" quotes={quoteOptions.map((q: any) => ({id: String(q.id), label: String(q.quote_number || q.id)}))} /> : (<form action={processPdfPurchaseOrder} className="mt-6 space-y-4">
             <label className="block">
               <span className="text-sm font-semibold">
                 {fi ? "Linkitä tarjoukseen" : "Link to quote"}{" "}
@@ -189,7 +191,7 @@ export default async function PurchaseOrdersPage({
             >
               {fi ? "Käsittele ostotilaus" : "Process purchase order"} <span aria-hidden="true">→</span>
             </button>
-          </form>
+          </form>)}
         </section>
 
         <section className="surface p-6">

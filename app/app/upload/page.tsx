@@ -1,3 +1,5 @@
+import { DocumentIntake } from "@/components/operations/DocumentIntake";
+import { operationsEnabled } from "@/lib/rivora/operations/policy";
 import "./catalogue-import.css";
 import { CatalogueImport } from "@/components/CatalogueImport";
 import { FilePicker } from "@/components/FilePicker";
@@ -129,7 +131,7 @@ export default async function UploadPage({
           </span>
         </div>
 
-        <form action={processPdfRfq} className="upload-v2-form">
+        {operationsEnabled() && process.env.AVEROMIRA_DOCUMENT_QUEUE_ENABLED === "true" ? <DocumentIntake fi={locale === "fi"} type="rfq_pdf_process" /> : (<form action={processPdfRfq} className="upload-v2-form">
           <div className="upload-v2-fields">
             <label>
               <span>{copy.customerOverride} <em>{copy.optional}</em></span>
@@ -151,7 +153,7 @@ export default async function UploadPage({
             </button>
             {!productsReady ? <p>{copy.importFirst}</p> : !openAiReady ? <p>{copy.addKey}</p> : <p>{copy.flow}</p>}
           </div>
-        </form>
+        </form>)}
       </section>
 
       <section className="upload-v2-structured">
