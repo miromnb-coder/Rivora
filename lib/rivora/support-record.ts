@@ -123,7 +123,7 @@ export async function readSupportEvidence(
         linesWithExceptions: lines.slice(0, MAX_LINES).filter(line =>
           Array.isArray(line.exception_codes) && line.exception_codes.length > 0).length,
         unreviewedLines: lines.slice(0, MAX_LINES).filter(line =>
-          line.review_status !== "confirmed" && line.review_status !== "approved").length,
+          line.review_status === "open").length,
       },
     };
   }
