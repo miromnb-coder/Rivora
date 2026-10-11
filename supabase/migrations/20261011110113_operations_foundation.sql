@@ -97,7 +97,7 @@ begin
  if not p_type=any(l.enabled_types) then raise exception 'OPERATION_DISABLED'; end if;
  select * into l from private.operation_limits where scope_id=p_org for update;
  if not found or not p_type=any(l.enabled_types) then raise exception 'OPERATION_DISABLED'; end if;
- if (select count(*) from private.operation_uploads where organization_id=p_org and expires_at>now())>=l.max_queued then raise exception 'OPERATION_QUEUE_LIMIT'; end if;
+ if (select count(*) from private.operation_uploads where organization_id=p_org and id<>p_id and expires_at>now() and not exists(select 1 from private.operation_jobs j where j.id=operation_uploads.id))>=l.max_queued then raise exception 'OPERATION_QUEUE_LIMIT'; end if;
  insert into private.operation_uploads(id,organization_id,actor_id,type,input_ref,metadata)
  values(p_id,p_org,a,p_type,p_org::text||'/'||p_id::text||'.pdf',p_metadata) on conflict(id) do nothing;
  select * into u from private.operation_uploads where id=p_id;

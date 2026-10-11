@@ -32,6 +32,7 @@ export async function POST(request:Request) {
   const {data,error}=await c.supabase.storage.from("operation-inputs").download(`${org}/${id}.pdf`);
   if(error || !data) throw new Error();
   const checked=await validateOperationPdf(new Uint8Array(await data.arrayBuffer()));
+  if(input.expectedHash!==checked.hash) throw new Error();
   const {data:job,error:jobError}=await c.supabase.rpc("enqueue_document_operation",{p_org:org,p_id:id,p_hash:checked.hash,p_size:checked.size,p_pages:checked.pages});
   if(jobError || !job) throw new Error();
   return Response.json({jobId:job,statusUrl:`/api/operations/jobs/${job}`},{status:202,headers});

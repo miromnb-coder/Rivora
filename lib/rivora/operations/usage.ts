@@ -1,6 +1,6 @@
 import { OperationError } from "./policy.ts";
 export type Pricing = { model: string; version: string; inputUsdPerMillion: number; outputUsdPerMillion: number; reservationMicroUsd: number; maxOutputTokens: number };
-export function operationPricing(type: string, env: NodeJS.ProcessEnv = process.env): Pricing {
+export function operationPricing(type: string, env: Record<string,string|undefined> = process.env): Pricing {
   // No invented provider prices or customer contract budgets. Explicit reviewed configuration.
   let value: Pricing;
   try { value = JSON.parse(env.AVEROMIRA_AI_PRICING_JSON ?? "")[type]; } catch { throw new OperationError("config"); }

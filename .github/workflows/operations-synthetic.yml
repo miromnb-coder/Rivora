@@ -14,6 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: sudo apt-get update && sudo apt-get install -y ripgrep
       - name: Start isolated synthetic PostgreSQL
         run: docker run --name averomira-catalogue-test -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres:17.6
       - name: Wait for local database

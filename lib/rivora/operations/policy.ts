@@ -32,7 +32,7 @@ export function failurePolicy(code: FailureCode, type: string, attempt: number, 
   if (!DOCUMENT_TYPES.includes(type as DocumentType) && type !== "support_notification" && type !== "incident_notification" && type !== "email_reconcile") return { state: "needs_review" as const, delay: 0 };
   return { state: "retry_wait" as const, delay: Math.ceil([30,120,600][Math.min(2,attempt-1)] * (0.8 + Math.max(0,Math.min(1,random()))*0.4)) };
 }
-export function operationsEnabled(env: NodeJS.ProcessEnv = process.env) {
+export function operationsEnabled(env: Record<string,string|undefined> = process.env) {
   return env.AVEROMIRA_OPERATIONS_ENABLED === "true" && env.VERCEL_ENV === "production"
     && env.VERCEL_PROJECT_ID === "prj_69utcxbvaCPDSle5W3zptTa946rv";
 }

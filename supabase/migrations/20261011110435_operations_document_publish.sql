@@ -25,7 +25,7 @@ begin
  if j.stage<>'extraction_persisted' or j.checkpoint is null then raise exception 'OPERATION_NO_CHECKPOINT'; end if;
  e:=j.checkpoint->'extraction';warnings:=coalesce(e->'warnings','[]'::jsonb);
  if (j.type='rfq_pdf_process' and e->>'document_type'<>'rfq') or (j.type='po_pdf_process' and e->>'document_type'<>'purchase_order') or j.type not in('rfq_pdf_process','po_pdf_process') then raise exception 'OPERATION_INVALID_EXTRACTION'; end if;
- if jsonb_typeof(e->'lines')<>'array' or jsonb_array_length(e->'lines') not between 1 and case when j.type='rfq_pdf_process' then 1000 else 2000 end then raise exception 'OPERATION_INVALID_EXTRACTION'; end if;
+ if jsonb_typeof(e->'lines')<>'array' or jsonb_array_length(e->'lines') not between 1 and (case when j.type='rfq_pdf_process' then 1000 else 2000 end) then raise exception 'OPERATION_INVALID_EXTRACTION'; end if;
  customer:=left(trim(coalesce(nullif(j.metadata->>'customerName',''),e->>'customer_name','')),200);
  if j.type='po_pdf_process' and nullif(j.metadata->>'quoteId','') is not null then
  select * into q from public.quotes where id=(j.metadata->>'quoteId')::uuid and organization_id=j.organization_id for share;
