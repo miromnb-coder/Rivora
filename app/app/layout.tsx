@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/AppShell";
 import "./navigation.css";
+import "./support-s5.css";
+import "./field-focus.css";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { canManageWorkspaceFeature } from "@/lib/rivora/features";
@@ -39,6 +41,7 @@ export default async function ProductLayout({ children }: { children: React.Reac
         locale={locale}
         leadsEnabled={leadsEnabled}
         supportOperator={supportOperator}
+        supportRecordEnabled={process.env.AVEROMIRA_SUPPORT_RECORD_CONTEXT_ENABLED === "true"}
       >
         {children}
       </AppShell>

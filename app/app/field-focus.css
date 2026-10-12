@@ -1,0 +1,40 @@
+/* Unified focus treatment for fields in the authenticated app.
+   Previously each text field could receive three simultaneously visible
+   focus indications (border + 3px shadow + 2px outline).
+   Keep one high-contrast border as the visible focus indicator instead.
+   Interactive links, buttons, checkboxes, radios and file inputs retain
+   their accessible browser/app keyboard-focus outlines. */
+.app-shell-v2 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):focus,
+.app-shell-v2 select:focus,
+.app-shell-v2 textarea:focus,
+.app-shell-v2 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):focus-visible,
+.app-shell-v2 select:focus-visible,
+.app-shell-v2 textarea:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border-color: #5c665e !important;
+}
+
+/* Support Help article search is a composite field: the outer search box
+   supplies the ONLY border. The nested input must remain borderless,
+   including focus and focus-visible, regardless of global app styles. */
+.app-shell-v2 .support-center-panel .support-search input,
+.app-shell-v2 .support-center-panel .support-search input:focus,
+.app-shell-v2 .support-center-panel .support-search input:focus-visible {
+  border: 0 !important;
+  border-color: transparent !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  min-height: 0;
+}
+.app-shell-v2 .support-center-panel .support-search:focus-within {
+  border-color: #5c665e;
+  box-shadow: none;
+}
+
+/* Other support sections contain standalone fields with their own borders.
+   They inherit the single-border focus indicator above. */

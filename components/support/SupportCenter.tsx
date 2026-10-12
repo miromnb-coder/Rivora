@@ -7,16 +7,14 @@ import type { Locale } from "@/lib/locale";
 import { supportContextForPath } from "@/lib/rivora/support-context";
 import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
 import { SupportTicketTracker } from "@/components/support/SupportTicketTracker";
+import { helpArticles, type HelpArticle } from "@/lib/rivora/support-knowledge";
+import { SupportQuickPrompts } from "./SupportQuickPrompts";
+import { supportEscalationDraft } from "@/lib/rivora/support-escalation";
 
-type HelpArticle = {
-  id: string;
-  title: string;
-  summary: string;
-  body: string[];
-};
 
 type PanelView =
   | { kind: "home" }
+  | { kind: "help" }
   | { kind: "article"; articleId: string }
   | { kind: "contact" }
   | { kind: "tickets" }
@@ -32,256 +30,13 @@ type SupportAiMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
+  path?: string;
+  requestId?: string;
+  recordVerified?: boolean;
   supported?: boolean;
   articleIds?: string[];
 };
 
-const helpArticles: Record<Locale, HelpArticle[]> = {
-  fi: [
-    {
-      id: "new-rfq",
-      title: "Uuden tarjouspyynnön lisääminen",
-      summary: "Näin tuot asiakkaan RFQ:n Averomiraan.",
-      body: [
-        "Avaa Työpöydältä Uusi tarjouspyyntö. Valitse asiakas ja lisää tarjouspyynnön tiedosto.",
-        "Averomira jäsentää tarjouspyynnön riveiksi ja vie sen tarkistukseen ennen kuin kaupallinen työ jatkuu.",
-        "Tarkista aina poimitut määrät, tunnisteet ja epävarmat rivit ennen hyväksymistä.",
-      ],
-    },
-    {
-      id: "rfq-review",
-      title: "RFQ Review ja tuoteosumat",
-      summary: "Mitä tehdä, kun rivi vaatii tarkistuksen.",
-      body: [
-        "RFQ Review näyttää asiakkaan pyytämän rivin, ehdotetun tuotteen ja osuman perusteen.",
-        "Epävarma tai muistista tullut osuma ei ohita ihmisen tarkistusta. Vahvista oikea tuote ennen tarjouksen jatkamista.",
-        "Jos oikeaa tuotetta ei löydy katalogista, tarkista ensin tuotetiedot tai lisää tuote katalogiin yrityksesi prosessin mukaisesti.",
-      ],
-    },
-    {
-      id: "catalogue",
-      title: "Tuotekatalogi",
-      summary: "Tuotteiden lisääminen ja tuotetietojen ylläpito.",
-      body: [
-        "Tuotteet-näkymässä ylläpidetään Averomiran käyttämää tuotekatalogia.",
-        "Pidä SKU, nimi ja mahdollinen valmistajan tuotenumero ajan tasalla, jotta tuoteosumat toimivat mahdollisimman luotettavasti.",
-        "Katalogimuutokset eivät saa korvata jo hyväksytyn tarjouksen kaupallisia tietoja jälkikäteen.",
-      ],
-    },
-    {
-      id: "quotes",
-      title: "Tarjouksen tarkistus ja lähetys",
-      summary: "Mitä tarkistaa ennen asiakkaalle lähettämistä.",
-      body: [
-        "Tarkista tuotteet, määrät, hinnat, alennukset, voimassaoloaika ja vastaanottaja ennen hyväksymistä.",
-        "Averomira estää keskeneräisen hinnoittelun viemisen hyväksyttyyn tarjoukseen.",
-        "Hyväksymisen jälkeen kaupalliset tiedot lukitaan prosessin eheyden säilyttämiseksi.",
-      ],
-    },
-    {
-      id: "purchase-order",
-      title: "Ostotilauksen tarkistaminen",
-      summary: "Näin käsittelet asiakkaan PO:n ja tarjouspoikkeamat.",
-      body: [
-        "Averomira vertaa ostotilausta tarjoukseen ja nostaa päätöstä vaativat erot näkyviin.",
-        "Tarkista erityisesti tuote, määrä, hinta, valuutta ja mahdollinen tarjousviite.",
-        "Poikkeama kannattaa ratkaista ennen ERP-valmiin tilauksen muodostamista.",
-      ],
-    },
-    {
-      id: "business-central",
-      title: "Microsoft Business Central",
-      summary: "Yhteys, vastineet ja ERP-valmis tilaus.",
-      body: [
-        "Business Central -integraatio tarvitsee oikean ympäristön, käyttöoikeudet sekä asiakkaiden ja tuotteiden vastineet.",
-        "Jos työjonossa näkyy Täydennä Business Central -vastineet, avaa tehtävä ja täydennä puuttuvat ERP-vastineet ennen etenemistä.",
-        "Averomira ei arvaa puuttuvia vastineita hiljaisesti.",
-      ],
-    },
-    {
-      id: "smart-memory",
-      title: "Älykäs muisti",
-      summary: "Miten vahvistettuja tuotevastineita käytetään uudelleen.",
-      body: [
-        "Älykäs muisti voi hyödyntää aiemmin vahvistettuja asiakaskohtaisia tuotevastineita.",
-        "Vain vahvistettua muistia saa käyttää uudelleen. Muistista tullut ehdotus pysyy silti käyttäjän tarkistettavana.",
-        "Muistin tietoja voi tarkastella Asetukset-valikon Älykäs muisti -kohdasta.",
-      ],
-    },
-    {
-      id: "rfq-why-review",
-      title: "Miksi tuoterivi jäi tarkistettavaksi?",
-      summary: "Miten Averomira päättää, mikä vaatii ihmisen vahvistuksen.",
-      body: [
-        "Rivi jää tarkistettavaksi, kun Averomira ei voi vahvistaa tuotetta turvallisesti ilman ihmisen päätöstä tai kun prosessin käytäntö vaatii erillisen vahvistuksen.",
-        "Tarkka SKU-osuma tai muistettu vastine voi nostaa oikean tuotteen vahvaksi ehdokkaaksi, mutta se ei ohita RFQ Review -vahvistusta.",
-        "Tarkista asiakkaan tunniste, kuvaus, määrä ja ehdotetun tuotteen tiedot. Vahvista vasta, kun ehdotus vastaa asiakkaan pyyntöä.",
-      ],
-    },
-    {
-      id: "business-central-client-id",
-      title: "Mistä löydän Business Centralin Client ID:n?",
-      summary: "Application (client) ID löytyy Microsoft Entra -sovellusrekisteröinnistä.",
-      body: [
-        "Avaa Microsoft Entra -hallinnassa se App registration, jota Averomiran Business Central -yhteys käyttää.",
-        "Avaa sovelluksen Overview / Yleiskatsaus. Kopioi Application (client) ID -arvo Averomiran Business Central -asetuksiin.",
-        "Client ID ei ole sama asia kuin Client Secret. Älä lähetä Client Secretiä tukipyyntöön tai kuvakaappaukseen.",
-      ],
-    },
-    {
-      id: "business-central-mapping",
-      title: "Miksi Business Central -vastine puuttuu?",
-      summary: "Asiakas tai tuote tarvitsee vahvistetun ERP-vastineen ennen vientiä.",
-      body: [
-        "Averomira tarvitsee Business Centralissa käytettävän asiakasnumeron ja item-numeron ennen ERP-valmiin tilauksen vientiä.",
-        "Jos vastine puuttuu tai sitä ei ole vielä vahvistettu, työjono näyttää tehtävän Täydennä Business Central -vastineet.",
-        "Täytä tai tarkista vastine Business Central -vastineet -näkymässä. Averomira ei korvaa puuttuvaa ERP-tunnistetta arvaamalla.",
-      ],
-    },
-    {
-      id: "po-exceptions",
-      title: "Mitä ostotilauksen poikkeama tarkoittaa?",
-      summary: "Näin tulkitset PO:n ja hyväksytyn tarjouksen erot.",
-      body: [
-        "PO-tarkistus vertaa asiakkaan ostotilausta hyväksyttyyn tarjoukseen ja nostaa esiin kohdat, joissa tiedot eivät vastaa toisiaan.",
-        "Poikkeama voi liittyä esimerkiksi tuotteeseen, määrään, hintaan, valuuttaan tai tarjousviitteeseen.",
-        "Tarkista poikkeaman lähdetiedot ja tee päätös ennen hyväksyntää. ERP-valmis tilaus muodostetaan vasta tarkistetusta reconciliationista.",
-      ],
-    },
-    {
-      id: "quote-locking",
-      title: "Miksi tarjouksen tiedot ovat lukittu?",
-      summary: "Hyväksyntä lukitsee kaupalliset tiedot prosessin eheyden vuoksi.",
-      body: [
-        "Kun tarjous hyväksytään, Averomira lukitsee keskeiset kaupalliset tiedot, jotta hyväksytty sisältö ei muutu huomaamatta.",
-        "Jos tarjous on vielä Ready-tilassa ja tarvitsee muutoksia, palauta se luonnokseksi ennen hyväksyntää.",
-        "Jo lähetetyn tarjouksen muuttamisen sijaan käsittele tarvittava muutos yrityksesi hyväksytyn prosessin mukaisesti.",
-      ],
-    },
-  ],
-  en: [
-    {
-      id: "new-rfq",
-      title: "Add a new RFQ",
-      summary: "Bring a customer RFQ into Averomira.",
-      body: [
-        "From the dashboard, choose New RFQ, select the customer and add the RFQ file.",
-        "Averomira structures the request into line items and routes it to review before commercial work continues.",
-        "Always review extracted quantities, identifiers and uncertain lines before approval.",
-      ],
-    },
-    {
-      id: "rfq-review",
-      title: "RFQ Review and product matches",
-      summary: "What to do when a line needs review.",
-      body: [
-        "RFQ Review shows the requested line, the suggested product and why it was suggested.",
-        "An uncertain or remembered match never bypasses human review. Confirm the correct product before continuing.",
-        "If the right item is missing, review or update the product catalogue according to your company process.",
-      ],
-    },
-    {
-      id: "catalogue",
-      title: "Product catalogue",
-      summary: "Add and maintain product data.",
-      body: [
-        "The Products view contains the catalogue Averomira uses for matching.",
-        "Keep SKU, product name and manufacturer part number current to improve matching quality.",
-        "Catalogue changes must not silently rewrite commercial data on an already approved quote.",
-      ],
-    },
-    {
-      id: "quotes",
-      title: "Review and send a quote",
-      summary: "What to verify before sending a quote.",
-      body: [
-        "Review products, quantities, prices, discounts, validity and recipient before approval.",
-        "Averomira prevents incomplete pricing from moving into an approved quote.",
-        "After approval, core commercial fields are locked to preserve process integrity.",
-      ],
-    },
-    {
-      id: "purchase-order",
-      title: "Review a purchase order",
-      summary: "Handle customer POs and quote differences.",
-      body: [
-        "Averomira compares the purchase order with the quote and surfaces differences that require a decision.",
-        "Review product, quantity, price, currency and quote reference in particular.",
-        "Resolve material differences before preparing the ERP-ready order.",
-      ],
-    },
-    {
-      id: "business-central",
-      title: "Microsoft Business Central",
-      summary: "Connection, mappings and ERP-ready orders.",
-      body: [
-        "Business Central requires the correct environment, permissions and customer/product mappings.",
-        "If the work queue shows Complete Business Central mappings, open the task and complete the missing ERP mappings.",
-        "Averomira does not silently guess missing mappings.",
-      ],
-    },
-    {
-      id: "smart-memory",
-      title: "Smart memory",
-      summary: "How confirmed product mappings are reused.",
-      body: [
-        "Smart memory can reuse customer-specific product mappings that were confirmed earlier.",
-        "Only verified memory can be reused, and a remembered suggestion still remains reviewable by the user.",
-        "Memory entries can be reviewed under Settings > Smart memory.",
-      ],
-    },
-    {
-      id: "rfq-why-review",
-      title: "Why does this product line need review?",
-      summary: "How Averomira decides what needs human confirmation.",
-      body: [
-        "A line stays in review when Averomira cannot safely confirm the product without a human decision or when the workflow policy requires explicit confirmation.",
-        "An exact SKU match or remembered mapping can make a product a strong candidate, but it does not bypass RFQ Review confirmation.",
-        "Check the customer identifier, description, quantity and suggested product details. Confirm only when the suggestion matches the customer's request.",
-      ],
-    },
-    {
-      id: "business-central-client-id",
-      title: "Where do I find the Business Central Client ID?",
-      summary: "The Application (client) ID is in the Microsoft Entra app registration.",
-      body: [
-        "Open the App registration in Microsoft Entra that your Averomira Business Central connection uses.",
-        "Open the app's Overview page and copy the Application (client) ID into the Business Central settings in Averomira.",
-        "The Client ID is not the Client Secret. Do not include a Client Secret in a support request or screenshot.",
-      ],
-    },
-    {
-      id: "business-central-mapping",
-      title: "Why is a Business Central mapping missing?",
-      summary: "A customer or product needs a verified ERP mapping before export.",
-      body: [
-        "Averomira needs the Business Central customer number and item number used by the ERP before an ERP-ready order can be exported.",
-        "If a mapping is missing or not yet verified, the work queue shows a Complete Business Central mappings task.",
-        "Complete or verify the mapping in the Business Central mappings view. Averomira does not guess missing ERP identifiers.",
-      ],
-    },
-    {
-      id: "po-exceptions",
-      title: "What does a purchase-order exception mean?",
-      summary: "How to interpret differences between the PO and approved quote.",
-      body: [
-        "PO review compares the customer's purchase order with the approved quote and surfaces fields that do not match.",
-        "An exception can involve the product, quantity, price, currency or quote reference.",
-        "Review the source values and make the decision before approval. The ERP-ready order is created only from a reviewed reconciliation.",
-      ],
-    },
-    {
-      id: "quote-locking",
-      title: "Why are quote fields locked?",
-      summary: "Approval locks commercial data to preserve process integrity.",
-      body: [
-        "When a quote is approved, Averomira locks core commercial fields so approved content cannot change silently.",
-        "If a quote is still Ready and needs changes, return it to draft before approval.",
-        "For an already sent quote, handle the required change through your company's approved commercial process instead of silently rewriting the sent quote.",
-      ],
-    },
-  ],
-};
 
 function HelpIcon() {
   return (
@@ -352,7 +107,7 @@ function HeadsetIcon() {
   );
 }
 
-export function SupportCenter({ locale }: { locale: Locale }) {
+export function SupportCenter({ locale, recordContextAvailable }: { locale: Locale; recordContextAvailable: boolean }) {
   const fi = locale === "fi";
   const pathname = usePathname();
   const articles = helpArticles[locale];
@@ -373,14 +128,21 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [aiQuestion, setAiQuestion] = useState("");
+  const [useCurrentRecord, setUseCurrentRecord] = useState(false);
+  const [escalationReview, setEscalationReview] = useState(false);
   const [aiMessages, setAiMessages] = useState<SupportAiMessage[]>([]);
   const [aiAsking, setAiAsking] = useState(false);
   const [aiSent, setAiSent] = useState(false);
   const [aiError, setAiError] = useState("");
   const [supportUnreadCount, setSupportUnreadCount] = useState(0);
-  const [showHelpLibrary, setShowHelpLibrary] = useState(false);
+  const [contextChanged, setContextChanged] = useState(false);
+  const [articleReturnView, setArticleReturnView] = useState<"home" | "help">("home");
   const searchRef = useRef<HTMLInputElement>(null);
-  const aiInputRef = useRef<HTMLInputElement>(null);
+  const aiInputRef = useRef<HTMLTextAreaElement>(null);
+  const aiThreadRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const aiSuccessTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const previousPathRef = useRef(pathname);
@@ -439,10 +201,13 @@ export function SupportCenter({ locale }: { locale: Locale }) {
   useEffect(() => {
     if (previousPathRef.current === pathname) return;
     previousPathRef.current = pathname;
+    // Keep the thread visible across navigation; previous records are never
+    // reused as AI history for the current record.
     setAiQuestion("");
-    setAiMessages([]);
+    setUseCurrentRecord(false);
     setAiSent(false);
     setAiError("");
+    setContextChanged(aiMessages.length > 0);
   }, [pathname]);
 
   useEffect(() => {
@@ -461,6 +226,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       window.clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
     }
+    if (!open && typeof document !== "undefined") previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setClosing(false);
     setOpen(true);
   }
@@ -478,6 +244,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         setOpen(false);
         setClosing(false);
         closeTimerRef.current = null;
+        const returnTo = previousFocusRef.current?.isConnected ? previousFocusRef.current : launcherRef.current;
+        returnTo?.focus();
       },
       reducedMotion ? 0 : 180,
     );
@@ -502,7 +270,25 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeSupport();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeSupport();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const items = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])',
+      )).filter((item) => item.getClientRects().length > 0);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!dialogRef.current.contains(document.activeElement)) {
+        event.preventDefault(); first.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
     };
 
     document.addEventListener("keydown", onKeyDown);
@@ -519,42 +305,24 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     };
   }, [open, view.kind]);
 
+  useEffect(() => {
+    if (aiThreadRef.current) {
+      aiThreadRef.current.scrollTop = aiThreadRef.current.scrollHeight;
+    }
+  }, [aiMessages, aiAsking]);
+
   function openContact() {
     setView({ kind: "contact" });
     setFormError("");
   }
 
   function openContactFromAi() {
-    const lastUser = [...aiMessages].reverse().find((item) => item.role === "user");
-    const conversation = aiMessages
-      .slice(-6)
-      .map((item) =>
-        `${item.role === "user" ? (fi ? "Käyttäjä" : "User") : "Averomira AI"}: ${item.text}`,
-      )
-      .join("\n\n");
-
+    const draft = supportEscalationDraft(aiMessages, pathname, locale);
     if (pathname.includes("business-central")) setCategory("integration");
     else setCategory("product");
-
-    const fallbackSubject = fi
-      ? "Support AI -kysymys vaatii tarkistuksen"
-      : "Support AI question needs review";
-    setSubject(
-      lastUser?.text
-        ? `${fi ? "Support AI" : "Support AI"}: ${lastUser.text}`.slice(0, 160)
-        : fallbackSubject,
-    );
-    setMessage(
-      [
-        fi
-          ? "Haluan tukea seuraavaan Support AI -keskusteluun:"
-          : "I need support with the following Support AI conversation:",
-        conversation,
-      ]
-        .filter(Boolean)
-        .join("\n\n")
-        .slice(0, 5000),
-    );
+    setSubject(draft.subject);
+    setMessage(draft.body);
+    setEscalationReview(true);
     setScreenshot(null);
     setFormError("");
     setView({ kind: "contact" });
@@ -569,12 +337,14 @@ export function SupportCenter({ locale }: { locale: Locale }) {
       id: `user-${Date.now()}`,
       role: "user",
       text: question,
+      path: pathname,
     };
 
     const previousMessages = aiMessages;
     setAiMessages([...previousMessages, userMessage]);
     setAiQuestion("");
     setAiError("");
+    setContextChanged(false);
     if (aiSuccessTimerRef.current) {
       window.clearTimeout(aiSuccessTimerRef.current);
       aiSuccessTimerRef.current = null;
@@ -595,7 +365,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
           locale,
           question,
           contextPath: currentPath,
-          history: previousMessages.slice(-6).map((item) => ({
+          useCurrentRecord,
+          history: previousMessages.filter((item) => item.path === pathname).slice(-6).map((item) => ({
             role: item.role,
             text: item.text,
           })),
@@ -607,6 +378,8 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         answer?: string;
         articleIds?: string[];
         sensitiveInputBlocked?: boolean;
+        recordVerified?: boolean;
+        requestId?: string;
         error?: string;
       };
 
@@ -633,6 +406,9 @@ export function SupportCenter({ locale }: { locale: Locale }) {
         {
           id: `assistant-${Date.now()}`,
           role: "assistant",
+          path: pathname,
+          requestId: data.requestId,
+          recordVerified: data.recordVerified === true,
           text: data.answer || "",
           supported: data.supported === true,
           articleIds: Array.isArray(data.articleIds) ? data.articleIds : [],
@@ -662,6 +438,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     setMessage("");
     setScreenshot(null);
     setFormError("");
+    setEscalationReview(false);
   }
 
   async function submitSupport(event: FormEvent<HTMLFormElement>) {
@@ -737,6 +514,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
     <>
       <button
         type="button"
+        ref={launcherRef}
         className={"support-launcher" + (open && !closing ? " is-open" : "")}
         aria-label={fi ? "Avaa Averomira Help Center" : "Open Averomira Help Center"}
         aria-expanded={open}
@@ -765,18 +543,21 @@ export function SupportCenter({ locale }: { locale: Locale }) {
 
           <section
             className="support-center-panel"
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="support-center-title"
           >
-            <header className="support-center-header">
+            <header className={"support-center-header" + (view.kind === "home" ? " is-ai-home" : "")}>
               <div>
-                <span>AVEROMIRA SUPPORT</span>
+                <span>{view.kind === "home" ? "AVEROMIRA" : "AVEROMIRA SUPPORT"}</span>
                 <h2 id="support-center-title">
                   {view.kind === "home"
                     ? fi
-                      ? "Miten voimme auttaa?"
-                      : "How can we help?"
+                      ? "Averomira AI"
+                      : "Averomira AI"
+                    : view.kind === "help"
+                      ? fi ? "Ohjeet" : "Help articles"
                     : view.kind === "contact"
                       ? fi
                         ? "Ota yhteyttä tukeen"
@@ -798,11 +579,21 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                 {view.kind === "home" ? (
                   <p className="support-center-header-subtitle">
                     {fi
-                      ? "Tuki, ohjeet ja vastaukset yhdessä paikassa."
-                      : "Support, guidance and answers in one place."}
+                      ? "Älykäs avustajasi Averomirassa"
+                      : "Your intelligent Averomira assistant."}
                   </p>
                 ) : null}
               </div>
+              {view.kind === "home" && aiMessages.length ? (
+                <button type="button" className="support-ai-new-chat"
+                  onClick={() => {
+                    setAiMessages([]); setAiQuestion(""); setAiError(""); setContextChanged(false);
+                    window.setTimeout(() => aiInputRef.current?.focus(), 0);
+                  }}
+                  aria-label={fi ? "Uusi keskustelu" : "New conversation"}
+                  title={fi ? "Uusi keskustelu" : "New conversation"}
+                >+</button>
+              ) : null}
               <button
                 type="button"
                 className="support-center-close"
@@ -813,31 +604,30 @@ export function SupportCenter({ locale }: { locale: Locale }) {
               </button>
             </header>
 
-            <div className="support-center-body">
-              {view.kind === "home" ? (
-                <>
-                  <section className="support-ai-card" aria-labelledby="support-ai-title">
-                    <div className="support-ai-head">
-                      <div>
-                        <span>AVEROMIRA AI</span>
-                        <strong id="support-ai-title">
-                          {fi ? "Kysy Averomira AI:lta" : "Ask Averomira AI"}
-                        </strong>
-                        <p>
-                          {routeContext
-                            ? fi
-                              ? `AI tietää, että olet näkymässä: ${routeContext.title}.`
-                              : `AI knows you are in: ${routeContext.title}.`
-                            : fi
-                              ? "AI käyttää vain hyväksyttyä Averomira-tukitietoa."
-                              : "AI uses only approved Averomira support knowledge."}
-                        </p>
-                      </div>
-                      <span className="support-ai-readonly">
-                        {fi ? "Vain ohjeet" : "Read-only"}
-                      </span>
-                    </div>
+            <div className={"support-center-body" + (view.kind === "home" ? " is-ai-home" : "")}>
 
+              {view.kind === "home" ? (
+                <div className="support-ai-shell">
+                  <div ref={aiThreadRef} className="support-ai-scroll" aria-label={fi ? "AI-keskustelu" : "AI conversation"}>
+                    {aiMessages.length === 0 ? (
+                      <SupportQuickPrompts
+                        locale={locale}
+                        contextTitle={routeContext?.title}
+                        articles={(contextArticles.length ? contextArticles : ["po-exceptions", "new-rfq", "business-central"]
+                          .map((id) => articles.find((article) => article.id === id))
+                          .filter((article): article is HelpArticle => Boolean(article))).slice(0, 3)}
+                        onPick={(question) => {
+                          setAiQuestion(question);
+                          window.setTimeout(() => aiInputRef.current?.focus(), 0);
+                        }}
+                      />
+                    ) : null}
+                    {contextChanged ? (
+                      <p className="support-ai-context-changed" role="status">
+                        {fi ? "Näkymä vaihtui. Seuraava kysymys käyttää tämän sivun kontekstia."
+                            : "The page changed. Your next question uses this page's context."}
+                      </p>
+                    ) : null}
                     {aiMessages.length ? (
                       <div className="support-ai-thread" aria-live="polite">
                         {aiMessages.map((item) => (
@@ -853,6 +643,11 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                                 : "Averomira AI"}
                             </span>
                             <p>{item.text}</p>
+                            {item.role === "assistant" && item.recordVerified ? (
+                              <small className="support-ai-evidence-label">
+                                {fi ? "Perustuu tarkistettuun näkymän tilaan" : "Based on verified page state"}
+                              </small>
+                            ) : null}
 
                             {item.role === "assistant" && item.articleIds?.length ? (
                               <div className="support-ai-related">
@@ -865,9 +660,7 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                                     <button
                                       key={article.id}
                                       type="button"
-                                      onClick={() =>
-                                        setView({ kind: "article", articleId: article.id })
-                                      }
+                                      onClick={() => { setArticleReturnView("home"); setView({ kind: "article", articleId: article.id }); }}
                                     >
                                       {article.title} <ArrowIcon />
                                     </button>
@@ -886,100 +679,105 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </div>
                     ) : null}
 
-                    <form className="support-ai-form" onSubmit={askSupportAi}>
-                      <label className="sr-only" htmlFor="support-ai-question">
-                        {fi ? "Kysy Averomira AI:lta" : "Ask Averomira AI"}
-                      </label>
-                      <input
-                        ref={aiInputRef}
-                        id="support-ai-question"
-                        value={aiQuestion}
-                        onChange={(event) => setAiQuestion(event.target.value)}
-                        maxLength={700}
-                        autoComplete="off"
-                        placeholder={
-                          fi
-                            ? "Esim. miksi tämä rivi vaatii tarkistuksen?"
-                            : "E.g. why does this line need review?"
-                        }
-                      />
-                      <button
-                        type="submit"
-                        className={
-                          "support-ai-submit-motion" +
-                          (aiAsking ? " is-working" : aiSent ? " is-success" : "")
-                        }
-                        disabled={aiAsking || aiQuestion.trim().length < 3}
-                        aria-label={
-                          aiAsking
-                            ? fi
-                              ? "Averomira AI hakee vastausta"
-                              : "Averomira AI is checking"
-                            : aiSent
-                              ? fi
-                                ? "Vastaus valmis"
-                                : "Answer ready"
-                              : fi
-                                ? "Lähetä kysymys"
-                                : "Send question"
-                        }
-                      >
-                        {aiAsking ? (
-                          <span className="motion-dots" aria-hidden="true">
-                            <i />
-                            <i />
-                            <i />
-                          </span>
-                        ) : aiSent ? (
-                          <span aria-hidden="true">✓</span>
-                        ) : (
-                          <ArrowIcon />
-                        )}
-                      </button>
-                    </form>
 
-                    <div className="support-ai-meta">
-                      <span>
-                        {fi
-                          ? "Älä lähetä salasanoja, Client Secretejä, API-avaimia tai tokeneita."
-                          : "Do not send passwords, Client Secrets, API keys or tokens."}
-                      </span>
-                      {aiMessages.length ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAiMessages([]);
-                            setAiQuestion("");
-                            setAiError("");
-                            window.setTimeout(() => aiInputRef.current?.focus(), 0);
-                          }}
-                        >
-                          {fi ? "Tyhjennä keskustelu" : "Clear conversation"}
-                        </button>
-                      ) : null}
-                    </div>
-
-                    {aiError ? (
-                      <p className="support-ai-error" role="alert">
-                        {aiError}
-                      </p>
-                    ) : null}
-
-                    {aiMessages.some((item) => item.role === "assistant") ? (
+                    {aiError ? <p className="support-ai-error" role="alert">{aiError}</p> : null}
+                    {aiMessages.some((item) => item.role === "assistant") || aiError ? (
                       <button
                         type="button"
                         className="support-ai-escalate"
                         onClick={openContactFromAi}
                       >
-                        {fi
-                          ? "Luo tukipyyntö tästä keskustelusta"
-                          : "Create a support request from this conversation"}{" "}
+                        {fi ? "Luo tukipyyntö tästä keskustelusta" : "Create a support request from this conversation"}
                         <ArrowIcon />
                       </button>
                     ) : null}
-                  </section>
+                  </div>
 
-                  {!query.trim() && routeContext && contextArticles.length ? (
+                  <div className="support-ai-bottom">
+                    {recordContextAvailable ? (
+                      <label className="support-ai-record-toggle">
+                        <input
+                          type="checkbox"
+                          checked={useCurrentRecord}
+                          onChange={(event) => setUseCurrentRecord(event.target.checked)}
+                        />
+                        <span>{fi
+                          ? "Hyödynnä tämän näkymän tietoja (vain luku)"
+                          : "Use current page data (read-only)"}</span>
+                      </label>
+                    ) : null}
+                    <form className="support-ai-form" onSubmit={askSupportAi}>
+                      <label className="sr-only" htmlFor="support-ai-question">
+                        {fi ? "Kysy Averomira AI:lta" : "Ask Averomira AI"}
+                      </label>
+                      <textarea
+                        ref={aiInputRef}
+                        id="support-ai-question"
+                        value={aiQuestion}
+                        onChange={(event) => setAiQuestion(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                            event.preventDefault();
+                            event.currentTarget.form?.requestSubmit();
+                          }
+                        }}
+                        maxLength={700}
+                        rows={2}
+                        autoComplete="off"
+                        placeholder={fi ? "Kysy Averomira AI:lta…" : "Ask Averomira AI…"}
+                      />
+                      <div className="support-ai-compose-bottom">
+                        <span>{fi ? "AI-avustaja · vain ohjeistus" : "AI assistant · guidance only"}</span>
+                        <button
+                          type="submit"
+                          className={"support-ai-submit-motion" + (aiAsking ? " is-working" : aiSent ? " is-success" : "")}
+                          disabled={aiAsking || aiQuestion.trim().length < 3}
+                          aria-label={aiAsking
+                            ? (fi ? "Averomira AI hakee vastausta" : "Averomira AI is checking")
+                            : (fi ? "Lähetä kysymys" : "Send question")}
+                        >
+                          {aiAsking ? (
+                            <span className="motion-dots" aria-hidden="true"><i /><i /><i /></span>
+                          ) : aiSent ? (
+                            <span aria-hidden="true">✓</span>
+                          ) : (
+                            <span aria-hidden="true">↑</span>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                    <nav className="support-home-actions" aria-label={fi ? "Tukikeskuksen navigaatio" : "Support navigation"}>
+                      <button type="button" className="support-home-action"
+                        onClick={() => { setView({ kind: "help" }); setQuery(""); window.setTimeout(() => searchRef.current?.focus(), 0); }}>
+                        <BookIcon /><span>{fi ? "Ohjeet" : "Help"}</span>
+                      </button>
+                      <button type="button" className="support-home-action" onClick={() => setView({ kind: "tickets" })}>
+                        <TicketIcon /><span>{fi ? "Tukipyynnöt" : "Tickets"}</span>
+                        {supportUnreadCount > 0 ? <i className="support-nav-count">{supportUnreadCount > 9 ? "9+" : supportUnreadCount}</i> : null}
+                      </button>
+                      <button type="button" className="support-home-action" onClick={openContact}>
+                        <HeadsetIcon /><span>{fi ? "Ota yhteyttä" : "Contact"}</span>
+                      </button>
+                    </nav>
+                    <p className="support-ai-privacy">
+                      {fi ? "Älä lähetä salasanoja, Client Secretejä, API-avaimia tai tokeneita." : "Do not send passwords, Client Secrets, API keys or tokens."}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+
+              {view.kind === "help" ? (
+                <section className="support-help-library support-help-library-page">
+                  <button type="button" className="support-back" onClick={() => { setView({ kind: "home" }); setQuery(""); }}>
+                    <ArrowIcon left /> {fi ? "Takaisin AI-avustajaan" : "Back to AI assistant"}
+                  </button>
+                  <div className="support-help-library-head">
+                    <div>
+                      <span>{fi ? "OHJEKESKUS" : "HELP CENTER"}</span>
+                      <strong>{fi ? "Etsi ohjeita" : "Find help articles"}</strong>
+                    </div>
+                  </div>
+                  {routeContext && contextArticles.length ? (
                     <div className="support-context-section support-context-section-v2">
                       <div className="support-context-section-head">
                         <div>
@@ -990,139 +788,43 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                       </div>
                       <div className="support-context-links">
                         {contextArticles.slice(0, 3).map((article) => (
-                          <button
-                            key={article.id}
-                            type="button"
-                            onClick={() => setView({ kind: "article", articleId: article.id })}
-                          >
-                            <span>{article.title}</span>
-                            <ArrowIcon />
+                          <button key={article.id} type="button"
+                            onClick={() => { setArticleReturnView("help"); setView({ kind: "article", articleId: article.id }); }}>
+                            <span>{article.title}</span><ArrowIcon />
                           </button>
                         ))}
                       </div>
                     </div>
                   ) : null}
-
-                  <div className="support-home-actions">
-                    <button
-                      type="button"
-                      className="support-home-action"
-                      onClick={() => {
-                        setShowHelpLibrary(true);
-                        window.setTimeout(() => searchRef.current?.focus(), 0);
-                      }}
-                    >
-                      <span className="support-home-action-icon"><BookIcon /></span>
-                      <span className="support-home-action-copy">
-                        <strong>{fi ? "Ohjeet" : "Help articles"}</strong>
-                        <small>{fi ? "Selaa oppaita ja vastauksia." : "Browse guides and answers."}</small>
-                      </span>
-                      <ArrowIcon />
-                    </button>
-
-                    <button
-                      type="button"
-                      className="support-home-action"
-                      onClick={() => setView({ kind: "tickets" })}
-                    >
-                      <span className="support-home-action-icon"><TicketIcon /></span>
-                      <span className="support-home-action-copy">
-                        <strong>{fi ? "Omat tukipyynnöt" : "My support requests"}</strong>
-                        <small>{fi ? "Seuraa tilaa ja vastaa tukeen." : "Track status and reply to support."}</small>
-                      </span>
-                      <span className="support-home-action-end">
-                        {supportUnreadCount > 0 ? <i>{supportUnreadCount > 9 ? "9+" : supportUnreadCount}</i> : null}
-                        <ArrowIcon />
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="support-home-action"
-                      onClick={openContact}
-                    >
-                      <span className="support-home-action-icon"><HeadsetIcon /></span>
-                      <span className="support-home-action-copy">
-                        <strong>{fi ? "Ota yhteyttä tukeen" : "Contact support"}</strong>
-                        <small>{fi ? "Lähetä tukipyyntö tiimillemme." : "Send a request to our team."}</small>
-                      </span>
-                      <ArrowIcon />
-                    </button>
-                  </div>
-
-                  {showHelpLibrary || query.trim() ? (
-                    <section className="support-help-library">
-                      <div className="support-help-library-head">
-                        <div>
-                          <span>{fi ? "OHJEKESKUS" : "HELP CENTER"}</span>
-                          <strong>{fi ? "Etsi kaikista ohjeista" : "Search all help articles"}</strong>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowHelpLibrary(false);
-                            setQuery("");
-                          }}
-                        >
-                          {fi ? "Sulje" : "Close"}
+                  <label className="support-search">
+                    <span className="sr-only">{fi ? "Hae ohjeista" : "Search help"}</span>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                      <circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" />
+                    </svg>
+                    <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)}
+                      placeholder={fi ? "Hae ohjeista…" : "Search help…"} />
+                  </label>
+                  <div className="support-help-section">
+                    <div className="support-help-section-head">
+                      <span>{query.trim() ? (fi ? "Hakutulokset" : "Search results") : (fi ? "Kaikki ohjeet" : "All help articles")}</span>
+                      <small>{filteredArticles.length}</small>
+                    </div>
+                    <div className="support-help-list">
+                      {filteredArticles.map((article) => (
+                        <button key={article.id} type="button" onClick={() => { setArticleReturnView("help"); setView({ kind: "article", articleId: article.id }); }}>
+                          <span><strong>{article.title}</strong><small>{article.summary}</small></span>
+                          <ArrowIcon />
                         </button>
-                      </div>
-
-                      <label className="support-search">
-                        <span className="sr-only">{fi ? "Hae ohjeista" : "Search help"}</span>
-                        <svg
-                          width="17"
-                          height="17"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          aria-hidden="true"
-                        >
-                          <circle cx="11" cy="11" r="6.5" />
-                          <path d="m16 16 4 4" />
-                        </svg>
-                        <input
-                          ref={searchRef}
-                          value={query}
-                          onChange={(event) => setQuery(event.target.value)}
-                          placeholder={fi ? "Hae ohjeista…" : "Search help…"}
-                        />
-                      </label>
-
-                      <div className="support-help-section">
-                        <div className="support-help-section-head">
-                          <span>{query.trim() ? (fi ? "Hakutulokset" : "Search results") : (fi ? "Kaikki ohjeet" : "All help articles")}</span>
-                          <small>{filteredArticles.length}</small>
+                      ))}
+                      {filteredArticles.length === 0 ? (
+                        <div className="support-empty">
+                          {fi ? "Tällä haulla ei löytynyt ohjetta." : "No help article matched this search."}
                         </div>
-
-                        <div className="support-help-list">
-                          {filteredArticles.map((article) => (
-                            <button
-                              key={article.id}
-                              type="button"
-                              onClick={() => setView({ kind: "article", articleId: article.id })}
-                            >
-                              <span>
-                                <strong>{article.title}</strong>
-                                <small>{article.summary}</small>
-                              </span>
-                              <ArrowIcon />
-                            </button>
-                          ))}
-                          {filteredArticles.length === 0 ? (
-                            <div className="support-empty">
-                              {fi
-                                ? "Tällä haulla ei löytynyt ohjetta."
-                                : "No help article matched this search."}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </section>
-                  ) : null}
-                </>
+                      ) : null}
+                    </div>
+                  </div>
+                </section>
               ) : null}
 
               {view.kind === "tickets" || view.kind === "ticket" ? (
@@ -1142,9 +844,9 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                   <button
                     type="button"
                     className="support-back"
-                    onClick={() => setView({ kind: "home" })}
+                    onClick={() => setView({ kind: articleReturnView })}
                   >
-                    <ArrowIcon left /> {fi ? "Kaikki ohjeet" : "All help articles"}
+                    <ArrowIcon left /> {fi ? "Takaisin" : "Back"}
                   </button>
                   <div className="support-article-copy">
                     {selectedArticle.body.map((paragraph) => (
@@ -1169,6 +871,14 @@ export function SupportCenter({ locale }: { locale: Locale }) {
                   >
                     <ArrowIcon left /> {fi ? "Takaisin Help Centeriin" : "Back to Help Center"}
                   </button>
+
+                  {escalationReview ? (
+                    <p className="support-ai-escalation-review" role="status">
+                      {fi
+                        ? "Keskustelun turvallinen yhteenveto on lisätty luonnokseen. Tarkista ja muokkaa viesti ennen lähettämistä. Mitään ei ole vielä lähetetty."
+                        : "A filtered conversation summary was added to this draft. Review or edit it before sending. Nothing has been sent."}
+                    </p>
+                  ) : null}
 
                   <p className="support-contact-note">
                     {fi

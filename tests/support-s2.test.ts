@@ -7,6 +7,7 @@ const supportContext = readFileSync(
   join(process.cwd(), "lib/rivora/support-context.ts"),
   "utf8",
 );
+const articleSource = readFileSync(join(process.cwd(), "lib/rivora/support-knowledge.ts"), "utf8");
 const supportCenter = readFileSync(
   join(process.cwd(), "components/support/SupportCenter.tsx"),
   "utf8",
@@ -57,15 +58,15 @@ test("S2 includes focused contextual articles for review decisions and ERP setup
     "po-exceptions",
     "quote-locking",
   ]) {
-    assert.match(supportCenter, new RegExp(`id: "${id}"`));
+    assert.match(articleSource, new RegExp(`id: "${id}"`));
   }
 
   assert.match(
-    supportCenter,
+    articleSource,
     /Client ID is not the Client Secret|Client ID ei ole sama asia kuin Client Secret/,
   );
   assert.match(
-    supportCenter,
+    articleSource,
     /ei ohita RFQ Review -vahvistusta|does not bypass RFQ Review confirmation/,
   );
 });
