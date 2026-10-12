@@ -1,0 +1,33 @@
+name: Operations synthetic PostgreSQL
+on:
+  pull_request:
+    paths: ['supabase/**', 'scripts/**', 'lib/rivora/operations/**', 'tests/**', '.github/workflows/operations-synthetic.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: sudo apt-get update && sudo apt-get install -y ripgrep
+      - name: Start isolated synthetic PostgreSQL
+        run: docker run --name averomira-catalogue-test -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres:17.6
+      - name: Wait for local database
+        run: for n in {1..30}; do docker exec averomira-catalogue-test pg_isready -U postgres && exit 0; sleep 1; done; exit 1
+      - run: bash scripts/test-operations-sql.sh
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --config playwright.operations.config.ts

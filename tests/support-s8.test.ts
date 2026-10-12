@@ -43,7 +43,7 @@ test("S8 keeps existing notification and support workflow; rate limits remain in
   assert.match(center, /\/api\/support\/tickets/);
   assert.match(aiRoute, /support_ai_user_short/);
   assert.match(aiRoute, /support_ai_user_day/);
-  assert.match(aiRoute, /max_output_tokens: 500/);
+  assert.match(aiRoute, /max_output_tokens:\s*Math\.min\(500,\s*pricing\?\.maxOutputTokens\s*\?\?\s*500\)/);
 });
 
 test("S8 subject and body remain within current ticket API bounds", () => {

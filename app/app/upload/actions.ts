@@ -1,5 +1,6 @@
 "use server";
 
+import { operationsEnabled } from "@/lib/rivora/operations/policy";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
@@ -126,6 +127,7 @@ export async function processRfq(formData: FormData) {
 }
 
 export async function processPdfRfq(formData: FormData) {
+  if (operationsEnabled() && process.env.AVEROMIRA_DOCUMENT_QUEUE_ENABLED === "true") redirect("/app/settings/operations");
   const file = formData.get("pdfRfq");
   const customerOverride = String(formData.get("pdfCustomerName") ?? "").trim();
   const referenceOverride = String(formData.get("pdfReference") ?? "").trim();

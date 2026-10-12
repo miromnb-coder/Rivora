@@ -67,7 +67,7 @@ async function boundedBody(request: Request) {
   }).formData();
 }
 export async function GET() {
-  const { supabase, workspace } = await getAuthContext();
+  const { supabase, workspace,claims } = await getAuthContext();
   if (!workspace || !["owner", "admin"].includes(workspace.role))
     return NextResponse.json(
       { error: "Tuonti vaatii omistajan tai ylläpitäjän oikeudet." },
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
       { error: "Virheellinen pyynnön alkuperä." },
       { status: 403 },
     );
-  const { supabase, workspace } = await getAuthContext();
+  const { supabase, workspace,claims } = await getAuthContext();
   if (!workspace || !["owner", "admin"].includes(workspace.role))
     return NextResponse.json(
       { error: "Tuonti vaatii omistajan tai ylläpitäjän oikeudet." },
@@ -176,7 +176,7 @@ export async function POST(request: Request) {
         !headers.every((h) => typeof h === "string" && h.length <= 200)
       )
         throw new Error("Virheelliset otsikot.");
-      return NextResponse.json(await suggestCatalogueAiMapping(headers));
+      return NextResponse.json(await suggestCatalogueAiMapping(headers,undefined,{organizationId:workspace.id,actorId:String(claims.sub)}));
     }
     if (!["inspect", "preview", "saveMap", "report"].includes(action))
       throw new Error("Tuntematon tuontitoiminto.");

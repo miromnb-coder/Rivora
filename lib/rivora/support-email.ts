@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   operationalLog,
   safeErrorMessage,
@@ -34,6 +35,9 @@ async function sendSupportEmail({
   requestId: string;
   event: string;
 }) {
+  const outbox = await createAdminClient().rpc("operation_outbox_active");
+  if (outbox.data === true) return false; // queued, not provider-sent
+  if (outbox.error && !["PGRST202", "42883"].includes(outbox.error.code)) return false;
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = supportFrom();
 

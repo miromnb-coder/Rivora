@@ -138,6 +138,8 @@ export function validateRfqExtraction(value: unknown): ExtractedRfq {
     ? result.warnings.filter((item): item is string => typeof item === "string")
     : [];
 
+  if (result.lines.length > 1000) throw new Error("Extraction exceeds line limit.");
+
   result.lines = result.lines.map((line, index) => {
     const quantity = Number(line.quantity);
     if (!Number.isFinite(quantity) || quantity <= 0) {
@@ -173,7 +175,7 @@ export function isOpenAiConfigured() {
   return Boolean(process.env.OPENAI_API_KEY?.trim());
 }
 
-export async function extractRfqFromPdf(file: File) {
+export async function extractRfqFromPdf(file: File, options?: { model: string; timeoutMs: number; maxOutputTokens: number; signal?: AbortSignal }) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
     throw new Error(
@@ -201,10 +203,11 @@ export async function extractRfqFromPdf(file: File) {
 
   const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
   const model = process.env.OPENAI_RFQ_MODEL?.trim() || "gpt-5.6-luna";
-  const client = new OpenAI({ apiKey });
+  const client = new OpenAI({ apiKey, timeout: options?.timeoutMs ?? 120_000, maxRetries: 0 });
 
   const response = await client.responses.create({
-    model,
+    model: options?.model ?? model,
+    max_output_tokens: options?.maxOutputTokens ?? 16000,
     input: [
       {
         role: "user",
@@ -230,7 +233,7 @@ export async function extractRfqFromPdf(file: File) {
         schema: RFQ_SCHEMA,
       },
     },
-  });
+  }, { signal: options?.signal });
 
   if (response.status !== "completed") {
     throw new Error(`OpenAI extraction did not complete (status: ${response.status}).`);
@@ -249,7 +252,7 @@ export async function extractRfqFromPdf(file: File) {
   return {
     extraction: validateRfqExtraction(parsed),
     provider: "openai" as const,
-    model,
+    model: options?.model ?? model,
     responseId: response.id,
     usage: response.usage ?? null,
     sha256,

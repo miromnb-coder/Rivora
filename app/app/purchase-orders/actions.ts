@@ -1,6 +1,7 @@
 "use server";
 
 import crypto from "node:crypto";
+import { operationsEnabled } from "@/lib/rivora/operations/policy";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspace } from "@/lib/rivora/workspace";
@@ -178,6 +179,7 @@ async function markFailed(
 }
 
 export async function processPdfPurchaseOrder(formData: FormData) {
+  if (operationsEnabled() && process.env.AVEROMIRA_DOCUMENT_QUEUE_ENABLED === "true") redirect("/app/settings/operations");
   const file = formData.get("pdfPurchaseOrder");
   const customerOverride = clean(formData.get("pdfCustomerName"), 200);
   const poNumberOverride = clean(formData.get("pdfPoNumber"), 200);

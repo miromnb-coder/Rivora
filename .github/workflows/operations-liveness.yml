@@ -1,0 +1,19 @@
+name: Operations independent liveness
+# Scheduling is deliberately not activated before the separate production approval.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    if: vars.AVEROMIRA_OPERATIONS_MONITOR_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/operations-liveness.mjs
+        env:
+          AVEROMIRA_OPERATIONS_MONITOR_SECRET: ${{ secrets.AVEROMIRA_OPERATIONS_MONITOR_SECRET }}

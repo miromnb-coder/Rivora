@@ -188,6 +188,8 @@ export function validatePurchaseOrderExtraction(value: unknown): ExtractedPurcha
     ? result.warnings.filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
     : [];
 
+  if (result.lines.length > 2000) throw new Error("Extraction exceeds line limit.");
+
   result.lines = result.lines.map((line, index) => {
     const quantity = Number(line.quantity);
     if (!Number.isFinite(quantity) || quantity <= 0) {
@@ -225,7 +227,7 @@ export function validatePurchaseOrderExtraction(value: unknown): ExtractedPurcha
   return result;
 }
 
-export async function extractPurchaseOrderFromPdf(file: File) {
+export async function extractPurchaseOrderFromPdf(file: File, options?: { model: string; timeoutMs: number; maxOutputTokens: number; signal?: AbortSignal }) {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
     throw new Error(
@@ -253,10 +255,11 @@ export async function extractPurchaseOrderFromPdf(file: File) {
     process.env.OPENAI_PO_MODEL?.trim() ||
     process.env.OPENAI_RFQ_MODEL?.trim() ||
     "gpt-5.6-luna";
-  const client = new OpenAI({ apiKey });
+  const client = new OpenAI({ apiKey, timeout: options?.timeoutMs ?? 120_000, maxRetries: 0 });
 
   const response = await client.responses.create({
-    model,
+    model: options?.model ?? model,
+    max_output_tokens: options?.maxOutputTokens ?? 16000,
     input: [
       {
         role: "user",
@@ -282,7 +285,7 @@ export async function extractPurchaseOrderFromPdf(file: File) {
         schema: PURCHASE_ORDER_SCHEMA,
       },
     },
-  });
+  }, { signal: options?.signal });
 
   if (response.status !== "completed") {
     throw new Error(`OpenAI extraction did not complete (status: ${response.status}).`);
@@ -301,7 +304,7 @@ export async function extractPurchaseOrderFromPdf(file: File) {
   return {
     extraction: validatePurchaseOrderExtraction(parsed),
     provider: "openai" as const,
-    model,
+    model: options?.model ?? model,
     responseId: response.id,
     usage: response.usage ?? null,
     sha256,

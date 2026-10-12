@@ -1,3 +1,4 @@
+import { OperationQueue } from "@/components/operations/OperationQueue";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale } from "@/lib/locale";
@@ -69,6 +70,9 @@ export default async function OperationsSettingsPage() {
     throw new Error(`Operational readiness query failed: ${queryError.message}`);
   }
 
+  const [{data:operationMetrics,error:metricsError},{data:capabilities,error:capabilityError}] = await Promise.all([context.supabase.rpc("operation_metrics",{p_org:workspace.id}),context.supabase.rpc("operation_capabilities",{p_org:workspace.id})]);
+  const schemaReady=!metricsError && !capabilityError && capabilities?.catalogueReady===true && capabilities?.operationsReady===true;
+
   const capability = getErpProviderCapability(workspace.erpProvider);
   const adapter = getErpAdapter(workspace.erpProvider);
   const erpConfig = adapter
@@ -88,6 +92,7 @@ export default async function OperationsSettingsPage() {
   const emailFailures = emailFailuresResult.count ?? 0;
 
   const runtimeReady =
+    schemaReady &&
     emailConfigured &&
     extractionConfigured &&
     erpReady &&
@@ -96,8 +101,8 @@ export default async function OperationsSettingsPage() {
   const checks = [
     {
       label: fi ? "Tietokanta" : "Database",
-      ok: true,
-      detail: fi
+      ok: schemaReady,
+      detail: !schemaReady ? (fi?"Tietokannan schema-valmius vaatii tarkistuksen.":"Database schema readiness needs review.") : fi
         ? "Supabase-yhteys ja workspace-rajattu operatiivinen kysely toimivat."
         : "Supabase connection and workspace-scoped operational queries are working.",
     },
@@ -201,6 +206,16 @@ export default async function OperationsSettingsPage() {
         </div>
       </section>
 
+      <OperationQueue fi={fi} />
+      <section className="surface mt-6 p-6">
+        <h2 className="text-2xl font-bold">{fi ? "AI-käyttö ja poikkeamat" : "AI usage and incidents"}</h2>
+        {metricsError ? <p className="mt-3" role="status">{fi ? "Kustannusseuranta ei ole käytettävissä. Valmius vaatii tarkistuksen." : "Cost tracking is unavailable. Readiness needs review."}</p> : <>
+          <p className="mt-3">{fi ? "Kuukauden käytetty ja varattu kustannus (USD): " : "Monthly used and reserved cost (USD): "}{(Number(operationMetrics?.microUsd ?? 0) / 1_000_000).toFixed(2)}</p>
+          <p>{fi ? "Tekninen kuukausiraja (USD): " : "Technical monthly limit (USD): "}{(Number(operationMetrics?.budgetMicroUsd ?? 0) / 1_000_000).toFixed(2)}</p>
+          <p className="text-sm text-[var(--muted)]">{fi ? "Mittari sisältää epäselvät varaukset. Se ei muuta sopimushintaa tai käyttöehtoja." : "Includes uncertain reservations. Contract pricing and terms remain unchanged."}</p>
+          <ul className="mt-4">{(operationMetrics?.incidents ?? []).map((i: {id:string;code:string;severity:string}) => <li key={i.id} className="border-t border-[var(--line)] py-3">{fi ? "Tarkistettava poikkeama" : "Incident requiring review"}: {i.id}</li>)}</ul>
+        </>}
+      </section>
       <section className="surface mt-6 p-6">
         <div className="upload-v2-section-label">
           {fi ? "Viimeiset 24 tuntia" : "Last 24 hours"}
