@@ -133,10 +133,14 @@ export function SalesCopilot({ open, onClose, locale, workspaceId }: { open: boo
     if (route !== pathname) { router.push(path); if (overlay) onClose(); return; }
     if (overlay) onClose();
     if (hash) {
-      const element = document.getElementById(hash);
-      element?.scrollIntoView({ behavior: "smooth", block: "center" });
-      element?.classList.add("copilot-line-highlight");
-      window.setTimeout(() => element?.classList.remove("copilot-line-highlight"), 2200);
+      const reveal = () => {
+        const element = document.getElementById(hash);
+        element?.scrollIntoView({ behavior: "smooth", block: "center" });
+        element?.classList.add("copilot-line-highlight");
+        window.setTimeout(() => element?.classList.remove("copilot-line-highlight"), 2200);
+      };
+      if (overlay) window.setTimeout(reveal, 50);
+      else reveal();
     }
   }
   function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); void send(draft); }
