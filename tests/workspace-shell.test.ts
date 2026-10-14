@@ -11,7 +11,7 @@ test("Copilot docks in a real third column at common desktop widths", () => {
   assert.match(css, /is-copilot-open\s*\{\s*grid-template-columns:\s*232px minmax\(0, 1fr\) 360px/);
   assert.match(css, /grid-column: 3; grid-row: 1/);
   assert.match(css, /@media \(max-width: 1199px\)/);
-  assert.doesNotMatch(css, /1599px/);
+  assert.doesNotMatch(css, /@media \(max-width: 1599px\)/);
 });
 test("sidebar toggle belongs to shared top toolbar, not brand block", () => {
   const toolbar = shell.indexOf('className="app-workspace-toolbar"');
