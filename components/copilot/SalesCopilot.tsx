@@ -21,6 +21,14 @@ function suggestions(path: string, fi: boolean) {
 export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose: () => void; locale: Locale }) {
   const fi = locale === "fi";
   const pathname = usePathname();
+  const [overlay, setOverlay] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1199px)");
+    const update = () => setOverlay(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
@@ -39,11 +47,10 @@ export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose
     if (!open) return;
     closeRef.current?.focus();
     const previousOverflow = document.body.style.overflow;
-    const mobile = window.matchMedia("(max-width: 1599px)").matches;
-    if (mobile) document.body.style.overflow = "hidden";
+    if (overlay) document.body.style.overflow = "hidden";
     function handleKey(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") { onClose(); return; }
-      if (event.key !== "Tab" || !window.matchMedia("(max-width: 1599px)").matches) return;
+      if (event.key !== "Tab" || !overlay) return;
       const controls = panelRef.current?.querySelectorAll<HTMLElement>("button:not(:disabled), textarea:not(:disabled)");
       if (!controls?.length) return;
       const first = controls[0];
@@ -53,7 +60,7 @@ export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose
     }
     document.addEventListener("keydown", handleKey);
     return () => { document.removeEventListener("keydown", handleKey); document.body.style.overflow = previousOverflow; };
-  }, [open, onClose]);
+  }, [open, onClose, overlay]);
   useEffect(() => () => requestRef.current?.abort(), []);
 
   function newConversation() {
@@ -102,10 +109,12 @@ export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose
   if (!open) return null;
   return (
     <>
-      <button className="sales-copilot-backdrop" type="button" aria-label={fi ? "Sulje AI Copilot" : "Close AI Copilot"} onClick={onClose} tabIndex={-1} />
-      <aside id="sales-copilot" ref={panelRef} className="sales-copilot" role="dialog" aria-modal={typeof window !== "undefined" && window.matchMedia("(max-width: 1599px)").matches ? true : undefined} aria-label="AI Copilot">
+      {overlay ? <button className="sales-copilot-backdrop" type="button" aria-label={fi ? "Sulje AI Copilot" : "Close AI Copilot"} onClick={onClose} tabIndex={-1} /> : null}
+      <aside id="sales-copilot" ref={panelRef} className="sales-copilot"
+        role={overlay ? "dialog" : "complementary"} aria-modal={overlay ? true : undefined}
+        aria-label="AI Copilot">
         <header className="sales-copilot-header">
-          <div><span className="sales-copilot-kicker">AVEROMIRA</span><h2>✧ AI Copilot</h2></div>
+          <div className="sales-copilot-title"><span className="sales-copilot-symbol" aria-hidden="true">✧</span><h2>AI Copilot</h2></div>
           <div className="sales-copilot-header-actions">
             <button type="button" onClick={newConversation} aria-label={fi ? "Uusi keskustelu" : "New conversation"} title={fi ? "Uusi keskustelu" : "New conversation"}>＋</button>
             <button ref={closeRef} type="button" onClick={onClose} aria-label={fi ? "Sulje AI Copilot" : "Close AI Copilot"} title={fi ? "Sulje" : "Close"}>×</button>
@@ -113,7 +122,7 @@ export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose
         </header>
         <div ref={scrollRef} className="sales-copilot-scroll" role="log" aria-live="polite" aria-relevant="additions text">
           {messages.length === 0 ? <div className="sales-copilot-intro">
-            <h3>{fi ? "Kysy työnkulusta" : "Ask about your workflow"}</h3>
+            <h3>{fi ? "Miten voin auttaa?" : "How can I help?"}</h3>
             <p>{fi ? "Voin neuvoa tarjouspyyntöjen, tuotteiden ja tarjousten käsittelyssä. En näe tämän sivun asiakastietoja enkä tee muutoksia puolestasi." : "I can guide you through RFQs, products and quotes. I cannot see customer data on this page or make changes for you."}</p>
             <span>{fi ? "KOKEILE KYSYÄ" : "SUGGESTED QUESTIONS"}</span>
             {suggestions(pathname, fi).map((item) => <button type="button" key={item} onClick={() => void send(item)} disabled={pending}>{item}<span aria-hidden="true">↗</span></button>)}
@@ -124,7 +133,7 @@ export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose
         <div className="sales-copilot-bottom">
           <form onSubmit={submit}>
             <label className="sr-only" htmlFor="sales-copilot-input">{fi ? "Kysy AI Copilotilta" : "Ask AI Copilot"}</label>
-            <textarea id="sales-copilot-input" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={onKeyDown} maxLength={700} rows={3} placeholder={fi ? "Kirjoita kysymys…" : "Write a question…"} />
+            <textarea id="sales-copilot-input" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={onKeyDown} maxLength={700} rows={2} placeholder={fi ? "Kysy AI Copilotilta…" : "Ask AI Copilot…"} />
             <button type="submit" disabled={pending || draft.trim().length < 3} aria-label={fi ? "Lähetä viesti" : "Send message"}>↑</button>
           </form>
           <p>{fi ? "Yleistä ohjeistusta · ei pääsyä asiakastietoihin" : "General guidance · no access to customer records"}</p>
