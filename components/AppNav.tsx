@@ -105,9 +105,10 @@ function NavIcon({ id }: { id: string }) {
   );
 }
 
-export function AppNav({ items, compact = false, locale = "fi" }: {
+export function AppNav({ items, compact = false, collapsed = false, locale = "fi" }: {
   items: readonly NavItem[];
   compact?: boolean;
+  collapsed?: boolean;
   locale?: "fi" | "en";
 }) {
   const pathname = usePathname();
@@ -121,6 +122,8 @@ export function AppNav({ items, compact = false, locale = "fi" }: {
         const pending = pendingHref === href && pathname !== href;
         return (
           <Link key={href} href={href} prefetch
+            title={collapsed && !compact ? label : undefined}
+            aria-label={collapsed && !compact ? label : undefined}
             onClick={() => { if (pathname !== href) setPendingHref(href); }}
             aria-current={pathname === href ? "page" : active ? "location" : undefined}
             aria-busy={pending || undefined}

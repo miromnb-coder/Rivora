@@ -7,6 +7,7 @@ import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { canManageWorkspaceFeature } from "@/lib/rivora/features";
 import { isSupportOperatorEmail } from "@/lib/rivora/support-operator";
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
   robots: {
@@ -31,6 +32,7 @@ export default async function ProductLayout({ children }: { children: React.Reac
   const supportOperator = isSupportOperatorEmail(
     typeof claims.email === "string" ? claims.email : null,
   );
+  const sidebarCollapsed = (await cookies()).get("averomira-sidebar-collapsed")?.value === "1";
 
   return (
     <div>
@@ -42,6 +44,7 @@ export default async function ProductLayout({ children }: { children: React.Reac
         leadsEnabled={leadsEnabled}
         supportOperator={supportOperator}
         supportRecordEnabled={process.env.AVEROMIRA_SUPPORT_RECORD_CONTEXT_ENABLED === "true"}
+        initialSidebarCollapsed={sidebarCollapsed}
       >
         {children}
       </AppShell>
