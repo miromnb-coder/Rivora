@@ -326,8 +326,8 @@ export default async function OrdersPage({
         ))}
       </nav>
 
-      <section className="mt-4 overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
-        <div className="hidden grid-cols-[1.35fr_1fr_.8fr_1fr_auto] gap-4 border-b border-[var(--line)] bg-[#fafaf7] px-6 py-3 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted)] md:grid">
+      <section className="orders-case-table mt-4 overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
+        <div className="orders-case-table-header hidden grid-cols-[1.35fr_1fr_.8fr_1fr_auto] gap-4 border-b border-[var(--line)] bg-[#fafaf7] px-6 py-3 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted)] md:grid">
           <span>{fi ? "Asiakas" : "Customer"}</span>
           <span>{fi ? "Viite" : "Reference"}</span>
           <span>{fi ? "Vaihe" : "Stage"}</span>
@@ -343,7 +343,7 @@ export default async function OrdersPage({
                 <Link
                   key={row.key}
                   href={row.href}
-                  className="group grid gap-3 px-5 py-4 transition hover:bg-[var(--app-paper)] md:grid-cols-[1.35fr_1fr_.8fr_1fr_auto] md:items-center md:gap-4"
+                  className="orders-case-table-row group grid gap-3 px-5 py-4 transition hover:bg-[var(--app-paper)] md:grid-cols-[1.35fr_1fr_.8fr_1fr_auto] md:items-center md:gap-4"
                 >
                   <div>
                     <strong className="block text-sm">{row.customer}</strong>

@@ -95,3 +95,16 @@ test("small screen uses fullscreen conversation and no horizontal overflow", asy
   expect(box).not.toBeNull();
   expect(box!.width).toBeGreaterThanOrEqual(389);
 });
+
+test("orders remain usable when the 1440px Copilot is open", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/orders");
+  await page.getByRole("button", { name: "AI Copilot" }).filter({ visible: true }).click();
+  await expect(page.getByRole("complementary", { name: "AI Copilot" })).toBeVisible();
+  await expect(page.locator(".orders-case-table")).toBeVisible();
+  await expect(page.locator(".orders-case-table-header")).toBeHidden();
+  if (await page.locator(".orders-case-table-row").count()) {
+    await expect(page.locator(".orders-case-table-row").first()).toBeVisible();
+    await expect(page.locator(".orders-case-table-row").first().locator("strong").first()).toBeVisible();
+  }
+});

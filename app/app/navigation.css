@@ -215,3 +215,22 @@
   .app-shell-v2 .app-mobile-topbar .app-copilot-trigger { padding: 0 10px; font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) { .app-shell-v2 { transition: none !important; } }
+
+/* Condense the orders list into two readable rows while the side AI rail is docked.
+   The desktop viewport breakpoint alone is not a reliable measure of the middle column. */
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .app-shell-v2.is-copilot-open .orders-case-table-header { display: none !important; }
+  .app-shell-v2.is-copilot-open .orders-case-table-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px 16px !important;
+    padding: 15px 18px !important;
+    align-items: center;
+  }
+  .app-shell-v2.is-copilot-open .orders-case-table-row > div:first-child { grid-column: 1; grid-row: 1; min-width: 0; }
+  .app-shell-v2.is-copilot-open .orders-case-table-row > div:first-child strong { overflow-wrap: anywhere; }
+  .app-shell-v2.is-copilot-open .orders-case-table-row > div:first-child span { display: block !important; }
+  .app-shell-v2.is-copilot-open .orders-case-table-row > span:nth-child(2) { display: none !important; }
+  .app-shell-v2.is-copilot-open .orders-case-table-row > span:nth-child(3) { grid-column: 2; grid-row: 1; }
+  .app-shell-v2.is-copilot-open .orders-case-table-row > strong:nth-child(4) { grid-column: 1; grid-row: 2; }
+  .app-shell-v2.is-copilot-open .orders-case-table-row > span:nth-child(5) { grid-column: 2; grid-row: 2; }
+}

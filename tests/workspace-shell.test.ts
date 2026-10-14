@@ -32,3 +32,11 @@ test("Copilot has responsive dialog semantics and does not hide Support features
   assert.match(css, /is-copilot-open \.support-launcher \{ visibility: hidden/);
   assert.match(shell, /<SupportCenter/);
 });
+
+test("orders worklist switches to a compact readable layout alongside Copilot", () => {
+  const page = readFileSync("app/app/orders/page.tsx", "utf8");
+  assert.match(page, /orders-case-table-row/);
+  assert.match(page, /orders-case-table-header/);
+  assert.match(css, /is-copilot-open \.orders-case-table-row/);
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) auto !important/);
+});
