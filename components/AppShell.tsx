@@ -14,6 +14,7 @@ import { SalesCopilot } from "@/components/copilot/SalesCopilot";
 
 export function AppShell({
   children,
+  workspaceId,
   workspaceName,
   workspaceRole,
   userEmail,
@@ -24,6 +25,7 @@ export function AppShell({
   initialSidebarCollapsed,
 }: {
   children: React.ReactNode;
+  workspaceId: string;
   workspaceName: string;
   workspaceRole: string;
   userEmail?: string;
@@ -163,7 +165,7 @@ export function AppShell({
         </div>
         {children}
       </main>
-      <SalesCopilot open={copilotOpen} onClose={closeCopilot} locale={locale} />
+      <SalesCopilot open={copilotOpen} onClose={closeCopilot} locale={locale} workspaceId={workspaceId} />
 
       <SupportCenter locale={locale} recordContextAvailable={supportRecordEnabled} />
 

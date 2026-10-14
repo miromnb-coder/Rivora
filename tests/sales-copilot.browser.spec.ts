@@ -108,3 +108,36 @@ test("orders remain usable when the 1440px Copilot is open", async ({ page }) =>
     await expect(page.locator(".orders-case-table-row").first().locator("strong").first()).toBeVisible();
   }
 });
+
+for (const width of [390, 430, 768, 1024, 1280, 1440, 1680, 1920]) {
+  test(`${width}px Copilot keeps the composer visible and the workspace usable`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 });
+    await page.getByRole("button", { name: "AI Copilot" }).filter({ visible: true }).click();
+    const panel = page.locator("#sales-copilot");
+    await expect(panel).toBeVisible();
+    const composer = await panel.locator(".sales-copilot-bottom").boundingBox();
+    expect(composer).not.toBeNull();
+    expect(composer!.y + composer!.height).toBeLessThanOrEqual(851);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width >= 1200) {
+      const main = await page.locator(".app-main-v2").boundingBox();
+      const rail = await panel.boundingBox();
+      expect(main!.x + main!.width).toBeLessThanOrEqual(rail!.x + 2);
+    }
+  });
+}
+
+test("closing and reopening keeps only the current session conversation", async ({ page, isMobile }) => {
+  test.skip(isMobile, "This route transition uses the desktop sidebar.");
+  await page.getByRole("button", { name: "AI Copilot" }).filter({ visible: true }).click();
+  const panel = page.locator("#sales-copilot");
+  const input = panel.getByRole("textbox", { name: /Kysy AI Copilotilta|Ask AI Copilot/ });
+  await input.fill("Which RFQs need attention?");
+  await input.press("Enter");
+  await expect(panel.getByText("Synthetic workflow guidance.")).toBeVisible();
+  await panel.getByRole("button", { name: /Sulje AI Copilot|Close AI Copilot/ }).click();
+  await page.getByRole("button", { name: "AI Copilot" }).filter({ visible: true }).click();
+  await expect(panel.getByText("Synthetic workflow guidance.")).toBeVisible();
+  await page.locator(".app-sidebar-v2 a[href='/app/customers']").first().click();
+  await expect(panel.getByText("Synthetic workflow guidance.")).toHaveCount(0);
+});

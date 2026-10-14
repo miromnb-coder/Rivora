@@ -179,7 +179,7 @@ export default async function QuoteDetailPage({
                 const catalogue = line.catalogue_unit_price == null ? null : Number(line.catalogue_unit_price);
 
                 return (
-                  <article key={line.id} className="quote-builder-v1-line">
+                  <article key={line.id} id={`line-${line.id}`} className="quote-builder-v1-line">
                     <div className="quote-builder-v1-line-copy">
                       <div className="quote-builder-v1-line-meta">
                         <span>{copy.line} {line.line_number}</span>
