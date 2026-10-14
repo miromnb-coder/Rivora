@@ -7,6 +7,7 @@ import {
   getBusinessCentralConfigurationStatus,
 } from "@/lib/rivora/erp/business-central";
 import { getErpProviderCapability } from "@/lib/rivora/erp";
+import { hasSupabaseAdminKey } from "@/lib/supabase/admin";
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value ?? null;
@@ -44,6 +45,9 @@ export default async function AppHome() {
     erpCapability.key === "business_central" &&
     erpCapability.hasNativeAdapter;
   const requestedErpName = workspace.erpRequestedName?.trim() || "";
+  // Optional ERP readiness must never crash the read-only dashboard when
+  // Preview lacks its server-side admin key. ERP exporting remains fail-closed.
+  const erpStatusUnavailable = isBusinessCentral && !hasSupabaseAdminKey();
 
   const [
     { data: organization },
@@ -124,7 +128,7 @@ export default async function AppHome() {
   ]);
 
   const tasks: Task[] = [];
-  const bcConfig = isBusinessCentral
+  const bcConfig = isBusinessCentral && !erpStatusUnavailable
     ? await getBusinessCentralConfigurationStatus(workspace.id)
     : null;
   const erpMappingByEntity = new Map(
@@ -286,7 +290,8 @@ export default async function AppHome() {
     );
     const missingMappings = (customerVerified ? 0 : 1) + missingProducts.length;
     const mappingTotal = 1 + productIds.length;
-    const exportReady = Boolean(bcConfig?.configured) && missingMappings === 0;
+    const exportReady = !erpStatusUnavailable &&
+      Boolean(bcConfig?.configured) && missingMappings === 0;
 
     tasks.push({
       key: `sales-${order.id}`,
@@ -294,7 +299,9 @@ export default async function AppHome() {
       stageRank: 4,
       eyebrow: "Business Central",
       title:
-        order.status === "erp_failed"
+        erpStatusUnavailable
+          ? fi ? "ERP-yhteyden tila ei ole saatavilla" : "ERP connection status unavailable"
+          : order.status === "erp_failed"
           ? fi
             ? "ERP-vienti vaatii huomiota"
             : "ERP export needs attention"
@@ -310,7 +317,9 @@ export default async function AppHome() {
           ? `${customerName} · ${reference} · ${money.format(total)} · ${missingMappings}/${mappingTotal} ${fi ? "vastinetta puuttuu" : "mappings missing"}`
           : `${customerName} · ${reference} · ${money.format(total)}`,
       href: `/app/orders/case/sales/${order.id}`,
-      action: order.status === "erp_failed"
+      action: erpStatusUnavailable
+        ? fi ? "Avaa myyntitilausluonnos" : "Open sales order draft"
+        : order.status === "erp_failed"
         ? fi ? "Tarkista ERP-vienti" : "Review ERP export"
         : exportReady
           ? fi ? "Luo myyntitilaus" : "Create sales order"
@@ -448,6 +457,17 @@ export default async function AppHome() {
           {fi ? "Uusi tarjouspyyntö" : "New RFQ"}
         </Link>
       </header>
+
+      {erpStatusUnavailable ? (
+        <div role="status" className="mb-5 rounded-xl border border-[var(--app-line)] bg-[var(--app-paper)] px-5 py-4 text-sm">
+          <strong>{fi ? "ERP-yhteyden tila ei ole saatavilla" : "ERP connection status unavailable"}</strong>
+          <p className="mt-1 text-[var(--app-muted)]">
+            {fi
+              ? "Tämän ympäristön palvelinmääritys ei mahdollista ERP-yhteyden tilan tarkistamista. Muita työvaiheita voi käyttää normaalisti, mutta ERP-vientiä ei pidä yrittää ennen määrityksen korjaamista."
+              : "The server configuration in this environment does not permit checking the ERP connection. Other workflows remain available, but ERP export must not be attempted until the configuration is fixed."}
+          </p>
+        </div>
+      ) : null}
 
       <section className="dashboard-section dashboard-attention-section" aria-labelledby="dashboard-tasks-heading">
         <div className="dashboard-section-head">
