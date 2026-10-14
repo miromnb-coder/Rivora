@@ -25,13 +25,16 @@ export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const requestRef = useRef<AbortController | null>(null);
   const nextId = useRef(0);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [messages, pending]);
+  useEffect(() => {
+    const scroll = scrollRef.current;
+    if (scroll) scroll.scrollTop = scroll.scrollHeight;
+  }, [messages, pending]);
   useEffect(() => {
     if (!open) return;
     closeRef.current?.focus();
@@ -108,7 +111,7 @@ export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose
             <button ref={closeRef} type="button" onClick={onClose} aria-label={fi ? "Sulje AI Copilot" : "Close AI Copilot"} title={fi ? "Sulje" : "Close"}>×</button>
           </div>
         </header>
-        <div className="sales-copilot-scroll" role="log" aria-live="polite" aria-relevant="additions text">
+        <div ref={scrollRef} className="sales-copilot-scroll" role="log" aria-live="polite" aria-relevant="additions text">
           {messages.length === 0 ? <div className="sales-copilot-intro">
             <h3>{fi ? "Kysy työnkulusta" : "Ask about your workflow"}</h3>
             <p>{fi ? "Voin neuvoa tarjouspyyntöjen, tuotteiden ja tarjousten käsittelyssä. En näe tämän sivun asiakastietoja enkä tee muutoksia puolestasi." : "I can guide you through RFQs, products and quotes. I cannot see customer data on this page or make changes for you."}</p>
@@ -117,7 +120,6 @@ export function SalesCopilot({ open, onClose, locale }: { open: boolean; onClose
           </div> : messages.map((message) => <div key={message.id} className={`sales-copilot-message is-${message.role}`}><span>{message.role === "user" ? (fi ? "Sinä" : "You") : "AI Copilot"}</span><p>{message.text}</p></div>)}
           {pending ? <p className="sales-copilot-status" role="status">{fi ? "Haetaan vastausta…" : "Getting an answer…"}</p> : null}
           {error ? <p className="sales-copilot-error" role="alert">{error}</p> : null}
-          <div ref={endRef} />
         </div>
         <div className="sales-copilot-bottom">
           <form onSubmit={submit}>
