@@ -129,7 +129,7 @@
   }
   .app-shell-v2 .sales-copilot-backdrop { display: none; }
 }
-@media (min-width: 1200px) and (max-width: 1379px) {
+@media (min-width: 1200px) and (max-width: 1599px) {
   .app-shell-v2.is-copilot-open .quote-builder-v1-grid { grid-template-columns: minmax(0,1fr) !important; }
   .app-shell-v2.is-copilot-open .app-main-v2 { overflow-x: auto; }
 }
