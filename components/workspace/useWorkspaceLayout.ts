@@ -18,7 +18,7 @@ export function useWorkspaceLayout(root: RefObject<HTMLDivElement | null>) {
     return () => observer.disconnect();
   }, [root]);
   const mode: WorkspaceMode = width === null || width < 768 ? "mobile" : width < 1024 ? "tablet" : width < 1200 ? "overlay" : "desktop";
-  return { width, mode, rail: width !== null && width >= 1920 ? "400px" : width !== null && width >= 1600 ? "384px" : "360px" };
+  return { width, mode, rail: width !== null && width >= 1920 ? "400px" : width !== null && width >= 1600 ? "384px" : "340px" };
 }
 
 export function usePanelPresence(open: boolean) {
