@@ -12,7 +12,7 @@ test("desktop retains a full-height white sticky sidebar", () => {
 
 test("shell restores the normal document scroll instead of locking its height", () => {
   assert.match(layout, /\.app-shell-v2 \{\s*height: auto;\s*min-height: 100dvh;\s*overflow: visible;/);
-  assert.doesNotMatch(layout, /overflow:\s*hidden/);
+  assert.doesNotMatch(layout.replace(/\/\*[\s\S]*?\*\//g, ""), /overflow:\s*hidden/);
   assert.match(layout, /\.app-shell-v2\.is-copilot-open \.app-main-v2 \{\s*overflow: visible;/);
 });
 
