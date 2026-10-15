@@ -1,0 +1,21 @@
+{
+  "source": "067b91d",
+  "viewport": "1440x900",
+  "opening": {
+    "phase": "opening",
+    "duration": "0.28s",
+    "name": "workspace-panel-enter",
+    "columns": "232px 816px 360px"
+  },
+  "closing": {
+    "phase": "closing",
+    "duration": "0.2s",
+    "name": "workspace-panel-exit",
+    "columns": "232px 816px 360px",
+    "inert": true
+  },
+  "closed": {
+    "panels": 0,
+    "columns": "232px 1176px"
+  }
+}

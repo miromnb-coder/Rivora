@@ -1,0 +1,70 @@
+{
+  "source_sha": "067b91d202ac1d64caa73177d7d91d1e72ae6fe3",
+  "environment": {
+    "kind": "managed Linux, isolated fixtures",
+    "node": "24.19.0",
+    "chromium": "145",
+    "webkit": "26.0"
+  },
+  "checks": [
+    {
+      "requirements": "TOK/UI/LAY/RESP/SCROLL/NAV/ROUTE/CHAT/MOD/MOT/A11Y/PAGE (tested subset)",
+      "level": "A",
+      "command": "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 PLAYWRIGHT_BROWSERS_PATH=/tmp/averomira-browsers npx playwright test --config playwright.workspace.config.ts",
+      "result": "PASS",
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "requirements": "C / Operations regression",
+      "level": "A",
+      "command": "PLAYWRIGHT_BROWSERS_PATH=/tmp/averomira-browsers npx playwright test --config playwright.operations.config.ts --output /tmp/averomira-operations-results",
+      "result": "PASS",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm test",
+      "result": "PASS",
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0,
+      "unit": "top-level Node test-file results"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "requirements": "SAFE-04",
+      "method": "compiled baseline/current CSS computed styles: home 438 elements, login 34 elements",
+      "result": "PASS"
+    },
+    {
+      "requirements": "Auth role and workspace integration",
+      "level": "B",
+      "result": "NOT RUN",
+      "note": "Source/unit review and UI role fixtures do not establish server authorization integration"
+    },
+    {
+      "requirements": "A11Y-04 browser zoom 200/400%",
+      "result": "NOT RUN",
+      "note": "320px reflow and enlarged text are separate PASS cases"
+    },
+    {
+      "requirements": "DEVICE-01",
+      "result": "NOT RUN",
+      "note": "REAL IPAD SAFARI: NOT RUN — physical device validation required."
+    }
+  ]
+}
