@@ -12,7 +12,7 @@
   --app-outer-border: #E8DED5;
   --app-line: #EAE3DB;
   --app-line-strong: #DBD0C5;
-  --app-control-border: #D2C5B8;
+  --app-control-border: #998676;
   --app-ink: #211D19;
   --app-body: #3D3732;
   --app-muted: #6D645D;
@@ -206,7 +206,7 @@
 }
 .sales-copilot-bottom form {
   min-height: 85px;
-  border: 1px solid #E3D9D0;
+  border: 1px solid #998676;
   border-radius: 18px;
   background: var(--app-field);
   box-shadow: 0 7px 24px rgba(53,37,24,.04);
