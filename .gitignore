@@ -12,3 +12,6 @@ supabase/.temp/
 
 test-results/
 playwright-report/
+
+workspace-report/
+workspace-test-results/

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/app/actions";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
@@ -11,6 +11,8 @@ import { AppNav, type NavItem } from "@/components/AppNav";
 import { AppLocation } from "@/components/AppLocation";
 import { SupportCenter } from "@/components/support/SupportCenter";
 import { RivoraMark } from "@/components/marketing/RivoraMark";
+import { useWorkspaceLayout, usePanelPresence } from "@/components/workspace/useWorkspaceLayout";
+import { useModal } from "@/components/workspace/useModal";
 import { SalesCopilot } from "@/components/copilot/SalesCopilot";
 
 function CopilotGlyph() {
@@ -40,9 +42,19 @@ export function AppShell({
   supportRecordEnabled: boolean;
   initialSidebarCollapsed: boolean;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const { width, mode, rail } = useWorkspaceLayout(rootRef);
+  const pathname = usePathname();
+  const initialized = useRef(false);
   const [collapsed, setCollapsed] = useState(initialSidebarCollapsed);
   const [copilotOpen, setCopilotOpen] = useState(false);
-  useEffect(() => { if (window.matchMedia("(min-width: 1200px)").matches) setCopilotOpen(true); }, []);
+  useEffect(() => {
+    if (width === null || initialized.current) return;
+    initialized.current = true;
+    if (mode === "desktop") setCopilotOpen(true);
+  }, [width, mode]);
+  const { phase, present } = usePanelPresence(copilotOpen);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -58,9 +70,12 @@ export function AppShell({
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault(); setSearchOpen(true); if (window.matchMedia("(max-width: 1023px)").matches) setMobileMenuOpen(true);
+        event.preventDefault();
+        const mode = rootRef.current?.dataset.shellMode;
+        if (mode !== "desktop") setCopilotOpen(false);
+        if (mode === "mobile" || mode === "tablet") setMobileMenuOpen(true);
+        setSearchOpen(true);
       }
-      if (event.key === "Escape") { setSearchOpen(false); setMobileMenuOpen(false); }
     };
     document.addEventListener("keydown", shortcut);
     return () => document.removeEventListener("keydown", shortcut);
@@ -73,34 +88,30 @@ export function AppShell({
     return () => document.removeEventListener("pointerdown", dismiss);
   }, [searchOpen]);
   useEffect(() => { if (!/Mac|iPhone|iPad/.test(navigator.platform)) setShortcutLabel("Ctrl K"); }, []);
+  const drawerActive = mobileMenuOpen && (mode === "mobile" || mode === "tablet");
+  useModal({ active: drawerActive, panel: sidebarRef, initialFocus: searchOpen ? searchRef : mobileCloseRef,
+    onClose: () => { setMobileMenuOpen(false); setSearchOpen(false); },
+    returnFocus: () => Array.from(document.querySelectorAll<HTMLButtonElement>(".app-mobile-menu-button,.app-tablet-menu-button")).find(button => button.getClientRects().length) ?? mainRef.current });
   useEffect(() => {
-    if (!mobileMenuOpen || window.matchMedia("(min-width: 1024px)").matches) return;
-    (searchOpen ? searchRef.current : mobileCloseRef.current)?.focus();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const trap = (event: KeyboardEvent) => {
-      if (event.key !== "Tab") return;
-      const controls = sidebarRef.current?.querySelectorAll<HTMLElement>('a, button:not(:disabled), input, select');
-      if (!controls?.length) return;
-      const first = controls[0], last = controls[controls.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    };
-    document.addEventListener("keydown", trap);
-    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", trap); mobileMenuButtonRef.current?.focus(); };
-  }, [mobileMenuOpen, searchOpen]);
+    if (mode === "desktop" || mode === "overlay") { setMobileMenuOpen(false); setSearchOpen(false); }
+  }, [mode]);
+  const previousPath = useRef(pathname);
+  useEffect(() => {
+    if (previousPath.current !== pathname) {
+      previousPath.current = pathname;
+      setMobileMenuOpen(false); setSearchOpen(false); setAccountOpen(false);
+      if (mode !== "desktop") setCopilotOpen(false);
+      const frame = requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [pathname, mode]);
   useEffect(() => {
     if (!accountOpen) return;
     const dismiss = (event: PointerEvent) => {
       if (!accountRef.current?.contains(event.target as Node)) setAccountOpen(false);
     };
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setAccountOpen(false); };
     document.addEventListener("pointerdown", dismiss);
-    document.addEventListener("keydown", escape);
-    return () => {
-      document.removeEventListener("pointerdown", dismiss);
-      document.removeEventListener("keydown", escape);
-    };
+    return () => document.removeEventListener("pointerdown", dismiss);
   }, [accountOpen]);
   useEffect(() => {
     try {
@@ -118,12 +129,16 @@ export function AppShell({
     try { localStorage.setItem("averomira-sidebar-collapsed", next ? "1" : "0"); } catch { /* Cookie remains available. */ }
   }
   const closeCopilot = useCallback(() => {
+    const restoreDesktopFocus = rootRef.current?.dataset.shellMode === "desktop" && document.querySelector("#sales-copilot")?.contains(document.activeElement);
     setCopilotOpen(false);
-    requestAnimationFrame(() => {
-      const triggers = document.querySelectorAll<HTMLButtonElement>(".app-copilot-trigger");
-      Array.from(triggers).find((button) => button.getClientRects().length > 0)?.focus();
+    if (restoreDesktopFocus) requestAnimationFrame(() => {
+      Array.from(document.querySelectorAll<HTMLButtonElement>(".app-copilot-trigger")).find(button => button.getClientRects().length)?.focus({ preventScroll: true });
     });
   }, []);
+  function toggleCopilot() {
+    setMobileMenuOpen(false); setSearchOpen(false); setAccountOpen(false);
+    setCopilotOpen(value => !value);
+  }
   const copy = getDictionary(locale).nav;
   const nav: NavItem[] = [
     [locale === "fi" ? "Yleiskatsaus" : "Overview", "/app", "dashboard", "main"],
@@ -135,7 +150,7 @@ export function AppShell({
     [locale === "fi" ? "Tarkistukset" : "Reviews", "/app/orders?view=attention", "reviews", "process"],
     [locale === "fi" ? "ERP-siirrot" : "ERP transfers", "/app/orders?view=erp", "erp", "process"],
     [locale === "fi" ? "Tehtävät" : "Tasks", "/app#dashboard-tasks-heading", "tasks", "process"],
-    [locale === "fi" ? "Tiimi" : "Team", "/app/settings#users", "team", "manage"],
+    ...(["owner", "admin"].includes(workspaceRole) ? [[locale === "fi" ? "Tiimi" : "Team", "/app/settings#users", "team", "manage"] as const] : []),
     [copy.settings, "/app/settings", "settings", "manage"],
   ];
   const searchItems = [...nav, [locale === "fi" ? "Uusi tarjouspyyntö" : "New RFQ", "/app/upload", "upload", "action"] as const,
@@ -143,12 +158,15 @@ export function AppShell({
     [locale === "fi" ? "Ostotilaukset" : "Purchase orders", "/app/purchase-orders", "purchase", "action"] as const,
     [locale === "fi" ? "Myyntitilaukset" : "Sales orders", "/app/sales-orders", "sales", "action"] as const];
   const results = searchItems.filter(([label]) => label.toLocaleLowerCase(locale).includes(query.trim().toLocaleLowerCase(locale)));
-  function navigate(href: string) { setSearchOpen(false); setMobileMenuOpen(false); setQuery(""); router.push(href); }
+  function navigate(href: string) { setSearchOpen(false); setMobileMenuOpen(false); setQuery(""); router.push(href); window.dispatchEvent(new CustomEvent("averomira:workspace-navigation", { detail: { href } })); }
 
   return (
-    <div className={`app-shell-v2 min-h-screen${collapsed ? " is-sidebar-collapsed" : ""}${copilotOpen ? " is-copilot-open" : ""}`}>
-      {mobileMenuOpen ? <button type="button" className="app-mobile-menu-backdrop" aria-label={locale === "fi" ? "Sulje valikko" : "Close menu"} onClick={() => { setMobileMenuOpen(false); setSearchOpen(false); }} /> : null}
-      <aside ref={sidebarRef} role={mobileMenuOpen ? "dialog" : undefined} aria-modal={mobileMenuOpen ? true : undefined} aria-label={mobileMenuOpen ? (locale === "fi" ? "Työtilan valikko" : "Workspace menu") : undefined} className={`app-sidebar-v2${mobileMenuOpen ? " is-mobile-open" : ""}`}>
+    <div ref={rootRef} data-shell-mode={mode} data-shell-width={width === null ? undefined : Math.round(width)}
+      style={{ "--workspace-rail": rail } as React.CSSProperties}
+      className={`app-shell-v2${collapsed ? " is-sidebar-collapsed" : ""}${present ? " is-copilot-open" : ""}`}>
+
+      {drawerActive ? <button type="button" className="app-mobile-menu-backdrop" data-modal-backdrop="workspace-navigation" tabIndex={-1} aria-label={locale === "fi" ? "Sulje valikko" : "Close menu"} onClick={() => { setMobileMenuOpen(false); setSearchOpen(false); }} /> : null}
+      <aside id="workspace-navigation" tabIndex={-1} ref={sidebarRef} role={drawerActive ? "dialog" : undefined} aria-modal={drawerActive ? true : undefined} aria-label={drawerActive ? (locale === "fi" ? "Työtilan valikko" : "Workspace menu") : undefined} className={`app-sidebar-v2${drawerActive ? " is-mobile-open" : ""}`}>
         <div className="app-sidebar-v2-top">
           <button ref={mobileCloseRef} type="button" className="app-mobile-menu-close" aria-label={locale === "fi" ? "Sulje valikko" : "Close menu"} onClick={() => { setMobileMenuOpen(false); setSearchOpen(false); }}>×</button>
           <Link href="/app" className="app-sidebar-v2-brand" aria-label="Averomira">
@@ -161,13 +179,13 @@ export function AppShell({
             <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.5" /><path d="m16 16 4 4" /></svg>
             <span>{locale === "fi" ? "Hae työtilasta..." : "Search workspace..."}</span><kbd>{shortcutLabel}</kbd>
           </button>
-          {searchOpen ? <div className="app-search-popover">
+          {searchOpen ? <div className="app-search-popover" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setSearchOpen(false); searchContainerRef.current?.querySelector("button")?.focus(); } }}>
             <label className="sr-only" htmlFor="app-workspace-search-input">{locale === "fi" ? "Hae sivuja ja toimintoja" : "Search pages and actions"}</label>
             <input id="app-workspace-search-input" ref={searchRef} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && query.trim() && results[0]) navigate(results[0][1]); }} placeholder={locale === "fi" ? "Hae sivuja ja toimintoja" : "Search pages and actions"} />
             <div className="app-search-results">{results.length ? results.map(([label, href, id]) => <button key={id} type="button" onClick={() => navigate(href)}>{label}</button>) : <p>{locale === "fi" ? "Ei tuloksia" : "No results"}</p>}</div>
           </div> : null}
         </div>
-        <div onClick={() => { if (mobileMenuOpen) { setMobileMenuOpen(false); setSearchOpen(false); } }}><AppNav items={nav} locale={locale} collapsed={collapsed && !mobileMenuOpen} /></div>
+        <div className="app-nav-scroll" onClick={() => { if (mobileMenuOpen) { setMobileMenuOpen(false); setSearchOpen(false); } }}><AppNav items={nav} locale={locale} collapsed={collapsed && !mobileMenuOpen} /></div>
         <div className={`app-sidebar-v2-account${collapsed ? " is-collapsed" : ""}`} ref={accountRef}>
               <button type="button" className="app-sidebar-account-trigger"
                 aria-label={locale === "fi" ? "Työtili ja tiliasetukset" : "Workspace and account"}
@@ -179,7 +197,7 @@ export function AppShell({
                 <svg className="app-account-chevron" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
               </button>
               {accountOpen ? (
-                <div className="app-sidebar-account-menu" id="app-sidebar-account-menu">
+                <div className="app-sidebar-account-menu" id="app-sidebar-account-menu" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setAccountOpen(false); accountRef.current?.querySelector("button")?.focus(); } }}>
                   <div className="app-sidebar-v2-account-label">{copy.workspace}</div>
                   <div className="app-sidebar-v2-account-name">{workspaceName}</div>
                   <div className="app-sidebar-v2-role">{workspaceRole}</div>
@@ -193,18 +211,19 @@ export function AppShell({
       </aside>
 
       <header className="app-mobile-topbar">
-        <button ref={mobileMenuButtonRef} type="button" className="app-mobile-menu-button" aria-label={locale === "fi" ? "Avaa valikko" : "Open menu"} aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+        <button ref={mobileMenuButtonRef} type="button" className="app-mobile-menu-button" aria-label={locale === "fi" ? "Avaa valikko" : "Open menu"} aria-expanded={mobileMenuOpen} aria-controls="workspace-navigation" onClick={() => { setCopilotOpen(false); setMobileMenuOpen(true); }}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
         <Link href="/app" className="app-mobile-brand" aria-label="Averomira">
           <RivoraMark withSymbol />
         </Link>
-        <button type="button" className="app-mobile-search-button" aria-label={locale === "fi" ? "Hae työtilasta" : "Search workspace"} onClick={() => { setMobileMenuOpen(true); setSearchOpen(true); }}>⌕</button>
-        <button type="button" className="app-copilot-trigger" aria-controls="sales-copilot" aria-expanded={copilotOpen} onClick={() => copilotOpen ? closeCopilot() : setCopilotOpen(true)}>
+        <button type="button" className="app-mobile-search-button" aria-label={locale === "fi" ? "Hae työtilasta" : "Search workspace"} onClick={() => { setCopilotOpen(false); setMobileMenuOpen(true); setSearchOpen(true); }}>⌕</button>
+        <button type="button" className="app-copilot-trigger" aria-controls="sales-copilot" aria-expanded={copilotOpen} onClick={toggleCopilot}>
           <span className="app-copilot-icon"><CopilotGlyph /></span><span>AI Copilot</span>
         </button>
       </header>
 
-      <main className="app-main-v2">
+      <main ref={mainRef} tabIndex={-1} className="app-main-v2">
         <div className="app-workspace-toolbar">
+          <button type="button" className="app-tablet-menu-button" aria-controls="workspace-navigation" aria-expanded={drawerActive} aria-label={locale === "fi" ? "Avaa valikko" : "Open menu"} onClick={() => { setCopilotOpen(false); setMobileMenuOpen(true); }}>☰</button>
           <button type="button" className="app-sidebar-toggle"
             aria-label={collapsed ? (locale === "fi" ? "Laajenna valikko" : "Expand sidebar") : (locale === "fi" ? "Pienennä valikko" : "Collapse sidebar")}
             aria-expanded={!collapsed}
@@ -218,19 +237,17 @@ export function AppShell({
           </button>
           <div className="app-workspace-toolbar-context"><AppLocation locale={locale} /></div>
           <button type="button" className="app-copilot-trigger" aria-controls="sales-copilot"
-            aria-expanded={copilotOpen} onClick={() => copilotOpen ? closeCopilot() : setCopilotOpen(true)}>
+            aria-expanded={copilotOpen} onClick={toggleCopilot}>
             <span className="app-copilot-icon"><CopilotGlyph /></span><span>AI Copilot</span>
           </button>
         </div>
-        {children}
+        <div className="app-content-v2">{children}</div>
       </main>
-      <SalesCopilot open={copilotOpen} onClose={closeCopilot} locale={locale} workspaceId={workspaceId} />
+      <SalesCopilot open={copilotOpen} present={present} phase={phase} mode={mode} onClose={closeCopilot} locale={locale} workspaceId={workspaceId} />
 
       <SupportCenter locale={locale} recordContextAvailable={supportRecordEnabled} />
 
-      <div className="app-mobile-bottom-nav">
-        <AppNav items={nav} compact locale={locale} />
-      </div>
+
     </div>
   );
 }

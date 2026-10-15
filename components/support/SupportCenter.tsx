@@ -1,5 +1,6 @@
 "use client";
 
+import { useModal } from "@/components/workspace/useModal";
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -266,44 +267,8 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
     return () => window.removeEventListener(SUPPORT_OPEN_EVENT, handleContextHelp);
   }, [articles]);
 
-  useEffect(() => {
-    if (!open) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeSupport();
-        return;
-      }
-      if (event.key !== "Tab" || !dialogRef.current) return;
-      const items = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
-        'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])',
-      )).filter((item) => item.getClientRects().length > 0);
-      if (!items.length) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (!dialogRef.current.contains(document.activeElement)) {
-        event.preventDefault(); first.focus();
-      } else if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault(); last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault(); first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    document.body.classList.add("support-center-open");
-
-    const timer = window.setTimeout(() => {
-      if (view.kind === "home") aiInputRef.current?.focus();
-    }, 80);
-
-    return () => {
-      window.clearTimeout(timer);
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.classList.remove("support-center-open");
-    };
-  }, [open, view.kind]);
+  useModal({ active: open, panel: dialogRef, onClose: closeSupport,
+    returnFocus: () => launcherRef.current });
 
   useEffect(() => {
     if (aiThreadRef.current) {
@@ -537,12 +502,14 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
           <button
             type="button"
             className="support-center-backdrop"
+            data-modal-backdrop="support-center-dialog" tabIndex={-1}
             aria-label={fi ? "Sulje Help Center" : "Close Help Center"}
             onClick={closeSupport}
           />
 
           <section
             className="support-center-panel"
+            id="support-center-dialog"
             ref={dialogRef}
             role="dialog"
             aria-modal="true"

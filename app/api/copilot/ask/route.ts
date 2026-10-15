@@ -21,7 +21,7 @@ const ANSWER_SCHEMA = {
   },
 } as const;
 
-export function contextExcerpt(context: CopilotContext, question: string): string {
+function contextExcerpt(context: CopilotContext, question: string): string {
   const facts = { ...context.facts };
   if (Array.isArray(facts.lines)) {
     const lines = facts.lines as Array<Record<string, unknown>>;

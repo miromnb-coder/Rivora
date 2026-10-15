@@ -4,18 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-export type NavItem = readonly [label: string, href: string, id: string, group: "main" | "process" | "manage"];
+import { activeWorkspaceItem } from "@/lib/workspace-navigation";
 
-function isItemActive(pathname: string, href: string, id: string, view: string | null) {
-  if (id === "dashboard") return pathname === "/app";
-  if (id === "orders") return (pathname.startsWith("/app/orders") && !["attention", "erp"].includes(view ?? "")) || pathname.startsWith("/app/purchase-orders") || pathname.startsWith("/app/sales-orders") || pathname.startsWith("/app/quotes");
-  if (id === "reviews") return pathname === "/app/orders" && view === "attention";
-  if (id === "erp") return pathname === "/app/orders" && view === "erp";
-  if (id === "rfq") return pathname.startsWith("/app/inbox") || pathname.startsWith("/app/rfq/") || pathname === "/app/upload";
-  if (id === "settings") return pathname.startsWith("/app/settings") || pathname === "/app/memory" || pathname.startsWith("/app/memory/");
-  if (["tasks", "team"].includes(id)) return false;
-  return pathname === href || pathname.startsWith(href + "/");
-}
+export type NavItem = readonly [label: string, href: string, id: string, group: "main" | "process" | "manage"];
 
 function NavIcon({ id }: { id: string }) {
   const common = {
@@ -92,8 +83,22 @@ export function AppNav({ items, compact = false, collapsed = false, locale = "fi
 }) {
   const pathname = usePathname();
   const view = useSearchParams().get("view");
+  const [hash, setHash] = useState("");
+  useEffect(() => {
+    const update = () => setHash(window.location.hash);
+    update();
+    const navigate = (event: Event) => {
+      const href = (event as CustomEvent<{ href: string }>).detail?.href;
+      if (href) setHash(new URL(href, window.location.origin).hash);
+    };
+    window.addEventListener("averomira:workspace-navigation", navigate);
+    window.addEventListener("hashchange", update);
+    window.addEventListener("popstate", update);
+    return () => { window.removeEventListener("averomira:workspace-navigation", navigate); window.removeEventListener("hashchange", update); window.removeEventListener("popstate", update); };
+  }, [pathname]);
+  const activeId = activeWorkspaceItem(pathname, view, hash);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
-  useEffect(() => { setPendingHref(null); }, [pathname, view]);
+  useEffect(() => { setPendingHref(null); }, [pathname, view, hash]);
   const visible = compact ? items.filter(([, , id]) => ["dashboard", "orders", "rfq", "products", "customers"].includes(id)) : items;
   let lastGroup = "";
   return (
@@ -102,7 +107,7 @@ export function AppNav({ items, compact = false, collapsed = false, locale = "fi
       {visible.map(([label, href, id, group]) => {
         const groupHeading = !compact && group !== lastGroup ? (group === "process" ? (locale === "fi" ? "Prosessit" : "Processes") : group === "manage" ? (locale === "fi" ? "Hallinta" : "Manage") : (locale === "fi" ? "Päänavigaatio" : "Main navigation")) : null;
         lastGroup = group;
-        const active = compact && id === "orders" && pathname.startsWith("/app/orders") ? true : isItemActive(pathname, href, id, view);
+        const active = id === activeId;
         const pending = pendingHref === href && !active;
         return (
           <div className="app-nav-entry" key={id}>
@@ -110,14 +115,15 @@ export function AppNav({ items, compact = false, collapsed = false, locale = "fi
           <Link href={href} prefetch
             title={collapsed && !compact ? label : undefined}
             aria-label={collapsed && !compact ? label : undefined}
-            onClick={() => { if (href.split(/[?#]/)[0] !== pathname || href.includes("?")) setPendingHref(href); }}
-            aria-current={active ? "page" : undefined}
+            onClick={() => { setHash(new URL(href, window.location.origin).hash); if (href.split(/[?#]/)[0] !== pathname || href.includes("?")) setPendingHref(href); }}
+            aria-current={active ? (href.includes("#") ? "location" : "page") : undefined}
             aria-busy={pending || undefined}
             className={"app-sidebar-v2-link app-sidebar-v2-link-" + id +
               (active ? " is-active" : "") + (pending ? " is-pending" : "")}>
             <span className="app-nav-main">
               <span className="app-nav-icon"><NavIcon id={id} /></span>
               <span className="app-nav-label">{label}</span>
+              {collapsed ? <span className="app-nav-tooltip" role="tooltip">{label}</span> : null}
             </span>
             {pending ? <span className="app-nav-pending-dot" aria-hidden="true" /> : null}
           </Link>
