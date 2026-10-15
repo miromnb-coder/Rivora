@@ -267,7 +267,7 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 .app-shell-v2 .app-main-v2 { background: var(--app-surface) !important; }
-.app-shell-v2 .app-sidebar-v2 { background: var(--app-paper) !important; border-color: var(--app-line) !important; height: 100dvh; }
+.app-shell-v2 .app-sidebar-v2 { background: var(--app-surface) !important; border-color: var(--app-line) !important; height: 100dvh; }
 .app-shell-v2 .app-sidebar-v2-top { padding-bottom: 0 !important; }
 .app-shell-v2 .app-sidebar-v2-brand { display: inline-flex; align-items: center; min-height: 35px; font-size: 17px !important; }
 .app-shell-v2 .app-sidebar-v2-product { margin-top: 2px !important; font-size: 11px !important; font-weight: 500 !important; }
@@ -382,4 +382,37 @@
   .app-shell-v2 .app-mobile-search-button { display: none; }
   .app-shell-v2 .app-mobile-topbar { gap: 8px; }
 }
+
+/* Workspace 3.0 phase 3: a full-height white navigation surface and an inset
+   working card. Only the card's right corners are rounded; its left edge is
+   square against the navigation. The AI rail remains on its own warm surface.
+   A contained main scroll keeps both 12px vertical gutters visible even when
+   a real order/RFQ/settings page is longer than the viewport. */
+@media (min-width: 1024px) {
+  .app-shell-v2 {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .app-shell-v2 .app-sidebar-v2 {
+    height: 100dvh;
+    min-height: 0;
+    border-radius: 0;
+    background: var(--app-surface) !important;
+  }
+  .app-shell-v2 .app-main-v2 {
+    align-self: start;
+    height: calc(100dvh - 24px);
+    min-height: 0;
+    margin: 12px 0;
+    border: 1px solid var(--app-line);
+    border-left: 0;
+    border-radius: 0 16px 16px 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    background: var(--app-surface) !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) { .app-shell-v2 .sales-copilot *, .app-shell-v2 .app-sidebar-v2-link { scroll-behavior: auto; transition: none; animation: none; } }
