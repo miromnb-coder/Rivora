@@ -181,3 +181,55 @@ test("closing and reopening keeps only the current session conversation", async 
   await page.locator(".app-sidebar-v2 a[href='/app/customers']").first().click();
   await expect(panel.getByText("Synthetic workflow guidance.")).toHaveCount(0);
 });
+
+
+test("approved desktop workspace has a flush full-height sidebar and a right-rounded inset card", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.reload();
+  const sidebar = page.locator(".app-sidebar-v2");
+  const main = page.locator(".app-main-v2");
+  const navBounds = await sidebar.boundingBox();
+  const cardBounds = await main.boundingBox();
+  expect(navBounds).not.toBeNull();
+  expect(cardBounds).not.toBeNull();
+  expect(navBounds!.y).toBeLessThanOrEqual(1);
+  expect(navBounds!.height).toBeGreaterThanOrEqual(899);
+  expect(cardBounds!.y).toBeGreaterThanOrEqual(11);
+  expect(cardBounds!.y).toBeLessThanOrEqual(13);
+  expect(cardBounds!.y + cardBounds!.height).toBeLessThanOrEqual(889);
+
+  const navBackground = await sidebar.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(navBackground).toBe("rgb(255, 255, 255)");
+  const shape = await main.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {
+      upperLeft: style.borderTopLeftRadius,
+      lowerLeft: style.borderBottomLeftRadius,
+      upperRight: style.borderTopRightRadius,
+      lowerRight: style.borderBottomRightRadius,
+      overflowY: style.overflowY,
+    };
+  });
+  expect(shape).toEqual({
+    upperLeft: "0px",
+    lowerLeft: "0px",
+    upperRight: "16px",
+    lowerRight: "16px",
+    overflowY: "auto",
+  });
+  await expect(page.locator("#sales-copilot")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("phone workspace does not inherit desktop card insets or clipped scrolling", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  const main = page.locator(".app-main-v2");
+  const style = await main.evaluate((el) => {
+    const css = getComputedStyle(el);
+    return { marginTop: css.marginTop, radius: css.borderTopRightRadius };
+  });
+  expect(style.marginTop).toBe("0px");
+  expect(style.radius).toBe("0px");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
