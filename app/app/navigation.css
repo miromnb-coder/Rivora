@@ -261,6 +261,7 @@
   .orders-case-table-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding: 16px; min-height: 64px; }
   .orders-case-table-row > div:first-child { grid-column: 1 / -1; }
   .orders-case-table-row > div:first-child span { display: block; }
+  .orders-case-table-row > span:nth-child(2) { display: none; }
   .app-page-v2 [class*="grid-cols-"], .products-v2-row, .quotes-v1-row, .nodra-customer-row, .customers-create-form, .quote-builder-v1-grid, .rfq-review-v2-grid, .product-page-grid, .settings-connection-grid { grid-template-columns: minmax(0, 1fr); }
   .products-v2-summary, .quotes-v1-summary, .dashboard-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

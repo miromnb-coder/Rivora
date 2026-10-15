@@ -201,6 +201,10 @@ test("NAV role/feature presentation and 320px enlarged text reflow",async({page}
 for (const route of ['products','customers','quotes','inbox']) test(`PAGE actual ${route} at 510px content`,async({page},info)=>{
   await page.setViewportSize({width:1200,height:900});await page.goto(`/app/${route}`);await expect(panel(page)).toHaveAttribute('data-phase','open');
   await expect(page.locator('.app-page-v2 h1')).toBeVisible();
+  await expect(page.locator('.app-page-v2 h1')).toHaveCSS('font-size','28px');
+  if (route === 'customers') {
+    const field=page.locator('.app-content-v2 input').first();await field.focus();await expect(field).toHaveCSS('box-shadow','none');await expect(field).toHaveCSS('outline-width','2px');
+  }
   const size=await page.locator('.app-content-v2').evaluate(e=>e.clientWidth-Number.parseFloat(getComputedStyle(e).paddingLeft)-Number.parseFloat(getComputedStyle(e).paddingRight));expect(size).toBe(510);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(1200);
   for(const field of await page.locator('.app-content-v2 input').all()) {const box=await field.boundingBox();expect(box!.width).toBeLessThanOrEqual(510);}
@@ -223,6 +227,7 @@ test("A11Y actual surfaces, control borders and one composite focus indicator",a
   });
   await info.attach('contrast.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   for(const key of ['nav','selected','primary','placeholder'] as const)expect(result[key]).toBeGreaterThanOrEqual(4.5);expect(result.control).toBeGreaterThanOrEqual(3);
+  await expect(page.locator('.upload-v2-primary-btn')).toHaveCSS('background-color','rgb(36, 33, 31)');
   await input(page).focus();expect(await input(page).evaluate(e=>getComputedStyle(e).borderLeftWidth)).toBe('0px');
   await expect(page.locator('.sales-copilot-bottom form')).toHaveCSS('outline-width','2px');
 });
