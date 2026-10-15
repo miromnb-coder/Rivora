@@ -32,6 +32,7 @@
     box-shadow: inset 0 -3px 0 var(--app-brand) !important;
   }
   .app-shell-v2 .app-mobile-bottom-nav .app-nav-label { font-size: 10px !important; }
+  .app-shell-v2 .app-mobile-bottom-nav .app-nav-label { white-space: normal; overflow-wrap: anywhere; line-height: 1.1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .app-shell-v2 .app-nav-pending-dot { animation: none; }
@@ -240,3 +241,145 @@
   .app-shell-v2.is-copilot-open .orders-case-table-row > strong:nth-child(4) { grid-column: 1; grid-row: 2; }
   .app-shell-v2.is-copilot-open .orders-case-table-row > span:nth-child(5) { grid-column: 2; grid-row: 2; }
 }
+
+/* Workspace 3.0 tokens and surfaces. These tokens are local to authenticated pages. */
+.app-shell-v2 {
+  --app-bg: #fffcf9;
+  --app-paper: #faf7f4;
+  --app-surface: #fff;
+  --app-copilot: #fbf2f0;
+  --app-ink: #24211f;
+  --app-muted: #625b56;
+  --app-tertiary: #746e6a;
+  --app-selected: #f1ebe6;
+  --app-line: #e8e1dc;
+  --app-line-strong: #d8cdc5;
+  --app-border: var(--app-line);
+  --app-input-border: var(--app-line-strong);
+  --app-soft: #f8f4f0;
+  --app-hover: var(--app-selected);
+  --ink: var(--app-ink);
+  --muted: var(--app-muted);
+  --line: var(--app-line);
+  --wash: var(--app-bg);
+  background: var(--app-bg) !important;
+  color: var(--app-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.app-shell-v2 .app-main-v2 { background: var(--app-surface) !important; }
+.app-shell-v2 .app-sidebar-v2 { background: var(--app-paper) !important; border-color: var(--app-line) !important; height: 100dvh; }
+.app-shell-v2 .app-sidebar-v2-top { padding-bottom: 0 !important; }
+.app-shell-v2 .app-sidebar-v2-brand { display: inline-flex; align-items: center; min-height: 35px; font-size: 17px !important; }
+.app-shell-v2 .app-sidebar-v2-product { margin-top: 2px !important; font-size: 11px !important; font-weight: 500 !important; }
+.app-shell-v2 .app-workspace-search { position: relative; margin: 24px 2px 5px; flex: 0 0 auto; }
+.app-shell-v2 .app-search-trigger {
+  display: flex; align-items: center; gap: 9px; width: 100%; min-height: 42px;
+  padding: 0 11px; border: 1px solid var(--app-line); border-radius: 10px;
+  background: #fffdfa; color: var(--app-muted); cursor: pointer; font: inherit; font-size: 12px;
+}
+.app-shell-v2 .app-search-trigger span { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-shell-v2 .app-search-trigger kbd { padding: 2px 4px; border-radius: 4px; background: var(--app-selected); font: inherit; font-size: 10px; }
+.app-shell-v2 .app-search-popover {
+  position: absolute; top: calc(100% + 7px); left: 0; z-index: 140; width: min(320px, calc(100vw - 32px));
+  padding: 9px; border: 1px solid var(--app-line); border-radius: 12px; background: #fff;
+  box-shadow: 0 14px 35px rgba(52, 39, 31, .13);
+}
+.app-shell-v2 .app-search-popover input { width: 100%; height: 40px; padding: 0 10px; border: 1px solid var(--app-line-strong); border-radius: 8px; background: #fff; color: var(--app-ink); font: inherit; font-size: 14px; }
+.app-shell-v2 .app-search-results { max-height: min(45dvh, 370px); overflow-y: auto; margin-top: 6px; }
+.app-shell-v2 .app-search-results button { width: 100%; min-height: 38px; padding: 7px 10px; border: 0; border-radius: 7px; background: transparent; color: var(--app-ink); text-align: left; font: inherit; font-size: 13px; cursor: pointer; }
+.app-shell-v2 .app-search-results button:hover, .app-shell-v2 .app-search-results button:focus-visible { background: var(--app-selected); }
+.app-shell-v2 .app-search-results p { padding: 9px; color: var(--app-muted); font-size: 13px; }
+.app-shell-v2 .app-sidebar-v2-nav { margin-top: 8px !important; gap: 0 !important; }
+.app-shell-v2 .app-nav-entry { min-width: 0; }
+.app-shell-v2 .app-nav-group-title { padding: 17px 10px 7px; color: var(--app-tertiary); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.app-shell-v2 .app-sidebar-v2-link { min-height: 40px !important; padding: 0 10px !important; border: 0 !important; border-radius: 9px !important; color: var(--app-muted) !important; font-size: 14px !important; font-weight: 500 !important; }
+.app-shell-v2 .app-sidebar-v2-link:hover { background: #f5f0eb !important; color: var(--app-ink) !important; }
+.app-shell-v2 .app-sidebar-v2-link.is-active { background: var(--app-selected) !important; color: var(--app-ink) !important; box-shadow: none !important; font-weight: 650 !important; }
+.app-shell-v2 .app-sidebar-v2-link.is-active::before, .app-shell-v2 .app-sidebar-v2-link.is-active::after { display: none !important; content: none !important; }
+.app-shell-v2 .app-nav-icon, .app-shell-v2 .app-nav-icon svg { width: 19px !important; height: 19px !important; }
+.app-shell-v2 .app-sidebar-v2-account { position: relative; margin-inline: 0 !important; padding: 12px 0 0 !important; }
+.app-shell-v2 .app-sidebar-account-trigger { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 54px; padding: 5px; border: 0; border-radius: 10px; background: transparent; color: var(--app-ink); text-align: left; cursor: pointer; }
+.app-shell-v2 .app-sidebar-account-trigger:hover, .app-shell-v2 .app-sidebar-account-trigger[aria-expanded="true"] { background: var(--app-selected); }
+.app-shell-v2 .app-account-avatar { flex: 0 0 35px; display: grid; place-items: center; width: 35px; height: 35px; border-radius: 10px; background: #e9d9ce; color: #4d3529; font-size: 15px; font-weight: 700; }
+.app-shell-v2 .app-account-summary { display: grid; min-width: 0; flex: 1; gap: 2px; }
+.app-shell-v2 .app-account-summary strong, .app-shell-v2 .app-account-summary small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-shell-v2 .app-account-summary strong { font-size: 12px; font-weight: 650; }
+.app-shell-v2 .app-account-summary small { color: var(--app-muted); font-size: 11px; text-transform: capitalize; }
+.app-shell-v2 .app-account-chevron { flex: 0 0 auto; color: var(--app-muted); }
+.app-shell-v2 .app-sidebar-account-menu { position: absolute; bottom: calc(100% + 7px); left: 0; z-index: 150; width: 248px; padding: 14px; border: 1px solid var(--app-line); border-radius: 12px; background: #fff; box-shadow: 0 14px 35px rgba(52,39,31,.13); overflow-wrap: anywhere; }
+.app-shell-v2 .app-sidebar-account-menu .app-sidebar-v2-account-label { margin-top: 0; }
+.app-shell-v2 .app-sidebar-account-menu > a { display: block; padding: 12px 0 3px; color: var(--app-ink); font-size: 13px; }
+.app-shell-v2 .app-sidebar-account-menu .app-locale-switcher { margin-top: 12px; }
+.app-shell-v2 .app-sidebar-account-menu .app-sidebar-v2-signout { min-height: 38px; font-size: 13px !important; }
+.app-shell-v2 .app-workspace-toolbar { border-color: var(--app-line); }
+.app-shell-v2 .app-copilot-trigger { min-height: 40px; font-size: 13px; }
+.app-shell-v2 .app-copilot-icon { font-size: 17px; }
+.app-shell-v2 :is(.app-sidebar-v2-link, .app-search-trigger, .app-search-popover input, .app-sidebar-account-trigger, .app-sidebar-account-menu a, .app-sidebar-account-menu button, .app-mobile-menu-button, .app-mobile-search-button, .sales-copilot button, .sales-copilot textarea):focus-visible { outline: 2px solid #695043; outline-offset: 2px; }
+.app-shell-v2 .app-mobile-menu-button, .app-shell-v2 .app-mobile-search-button, .app-shell-v2 .app-mobile-menu-close, .app-shell-v2 .app-mobile-menu-backdrop { display: none; }
+
+@media (min-width: 1024px) {
+  .app-shell-v2.is-sidebar-collapsed .app-search-trigger { justify-content: center; padding: 0; }
+  .app-shell-v2.is-sidebar-collapsed .app-search-trigger span, .app-shell-v2.is-sidebar-collapsed .app-search-trigger kbd, .app-shell-v2.is-sidebar-collapsed .app-nav-group-title, .app-shell-v2.is-sidebar-collapsed .app-account-summary, .app-shell-v2.is-sidebar-collapsed .app-account-chevron { display: none; }
+  .app-shell-v2.is-sidebar-collapsed .app-sidebar-account-trigger { justify-content: center; }
+  .app-shell-v2.is-sidebar-collapsed .app-sidebar-v2-link.is-active { box-shadow: none !important; }
+  .app-shell-v2.is-sidebar-collapsed .app-sidebar-account-menu { left: calc(100% + 10px); bottom: 0; }
+  .app-shell-v2.is-sidebar-collapsed .app-search-popover { left: calc(100% + 10px); top: 0; }
+}
+
+/* The conversation and AI responses live on the rail's single warm surface. */
+.app-shell-v2 .sales-copilot { background: var(--app-copilot); border-color: var(--app-line); }
+.app-shell-v2 .sales-copilot-header { min-height: 76px; padding: 15px 20px; border-color: var(--app-line); }
+.app-shell-v2 .sales-copilot-header h2 { font-size: 15px; letter-spacing: -.02em; }
+.app-shell-v2 .sales-copilot-context { max-width: 250px; margin: 4px 0 0; font-size: 11px; }
+.app-shell-v2 .sales-copilot-header-actions button { width: 36px; height: 36px; font-size: 16px; }
+.app-shell-v2 .sales-copilot-scroll { padding: 23px 20px; }
+.app-shell-v2 .sales-copilot-verified { margin: 0 0 23px; color: var(--app-muted); font-size: 11px; line-height: 1.4; }
+.app-shell-v2 .sales-copilot-intro h3 { font-size: 17px; }
+.app-shell-v2 .sales-copilot-intro p { font-size: 13px; }
+.app-shell-v2 .sales-copilot-intro button { min-height: 42px; background: rgba(255,255,255,.55); font-size: 12px; }
+.app-shell-v2 .sales-copilot-message { max-width: 100%; margin: 0 0 24px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.app-shell-v2 .sales-copilot-message.is-user { max-width: 88%; margin-left: auto; padding: 11px 13px; border-radius: 14px 14px 4px 14px; background: #f1e7e0; color: var(--app-ink); }
+.app-shell-v2 .sales-copilot-message > span { margin-bottom: 7px; color: var(--app-muted); opacity: 1; font-size: 11px; font-weight: 650; }
+.app-shell-v2 .sales-copilot-message.is-user > span { display: none; }
+.app-shell-v2 .sales-copilot-message time { display: block; margin-top: 6px; color: var(--app-muted); font-size: 10px; text-align: right; }
+.app-shell-v2 .sales-copilot-message p { font-size: 13px; line-height: 1.65; }
+.app-shell-v2 .sales-copilot-message-actions { display: flex; gap: 7px; margin-top: 9px; }
+.app-shell-v2 .sales-copilot-message-actions button { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 3px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--app-muted); font: inherit; font-size: 11px; cursor: pointer; }
+.app-shell-v2 .sales-copilot-message-actions button:hover { background: #f0e5e1; color: var(--app-ink); }
+.app-shell-v2 .sales-copilot-sources button { background: rgba(255,255,255,.65); }
+.app-shell-v2 .sales-copilot-status { padding-left: 17px; }
+.app-shell-v2 .sales-copilot-bottom { padding: 12px 16px max(14px, env(safe-area-inset-bottom)); background: var(--app-copilot); border-color: var(--app-line); }
+.app-shell-v2 .sales-copilot-bottom form { border-color: var(--app-line-strong); border-radius: 13px; background: #fffdfa; }
+.app-shell-v2 .sales-copilot-bottom form:focus-within { border-color: #85695b; box-shadow: 0 0 0 2px rgba(133,105,91,.12); }
+.app-shell-v2 .sales-copilot-bottom textarea { min-height: 58px; max-height: min(30dvh, 150px); padding: 12px 52px 12px 13px; resize: vertical; outline: 0 !important; font-size: 14px; }
+.app-shell-v2 .sales-copilot-bottom form button { width: 34px; height: 34px; background: var(--app-ink); }
+
+@media (max-width: 1023px) {
+  .app-shell-v2 .app-mobile-topbar { min-height: 60px; padding-inline: 12px; background: var(--app-paper) !important; }
+  .app-shell-v2 .app-sidebar-v2-top { position: relative; }
+  .app-shell-v2 .app-mobile-menu-close { display: grid; place-items: center; position: absolute; top: 0; right: 0; width: 38px; height: 38px; border: 0; border-radius: 9px; background: transparent; color: var(--app-ink); font-size: 25px; }
+  .app-shell-v2 .app-mobile-menu-button, .app-shell-v2 .app-mobile-search-button { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--app-ink); font-size: 25px; }
+  .app-shell-v2 .app-mobile-brand { font-size: 16px; }
+  .app-shell-v2 .app-mobile-menu-backdrop { display: block; position: fixed; inset: 0; z-index: 110; width: 100%; border: 0; background: rgba(36,33,31,.3); }
+  .app-shell-v2 .app-sidebar-v2 { display: none; }
+  .app-shell-v2 .app-sidebar-v2.is-mobile-open { display: flex; position: fixed; top: 0; left: 0; z-index: 120; width: min(310px, 86vw); height: 100dvh; min-height: 0; padding: max(20px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)) !important; overflow-y: auto; box-shadow: 12px 0 35px rgba(52,39,31,.13); }
+  .app-shell-v2 .app-sidebar-v2.is-mobile-open .app-sidebar-v2-nav { overflow: visible; }
+  .app-shell-v2 .app-sidebar-v2.is-mobile-open .app-sidebar-v2-account { display: block; }
+  .app-shell-v2 .app-search-popover input { font-size: 16px; }
+  .app-shell-v2 .app-mobile-bottom-nav { background: var(--app-paper) !important; border-color: var(--app-line) !important; }
+  .app-shell-v2 .app-mobile-bottom-nav .app-nav-group-title { display: none; }
+  .app-shell-v2 .app-mobile-bottom-nav .app-sidebar-v2-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .app-shell-v2 .app-mobile-bottom-nav .app-sidebar-v2-link { min-height: 51px !important; padding: 4px 2px !important; font-size: 10px !important; }
+  .app-shell-v2 .app-mobile-bottom-nav .app-nav-icon, .app-shell-v2 .app-mobile-bottom-nav .app-nav-icon svg { width: 18px !important; height: 18px !important; }
+  .app-shell-v2 .app-mobile-bottom-nav .app-nav-label { font-size: 10px !important; }
+  .app-shell-v2 .app-mobile-bottom-nav .app-sidebar-v2-link.is-active { box-shadow: none !important; }
+  .app-shell-v2 .sales-copilot { height: 100dvh; }
+}
+@media (max-width: 560px) {
+  .app-shell-v2 .sales-copilot { width: 100vw; }
+  .app-shell-v2 .sales-copilot-bottom textarea { font-size: 16px; }
+  .app-shell-v2 .app-mobile-topbar .app-copilot-trigger { padding-inline: 8px; }
+  .app-shell-v2 .app-mobile-search-button { display: none; }
+  .app-shell-v2 .app-mobile-topbar { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .app-shell-v2 .sales-copilot *, .app-shell-v2 .app-sidebar-v2-link { scroll-behavior: auto; transition: none; animation: none; } }

@@ -10,6 +10,46 @@ test.beforeEach(async ({ page }) => {
   }));
   await page.goto("/app", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("button", { name: "AI Copilot" }).filter({ visible: true })).toBeVisible();
+  if ((page.viewportSize()?.width ?? 0) >= 1200) {
+    await expect(page.locator("#sales-copilot")).toBeVisible();
+    await page.locator("#sales-copilot").getByRole("button", { name: /Sulje AI Copilot|Close AI Copilot/ }).click();
+  }
+});
+
+test("desktop starts with a docked Copilot and keeps AI answers on the pane background", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.reload();
+  const panel = page.locator("#sales-copilot");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Averomira AI Copilot" })).toBeVisible();
+  await expect(panel.locator(".sales-copilot-header .sales-copilot-symbol")).toHaveCount(0);
+  await panel.getByRole("textbox", { name: /Kysy AI Copilotilta|Ask AI Copilot/ }).fill("Which orders need review?");
+  await panel.getByRole("button", { name: /Lähetä viesti|Send message/ }).click();
+  const answer = panel.locator(".sales-copilot-message.is-assistant");
+  await expect(answer).toContainText("Synthetic workflow guidance.");
+  expect(await answer.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+  await answer.getByRole("button", { name: /Kopioi vastaus|Copy answer/ }).click();
+  await expect(answer.getByText(/Kopioitu|Copied/)).toBeVisible();
+});
+
+test("workspace search finds a real route and supports the keyboard shortcut", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.keyboard.press("ControlOrMeta+k");
+  const search = page.getByRole("textbox", { name: /Hae sivuja ja toimintoja|Search pages and actions/ });
+  await expect(search).toBeFocused();
+  const productLabel = await page.locator('.app-sidebar-v2 a[href="/app/products"]').first().textContent();
+  await search.fill(productLabel?.trim() || "Products");
+  await search.press("Enter");
+  await expect(page).toHaveURL(/\/app\/products$/);
+});
+
+test("mobile menu exposes secondary routes and account actions", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: /Avaa valikko|Open menu/ }).click();
+  const menu = page.getByRole("dialog", { name: /Työtilan valikko|Workspace menu/ });
+  await expect(menu.getByRole("link", { name: /Tarkistukset|Reviews/ })).toBeVisible();
+  await menu.getByRole("button", { name: /Työtili ja tiliasetukset|Workspace and account/ }).click();
+  await expect(menu.getByRole("button", { name: /Kirjaudu ulos|Sign out/ })).toBeVisible();
 });
 
 test("sidebar choice persists and navigation remains usable", async ({ page, isMobile }) => {

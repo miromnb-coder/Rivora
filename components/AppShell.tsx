@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/app/actions";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/lib/i18n";
 import type { Locale } from "@/lib/locale";
-import { AppNav } from "@/components/AppNav";
+import { AppNav, type NavItem } from "@/components/AppNav";
 import { AppLocation } from "@/components/AppLocation";
 import { SupportCenter } from "@/components/support/SupportCenter";
 import { RivoraMark } from "@/components/marketing/RivoraMark";
 import { SalesCopilot } from "@/components/copilot/SalesCopilot";
+
+function CopilotGlyph() {
+  return <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5ZM19 17l.6 1.4L21 19l-1.4.6L19 21l-.6-1.4L17 19l1.4-.6Z" /></svg>;
+}
 
 export function AppShell({
   children,
@@ -37,9 +42,53 @@ export function AppShell({
 }) {
   const [collapsed, setCollapsed] = useState(initialSidebarCollapsed);
   const [copilotOpen, setCopilotOpen] = useState(false);
+  useEffect(() => { if (window.matchMedia("(min-width: 1200px)").matches) setCopilotOpen(true); }, []);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [shortcutLabel, setShortcutLabel] = useState("⌘K");
+  const searchRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileCloseRef = useRef<HTMLButtonElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const router = useRouter();
   const accountRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (!collapsed) setAccountOpen(false); }, [collapsed]);
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault(); setSearchOpen(true); if (window.matchMedia("(max-width: 1023px)").matches) setMobileMenuOpen(true);
+      }
+      if (event.key === "Escape") { setSearchOpen(false); setMobileMenuOpen(false); }
+    };
+    document.addEventListener("keydown", shortcut);
+    return () => document.removeEventListener("keydown", shortcut);
+  }, []);
+  useEffect(() => { if (searchOpen) searchRef.current?.focus(); }, [searchOpen]);
+  useEffect(() => {
+    if (!searchOpen) return;
+    const dismiss = (event: PointerEvent) => { if (!searchContainerRef.current?.contains(event.target as Node)) setSearchOpen(false); };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [searchOpen]);
+  useEffect(() => { if (!/Mac|iPhone|iPad/.test(navigator.platform)) setShortcutLabel("Ctrl K"); }, []);
+  useEffect(() => {
+    if (!mobileMenuOpen || window.matchMedia("(min-width: 1024px)").matches) return;
+    (searchOpen ? searchRef.current : mobileCloseRef.current)?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const trap = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const controls = sidebarRef.current?.querySelectorAll<HTMLElement>('a, button:not(:disabled), input, select');
+      if (!controls?.length) return;
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", trap);
+    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", trap); mobileMenuButtonRef.current?.focus(); };
+  }, [mobileMenuOpen, searchOpen]);
   useEffect(() => {
     if (!accountOpen) return;
     const dismiss = (event: PointerEvent) => {
@@ -76,40 +125,58 @@ export function AppShell({
     });
   }, []);
   const copy = getDictionary(locale).nav;
-  const nav: Array<readonly [string, string, string]> = [
-    [copy.dashboard, "/app", "dashboard"],
-    ...(leadsEnabled
-      ? ([[copy.leads, "/app/leads", "leads"]] as Array<readonly [string, string, string]>)
-      : []),
-    [copy.orders, "/app/orders", "orders"],
-    [copy.customers, "/app/customers", "customers"],
-    [copy.products, "/app/products", "products"],
-    [copy.settings, "/app/settings", "settings"],
+  const nav: NavItem[] = [
+    [locale === "fi" ? "Yleiskatsaus" : "Overview", "/app", "dashboard", "main"],
+    [copy.orders, "/app/orders", "orders", "main"],
+    [locale === "fi" ? "Tarjouspyynnöt" : "RFQs", "/app/inbox", "rfq", "main"],
+    [copy.products, "/app/products", "products", "main"],
+    [copy.customers, "/app/customers", "customers", "main"],
+    ...(leadsEnabled ? [[copy.leads, "/app/leads", "leads", "main"] as const] : []),
+    [locale === "fi" ? "Tarkistukset" : "Reviews", "/app/orders?view=attention", "reviews", "process"],
+    [locale === "fi" ? "ERP-siirrot" : "ERP transfers", "/app/orders?view=erp", "erp", "process"],
+    [locale === "fi" ? "Tehtävät" : "Tasks", "/app#dashboard-tasks-heading", "tasks", "process"],
+    [locale === "fi" ? "Tiimi" : "Team", "/app/settings#users", "team", "manage"],
+    [copy.settings, "/app/settings", "settings", "manage"],
   ];
+  const searchItems = [...nav, [locale === "fi" ? "Uusi tarjouspyyntö" : "New RFQ", "/app/upload", "upload", "action"] as const,
+    [locale === "fi" ? "Tarjoukset" : "Quotes", "/app/quotes", "quotes", "action"] as const,
+    [locale === "fi" ? "Ostotilaukset" : "Purchase orders", "/app/purchase-orders", "purchase", "action"] as const,
+    [locale === "fi" ? "Myyntitilaukset" : "Sales orders", "/app/sales-orders", "sales", "action"] as const];
+  const results = searchItems.filter(([label]) => label.toLocaleLowerCase(locale).includes(query.trim().toLocaleLowerCase(locale)));
+  function navigate(href: string) { setSearchOpen(false); setMobileMenuOpen(false); setQuery(""); router.push(href); }
 
   return (
     <div className={`app-shell-v2 min-h-screen${collapsed ? " is-sidebar-collapsed" : ""}${copilotOpen ? " is-copilot-open" : ""}`}>
-      <aside className="app-sidebar-v2">
+      {mobileMenuOpen ? <button type="button" className="app-mobile-menu-backdrop" aria-label={locale === "fi" ? "Sulje valikko" : "Close menu"} onClick={() => { setMobileMenuOpen(false); setSearchOpen(false); }} /> : null}
+      <aside ref={sidebarRef} role={mobileMenuOpen ? "dialog" : undefined} aria-modal={mobileMenuOpen ? true : undefined} aria-label={mobileMenuOpen ? (locale === "fi" ? "Työtilan valikko" : "Workspace menu") : undefined} className={`app-sidebar-v2${mobileMenuOpen ? " is-mobile-open" : ""}`}>
         <div className="app-sidebar-v2-top">
+          <button ref={mobileCloseRef} type="button" className="app-mobile-menu-close" aria-label={locale === "fi" ? "Sulje valikko" : "Close menu"} onClick={() => { setMobileMenuOpen(false); setSearchOpen(false); }}>×</button>
           <Link href="/app" className="app-sidebar-v2-brand" aria-label="Averomira">
             <RivoraMark withSymbol />
           </Link>
-          <div className="app-sidebar-v2-product">{copy.product}</div>
+          <div className="app-sidebar-v2-product">{locale === "fi" ? "Yrityksen työtila" : "Company workspace"}</div>
         </div>
-
-        <AppNav items={nav} locale={locale} collapsed={collapsed} />
+        <div className="app-workspace-search" ref={searchContainerRef}>
+          <button type="button" className="app-search-trigger" aria-label={locale === "fi" ? "Hae työtilasta" : "Search workspace"} aria-expanded={searchOpen} onClick={() => setSearchOpen(true)}>
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.5" /><path d="m16 16 4 4" /></svg>
+            <span>{locale === "fi" ? "Hae työtilasta..." : "Search workspace..."}</span><kbd>{shortcutLabel}</kbd>
+          </button>
+          {searchOpen ? <div className="app-search-popover">
+            <label className="sr-only" htmlFor="app-workspace-search-input">{locale === "fi" ? "Hae sivuja ja toimintoja" : "Search pages and actions"}</label>
+            <input id="app-workspace-search-input" ref={searchRef} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && query.trim() && results[0]) navigate(results[0][1]); }} placeholder={locale === "fi" ? "Hae sivuja ja toimintoja" : "Search pages and actions"} />
+            <div className="app-search-results">{results.length ? results.map(([label, href, id]) => <button key={id} type="button" onClick={() => navigate(href)}>{label}</button>) : <p>{locale === "fi" ? "Ei tuloksia" : "No results"}</p>}</div>
+          </div> : null}
+        </div>
+        <div onClick={() => { if (mobileMenuOpen) { setMobileMenuOpen(false); setSearchOpen(false); } }}><AppNav items={nav} locale={locale} collapsed={collapsed && !mobileMenuOpen} /></div>
         <div className={`app-sidebar-v2-account${collapsed ? " is-collapsed" : ""}`} ref={accountRef}>
-          {collapsed ? (
-            <>
               <button type="button" className="app-sidebar-account-trigger"
                 aria-label={locale === "fi" ? "Työtili ja tiliasetukset" : "Workspace and account"}
                 aria-expanded={accountOpen} aria-controls="app-sidebar-account-menu"
                 title={locale === "fi" ? "Työtili" : "Workspace"}
                 onClick={() => setAccountOpen(value => !value)}>
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                  stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-                  <circle cx="12" cy="8" r="3" /><path d="M5.5 20c.6-4 2.9-6 6.5-6s5.9 2 6.5 6" />
-                </svg>
+                <span className="app-account-avatar" aria-hidden="true">{workspaceName.trim().charAt(0).toLocaleUpperCase(locale) || "A"}</span>
+                <span className="app-account-summary"><strong>{workspaceName}</strong><small>{workspaceRole}</small></span>
+                <svg className="app-account-chevron" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
               </button>
               {accountOpen ? (
                 <div className="app-sidebar-account-menu" id="app-sidebar-account-menu">
@@ -117,30 +184,22 @@ export function AppShell({
                   <div className="app-sidebar-v2-account-name">{workspaceName}</div>
                   <div className="app-sidebar-v2-role">{workspaceRole}</div>
                   {userEmail ? <div className="app-sidebar-v2-email">{userEmail}</div> : null}
+                  <Link href="/app/settings" onClick={() => { setAccountOpen(false); setMobileMenuOpen(false); }}>{copy.settings}</Link>
                   <LocaleSwitcher locale={locale} label={copy.language} />
                   <form action={signOut}><button className="app-sidebar-v2-signout">{copy.signOut}</button></form>
                 </div>
               ) : null}
-            </>
-          ) : (
-            <>
-              <LocaleSwitcher locale={locale} label={copy.language} />
-              <div className="app-sidebar-v2-account-label">{copy.workspace}</div>
-              <div className="app-sidebar-v2-account-name">{workspaceName}</div>
-              <div className="app-sidebar-v2-role">{workspaceRole}</div>
-              {userEmail ? <div className="app-sidebar-v2-email">{userEmail}</div> : null}
-              <form action={signOut}><button className="app-sidebar-v2-signout">{copy.signOut}</button></form>
-            </>
-          )}
         </div>
       </aside>
 
       <header className="app-mobile-topbar">
+        <button ref={mobileMenuButtonRef} type="button" className="app-mobile-menu-button" aria-label={locale === "fi" ? "Avaa valikko" : "Open menu"} aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
         <Link href="/app" className="app-mobile-brand" aria-label="Averomira">
           <RivoraMark withSymbol />
         </Link>
+        <button type="button" className="app-mobile-search-button" aria-label={locale === "fi" ? "Hae työtilasta" : "Search workspace"} onClick={() => { setMobileMenuOpen(true); setSearchOpen(true); }}>⌕</button>
         <button type="button" className="app-copilot-trigger" aria-controls="sales-copilot" aria-expanded={copilotOpen} onClick={() => copilotOpen ? closeCopilot() : setCopilotOpen(true)}>
-          <span className="app-copilot-icon" aria-hidden="true">✧</span><span>AI Copilot</span>
+          <span className="app-copilot-icon"><CopilotGlyph /></span><span>AI Copilot</span>
         </button>
       </header>
 
@@ -160,7 +219,7 @@ export function AppShell({
           <div className="app-workspace-toolbar-context"><AppLocation locale={locale} /></div>
           <button type="button" className="app-copilot-trigger" aria-controls="sales-copilot"
             aria-expanded={copilotOpen} onClick={() => copilotOpen ? closeCopilot() : setCopilotOpen(true)}>
-            <span className="app-copilot-icon" aria-hidden="true">✧</span><span>AI Copilot</span>
+            <span className="app-copilot-icon"><CopilotGlyph /></span><span>AI Copilot</span>
           </button>
         </div>
         {children}
