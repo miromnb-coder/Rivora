@@ -16,6 +16,12 @@ async function load(page: Page, width = 1440, height = 900) {
 async function open(page: Page) { if (!(await panel(page).count())) await trigger(page).click(); await expect(panel(page)).toHaveAttribute("data-phase", "open"); }
 
 test.beforeEach(async ({ page }) => {
+  await page.route("**/*", async route => {
+    const request = route.request(), url = new URL(request.url());
+    expect(url.origin).toBe("http://127.0.0.1:3102");
+    if (!["GET", "HEAD"].includes(request.method())) expect(url.pathname).toBe("/api/copilot/ask");
+    await route.fallback();
+  });
   // Fail unexpected writes, including Support, ERP, imports and email. Only this
   // exact mocked Copilot endpoint may accept POST; no real backend is connected.
   await page.route("**/api/**", async route => {
