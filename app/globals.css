@@ -5014,7 +5014,7 @@ button, input, select { font: inherit; }
   color: var(--app-ink);
   font-size: 13px;
   outline: none;
-  transition: border-color .18s ease, box-shadow .18s ease;
+  transition: border-color var(--motion-base) ease, box-shadow var(--motion-base) ease;
 }
 
 .upload-v2-fields input:focus {
@@ -5360,7 +5360,7 @@ button, input, select { font: inherit; }
   align-items: center;
   color: inherit;
   text-decoration: none;
-  transition: background .18s ease;
+  transition: background var(--motion-base) ease;
 }
 
 .inbox-v2-row:hover {
@@ -6824,7 +6824,7 @@ button, input, select { font: inherit; }
   align-items: center;
   color: inherit;
   text-decoration: none;
-  transition: background .18s ease;
+  transition: background var(--motion-base) ease;
 }
 
 .quotes-v1-row:hover {
@@ -7286,7 +7286,7 @@ button, input, select { font: inherit; }
   line-height: 18px;
   text-decoration: none;
   cursor: pointer;
-  transition: background .14s ease, border-color .14s ease;
+  transition: background var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
 
 .rfq-review-v2-quote-cta:hover,
@@ -8384,7 +8384,7 @@ button, input, select { font: inherit; }
 .app-route-loading-list span {
   background: linear-gradient(90deg, var(--app-soft) 20%, var(--app-paper) 50%, var(--app-soft) 80%);
   background-size: 220% 100%;
-  animation: nodra-loading-shimmer 1.15s ease-in-out infinite;
+  animation: nodra-loading-shimmer var(--motion-pending-cycle) ease-in-out infinite;
 }
 
 .app-route-loading-kicker {
@@ -8648,7 +8648,7 @@ button, input, select { font: inherit; }
   border: 2px solid var(--app-input-border);
   border-top-color: var(--app-mocha);
   border-radius: 999px;
-  animation: nodra-nav-spin .65s linear infinite;
+  animation: nodra-nav-spin var(--motion-pending-cycle) linear infinite;
 }
 
 @keyframes nodra-nav-spin {
@@ -9485,7 +9485,14 @@ body {
 }
 
 .upload-v2-primary-btn,
-.upload-v2-secondary-btn,
+.upload-v2-secondary-btn {
+  transition:
+    transform var(--motion-fast) ease,
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
+}
+
 .btn-primary,
 .btn-secondary {
   transition:
@@ -10228,7 +10235,7 @@ textarea:focus-visible {
   color: var(--app-muted);
   font-size: 12px;
   font-weight: 760;
-  transition: background .15s ease, color .15s ease, border-color .15s ease;
+  transition: background var(--motion-fast) ease, color var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
 
 .settings-section-nav a:hover {
@@ -10479,7 +10486,7 @@ textarea:focus-visible {
 .products-v2-row {
   grid-template-columns: minmax(0,1.7fr) 150px 120px 110px 20px;
   padding-inline: 4px;
-  transition: background .15s ease;
+  transition: background var(--motion-fast) ease;
 }
 
 .products-v2-row:hover {
@@ -10489,7 +10496,7 @@ textarea:focus-visible {
 .products-v2-row-arrow {
   color: var(--app-muted);
   font-size: 14px;
-  transition: transform .15s ease;
+  transition: transform var(--motion-fast) ease;
 }
 
 .products-v2-row:hover .products-v2-row-arrow {
@@ -10757,7 +10764,7 @@ textarea:focus-visible {
   font-size: 13px;
   font-weight: 600;
   line-height: 18px;
-  transition: color .14s ease;
+  transition: color var(--motion-fast) ease;
 }
 
 .dashboard-text-link:hover {
@@ -10767,7 +10774,7 @@ textarea:focus-visible {
 .dashboard-text-link span {
   display: inline-block;
   margin-left: 3px;
-  transition: transform .14s ease;
+  transition: transform var(--motion-fast) ease;
 }
 
 .dashboard-text-link:hover span {
@@ -10789,7 +10796,7 @@ textarea:focus-visible {
   align-items: center;
   gap: 24px;
   color: inherit;
-  transition: background .14s ease;
+  transition: background var(--motion-fast) ease;
 }
 
 .dashboard-task-row + .dashboard-task-row {
@@ -10871,7 +10878,7 @@ textarea:focus-visible {
 .dashboard-row-arrow {
   flex: 0 0 auto;
   color: var(--app-muted);
-  transition: color .14s ease, transform .14s ease;
+  transition: color var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
 .dashboard-task-row:hover .dashboard-row-arrow,
@@ -10952,7 +10959,7 @@ textarea:focus-visible {
   grid-template-columns: minmax(0, 1fr) 170px 126px;
   align-items: center;
   gap: 24px;
-  transition: background .14s ease;
+  transition: background var(--motion-fast) ease;
 }
 
 .dashboard-recent-row + .dashboard-recent-row {
@@ -11524,7 +11531,7 @@ textarea:focus-visible {
 
 .customers-page .nodra-customer-row > span:last-child {
   color: var(--app-muted);
-  transition: color .14s ease, transform .14s ease;
+  transition: color var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
 .customers-page .nodra-customer-row:hover > span:last-child {
@@ -13908,7 +13915,7 @@ textarea:focus-visible {
   cursor: pointer;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  transition: transform var(--motion-base) ease, border-color var(--motion-base) ease, box-shadow var(--motion-base) ease;
 }
 
 .support-launcher:hover {
@@ -13938,7 +13945,7 @@ textarea:focus-visible {
   cursor: default;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
-  animation: support-fade-in .18s ease both;
+  animation: support-fade-in var(--motion-base) ease both;
 }
 
 .support-center-panel {
@@ -13951,7 +13958,7 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   box-shadow: -22px 0 58px rgba(20,24,21,.10);
-  animation: support-panel-in .22s ease both;
+  animation: support-panel-in var(--motion-content) ease both;
 }
 
 .support-center-header {
@@ -14837,7 +14844,7 @@ textarea:focus-visible {
   height: 6px;
   border-radius: 999px;
   background: var(--app-selected);
-  animation: support-ai-pulse 1s ease-in-out infinite alternate;
+  animation: support-ai-pulse var(--motion-pending-cycle) ease-in-out infinite alternate;
 }
 
 .support-ai-form {
@@ -15137,7 +15144,7 @@ textarea:focus-visible {
   height: 7px;
   border-radius: 999px;
   background: var(--app-selected);
-  animation: support-ai-pulse .9s ease-in-out infinite alternate;
+  animation: support-ai-pulse var(--motion-pending-cycle) ease-in-out infinite alternate;
 }
 
 .support-ticket-list-intro {
@@ -16186,7 +16193,7 @@ textarea:focus-visible {
   font: inherit;
   cursor: pointer;
   box-shadow: 0 5px 18px rgba(23, 28, 24, .025);
-  transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+  transition: transform var(--motion-fast) ease, border-color var(--motion-fast) ease, background var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
 }
 
 .support-home-action:hover {
@@ -16262,7 +16269,7 @@ textarea:focus-visible {
   margin-top: 16px;
   border-top: 1px solid #e7e9e5;
   padding-top: 18px;
-  animation: support-library-in .18s ease both;
+  animation: support-library-in var(--motion-base) ease both;
 }
 
 .support-help-library-head {
@@ -16748,7 +16755,7 @@ textarea:focus-visible {
   font: inherit;
   cursor: pointer;
   box-shadow: 0 5px 18px rgba(20,24,21,.025);
-  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+  transition: transform var(--motion-fast) ease, border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, background var(--motion-fast) ease;
 }
 
 .support-home-action:hover {
@@ -16832,7 +16839,7 @@ textarea:focus-visible {
   margin-top: 20px;
   border-top: 1px solid var(--app-line);
   padding-top: 18px;
-  animation: support-fade-in .16s ease both;
+  animation: support-fade-in var(--motion-fast) ease both;
 }
 
 .support-help-library-head {
