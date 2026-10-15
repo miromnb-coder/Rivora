@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+export function notFound(): never { throw new Error("Missing synthetic Workspace record"); }
 const subscribe = (callback: () => void) => { window.addEventListener("popstate", callback); window.addEventListener("hashchange", callback); return () => { window.removeEventListener("popstate", callback); window.removeEventListener("hashchange", callback); }; };
 const snapshot = () => location.pathname + location.search + location.hash;
 export function usePathname() { useSyncExternalStore(subscribe, snapshot, () => "/app"); return location.pathname; }

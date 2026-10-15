@@ -216,6 +216,64 @@ for (const route of ['products','customers','quotes','inbox']) test(`PAGE actual
   await page.screenshot({path:info.outputPath(`${route}-510.png`),animations:'disabled'});
 });
 
+// These are the actual async server pages rendered with in-memory records.
+// Native fields and shell behavior are exercised; server actions and page-level
+// React handlers are deliberately not exercised by this static-markup fixture.
+for (const route of ['products','customers','quotes','rfq','purchase-orders']) {
+  for (const width of [320,768,1200]) test(`DETAIL actual ${route} reflows at ${width}px`,async({page},info)=>{
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.setViewportSize({width,height:900});
+    await page.goto(`/app/${route}/synthetic-0`);
+    const content = page.locator(`[data-fixture-page="${route}/[id]"]`);
+    await expect(content.locator('.app-page-v2 h1')).toBeVisible();
+    if (width >= 1200) await expect(panel(page)).toHaveAttribute('data-phase','open');
+    const heading = await content.locator('h1').innerText();
+    expect(heading).toBe(route === 'customers' ? 'Synteettinen Asiakas Oy' : 'SYNTHETIC-' + '1234567890'.repeat(8));
+    if (route === 'rfq') {
+      await expect(content.locator('.rfq-review-v2-line')).toHaveCount(8);
+      await expect(content.locator('select[name="productId"]').last()).toBeEnabled();
+      await content.locator('select[name="productId"]').last().selectOption('synthetic-0');
+    } else if (route === 'quotes') {
+      await expect(content.locator('.quote-builder-v1-line')).toHaveCount(8);
+      await content.locator('input[name="quantity"]').first().fill('2');
+      const recipient=content.locator('select[name="recipientContactId"]');
+      await recipient.selectOption('synthetic-contact');
+      await expect(recipient).toHaveValue('synthetic-contact');
+    } else if (route === 'purchase-orders') {
+      await expect(content.locator('tbody tr')).toHaveCount(8);
+      await expect(content.getByRole('heading',{name:'Tarkista vain poikkeukset.'})).toBeVisible();
+      await content.locator('input[name="reviewNote"]').last().fill('Synteettinen tarkistushuomio');
+      await content.locator('input[name="rememberUnitAlias"]').check();
+      // The PO's wide source-data table may scroll locally; the page must fit.
+      const tableScroller = content.locator('table').locator('..');
+      expect(await tableScroller.evaluate(e=>getComputedStyle(e).overflowX)).toBe('auto');
+      await tableScroller.evaluate(e=>{e.scrollLeft=e.scrollWidth;});
+      expect(await tableScroller.evaluate(e=>e.scrollLeft)).toBeGreaterThan(0);
+    } else {
+      const name = content.locator('input[name="name"]').first();
+      await name.fill('Muokattava synteettinen nimi');
+      await expect(name).toHaveValue('Muokattava synteettinen nimi');
+    }
+    const geometry = await content.evaluate(e=>{
+      const rect=e.getBoundingClientRect();
+      const fields=Array.from(e.querySelectorAll<HTMLElement>('input:not([type="hidden"]),select,textarea,button')).filter(field=>field.getClientRects().length);
+      return {width:rect.width,document:document.documentElement.scrollWidth,fields:fields.map(field=>({name:field.getAttribute('name')||field.textContent?.trim(),width:field.getBoundingClientRect().width,left:field.getBoundingClientRect().left-rect.left,right:field.getBoundingClientRect().right-rect.left}))};
+    });
+    await info.attach('detail-geometry.json',{body:JSON.stringify(geometry,null,2),contentType:'application/json'});
+    expect(geometry.document).toBeLessThanOrEqual(width);
+    for (const field of geometry.fields) {
+      expect(field.left,`${field.name} starts within the content`).toBeGreaterThanOrEqual(-1);
+      expect(field.right,`${field.name} ends within the content`).toBeLessThanOrEqual(geometry.width+1);
+    }
+    const lastField=content.locator('input:not([type="hidden"]),select,textarea,button').filter({visible:true}).last();
+    if (await lastField.count()) {await lastField.focus();await expect(lastField).toBeInViewport();}
+    if(width>=1200) {await close(page).click();await expect(panel(page)).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);}
+    expect(errors).toEqual([]);
+    await page.screenshot({path:info.outputPath(`${route}-${width}.png`),animations:'disabled'});
+  });
+}
+
 test("A11Y actual surfaces, control borders and one composite focus indicator",async({page},info)=>{
   await load(page);
   const result = await page.evaluate(()=>{

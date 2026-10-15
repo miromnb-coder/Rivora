@@ -103,7 +103,7 @@
 .app-shell-v2 .app-page-v2 h2 { font-size: 20px; font-weight: 600; }
 .app-shell-v2 .app-page-v2 h3 { font-size: 16px; font-weight: 600; }
 .app-shell-v2 .app-page-v2 :is(header,section,form,article,div) { min-width: 0; }
-.app-shell-v2 .app-page-v2 :is(p,a,strong,small,code,td,th) { overflow-wrap: anywhere; }
+.app-shell-v2 .app-page-v2 :is(h1,h2,h3,p,a,b,strong,small,code,td,th) { overflow-wrap: anywhere; }
 .app-shell-v2 .app-page-v2 :is(input,select,textarea) { max-width: 100%; }
 .app-shell-v2 :is(.btn-primary,.btn-secondary,.upload-v2-primary-btn,.upload-v2-secondary-btn,.products-v2-primary,.inbox-v2-primary) {
   display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; min-height: 44px; border-radius: 8px; font-size: 14px; font-weight: 600;
@@ -117,6 +117,19 @@
 .app-shell-v2 :is(td,th,.dashboard-kpi-item strong,.orders-case-table-row > strong) { font-variant-numeric: tabular-nums; }
 /* Semantic tables retain all columns in a bounded horizontal scroller. */
 .app-shell-v2 :is(.table-wrap,.table-scroll,.quote-builder-v1-table-wrap,.workspace-table-scroll) { max-width: 100%; overflow-x: auto; }
+/* Quote fields follow their own column, including when Copilot is closed. */
+.app-shell-v2 .quote-builder-v1-grid > main { min-width: 0; container: quote-lines / inline-size; }
+.app-shell-v2 .quote-builder-v1-header-form { grid-template-columns: minmax(0, 1fr); }
+/* Block labels keep WebKit's native select contents inside the field. */
+.app-shell-v2 .quote-builder-v1-header-form label { display: block; }
+.app-shell-v2 .quote-builder-v1-header-form label > span { display: block; margin-bottom: 7px; }
+.app-shell-v2 .quote-builder-v1-header-form :is(input,select,textarea) { min-width: 0; width: 100%; }
+@container quote-lines (width < 680px) {
+  .quote-builder-v1-line-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container quote-lines (width < 400px) {
+  .quote-builder-v1-line-form { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* Navigation: fixed brand/search and account, a genuinely flexible link region. */
 .app-shell-v2 .app-sidebar-v2 {
@@ -263,7 +276,15 @@
   .orders-case-table-row > div:first-child span { display: block; }
   .orders-case-table-row > span:nth-child(2) { display: none; }
   .app-page-v2 [class*="grid-cols-"], .products-v2-row, .quotes-v1-row, .nodra-customer-row, .customers-create-form, .quote-builder-v1-grid, .rfq-review-v2-grid, .product-page-grid, .settings-connection-grid { grid-template-columns: minmax(0, 1fr); }
+  .rfq-review-v2-line { grid-template-columns: minmax(0, 1fr); }
+  .quote-builder-v1-summary, .rfq-review-v2-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quote-builder-v1-summary > div:nth-child(odd), .rfq-review-v2-summary > div:nth-child(odd) { border-left: 0; padding-left: 0; }
+  .quote-builder-v1-summary > div:nth-child(n+3), .rfq-review-v2-summary > div:nth-child(n+3) { border-top: 1px solid var(--app-line); }
   .products-v2-summary, .quotes-v1-summary, .dashboard-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container workspace-content (width < 400px) {
+  .quote-builder-v1-summary, .rfq-review-v2-summary { grid-template-columns: minmax(0, 1fr); }
+  .quote-builder-v1-summary > div + div, .rfq-review-v2-summary > div + div { border-left: 0; border-top: 1px solid var(--app-line); padding-left: 0; }
 }
 @container workspace-content (width < 560px) {
   .product-page-head, .products-v2-head, .quotes-v1-head, .app-page-v2 > header, .orders-case-filters, .orders-case-filter-row, .orders-case-toolbar, .products-v2-toolbar, .customers-v2-toolbar, .inbox-v2-toolbar, .quote-builder-v1-stage-actions, .rfq-review-v2-actions { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }

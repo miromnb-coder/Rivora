@@ -1,6 +1,6 @@
 import { build } from 'esbuild';
 import http from 'node:http';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
@@ -11,11 +11,14 @@ const output = await build({ entryPoints: ['tests/fixtures/workspace-ui/entry.ts
 // route or authorization override is shipped in the product application.
 const pageHtml = {};
 const { renderToStaticMarkup } = require('react-dom/server');
-for (const page of ['orders','products','customers','quotes','inbox']) {
-  const serverPage = await build({ plugins: [{ name: 'fixture-actions', setup(builder) { builder.onResolve({ filter: /^\.\/actions$/ }, () => ({ path: fixture('actions.ts') })); } }], entryPoints: [`app/app/${page}/page.tsx`], bundle: true, write: false, format: 'cjs', jsx: 'automatic', platform: 'node', packages: 'external', define: { __FIXTURE_PAGE__: JSON.stringify(page) }, alias: { ...aliases, 'next/link': resolve('tests/fixtures/operations-ui/link.tsx') } });
+for (const page of ['orders','products','customers','quotes','inbox','products/[id]','customers/[id]','quotes/[id]','rfq/[id]','purchase-orders/[id]']) {
+  const detailAliases = page.includes('[id]') ? { '@/lib/rivora/workspace': fixture('detail-workspace.ts'), '@/lib/supabase/admin': fixture('detail-workspace.ts') } : {};
+  const serverPage = await build({ plugins: [{ name: 'fixture-actions', setup(builder) { builder.onResolve({ filter: /(?:^|\/)(?:reconciliation-)?actions$/ }, () => ({ path: fixture('actions.ts') })); } }], entryPoints: [`app/app/${page}/page.tsx`], bundle: true, write: false, metafile: true, format: 'cjs', jsx: 'automatic', platform: 'node', packages: 'external', define: { __FIXTURE_PAGE__: JSON.stringify(page), 'process.env.RESEND_API_KEY': 'undefined', 'process.env.AVEROMIRA_QUOTE_FROM': 'undefined' }, alias: { ...aliases, ...detailAliases, 'next/link': resolve('tests/fixtures/operations-ui/link.tsx') } });
+  const unsafeInput = Object.keys(serverPage.metafile.inputs).find(path => path.startsWith('lib/supabase/') || path === 'lib/rivora/workspace.ts' || /^app\/app\/(?:.*\/)?(?:[\w-]*-)?actions\.ts$/.test(path));
+  if (unsafeInput) throw new Error(`Real backend module forbidden in Workspace fixture: ${unsafeInput}`);
   const module = {exports: {}};
   new Function('require', 'module', 'exports', serverPage.outputFiles[0].text)(require, module, module.exports);
-  pageHtml[page] = renderToStaticMarkup(await module.exports.default({ searchParams: Promise.resolve({}) }));
+  pageHtml[page] = renderToStaticMarkup(await module.exports.default({ params: Promise.resolve({ id: 'synthetic-0' }), searchParams: Promise.resolve({}) }));
 }
 const cssFiles = ['app/globals.css','app/motion.css','app/app/navigation.css','app/app/support-s5.css','app/app/field-focus.css'];
 const rawCss = (await Promise.all(cssFiles.map(file => readFile(file, 'utf8')))).join('\n');
