@@ -10,6 +10,46 @@ test.beforeEach(async ({ page }) => {
   }));
   await page.goto("/app", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("button", { name: "AI Copilot" }).filter({ visible: true })).toBeVisible();
+  if ((page.viewportSize()?.width ?? 0) >= 1200) {
+    await expect(page.locator("#sales-copilot")).toBeVisible();
+    await page.locator("#sales-copilot").getByRole("button", { name: /Sulje AI Copilot|Close AI Copilot/ }).click();
+  }
+});
+
+test("desktop starts with a docked Copilot and keeps AI answers on the pane background", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.reload();
+  const panel = page.locator("#sales-copilot");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Averomira AI Copilot" })).toBeVisible();
+  await expect(panel.locator(".sales-copilot-header .sales-copilot-symbol")).toHaveCount(0);
+  await panel.getByRole("textbox", { name: /Kysy AI Copilotilta|Ask AI Copilot/ }).fill("Which orders need review?");
+  await panel.getByRole("button", { name: /Lähetä viesti|Send message/ }).click();
+  const answer = panel.locator(".sales-copilot-message.is-assistant");
+  await expect(answer).toContainText("Synthetic workflow guidance.");
+  expect(await answer.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+  await answer.getByRole("button", { name: /Kopioi vastaus|Copy answer/ }).click();
+  await expect(answer.getByText(/Kopioitu|Copied/)).toBeVisible();
+});
+
+test("workspace search finds a real route and supports the keyboard shortcut", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.keyboard.press("ControlOrMeta+k");
+  const search = page.getByRole("textbox", { name: /Hae sivuja ja toimintoja|Search pages and actions/ });
+  await expect(search).toBeFocused();
+  const productLabel = await page.locator('.app-sidebar-v2 a[href="/app/products"]').first().textContent();
+  await search.fill(productLabel?.trim() || "Products");
+  await search.press("Enter");
+  await expect(page).toHaveURL(/\/app\/products$/);
+});
+
+test("mobile menu exposes secondary routes and account actions", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: /Avaa valikko|Open menu/ }).click();
+  const menu = page.getByRole("dialog", { name: /Työtilan valikko|Workspace menu/ });
+  await expect(menu.getByRole("link", { name: /Tarkistukset|Reviews/ })).toBeVisible();
+  await menu.getByRole("button", { name: /Työtili ja tiliasetukset|Workspace and account/ }).click();
+  await expect(menu.getByRole("button", { name: /Kirjaudu ulos|Sign out/ })).toBeVisible();
 });
 
 test("sidebar choice persists and navigation remains usable", async ({ page, isMobile }) => {
@@ -140,4 +180,92 @@ test("closing and reopening keeps only the current session conversation", async 
   await expect(panel.getByText("Synthetic workflow guidance.")).toBeVisible();
   await page.locator(".app-sidebar-v2 a[href='/app/customers']").first().click();
   await expect(panel.getByText("Synthetic workflow guidance.")).toHaveCount(0);
+});
+
+
+test("approved workspace keeps sticky navigation, inset card and document scrolling", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.reload();
+  const sidebar = page.locator(".app-sidebar-v2");
+  const main = page.locator(".app-main-v2");
+  const navBounds = await sidebar.boundingBox();
+  const cardBounds = await main.boundingBox();
+  expect(navBounds).not.toBeNull();
+  expect(cardBounds).not.toBeNull();
+  expect(navBounds!.y).toBeLessThanOrEqual(1);
+  expect(navBounds!.height).toBeGreaterThanOrEqual(899);
+  expect(cardBounds!.y).toBeGreaterThanOrEqual(11);
+  expect(cardBounds!.y).toBeLessThanOrEqual(13);
+  expect(cardBounds!.height).toBeGreaterThanOrEqual(875);
+
+  const navBackground = await sidebar.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(navBackground).toBe("rgb(255, 255, 255)");
+  const shape = await main.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {
+      upperLeft: style.borderTopLeftRadius,
+      lowerLeft: style.borderBottomLeftRadius,
+      upperRight: style.borderTopRightRadius,
+      lowerRight: style.borderBottomRightRadius,
+      overflowY: style.overflowY,
+    };
+  });
+  expect(shape).toEqual({
+    upperLeft: "0px",
+    lowerLeft: "0px",
+    upperRight: "16px",
+    lowerRight: "16px",
+    overflowY: "visible",
+  });
+
+  // Explicitly make the page taller than the viewport to catch the old
+  // 100dvh + overflow:hidden locking bug on both desktop and iPad widths.
+  await main.evaluate((el) => {
+    const probe = document.createElement("div");
+    probe.id = "native-scroll-probe";
+    probe.style.height = "1800px";
+    probe.setAttribute("aria-hidden", "true");
+    el.appendChild(probe);
+  });
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  const stickySidebar = await sidebar.boundingBox();
+  expect(stickySidebar).not.toBeNull();
+  expect(Math.abs(stickySidebar!.y)).toBeLessThanOrEqual(2);
+  await page.evaluate(() => {
+    document.getElementById("native-scroll-probe")?.remove();
+    window.scrollTo(0, 0);
+  });
+  await expect(page.locator("#sales-copilot")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("iPad width preserves native page scrolling and does not lock the shell", async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.reload();
+  const main = page.locator(".app-main-v2");
+  await main.evaluate((el) => {
+    const probe = document.createElement("div");
+    probe.style.height = "1600px";
+    probe.setAttribute("aria-hidden", "true");
+    el.appendChild(probe);
+  });
+  const overflow = await page.locator(".app-shell-v2").evaluate((el) => getComputedStyle(el).overflow);
+  expect(overflow).toBe("visible");
+  await page.evaluate(() => window.scrollTo(0, 450));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("phone workspace does not inherit desktop card insets or clipped scrolling", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  const main = page.locator(".app-main-v2");
+  const style = await main.evaluate((el) => {
+    const css = getComputedStyle(el);
+    return { marginTop: css.marginTop, radius: css.borderTopRightRadius };
+  });
+  expect(style.marginTop).toBe("0px");
+  expect(style.radius).toBe("0px");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

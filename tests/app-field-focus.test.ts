@@ -15,27 +15,12 @@ test("Single-focus CSS is loaded by the authenticated app after support styles",
   assert.match(styles, /\.app-shell-v2/);
 });
 
-test("App text inputs, selects and textareas get one visible high-contrast border", () => {
-  assert.match(styles, /input:not\(\[type="checkbox"\]\)/);
-  assert.match(styles, /:focus-visible/);
-  assert.match(styles, /select:focus-visible/);
-  assert.match(styles, /textarea:focus-visible/);
-  assert.match(styles, /outline: none !important/);
-  assert.match(styles, /box-shadow: none !important/);
-  assert.match(styles, /border-color: #5c665e !important/);
-  // Checkbox/radio/file controls retain their focus outline; don't remove
-  // it broadly for every input type.
-  assert.doesNotMatch(styles, /\.app-shell-v2 input:focus-visible,/);
-});
-
-test("The Help search owns one focus border, with no bordered nested input", () => {
-  assert.match(center, /className="support-search"/);
-  assert.match(styles, /\.support-search input:focus-visible/);
-  assert.match(styles, /border: 0 !important/);
-  assert.match(styles, /background: transparent !important/);
-  assert.match(styles, /\.support-search:focus-within \{/);
-  assert.match(styles, /border-color: #5c665e;/);
-  assert.match(styles, /box-shadow: none;/);
+test("Standalone and composite fields use a single semantic keyboard outline", () => {
+  assert.match(styles, /outline: 2px solid var\(--app-focus\)/);
+  assert.match(styles, /border: 1px solid var\(--app-control-border\)/);
+  assert.match(styles, /form:focus-within/);
+  assert.match(styles, /support-search:focus-within/);
+  assert.doesNotMatch(styles, /!important|#[0-9a-f]{6}/i);
 });
 
 test("Composer, ticket replies and support contact fields remain operational", () => {

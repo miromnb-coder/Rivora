@@ -77,3 +77,9 @@ test("dashboard, tables and reusable toasts share the data motion layer", () => 
   assert.match(toast, /averomira-toast-region/);
   assert.match(toast, /aria-live="polite"/);
 });
+
+// Public timings remain available, while authenticated surfaces own Motion 3.2.
+test("Motion 3.2 exposes the complete app-scoped matrix", () => {
+  for (const token of ["--motion-instant: 80ms", "--motion-fast: 140ms", "--motion-base: 180ms", "--motion-content: 220ms", "--motion-panel: 280ms", "--motion-dialog: 320ms", "--motion-process: 400ms", "--motion-exit: 200ms", "--motion-difference: 300ms", "--motion-pending-cycle: 900ms"]) assert.ok(motionCss.includes(token));
+  assert.match(motionCss, /\[data-averomira-app-portal\]/);
+});

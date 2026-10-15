@@ -309,7 +309,7 @@ export default async function OrdersPage({
         </Link>
       </header>
 
-      <nav className="mt-6 flex gap-2 overflow-x-auto pb-2" aria-label={fi ? "Tilaussuodattimet" : "Order filters"}>
+      <nav className="orders-case-filters mt-6 flex gap-2 overflow-x-auto pb-2" aria-label={fi ? "Tilaussuodattimet" : "Order filters"}>
         {filters.map(([id, label]) => (
           <Link
             key={id}
