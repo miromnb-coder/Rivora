@@ -271,3 +271,10 @@
   .orders-case-table-row > * { grid-column: 1; }
   .products-v2-summary, .quotes-v1-summary, .dashboard-kpi-grid, .dashboard-overview-grid { grid-template-columns: minmax(0,1fr); }
 }
+
+/* Enlarged mobile text must reflow even when the host's system font is wider. */
+.app-shell-v2[data-shell-mode="mobile"] .app-mobile-brand .nodra-wordmark { min-width: 0; white-space: normal; flex-wrap: wrap; }
+.app-shell-v2[data-shell-mode="mobile"] .app-mobile-brand .averomira-wordmark-text { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.app-shell-v2[data-shell-mode="mobile"] .app-mobile-topbar .app-copilot-trigger { min-width: 0; max-width: 50%; flex: 0 1 auto; }
+.app-shell-v2[data-shell-mode="mobile"] .app-mobile-topbar .app-copilot-trigger > span { min-width: 0; overflow-wrap: anywhere; }
+.app-shell-v2[data-shell-mode="mobile"] .app-mobile-topbar .app-copilot-icon { flex-shrink: 0; }

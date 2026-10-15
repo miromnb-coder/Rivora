@@ -195,6 +195,11 @@ test("NAV role/feature presentation and 320px enlarged text reflow",async({page}
     elements.forEach((e,i)=>{if(e.childNodes.length&&Array.from(e.childNodes).some(n=>n.nodeType===Node.TEXT_NODE&&n.textContent?.trim()))e.style.fontSize=`${sizes[i]*2}px`;});
   });
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  for (const family of ['Arial, sans-serif', 'monospace']) {
+    const stress = await page.addStyleTag({content:`.app-shell-v2, .app-shell-v2 * { font-family: ${family} !important; }`});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    await stress.evaluate(element=>element.remove());
+  }
   await page.getByRole('button',{name:'Avaa valikko'}).click();await page.locator('.app-sidebar-v2-link-settings').focus();await expect(page.locator('.app-sidebar-v2-link-settings')).toBeFocused();
 });
 
