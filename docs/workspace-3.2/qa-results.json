@@ -66,5 +66,27 @@
       "result": "NOT RUN",
       "note": "REAL IPAD SAFARI: NOT RUN — physical device validation required."
     }
-  ]
+  ],
+  "followup": {
+    "source_sha": "9d1bdfba6947ba164593402fbd99549d68dde675",
+    "reason": "CI detected 323px width at 320px under enlarged text with runner system fonts",
+    "prior_ci": {
+      "head": "bac09e609fd03d07dc1f975133b79839c5ecc496",
+      "passed": 64,
+      "failed": 2,
+      "skipped": 0,
+      "run_url": "https://github.com/miromnb-coder/Rivora/actions/runs/38750525369"
+    },
+    "local_focused_mobile_reflow": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "local_strengthened_font_stress": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "latest_ci": "See the authoritative PR report for the final head and full run."
+  }
 }

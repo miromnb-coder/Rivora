@@ -2,7 +2,9 @@
 
 The authoritative delivery report is the updated description of [PR #112](https://github.com/miromnb-coder/Rivora/pull/112). This directory contains synthetic evidence and reproduction notes, not production release approval.
 
-Source implementation: `067b91d202ac1d64caa73177d7d91d1e72ae6fe3` (following `5fdf792`, `fc18922` and `3fa2945`). Later evidence-only commits do not change the tested application, configuration or test code.
+Primary implementation: `067b91d202ac1d64caa73177d7d91d1e72ae6fe3` (following `5fdf792`, `fc18922` and `3fa2945`). Follow-up `9d1bdfba6947ba164593402fbd99549d68dde675` allows enlarged mobile topbar text to reflow across wider system fonts. The baseline geometry/motion/performance evidence remains explicitly tied to `067b91d`; the follow-up changes only mobile label wrapping. The PR report records the latest head, CI and Preview verification.
+
+The first remote Workspace run at `bac09e6` selected all 66 cases and reported **64 passed / 2 failed / 0 skipped**: both engines found a 323px document at 320px with enlarged text. This was a real font-dependent overflow, not a reason to relax the assertion. The follow-up keeps the 320px assertion and adds Arial/monospace stress checks. Local focused validation passed 8 mobile/reflow cases and then both strengthened enlarged-text cases. The final CI run is linked in the PR report.
 
 ## Reproduce
 
