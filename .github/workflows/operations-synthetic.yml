@@ -17,8 +17,16 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y ripgrep
       - name: Start isolated synthetic PostgreSQL
         run: docker run --name averomira-catalogue-test -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres:17.6
-      - name: Wait for local database
-        run: for n in {1..30}; do docker exec averomira-catalogue-test pg_isready -U postgres && exit 0; sleep 1; done; exit 1
+      - name: Wait for final PostgreSQL startup
+        run: |
+          for n in {1..60}; do
+            if docker logs averomira-catalogue-test 2>&1 | rg -q 'PostgreSQL init process complete; ready for start up' &&
+               docker exec averomira-catalogue-test pg_isready -U postgres; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
       - run: bash scripts/test-operations-sql.sh
   browser:
     runs-on: ubuntu-latest
