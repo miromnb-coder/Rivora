@@ -3,7 +3,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const css = readFileSync("app/app/navigation.css", "utf8");
-const layout = css.split("/* Workspace 3.0: allow natural document scrolling")[1]?.split("@media (prefers-reduced-motion: reduce)")[0] ?? "";
+const marker = css.indexOf("/* Workspace 3.0: allow natural document scrolling");
+const layout = marker >= 0 ? css.slice(css.indexOf("@media (min-width: 1024px)", marker), css.indexOf("@media (prefers-reduced-motion: reduce)", marker)) : "";
 
 test("desktop retains a full-height white sticky sidebar", () => {
   assert.match(css, /\.app-shell-v2 \.app-sidebar-v2 \{ background: var\(--app-surface\) !important/);
@@ -12,7 +13,7 @@ test("desktop retains a full-height white sticky sidebar", () => {
 
 test("shell restores the normal document scroll instead of locking its height", () => {
   assert.match(layout, /\.app-shell-v2 \{\s*height: auto;\s*min-height: 100dvh;\s*overflow: visible;/);
-  assert.doesNotMatch(layout.replace(/\/\*[\s\S]*?\*\//g, ""), /overflow:\s*hidden/);
+  assert.doesNotMatch(layout, /overflow:\s*hidden/);
   assert.match(layout, /\.app-shell-v2\.is-copilot-open \.app-main-v2 \{\s*overflow: visible;/);
 });
 
