@@ -20,7 +20,7 @@ for (const page of ['orders','products','customers','quotes','inbox','products/[
   new Function('require', 'module', 'exports', serverPage.outputFiles[0].text)(require, module, module.exports);
   pageHtml[page] = renderToStaticMarkup(await module.exports.default({ params: Promise.resolve({ id: 'synthetic-0' }), searchParams: Promise.resolve({}) }));
 }
-const cssFiles = ['app/globals.css','app/motion.css','app/app/navigation.css','app/app/support-s5.css','app/app/field-focus.css'];
+const cssFiles = ['app/globals.css','app/motion.css','app/app/navigation.css','app/app/support-s5.css','app/app/field-focus.css','app/app/warm-aurora.css'];
 const rawCss = (await Promise.all(cssFiles.map(file => readFile(file, 'utf8')))).join('\n');
 const postcss = require('postcss');
 const tailwind = require('@tailwindcss/postcss');
