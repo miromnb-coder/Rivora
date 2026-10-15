@@ -272,6 +272,11 @@
 .app-shell-v2[data-shell-mode="mobile"] .sales-copilot { width: 100%; }
 .app-shell-v2[data-shell-mode="mobile"] .sales-copilot-header { padding-top: calc(10px + env(safe-area-inset-top)); }
 .app-shell-v2[data-shell-mode="mobile"] .sales-copilot-bottom textarea { font-size: 16px; }
+/* Narrow RFQ decisions can inherit fractional nested-grid widths. Reserve
+ * a few pixels inside the field rather than letting the native select protrude. */
+.app-shell-v2[data-shell-mode="mobile"] .rfq-review-v2-form select[name="productId"] {
+  max-width: calc(100% - 3px);
+}
 .app-shell-v2[data-shell-mode="mobile"] .app-sidebar-v2.is-mobile-open {
   top: 0;
   height: 100dvh;
