@@ -39,20 +39,20 @@ for (const width of [320,390,430,767,768,1023,1024,1180,1199,1200,1280,1440,1599
       return {shell:read('.app-shell-v2'), main:read('.app-main-v2'),nav:read('.app-sidebar-v2'),chat:read('#sales-copilot'),content:read('.app-content-v2'), composer:read('.sales-copilot-bottom'),scrollWidth:document.documentElement.scrollWidth, clientWidth:document.documentElement.clientWidth};
     });
     await info.attach("geometry.json", {body:JSON.stringify({width, ...measurement},null,2),contentType:"application/json"});
-    expect(measurement.shell.bg).toBe("rgb(250, 246, 242)");
-    expect(measurement.chat.bg).toBe(measurement.shell.bg);
+    expect(measurement.shell.bg).toBe("rgb(247, 244, 238)");
+    expect(measurement.chat.bg).toBe(width >= 1200 ? "rgba(0, 0, 0, 0)" : measurement.shell.bg);
     expect(measurement.scrollWidth).toBeLessThanOrEqual(width);
     expect(measurement.composer.bottom).toBeLessThanOrEqual(901);
     if (width >= 1200) {
-      expect(measurement.nav.width).toBe(232);
-      expect(measurement.main.x-measurement.nav.right).toBe(16);
-      expect(measurement.chat.x-measurement.main.right).toBe(16);
+      expect(measurement.nav.width).toBe(216);
+      expect(measurement.main.x-measurement.nav.right).toBe(20);
+      expect(measurement.chat.x-measurement.main.right).toBe(20);
       expect(measurement.chat.width).toBe(width>=1920?400:width>=1600?384:360);
-      expect(measurement.main.y).toBe(12);
+      expect(measurement.main.y).toBe(18);
       expect(measurement.main.border).toBe("1px");
-      expect(measurement.main.radii).toEqual(["0px","16px","16px","0px"]);
-      expect(measurement.main.width).toBe(width-232-32-measurement.chat.width);
-      expect(measurement.content.width-64).toBe(measurement.main.width-66);
+      expect(measurement.main.radii).toEqual(["24px","24px","24px","24px"]);
+      expect(measurement.main.width).toBe(width-216-76-measurement.chat.width);
+      expect(measurement.content.width-56).toBe(measurement.main.width-58);
       expect(await page.locator('.app-main-v2').evaluate(e=>getComputedStyle(e).overflow)).toBe("visible");
     } else {
       await expect(panel(page)).toHaveAttribute('role','dialog');
@@ -63,14 +63,14 @@ for (const width of [320,390,430,767,768,1023,1024,1180,1199,1200,1280,1440,1599
     await expect(panel(page)).toHaveCount(0);
     if (width >= 1024) {
       const right=await page.locator('.app-main-v2').evaluate(e=>e.getBoundingClientRect().right);
-      expect(width-right).toBe(16);
+      expect(width-right).toBe(18);
     }
     if(width>=768) {
       await page.mouse.move(width/2,500); await page.mouse.wheel(0,1800);
       await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBeGreaterThan(0);
       await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
       const bottomGap=await page.locator('.app-main-v2').evaluate(e=>document.documentElement.scrollHeight-(e.getBoundingClientRect().bottom+window.scrollY));
-      expect(bottomGap).toBeCloseTo(12,0);
+      expect(bottomGap).toBeCloseTo(width>=1024?18:width>=768?14:0,0);
     }
     if([320,390,430,768,1024,1180,1200,1440,1680,1920].includes(width)) await page.screenshot({path:info.outputPath(`${width}-closed-scrolled.png`),animations:"disabled"});
   });
