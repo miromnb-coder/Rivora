@@ -47,7 +47,7 @@ for (const width of [320,390,430,767,768,1023,1024,1180,1199,1200,1280,1440,1599
       expect(measurement.nav.width).toBe(216);
       expect(measurement.main.x-measurement.nav.right).toBe(20);
       expect(measurement.chat.x-measurement.main.right).toBe(20);
-      expect(measurement.chat.width).toBe(width>=1920?400:width>=1600?384:360);
+      expect(measurement.chat.width).toBe(width>=1920?400:width>=1600?384:340);
       expect(measurement.main.y).toBe(18);
       expect(measurement.main.border).toBe("1px");
       expect(measurement.main.radii).toEqual(["24px","24px","24px","24px"]);
@@ -290,7 +290,7 @@ test("A11Y actual surfaces, control borders and one composite focus indicator",a
   });
   await info.attach('contrast.json',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   for(const key of ['nav','selected','primary','placeholder'] as const)expect(result[key]).toBeGreaterThanOrEqual(4.5);expect(result.control).toBeGreaterThanOrEqual(3);
-  await expect(page.locator('.upload-v2-primary-btn')).toHaveCSS('background-color','rgb(36, 33, 31)');
+  await expect(page.locator('.upload-v2-primary-btn')).toHaveCSS('background-color','rgb(33, 29, 25)');
   await input(page).focus();expect(await input(page).evaluate(e=>getComputedStyle(e).borderLeftWidth)).toBe('0px');
   await expect(page.locator('.sales-copilot-bottom form')).toHaveCSS('outline-width','2px');
 });
