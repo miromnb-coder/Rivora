@@ -383,18 +383,22 @@
   .app-shell-v2 .app-mobile-topbar { gap: 8px; }
 }
 
-/* Workspace 3.0 phase 3: a full-height white navigation surface and an inset
-   working card. Only the card's right corners are rounded; its left edge is
-   square against the navigation. The AI rail remains on its own warm surface.
-   A contained main scroll keeps both 12px vertical gutters visible even when
-   a real order/RFQ/settings page is longer than the viewport. */
+/* Workspace 3.0: allow natural document scrolling on desktop and tablets.
+   The earlier 100dvh/overflow:hidden shell with a separate main scroll area
+   trapped ordinary page scrolling in Safari. Keep the inset working surface,
+   but let its content determine its height. The navigation and Copilot rails
+   remain independently sticky on desktop. */
 @media (min-width: 1024px) {
   .app-shell-v2 {
-    height: 100dvh;
-    min-height: 0;
-    overflow: hidden;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    --app-bg: #faf6f2;
   }
   .app-shell-v2 .app-sidebar-v2 {
+    position: sticky;
+    top: 0;
+    align-self: start;
     height: 100dvh;
     min-height: 0;
     border-radius: 0;
@@ -402,16 +406,19 @@
   }
   .app-shell-v2 .app-main-v2 {
     align-self: start;
-    height: calc(100dvh - 24px);
-    min-height: 0;
+    height: auto;
+    min-height: calc(100dvh - 24px);
     margin: 12px 0;
     border: 1px solid var(--app-line);
     border-left: 0;
     border-radius: 0 16px 16px 0;
-    overflow-x: auto;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
+    overflow: visible;
     background: var(--app-surface) !important;
+  }
+  /* Override the old compact-orders x-scroll on the main surface, which
+     otherwise turns vertical overflow into another nested scroll area. */
+  .app-shell-v2.is-copilot-open .app-main-v2 {
+    overflow: visible;
   }
 }
 
