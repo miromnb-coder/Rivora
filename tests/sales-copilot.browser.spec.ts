@@ -183,7 +183,7 @@ test("closing and reopening keeps only the current session conversation", async 
 });
 
 
-test("approved desktop workspace has a flush full-height sidebar and a right-rounded inset card", async ({ page }) => {
+test("approved workspace keeps sticky navigation, inset card and document scrolling", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.reload();
   const sidebar = page.locator(".app-sidebar-v2");
@@ -196,7 +196,7 @@ test("approved desktop workspace has a flush full-height sidebar and a right-rou
   expect(navBounds!.height).toBeGreaterThanOrEqual(899);
   expect(cardBounds!.y).toBeGreaterThanOrEqual(11);
   expect(cardBounds!.y).toBeLessThanOrEqual(13);
-  expect(cardBounds!.y + cardBounds!.height).toBeLessThanOrEqual(889);
+  expect(cardBounds!.height).toBeGreaterThanOrEqual(875);
 
   const navBackground = await sidebar.evaluate((el) => getComputedStyle(el).backgroundColor);
   expect(navBackground).toBe("rgb(255, 255, 255)");
@@ -215,9 +215,45 @@ test("approved desktop workspace has a flush full-height sidebar and a right-rou
     lowerLeft: "0px",
     upperRight: "16px",
     lowerRight: "16px",
-    overflowY: "auto",
+    overflowY: "visible",
+  });
+
+  // Explicitly make the page taller than the viewport to catch the old
+  // 100dvh + overflow:hidden locking bug on both desktop and iPad widths.
+  await main.evaluate((el) => {
+    const probe = document.createElement("div");
+    probe.id = "native-scroll-probe";
+    probe.style.height = "1800px";
+    probe.setAttribute("aria-hidden", "true");
+    el.appendChild(probe);
+  });
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  const stickySidebar = await sidebar.boundingBox();
+  expect(stickySidebar).not.toBeNull();
+  expect(Math.abs(stickySidebar!.y)).toBeLessThanOrEqual(2);
+  await page.evaluate(() => {
+    document.getElementById("native-scroll-probe")?.remove();
+    window.scrollTo(0, 0);
   });
   await expect(page.locator("#sales-copilot")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("iPad width preserves native page scrolling and does not lock the shell", async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.reload();
+  const main = page.locator(".app-main-v2");
+  await main.evaluate((el) => {
+    const probe = document.createElement("div");
+    probe.style.height = "1600px";
+    probe.setAttribute("aria-hidden", "true");
+    el.appendChild(probe);
+  });
+  const overflow = await page.locator(".app-shell-v2").evaluate((el) => getComputedStyle(el).overflow);
+  expect(overflow).toBe("visible");
+  await page.evaluate(() => window.scrollTo(0, 450));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
