@@ -1,0 +1,29 @@
+import { NextResponse } from "next/server";
+import { getAuthContext } from "@/lib/rivora/workspace";
+import {
+  copilotActivationReadiness, copilotActorAuthorizedForEnvironment,
+} from "@/lib/rivora/copilot-live";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+/** Read-only status for the authenticated person. Never reveal tenant IDs,
+ * credentials, activation-flag values or prices to other users. */
+export async function GET() {
+  const headers = { "Cache-Control": "private, no-store" };
+  try {
+    const context = await getAuthContext();
+    if (!context.claims?.sub || !context.workspace)
+      return NextResponse.json({ available: false, pilot: false }, { status: 401, headers });
+    const ready = copilotActivationReadiness();
+    const authorized = copilotActorAuthorizedForEnvironment(
+      context.claims.sub, context.workspace.id, context.workspace.role,
+    );
+    const available = ready.ready && authorized;
+    const pilot = available && process.env.VERCEL_ENV === "production" &&
+      process.env.AVEROMIRA_COPILOT_PILOT_ENABLED === "true";
+    return NextResponse.json({ available, pilot }, { headers });
+  } catch {
+    return NextResponse.json({ available: false, pilot: false }, { headers });
+  }
+}
