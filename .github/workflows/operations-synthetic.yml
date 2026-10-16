@@ -31,3 +31,12 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --config playwright.operations.config.ts
+      - run: npx playwright test --config playwright.copilot.config.ts
+      - name: Save synthetic Copilot visual QA images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: copilot-visual-synthetic
+          path: test-results/copilot-visual/*.png
+          if-no-files-found: ignore
+          retention-days: 7

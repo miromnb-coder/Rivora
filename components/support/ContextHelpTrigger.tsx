@@ -1,6 +1,7 @@
 "use client";
 
 export const SUPPORT_OPEN_EVENT = "averomira:support-open";
+export const SUPPORT_UNREAD_EVENT = "averomira:support-unread";
 
 export function ContextHelpTrigger({
   articleId,

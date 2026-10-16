@@ -29,54 +29,61 @@ export default async function ProductsPage() {
   const manufacturers = new Set(rows.map((product: any) => product.manufacturer).filter(Boolean)).size;
 
   return (
-    <div className="app-page-v2 products-v2">
-      <header className="products-v2-head product-page-head">
-        <div><div className="app-kicker-v2">{copy.kicker}</div><h1>{copy.title}</h1><p>{copy.description}</p></div>
-        <Link href="/app/upload" className="products-v2-primary">{copy.update} <span aria-hidden="true">→</span></Link>
+    <div className="app-page-v2 products-v2 ml-unified-page ml-unified-products">
+      <header className="ml-page-head">
+        <div className="ml-page-head-copy">
+          <div className="ml-page-eyebrow">{locale === "fi" ? "Työtila / Tuotteet" : "Workspace / Products"}</div>
+          <h1>{locale === "fi" ? "Tuotteet" : "Products"}</h1>
+          <p>{locale === "fi" ? "Hallitse tuoteluetteloa, hintoja, varastotietoja ja tuotetunnisteita." : "Manage your catalogue, prices, inventory information and product identifiers."}</p>
+        </div>
+        <Link href="/app/upload" className="ml-page-primary">{copy.update}<span aria-hidden="true">→</span></Link>
       </header>
 
-      <section className="products-v2-summary" aria-label="Catalogue summary">
-        <div><span>{copy.active}</span><strong>{totalCount ?? rows.length}</strong><small>{copy.matching}</small></div>
-        <div><span>{copy.manufacturers}</span><strong>{manufacturers}</strong><small>{copy.currentView}</small></div>
-        <div><span>{copy.pricing}</span><strong>{priced}</strong><small>{priced} / {rows.length} {copy.loaded}</small></div>
-        <div><span>{copy.stockData}</span><strong>{stocked}</strong><small>{stocked} / {rows.length} {copy.loaded}</small></div>
+      <section className="ml-summary-section" aria-label={locale === "fi" ? "Tuotekatalogin yhteenveto" : "Product catalogue overview"}>
+        <div className="ml-summary-grid">
+          <div className="ml-summary-tile"><span>{copy.active}</span><strong>{totalCount ?? rows.length}</strong></div>
+          <div className="ml-summary-tile"><span>{copy.manufacturers}</span><strong>{manufacturers}</strong></div>
+          <div className="ml-summary-tile"><span>{copy.pricing}</span><strong>{priced}</strong></div>
+          <div className="ml-summary-tile"><span>{copy.stockData}</span><strong>{stocked}</strong></div>
+        </div>
+        <p className="ml-page-footnote">{locale === "fi" ? "Valmistajien, hintojen ja varastotietojen yhteenveto perustuu enintään 500 ladattuun tuotteeseen." : "Manufacturer, pricing and stock summaries reflect up to 500 loaded products."}</p>
       </section>
 
-      <section className="products-v2-list">
-        <div className="products-v2-list-head">
-          <div><div className="upload-v2-section-label">{copy.rows}</div><h2>{copy.listTitle}</h2></div>
-          <span>{copy.showing}</span>
+      <section className="ml-unified-section" aria-labelledby="ml-products-list-title">
+        <div className="ml-section-heading">
+          <div><div className="ml-page-eyebrow">{copy.rows}</div><h2 id="ml-products-list-title">{locale === "fi" ? "Tuoteluettelo" : "Product list"}</h2></div>
+          <span className="ml-order-count">{rows.length} {locale === "fi" ? "näkyvissä" : "shown"}</span>
         </div>
-
         {rows.length ? (
-          <div className="products-v2-rows">
+          <div className="ml-product-list">
             {rows.map((product: any) => {
               const stock = product.stock_quantity == null ? null : Number(product.stock_quantity);
               const tone = stockTone(stock);
               const stockLabel = tone === "ready" ? copy.inStock : tone === "low" ? copy.lowStock : tone === "out" ? copy.outStock : copy.noStock;
               return (
-                <Link key={product.id} href={`/app/products/${product.id}`} className="products-v2-row">
-                  <div className="products-v2-identity">
-                    <div className="products-v2-meta">
-                      <span>{product.manufacturer || copy.manufacturerMissing}</span>
-                      {product.manufacturer_part_number ? <span>MPN {product.manufacturer_part_number}</span> : null}
-                    </div>
-                    <h3>{product.sku}</h3><p>{product.name}</p>
+                <Link href={"/app/products/" + product.id} key={product.id} className="ml-product-item">
+                  <div className="ml-product-main">
+                    <strong>{product.sku}</strong>
+                    <span>{product.name}</span>
+                    <small>{product.manufacturer || copy.manufacturerMissing}{product.manufacturer_part_number ? " · MPN " + product.manufacturer_part_number : ""}</small>
                   </div>
-                  <div className="products-v2-commercial"><span>{copy.unitPrice}</span><strong>{product.unit_price == null ? getDictionary(locale).common.notSet : money.format(Number(product.unit_price))}</strong><small>{product.unit || copy.unitMissing}</small></div>
-                  <div className="products-v2-commercial"><span>{copy.stock}</span><strong>{stock == null ? getDictionary(locale).common.notSet : stock.toLocaleString(numberLocale)}</strong><small>{product.unit || copy.units}</small></div>
-                  <div className={`products-v2-stock ${tone}`}>{stockLabel}</div>
-                  <span className="products-v2-row-arrow" aria-hidden="true">→</span>
+                  <div className="ml-product-details">
+                    <div><small>{copy.unitPrice}</small><strong>{product.unit_price == null ? getDictionary(locale).common.notSet : money.format(Number(product.unit_price))}</strong></div>
+                    <div><small>{copy.stock}</small><strong>{stock == null ? getDictionary(locale).common.notSet : stock.toLocaleString(numberLocale)} <span>{product.unit || copy.units}</span></strong></div>
+                    <span className={"ml-product-status is-" + tone}>{stockLabel}</span>
+                  </div>
+                  <span className="ml-row-arrow" aria-hidden="true">→</span>
                 </Link>
               );
             })}
           </div>
         ) : (
-          <div className="products-v2-empty">
-            <div className="upload-v2-section-label">{copy.empty}</div><h3>{copy.emptyTitle}</h3><p>{copy.emptyBody}</p>
-            <Link href="/app/upload" className="products-v2-primary">{copy.import} <span aria-hidden="true">→</span></Link>
+          <div className="ml-page-empty">
+            <strong>{copy.emptyTitle}</strong><p>{copy.emptyBody}</p>
+            <Link href="/app/upload" className="ml-page-textlink">{copy.import} <span aria-hidden="true">→</span></Link>
           </div>
         )}
+        <p className="ml-page-footnote">{locale === "fi" ? "Luettelossa näytetään enintään 500 aktiivista tuotetta." : "Up to 500 active products are shown."}</p>
       </section>
     </div>
   );

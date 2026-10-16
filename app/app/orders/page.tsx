@@ -290,93 +290,83 @@ export default async function OrdersPage({
     ["done", fi ? "Valmis" : "Complete"],
   ] as const;
 
+
+  const overviewStats = [
+    [fi ? "Käsittelyssä" : "In progress", allCases.filter(row => row.stage !== "done").length],
+    [fi ? "Vaatii huomiota" : "Needs attention", allCases.filter(row => row.attention).length],
+    [fi ? "ERP-vaiheessa" : "ERP stage", allCases.filter(row => row.stage === "erp").length],
+    [fi ? "Valmiit" : "Completed", allCases.filter(row => row.stage === "done").length],
+  ] as const;
+
   return (
-    <div className="app-page-v2">
-      <header className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <div className="app-kicker-v2">{fi ? "Tilaukset" : "Orders"}</div>
-          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--app-ink)] md:text-4xl">
-            {fi ? "Tilaukset" : "Orders"}
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-            {fi
-              ? "Yksi rivi per case koko RFQ → tarjous → PO → ERP -polulle."
-              : "RFQ, quote, customer PO and ERP stage stay together as one continuous case."}
-          </p>
+    <div className="app-page-v2 ml-unified-page ml-unified-orders">
+      <header className="ml-page-head">
+        <div className="ml-page-head-copy">
+          <div className="ml-page-eyebrow">{fi ? "Työtila / Tilaukset" : "Workspace / Orders"}</div>
+          <h1>{fi ? "Tilaukset" : "Orders"}</h1>
+          <p>{fi ? "Tarjouspyynnöistä myyntitilauksiin. Yksi käsittelypolku kerrallaan." : "From RFQ to sales orders. One case at a time."}</p>
         </div>
-        <Link href="/app/upload" className="upload-v2-primary-btn">
-          + {fi ? "Uusi tarjouspyyntö" : "New RFQ"}
-        </Link>
+        <Link href="/app/upload" className="ml-page-primary">+ {fi ? "Uusi tarjouspyyntö" : "New RFQ"}</Link>
       </header>
 
-      <nav className="mt-6 flex gap-2 overflow-x-auto pb-2" aria-label={fi ? "Tilaussuodattimet" : "Order filters"}>
-        {filters.map(([id, label]) => (
-          <Link
-            key={id}
-            href={id === "all" ? "/app/orders" : `/app/orders?view=${id}`}
-            className={
-              "whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition " +
-              (view === id
-                ? "border-[#dedfdb] bg-[#f3f3f0] text-[var(--app-ink)]"
-                : "border-[var(--line)] bg-white text-[var(--muted)] hover:text-[var(--app-ink)]")
-            }
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
+      <section className="ml-summary-section" aria-label={fi ? "Tilausten yhteenveto" : "Orders overview"}>
+        <div className="ml-summary-grid">
+          {overviewStats.map(([label, count]) => (
+            <div className="ml-summary-tile" key={label}><span>{label}</span><strong>{count}</strong></div>
+          ))}
+        </div>
+        <p className="ml-page-footnote">{fi ? "Yhteenveto näyttää ladattujen tapausten tilanteen. Se ei välttämättä kata kaikkia historiallisia tapahtumia." : "Summary of loaded cases; older records may not be included."}</p>
+      </section>
 
-      <section className="mt-4 overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
-        <div className="hidden grid-cols-[1.35fr_1fr_.8fr_1fr_auto] gap-4 border-b border-[var(--line)] bg-[#fafaf7] px-6 py-3 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted)] md:grid">
-          <span>{fi ? "Asiakas" : "Customer"}</span>
-          <span>{fi ? "Viite" : "Reference"}</span>
-          <span>{fi ? "Vaihe" : "Stage"}</span>
-          <span>{fi ? "Seuraava tehtävä" : "Next action"}</span>
-          <span>{fi ? "Päivitetty" : "Updated"}</span>
+      <section className="ml-unified-section" aria-label={fi ? "Tilaukset ja suodattimet" : "Orders and filters"}>
+        <nav className="ml-filter-row" aria-label={fi ? "Tilaussuodattimet" : "Order filters"}>
+          {filters.map(([id, label]) => (
+            <Link key={id} href={id === "all" ? "/app/orders" : "/app/orders?view=" + id}
+              className={"ml-filter-chip" + (view === id ? " is-active" : "")}
+              aria-current={view === id ? "page" : undefined}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="ml-section-heading ml-order-section-title">
+          <div><div className="ml-page-eyebrow">{fi ? "Työjono" : "Work queue"}</div>
+            <h2>{view === "attention" ? (fi ? "Vaatii huomiota" : "Needs attention") : (fi ? "Tilausasiat" : "Order cases")}</h2>
+          </div>
+          <span className="ml-order-count">{filtered.length} {fi ? "näkyvissä" : "shown"}</span>
         </div>
 
         {filtered.length ? (
-          <div className="divide-y divide-[var(--line)]">
+          <div className="ml-orders-list">
+            <div className="ml-orders-head" aria-hidden="true">
+              <span>{fi ? "Asiakas ja viite" : "Customer and reference"}</span>
+              <span>{fi ? "Vaihe" : "Stage"}</span>
+              <span>{fi ? "Seuraava tehtävä" : "Next action"}</span>
+            </div>
             {filtered.map((row) => {
               const reference = row.poNumber || row.quoteNumber || row.rfqReference || "—";
               return (
-                <Link
-                  key={row.key}
-                  href={row.href}
-                  className="group grid gap-3 px-5 py-4 transition hover:bg-[var(--app-paper)] md:grid-cols-[1.35fr_1fr_.8fr_1fr_auto] md:items-center md:gap-4"
-                >
-                  <div>
-                    <strong className="block text-sm">{row.customer}</strong>
-                    <span className="mt-1 block text-xs text-[var(--muted)] md:hidden">{reference}</span>
+                <Link href={row.href} key={row.key} className="ml-order-item">
+                  <div className="ml-order-identity">
+                    <strong>{row.customer}</strong>
+                    <span title={reference}>{reference}</span>
                   </div>
-                  <span className="hidden text-sm text-[var(--muted)] md:block">{reference}</span>
-                  <span>
-                    <span className={
-                      "inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold " +
-                      (row.attention
-                        ? "bg-[#f6efe3] text-[#765a30]"
-                        : row.stage === "done"
-                          ? "bg-[#eceeea] text-[#39423c]"
-                          : "bg-[#f1f2ef] text-[#646a65]")
-                    }>
-                      {row.stageLabel}
-                    </span>
-                  </span>
-                  <strong className="text-sm">{row.nextAction}</strong>
-                  <span className="flex items-center gap-3 text-xs font-semibold text-[var(--muted)]">
-                    {new Date(row.updatedAt).toLocaleDateString(displayLocale)}
-                    <span className="text-[var(--app-ink)] transition group-hover:translate-x-1">→</span>
-                  </span>
+                  <div className="ml-order-stage">
+                    <span className={"ml-page-status" + (row.attention ? " is-attention" : row.stage === "done" ? " is-complete" : "")}>{row.stageLabel}</span>
+                  </div>
+                  <div className="ml-order-action">
+                    <strong>{row.nextAction}</strong>
+                    <small>{new Date(row.updatedAt).toLocaleDateString(displayLocale)}</small>
+                  </div>
+                  <span className="ml-row-arrow" aria-hidden="true">→</span>
                 </Link>
               );
             })}
           </div>
         ) : (
-          <div className="p-10 text-center">
+          <div className="ml-page-empty">
             <strong>{fi ? "Tässä näkymässä ei ole tilauksia." : "No orders in this view."}</strong>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {fi ? "Vaihda suodatinta tai aloita uusi tarjouspyyntö." : "Change the filter or start a new RFQ."}
-            </p>
+            <p>{fi ? "Vaihda suodatinta tai aloita uusi tarjouspyyntö." : "Change the filter or start a new RFQ."}</p>
           </div>
         )}
       </section>
