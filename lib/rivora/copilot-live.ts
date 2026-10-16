@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { operationPricing, usageMicroUsd, type Pricing } from "@/lib/rivora/operations/usage";
+import { operationPricing, usageMicroUsd, type Pricing } from "./operations/usage.ts";
 
 export const COPILOT_LEDGER_TYPE = "copilot_ai";
 const PRODUCTION_VERCEL_PROJECT = "prj_69utcxbvaCPDSle5W3zptTa946rv";
@@ -92,9 +91,10 @@ export type CopilotLedger = {
 };
 
 export function copilotLedger(): CopilotLedger {
-  const db = createAdminClient();
   return {
     async reserve(args) {
+      const { createAdminClient } = await import("@/lib/supabase/admin");
+      const db = createAdminClient();
       const { data, error } = await db.rpc("reserve_ai_usage_server", {
         p_org: args.organizationId, p_actor: args.actorId,
         p_type: COPILOT_LEDGER_TYPE, p_key: randomUUID(),
@@ -106,6 +106,8 @@ export function copilotLedger(): CopilotLedger {
       return data;
     },
     async settle(args) {
+      const { createAdminClient } = await import("@/lib/supabase/admin");
+      const db = createAdminClient();
       const { error } = await db.rpc("settle_ai_usage_server", {
         p_id: args.reservationId, p_actual: args.microUsd,
         p_input: args.inputTokens, p_output: args.outputTokens,
