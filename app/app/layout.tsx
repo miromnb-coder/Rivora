@@ -3,6 +3,8 @@ import { AppShell } from "@/components/AppShell";
 import "./navigation.css";
 import "./support-s5.css";
 import "./field-focus.css";
+import "@/styles/minimal-linen.css";
+import "./workspace-shell.css";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { canManageWorkspaceFeature } from "@/lib/rivora/features";

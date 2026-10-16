@@ -121,6 +121,8 @@ export function AppNav({ items, compact = false, locale = "fi" }: {
         const pending = pendingHref === href && pathname !== href;
         return (
           <Link key={href} href={href} prefetch
+            aria-label={label}
+            title={label}
             onClick={() => { if (pathname !== href) setPendingHref(href); }}
             aria-current={pathname === href ? "page" : active ? "location" : undefined}
             aria-busy={pending || undefined}

@@ -34,7 +34,8 @@ test("foundation CSS is scoped and does not replace global app styles", () => {
   assert.match(css, /\.ml-theme\s*\{/);
   assert.doesNotMatch(css, /(^|\n)\s*(?:html|body|:root|\*)\s*\{/m);
   assert.doesNotMatch(root, /minimal-linen\.css/);
-  assert.doesNotMatch(shell, /MinimalLinenGallery|ml-theme|CopilotPanel/);
+  assert.doesNotMatch(shell, /MinimalLinenGallery|CopilotPanel/);
+  assert.match(shell, /WorkspaceFrame/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
 });
 

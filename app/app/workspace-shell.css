@@ -1,0 +1,291 @@
+/* Premium Workspace Shell — Phase 2. Scoped exclusively to the authenticated
+   .ml-workspace-shell to avoid changing public pages and the existing AI Support. */
+.app-shell-v2.ml-workspace-shell {
+  --app-bg: var(--ml-canvas);
+  --app-paper: var(--ml-surface);
+  --app-ink: var(--ml-ink);
+  --app-muted: var(--ml-muted);
+  --app-tertiary: var(--ml-muted);
+  --app-brand: var(--ml-primary);
+  --app-selected: var(--ml-selected);
+  --app-soft: var(--ml-surface-soft);
+  --app-soft-2: var(--ml-surface-warm);
+  --app-hover: var(--ml-selected);
+  --app-line: var(--ml-border);
+  --app-line-strong: var(--ml-border-strong);
+  --app-input-border: var(--ml-border-strong);
+  --app-mocha: var(--ml-primary);
+  --app-mocha-hover: var(--ml-primary-hover);
+  --app-button-text: #ffffff;
+  --app-radius-sm: 8px;
+  --app-radius-md: 12px;
+  --app-radius-lg: 16px;
+  --app-control-h: 44px;
+  display: grid !important;
+  grid-template-columns: 232px minmax(0,1fr) 360px !important;
+  grid-template-areas: "sidebar content copilot";
+  align-items: start;
+  gap: 16px;
+  padding: 16px;
+  min-height: 100dvh;
+  background: var(--ml-canvas) !important;
+  color: var(--ml-ink);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+}
+.ml-workspace-shell > .app-sidebar-v2 {
+  grid-area: sidebar;
+  display: flex !important;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(100dvh - 32px) !important;
+  max-height: calc(100dvh - 32px);
+  position: sticky !important;
+  top: 16px;
+  align-self: start;
+  overflow: hidden;
+  padding: 18px 12px 14px !important;
+  border: 1px solid var(--ml-border) !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+  background: var(--ml-surface) !important;
+  color: var(--ml-ink) !important;
+}
+.ml-workspace-shell .app-sidebar-v2-top {
+  padding: 2px 12px 16px !important;
+  gap: 4px !important;
+  border-bottom: 1px solid var(--ml-border);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.ml-workspace-shell .app-sidebar-v2-brand { color: var(--ml-ink) !important; }
+.ml-workspace-shell .app-sidebar-v2-product { color: var(--ml-muted) !important; font-size: 12px !important; }
+.ml-workspace-shell .app-sidebar-v2-nav { display: flex !important; flex-direction: column; flex: 1 1 auto; min-height: 0; gap: 5px; overflow-y: auto; overflow-x: hidden; margin: 14px 0 !important; padding: 0 2px !important; }
+.ml-workspace-shell .app-sidebar-v2-link {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  min-height: 44px !important; border: 1px solid transparent !important;
+  background: transparent !important; color: var(--ml-muted) !important;
+  border-radius: 12px !important; box-shadow: none !important;
+  padding: 10px 12px !important; font-size: 14px !important;
+  text-decoration: none; font-weight: 500;
+}
+.ml-workspace-shell .app-sidebar-v2-link:hover { background: var(--ml-surface-soft) !important; color: var(--ml-ink) !important; }
+.ml-workspace-shell .app-sidebar-v2-link.is-active {
+  background: var(--ml-selected) !important;
+  color: var(--ml-primary) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+.ml-workspace-shell .app-sidebar-v2-link.is-active::before { display: none !important; }
+.ml-workspace-shell .app-nav-main { gap: 12px; align-items: center; }
+.ml-workspace-shell .app-nav-icon { color: inherit !important; }
+.ml-workspace-shell .app-sidebar-v2-account { margin-top: auto; padding: 12px 6px 0 !important; border-top: 1px solid var(--ml-border); min-width: 0; }
+.ml-workspace-shell .app-sidebar-v2-account-label { color: var(--ml-muted) !important; }
+.ml-workspace-shell .app-sidebar-v2-account-name { color: var(--ml-ink) !important; overflow-wrap: anywhere; }
+.ml-workspace-shell .app-sidebar-v2-role, .ml-workspace-shell .app-sidebar-v2-email { color: var(--ml-muted) !important; overflow-wrap: anywhere; }
+.ml-workspace-shell .app-sidebar-v2-signout { min-height: 44px; color: var(--ml-primary) !important; border: 1px solid var(--ml-border-strong) !important; border-radius: 12px !important; background: var(--ml-surface) !important; }
+.ml-workspace-shell .app-sidebar-v2-signout:hover { background: var(--ml-surface-soft) !important; }
+.ml-workspace-shell .app-sidebar-v2-link:focus-visible,
+.ml-workspace-shell .app-sidebar-v2-signout:focus-visible,
+.ml-workspace-shell .ml-workspace-icon-button:focus-visible,
+.ml-workspace-shell .ml-workspace-copilot-trigger:focus-visible,
+.ml-workspace-shell .ml-mobile-account summary:focus-visible {
+  outline: 2px solid var(--ml-primary) !important;
+  outline-offset: 2px;
+  box-shadow: none !important;
+}
+.ml-workspace-shell .ml-workspace-stage {
+  grid-area: content;
+  min-width: 0;
+  min-height: calc(100dvh - 32px);
+  background: var(--ml-surface);
+  border: 1px solid var(--ml-border);
+  border-radius: 20px;
+}
+.ml-workspace-shell .ml-workspace-toolbar {
+  display: flex; align-items: center; gap: 12px;
+  height: 58px; padding: 8px 20px;
+  border-bottom: 1px solid var(--ml-border);
+  color: var(--ml-muted);
+}
+.ml-workspace-shell .ml-workspace-toolbar-title {
+  font-size: 12px; font-weight: 600; letter-spacing: .045em; text-transform: uppercase;
+}
+.ml-workspace-shell .ml-workspace-icon-button {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 44px; width: 44px; height: 44px;
+  padding: 0; border: 1px solid transparent; border-radius: 12px;
+  background: transparent; color: var(--ml-muted); cursor: pointer;
+}
+.ml-workspace-shell .ml-workspace-icon-button:hover { background: var(--ml-surface-soft); color: var(--ml-ink); }
+.ml-workspace-shell .ml-workspace-copilot-trigger {
+  display: inline-flex; gap: 8px; align-items: center; justify-content: center;
+  margin-left: auto; min-height: 44px; padding: 10px 14px;
+  border-radius: 12px; border: 1px solid var(--ml-border-strong);
+  background: var(--ml-surface-warm); color: var(--ml-primary);
+  font-weight: 600; font-size: 13px; cursor: pointer;
+}
+.ml-workspace-shell .ml-workspace-copilot-trigger:hover { background: var(--ml-selected); }
+.ml-workspace-shell .app-main-v2 { width: 100%; min-width: 0; background: transparent !important; padding: 0; }
+.ml-workspace-shell .app-page-v2 { width: 100% !important; max-width: none; min-width: 0; margin: 0 !important; padding: 24px 28px 60px !important; }
+.ml-workspace-shell .app-route-location {
+  width: 100% !important; margin: 0 !important; padding: 16px 28px 0;
+  font-size: 12px; color: var(--ml-muted); gap: 8px;
+}
+.ml-workspace-shell .app-route-location + .app-page-v2 { padding-top: 16px !important; }
+.ml-workspace-shell .app-route-location a { color: var(--ml-primary); }
+.ml-workspace-shell .app-route-location-divider { color: var(--ml-border-strong); }
+.ml-workspace-shell .app-mobile-topbar, .ml-workspace-shell .app-mobile-bottom-nav { display: none !important; }
+
+.ml-workspace-shell .ml-copilot-shell {
+  grid-area: copilot;
+  display: flex;
+  flex-direction: column;
+  width: 100%; min-width: 0;
+  height: calc(100dvh - 32px); min-height: 440px;
+  position: sticky; top: 16px; align-self: start;
+  background: var(--ml-canvas); color: var(--ml-ink);
+}
+.ml-workspace-shell .ml-copilot-head {
+  display: flex; align-items: center; gap: 10px; min-height: 66px;
+  border-bottom: 1px solid var(--ml-border); padding: 8px 4px;
+}
+.ml-workspace-shell .ml-copilot-symbol,
+.ml-workspace-shell .ml-copilot-placeholder-icon { display: inline-flex; align-items: center; justify-content: center; color: var(--ml-primary); }
+.ml-workspace-shell .ml-copilot-headline { display: flex; flex-direction: column; flex: 1 1 auto; gap: 1px; min-width: 0; }
+.ml-workspace-shell .ml-copilot-headline strong { font-size: 14px; line-height: 20px; font-weight: 600; }
+.ml-workspace-shell .ml-copilot-headline small { color: var(--ml-muted); font-size: 12px; line-height: 19px; }
+.ml-workspace-shell .ml-copilot-body { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 20px 8px 8px; overflow-y: auto; }
+.ml-workspace-shell .ml-copilot-placeholder { margin: auto 0; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px 8px; }
+.ml-workspace-shell .ml-copilot-placeholder h2 { font-size: 17px; line-height: 24px; font-weight: 600; margin: 0; max-width: 260px; }
+.ml-workspace-shell .ml-copilot-placeholder p { font-size: 14px; line-height: 22px; margin: 0; color: var(--ml-muted); }
+.ml-workspace-shell .ml-copilot-footer { padding: 8px 4px 2px; }
+.ml-workspace-shell .ml-copilot-unavailable {
+  min-height: 80px; display: flex; justify-content: space-between; align-items: center;
+  background: var(--ml-surface); color: var(--ml-muted);
+  border: 1px solid var(--ml-border-strong); border-radius: 16px; padding: 16px;
+  font-size: 13px;
+}
+.ml-workspace-shell .ml-copilot-unavailable-mark { display: inline-flex; align-items: center; justify-content: center; color: var(--ml-primary); opacity: .65; }
+.ml-workspace-shell .ml-copilot-footer p { color: var(--ml-muted); font-size: 12px; margin: 8px 4px 0; }
+.ml-workspace-shell .ml-copilot-backdrop { display: none; }
+.ml-workspace-shell .ml-mobile-account { display: none; }
+
+/* Desktop: default expanded sidebar and open Copilot, both individually dismissible. */
+@media (min-width: 1600px) {
+  .app-shell-v2.ml-workspace-shell { grid-template-columns: 232px minmax(0,1fr) 400px !important; }
+}
+@media (min-width: 1360px) {
+  .app-shell-v2.ml-workspace-shell.ml-sidebar-collapsed { grid-template-columns: 72px minmax(0,1fr) 360px !important; }
+  .app-shell-v2.ml-workspace-shell.ml-copilot-dismissed { grid-template-columns: 232px minmax(0,1fr) !important; grid-template-areas: "sidebar content"; }
+  .app-shell-v2.ml-workspace-shell.ml-copilot-dismissed.ml-sidebar-collapsed { grid-template-columns: 72px minmax(0,1fr) !important; }
+  .ml-workspace-shell.ml-copilot-dismissed .ml-copilot-shell { display: none; }
+  .ml-workspace-shell:not(.ml-copilot-dismissed) .ml-workspace-copilot-trigger { display: none; }
+}
+@media (min-width: 1600px) {
+  .app-shell-v2.ml-workspace-shell.ml-sidebar-collapsed { grid-template-columns: 72px minmax(0,1fr) 400px !important; }
+}
+.ml-workspace-shell.ml-sidebar-collapsed .app-sidebar-v2-top { padding: 2px 0 16px !important; align-items: center !important; }
+.ml-workspace-shell.ml-sidebar-collapsed .app-sidebar-v2-brand .averomira-wordmark-text,
+.ml-workspace-shell.ml-sidebar-collapsed .app-sidebar-v2-product,
+.ml-workspace-shell.ml-sidebar-collapsed .app-nav-label,
+.ml-workspace-shell.ml-sidebar-collapsed .app-sidebar-v2-account { display: none !important; }
+.ml-workspace-shell.ml-sidebar-collapsed .app-sidebar-v2-link { justify-content: center; padding-inline: 0 !important; }
+.ml-workspace-shell.ml-sidebar-collapsed .app-nav-main { justify-content: center; }
+.ml-workspace-shell.ml-sidebar-collapsed .app-sidebar-v2-brand .averomira-brand-symbol { margin: 0 !important; }
+
+@media (max-width: 1359px) {
+  .app-shell-v2.ml-workspace-shell { grid-template-columns: 232px minmax(0,1fr) !important; grid-template-areas: "sidebar content"; }
+  .ml-workspace-shell .ml-copilot-shell {
+    position: fixed; z-index: 1101; top: 0; right: 0; bottom: 0;
+    width: min(400px, 100vw); max-width: 100%; height: 100dvh; min-height: 0;
+    visibility: hidden; pointer-events: none; transform: translateX(104%);
+    padding: 16px; border-left: 1px solid var(--ml-border);
+    background: var(--ml-canvas); transition: transform 260ms cubic-bezier(.2,0,0,1), visibility 260ms;
+  }
+  .ml-workspace-shell.ml-drawer-open .ml-copilot-shell { visibility: visible; pointer-events: auto; transform: translateX(0); }
+  .ml-workspace-shell.ml-drawer-open .ml-copilot-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 1100;
+    background: rgba(36,33,31,.32); border: 0; cursor: pointer;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1359px) {
+  .app-shell-v2.ml-workspace-shell.ml-sidebar-collapsed { grid-template-columns: 72px minmax(0,1fr) !important; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-shell-v2.ml-workspace-shell { grid-template-columns: 72px minmax(0,1fr) !important; }
+  .app-shell-v2.ml-workspace-shell.ml-tablet-expanded { grid-template-columns: 232px minmax(0,1fr) !important; }
+  .ml-workspace-shell .app-sidebar-v2-top { padding-inline: 0 !important; align-items: center !important; }
+  .ml-workspace-shell .app-sidebar-v2-brand .averomira-wordmark-text,
+  .ml-workspace-shell .app-sidebar-v2-product,
+  .ml-workspace-shell .app-nav-label,
+  .ml-workspace-shell .app-sidebar-v2-account { display: none !important; }
+  .ml-workspace-shell .app-sidebar-v2-link { justify-content: center; padding-inline: 0 !important; }
+  .ml-workspace-shell .app-nav-main { justify-content: center; }
+  .ml-workspace-shell.ml-tablet-expanded .app-sidebar-v2-top { padding: 2px 12px 16px !important; align-items: flex-start !important; }
+  .ml-workspace-shell.ml-tablet-expanded .app-sidebar-v2-brand .averomira-wordmark-text,
+  .ml-workspace-shell.ml-tablet-expanded .app-sidebar-v2-product,
+  .ml-workspace-shell.ml-tablet-expanded .app-nav-label,
+  .ml-workspace-shell.ml-tablet-expanded .app-sidebar-v2-account { display: initial !important; }
+  .ml-workspace-shell.ml-tablet-expanded .app-sidebar-v2-account { display: block !important; }
+  .ml-workspace-shell.ml-tablet-expanded .app-sidebar-v2-link { justify-content: flex-start; padding-inline: 12px !important; }
+  .ml-workspace-shell.ml-tablet-expanded .app-nav-main { justify-content: flex-start; }
+}
+@media (max-width: 767px) {
+  .app-shell-v2.ml-workspace-shell {
+    display: block !important; padding: 0;
+    min-height: 100dvh; background: var(--ml-canvas);
+  }
+  .ml-workspace-shell > .app-sidebar-v2 { display: none !important; }
+  .ml-workspace-shell .app-mobile-topbar {
+    display: flex !important; min-height: 60px;
+    align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 60; width: 100%;
+    background: var(--ml-surface) !important; border-bottom: 1px solid var(--ml-border) !important;
+    padding: 8px 16px !important; color: var(--ml-ink) !important;
+  }
+  .ml-workspace-shell .ml-mobile-account { display: block; position: relative; max-width: 52%; }
+  .ml-workspace-shell .ml-mobile-account summary { display: flex; align-items: center; gap: 8px; list-style: none; cursor: pointer; min-height: 44px; color: var(--ml-ink); font-size: 13px; }
+  .ml-workspace-shell .ml-mobile-account summary::-webkit-details-marker { display: none; }
+  .ml-workspace-shell .ml-mobile-account-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ml-workspace-shell .ml-mobile-account-menu {
+    position: absolute; right: 0; top: calc(100% + 4px); z-index: 61;
+    width: min(290px, calc(100vw - 24px)); background: var(--ml-surface);
+    padding: 16px; border-radius: 16px; border: 1px solid var(--ml-border);
+    box-shadow: 0 16px 40px rgba(36,33,31,.12);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .ml-workspace-shell .ml-mobile-account-role,
+  .ml-workspace-shell .ml-mobile-account-email { color: var(--ml-muted); font-size: 12px; overflow-wrap: anywhere; }
+  .ml-workspace-shell .ml-workspace-stage { border: 0; border-radius: 0; min-height: calc(100dvh - 60px); background: var(--ml-surface); }
+  .ml-workspace-shell .ml-workspace-toolbar { padding: 6px 16px; min-height: 54px; height: auto; }
+  .ml-workspace-shell .ml-sidebar-toggle { display: none; }
+  .ml-workspace-shell .app-page-v2 { padding: 20px 16px calc(132px + env(safe-area-inset-bottom)) !important; width: 100% !important; }
+  .ml-workspace-shell .app-route-location { width: 100% !important; padding: 14px 16px 0; }
+  .ml-workspace-shell .app-mobile-bottom-nav {
+    display: block !important; position: fixed; z-index: 100; bottom: max(8px,env(safe-area-inset-bottom));
+    left: 8px; right: 8px; padding: 5px; border: 1px solid var(--ml-border) !important;
+    border-radius: 16px; background: rgba(255,255,255,.98) !important;
+    box-shadow: 0 8px 24px rgba(36,33,31,.07) !important;
+  }
+  .ml-workspace-shell .app-mobile-bottom-nav .app-sidebar-v2-nav {
+    display: grid !important; grid-template-columns: repeat(auto-fit,minmax(0,1fr));
+    gap: 3px; padding: 0 !important; margin: 0 !important; overflow: visible;
+  }
+  .ml-workspace-shell .app-mobile-bottom-nav .app-sidebar-v2-link {
+    padding: 8px 2px !important; min-width: 0; min-height: 52px !important;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    border-radius: 11px !important; font-size: 11px !important;
+  }
+  .ml-workspace-shell .app-mobile-bottom-nav .app-nav-main { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+  .ml-workspace-shell .app-mobile-bottom-nav .app-nav-label {
+    display: block; width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    text-align: center; font-size: 10px !important;
+  }
+  .ml-workspace-shell .ml-copilot-shell { width: 100%; border-left: 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ml-workspace-shell .ml-copilot-shell { transition: none; }
+}
