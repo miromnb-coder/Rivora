@@ -70,6 +70,8 @@ test("Phase 4.1 keeps streaming and recovery local to Copilot without database w
     assert.ok(ui.includes(fragment), "Missing recovery contract: " + fragment);
   assert.match(ui, /aria-busy=\{busy\}/);
   assert.match(shell, /SUPPORT_OPEN_EVENT/);
+  assert.match(shell, /paused=\{copilotDismissed\}/);
+  assert.match(ui, /if \(paused\) controller\.current\?\.abort\(\)/);
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /ml-copilot-scroll-latest/);
   assert.match(css, /ml-copilot-retry/);
