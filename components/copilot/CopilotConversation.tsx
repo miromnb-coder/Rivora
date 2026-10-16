@@ -24,6 +24,21 @@ const prompts = {
   ],
 };
 
+function CopilotGlyph({ completed = false }: { completed?: boolean }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22"
+      fill="none" stroke="currentColor" strokeWidth="1.65"
+      strokeLinecap="round" strokeLinejoin="round" focusable="false">
+      {completed ? <path d="m5 12 4 4L19 6" /> : (
+        <>
+          <path d="m11.5 3 1.95 6.05L19.5 11l-6.05 1.95L11.5 19l-1.95-6.05L3.5 11l6.05-1.95L11.5 3Z" />
+          <path d="m19 17 .65 1.35L21 19l-1.35.65L19 21l-.65-1.35L17 19l1.35-.65L19 17Z" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 function intentFor(text: string): "steps" | "options" | "general" {
   if (/(vaihe|seuraav|aloit|step|next|plan)/i.test(text)) return "steps";
   if (/(vertaa|vertail|vaihtoeh|compar|option)/i.test(text)) return "options";
@@ -252,7 +267,7 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
         aria-live="off" aria-busy={busy} onScroll={scrollChanged}>
         {messages.length === 0 ? (
           <section className="ml-copilot-welcome">
-            <span className="ml-copilot-welcome-mark" aria-hidden="true">✳</span>
+            <span className="ml-copilot-welcome-mark" aria-hidden="true"><CopilotGlyph /></span>
             <h2>{fi ? "Mitä haluaisit selvittää?" : "What can I help you think through?"}</h2>
             <p>{fi ?
               "Jäsennä työvaiheita, pohdi vaihtoehtoja ja suunnittele seuraavat askeleet." :
@@ -273,7 +288,7 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
                   <div className="ml-copilot-process">
                     <span className={"ml-copilot-process-mark" +
                       (message.stage === "connecting" || message.stage === "responding" ? " is-active" : "")}
-                      aria-hidden="true">{message.stage === "done" ? "✓" : "✳"}</span>
+                      aria-hidden="true"><CopilotGlyph completed={message.stage === "done"} /></span>
                     <span>{statusText(locale, message.stage, message.intent)}</span>
                   </div>
                 ) : null}
@@ -307,15 +322,30 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
             onChange={event => setDraft(event.target.value)}
             onKeyDown={onComposerKeyDown}
             maxLength={1200}
-            placeholder={fi ? "Kirjoita viesti…" : "Write a message…"} />
-          {busy ? (
-            <button type="button" onClick={stop} className="ml-copilot-send"
-              aria-label={fi ? "Pysäytä vastaus" : "Stop response"}>■</button>
-          ) : (
-            <button type="submit" className="ml-copilot-send"
-              disabled={draft.trim().length < 2}
-              aria-label={fi ? "Lähetä viesti" : "Send message"}>↑</button>
-          )}
+            placeholder={fi ? "Miten voin auttaa?" : "How can I help you?"} />
+          <div className="ml-copilot-composer-actions">
+            <span className="ml-copilot-composer-hint" aria-hidden="true">
+              {fi ? "Enter lähettää · Shift+Enter rivinvaihto" : "Enter to send · Shift+Enter for a new line"}
+            </span>
+            {busy ? (
+              <button type="button" onClick={stop} className="ml-copilot-send ml-copilot-stop"
+                aria-label={fi ? "Pysäytä vastaus" : "Stop response"}>
+                <svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="7" y="7" width="10" height="10" rx="2" />
+                </svg>
+              </button>
+            ) : (
+              <button type="submit" className="ml-copilot-send"
+                disabled={draft.trim().length < 2}
+                aria-label={fi ? "Lähetä viesti" : "Send message"}>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="1.8"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 19V5m-6 6 6-6 6 6" />
+                </svg>
+              </button>
+            )}
+          </div>
         </form>
         <p className="ml-copilot-disclaimer">{fi ?
           "Copilot ei vielä näe yrityksesi tietoja eikä tee muutoksia." :
