@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
+  await page.request.post("/__reset");
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Mitä haluaisit selvittää?" })).toBeVisible();
 });
@@ -23,7 +24,7 @@ test("Shift+Enter keeps composing; Enter sends and New clears history", async ({
   await expect(field).toHaveValue("Rivi yksi\nRivi kaksi");
   await field.press("Enter");
   await expect(page.getByText("Vastaus valmis")).toBeVisible();
-  await expect(page.getByText("Rivi yksi\nRivi kaksi")).toBeVisible();
+  await expect(page.locator(".ml-copilot-message-user .ml-copilot-message-text")).toHaveText("Rivi yksi\nRivi kaksi");
   await page.getByRole("button", { name: "Aloita uusi keskustelu" }).click();
   await expect(page.locator(".ml-copilot-message")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Mitä haluaisit selvittää?" })).toBeVisible();
