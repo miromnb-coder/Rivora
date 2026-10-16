@@ -43,7 +43,7 @@ function statusText(locale: "fi" | "en", stage: DisplayMessage["stage"], intent:
   return fi ? "Vastauksen muodostaminen epäonnistui" : "The response failed";
 }
 
-export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
+export function CopilotConversation({ locale, paused = false }: { locale: "fi" | "en"; paused?: boolean }) {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -62,6 +62,10 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
   useEffect(() => {
     return () => { controller.current?.abort(); requestNumber.current += 1; };
   }, []);
+
+  useEffect(() => {
+    if (paused) controller.current?.abort();
+  }, [paused]);
 
   useEffect(() => {
     const node = textarea.current;
@@ -102,7 +106,7 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
 
   async function send(raw: string, retryLast = false) {
     const question = raw.trim();
-    if (busy || controller.current || question.length < 2 || question.length > 1200) return;
+    if (paused || busy || controller.current || question.length < 2 || question.length > 1200) return;
     const tail = messages.slice(-2);
     const canRetry = retryLast && tail.length === 2 &&
       tail[0].role === "user" && tail[0].text === question &&
