@@ -116,3 +116,51 @@
   .ml-workspace-shell .ml-copilot-process-mark.is-active { animation: none; }
   .ml-workspace-shell .ml-copilot-composer { transition: none; }
 }
+
+
+/* Phase 4.1 — clearer recovery, unobtrusive scroll aid and touch targets. */
+.ml-workspace-shell .ml-copilot-scroll-latest {
+  display: block; margin: -5px auto 10px; padding: 8px 12px;
+  min-height: 40px; border: 1px solid var(--ml-border-strong);
+  border-radius: 999px; color: var(--ml-primary);
+  background: var(--ml-surface); cursor: pointer;
+  font-size: 12px; font-weight: 600;
+  box-shadow: 0 4px 12px rgba(36, 33, 31, .055);
+}
+.ml-workspace-shell .ml-copilot-scroll-latest:hover {
+  background: var(--ml-surface-soft);
+}
+.ml-workspace-shell .ml-copilot-retry {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 12px; padding: 8px 12px; min-height: 42px;
+  border: 1px solid var(--ml-border-strong);
+  border-radius: 11px; background: var(--ml-surface-warm);
+  color: var(--ml-primary); font-size: 12px; font-weight: 600;
+  cursor: pointer;
+}
+.ml-workspace-shell .ml-copilot-retry:hover {
+  background: var(--ml-selected);
+}
+.ml-workspace-shell .ml-copilot-retry:focus-visible,
+.ml-workspace-shell .ml-copilot-scroll-latest:focus-visible {
+  outline: 2px solid var(--ml-primary); outline-offset: 2px;
+}
+.ml-workspace-shell .ml-copilot-send {
+  min-width: 44px; width: 44px; height: 44px;
+}
+.ml-workspace-shell .ml-copilot-new {
+  min-height: 44px;
+}
+.ml-workspace-shell .ml-copilot-transcript {
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
+}
+.ml-workspace-shell .ml-copilot-composer-wrap {
+  flex: 0 0 auto;
+}
+@media (max-width: 767px) {
+  .ml-workspace-shell .ml-copilot-shell { min-height: 0; }
+  .ml-workspace-shell .ml-copilot-transcript { flex: 1 1 auto; }
+  .ml-workspace-shell .ml-copilot-composer-wrap { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}
