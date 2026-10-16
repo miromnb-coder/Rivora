@@ -1,10 +1,13 @@
 import OpenAI from "openai";
+import {
+  copilotLedger, copilotReservation, isolatedCopilotReadiness, prepareCopilotPricing,
+} from "@/lib/rivora/copilot-live";
 import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/rivora/workspace";
 import { looksLikeSupportSecret } from "@/lib/rivora/support-ai";
 import { consumePublicRateLimit } from "@/lib/rivora/rate-limit";
 import {
-  operationalLog, requestIdFor, requestIdHeaders, safeErrorMessage,
+  operationalLog, requestIdFor, requestIdHeaders,
 } from "@/lib/rivora/observability";
 import {
   encodeCopilotEvent, normalizeCopilotInput, type CopilotEvent,
@@ -43,9 +46,10 @@ export async function POST(request: Request) {
     if (!context.claims?.sub || !context.workspace)
       return failure("Authentication required.", 401, requestId);
 
-    // Off by default on production and Preview. Activation is a separate release decision.
+    // Phase 4.2: only an explicitly approved, different Preview project+DB.
     const organizationId = context.workspace.id;
-    if (process.env.AVEROMIRA_COPILOT_ENABLED !== "true")
+    const activation = isolatedCopilotReadiness();
+    if (!activation.ready)
       return failure("Copilot is not yet enabled in this environment.", 503, requestId);
 
     if (Number(request.headers.get("content-length") ?? 0) > 12000)
@@ -102,8 +106,16 @@ export async function POST(request: Request) {
       "CURRENT USER MESSAGE:",
       question,
     ].join("\n");
-    const model = process.env.OPENAI_COPILOT_MODEL?.trim() ||
-      process.env.OPENAI_SUPPORT_MODEL?.trim() || "gpt-5.6-luna";
+    // Reserve before creating a model stream. If ledger or pricing is unavailable,
+    // no provider request is made. Never bypass a missing cost ledger.
+    const limits = prepareCopilotPricing(instructions, input);
+    const ledger = copilotLedger();
+    const reservationId = await ledger.reserve({
+      organizationId, actorId: context.claims.sub,
+      model: limits.model, pricingVersion: limits.pricing.version,
+      reservedMicroUsd: limits.pricing.reservationMicroUsd,
+    });
+    const billing = copilotReservation(ledger, reservationId, limits.pricing, limits);
     const ai = new OpenAI({ apiKey, timeout: 30_000, maxRetries: 0 });
     const abort = new AbortController();
     const cancel = () => abort.abort();
@@ -120,10 +132,12 @@ export async function POST(request: Request) {
         try {
           emit({ type: "stage", stage: "connecting" });
           const response = await ai.responses.create({
-            model, instructions, input, max_output_tokens: 700,
+            model: limits.model, instructions, input, max_output_tokens: limits.maxOutputTokens,
             store: false, stream: true,
           }, { signal: abort.signal });
           let begun = false, complete = false, chars = 0;
+          let completedUsage: { input_tokens?: number | null; output_tokens?: number | null } | null = null;
+          let completedResponseId: string | null = null;
           for await (const event of response) {
             if (abort.signal.aborted) break;
             if (event.type === "response.output_text.delta") {
@@ -136,6 +150,8 @@ export async function POST(request: Request) {
               emit({ type: "delta", text: event.delta });
             } else if (event.type === "response.completed") {
               complete = true;
+              completedUsage = event.response.usage ?? null;
+              completedResponseId = event.response.id ?? null;
               break;
             } else if (event.type === "response.failed") {
               throw new Error("Copilot provider failure.");
@@ -143,6 +159,9 @@ export async function POST(request: Request) {
           }
           if (!abort.signal.aborted) {
             if (!complete || !begun) throw new Error("Copilot answer incomplete.");
+            // UI receives "done" ONLY after provider usage has been
+            // validated and the conservative reservation has settled.
+            await billing.complete(completedUsage, completedResponseId);
             emit({ type: "done" });
             operationalLog("info", "copilot_answered", {
               requestId, organizationId,
@@ -153,13 +172,23 @@ export async function POST(request: Request) {
           if (!abort.signal.aborted) {
             operationalLog("error", "copilot_stream_failed", {
               requestId, organizationId,
-              message: safeErrorMessage(error),
+              reason: error instanceof Error ? error.name : "unknown",
             });
             emit({ type: "error", message: locale === "fi" ?
               "Vastaus keskeytyi. Voit yrittää uudelleen." :
               "The response was interrupted. Please try again." });
           }
         } finally {
+          if (!billing.finalized) {
+            try {
+              await billing.unknown();
+            } catch {
+              // Fail closed: retain reserved budget for manual reconciliation.
+              operationalLog("error", "copilot_usage_ambiguous", {
+                requestId, organizationId, billedUnknownSettlementFailed: true,
+              });
+            }
+          }
           request.signal.removeEventListener("abort", cancel);
           closed = true;
           try { controller.close(); } catch { /* Consumer already canceled. */ }
@@ -177,7 +206,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     operationalLog("error", "copilot_request_failed", {
-      requestId, message: safeErrorMessage(error),
+      requestId, reason: error instanceof Error ? error.name : "unknown",
     });
     return failure("Copilot request could not be processed.", 503, requestId);
   }
