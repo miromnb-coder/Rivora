@@ -92,3 +92,70 @@
 @media (prefers-reduced-motion: reduce) {
   .ml-workspace-shell .ml-unified-page a { transition: none; }
 }
+
+
+/* Phase 3 — Customers, Products, Leads refinement; scoped to workspace only */
+.ml-workspace-shell .ml-add-details { display: block; position: relative; margin: 0 0 18px; }
+.ml-workspace-shell .ml-add-details > summary { cursor: pointer; width: fit-content; list-style: none; }
+.ml-workspace-shell .ml-add-details > summary::-webkit-details-marker { display: none; }
+.ml-workspace-shell .ml-add-form { margin-top: 14px; border: 1px solid var(--ml-border); border-radius: 16px; background: var(--ml-surface-warm); padding: 20px; }
+.ml-workspace-shell .ml-add-form h2 { font-size: 17px; margin: 0 0 18px; font-weight: 650; }
+.ml-workspace-shell .ml-add-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; align-items: end; }
+.ml-workspace-shell .ml-add-form-grid label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ml-muted); min-width: 0; }
+.ml-workspace-shell .ml-add-form-grid input { min-height: 44px; padding: 9px 12px; border: 1px solid var(--ml-border-strong); border-radius: 12px; background: white; min-width: 0; width: 100%; font: inherit; font-size: 14px; color: var(--ml-ink); }
+.ml-workspace-shell .ml-add-form-grid input:focus-visible { outline: 2px solid var(--ml-primary); outline-offset: 2px; }
+.ml-workspace-shell .ml-add-details > summary:focus-visible { outline: 2px solid var(--ml-primary); outline-offset: 2px; }
+.ml-workspace-shell .ml-customers-list,
+.ml-workspace-shell .ml-product-list { container-type: inline-size; min-width: 0; border: 1px solid var(--ml-border); border-radius: 16px; overflow: hidden; }
+.ml-workspace-shell .ml-customer-item { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1.5fr) 16px; align-items: center; gap: 16px; min-height: 78px; padding: 14px 18px; text-decoration: none; color: var(--ml-ink); background: white; border-bottom: 1px solid var(--ml-border); }
+.ml-workspace-shell .ml-customer-item:last-child,
+.ml-workspace-shell .ml-product-item:last-child { border-bottom: 0; }
+.ml-workspace-shell .ml-customer-item:hover,
+.ml-workspace-shell .ml-product-item:hover { background: var(--ml-surface-warm); }
+.ml-workspace-shell .ml-customer-item:focus-visible,
+.ml-workspace-shell .ml-product-item:focus-visible { outline: 2px solid var(--ml-primary); outline-offset: -2px; }
+.ml-workspace-shell .ml-customer-main, .ml-workspace-shell .ml-product-main { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.ml-workspace-shell .ml-customer-main strong, .ml-workspace-shell .ml-product-main strong { font-size: 14px; font-weight: 650; line-height: 1.45; overflow-wrap: anywhere; }
+.ml-workspace-shell .ml-customer-main small, .ml-workspace-shell .ml-product-main small { color: var(--ml-muted); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.ml-workspace-shell .ml-customer-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; min-width: 0; }
+.ml-workspace-shell .ml-customer-metric { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; }
+.ml-workspace-shell .ml-customer-metric small { color: var(--ml-muted); font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
+.ml-workspace-shell .ml-customer-metric strong { color: var(--ml-ink); font-size: 13px; font-weight: 650; }
+.ml-workspace-shell .ml-product-item { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1.7fr) 16px; gap: 16px; align-items: center; min-height: 85px; padding: 15px 18px; color: var(--ml-ink); text-decoration: none; background: white; border-bottom: 1px solid var(--ml-border); }
+.ml-workspace-shell .ml-product-main span { font-size: 12px; line-height: 1.45; }
+.ml-workspace-shell .ml-product-details { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(85px,.9fr); gap: 12px; align-items: center; min-width: 0; }
+.ml-workspace-shell .ml-product-details > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ml-workspace-shell .ml-product-details small { color: var(--ml-muted); font-size: 11px; line-height: 1.4; }
+.ml-workspace-shell .ml-product-details strong { font-size: 13px; line-height: 1.4; font-weight: 600; overflow-wrap: anywhere; }
+.ml-workspace-shell .ml-product-details strong span { font-size: 11px; font-weight: 400; color: var(--ml-muted); }
+.ml-workspace-shell .ml-product-status { display: inline-flex; padding: 5px 8px; border-radius: 9px; font-size: 11px; font-weight: 650; color: var(--ml-muted); background: var(--ml-surface-soft); line-height: 1.3; }
+.ml-workspace-shell .ml-product-status.is-ready { background: var(--ml-success-bg); color: var(--ml-success-ink); }
+.ml-workspace-shell .ml-product-status.is-low,
+.ml-workspace-shell .ml-product-status.is-out { background: var(--ml-warning-bg); color: var(--ml-warning-ink); }
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-summary {
+  grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin-top: 22px;
+}
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-summary > a {
+  min-height: 75px; padding: 12px 14px !important; gap: 7px; border-radius: 14px;
+}
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-summary > a strong { font-size: 25px; }
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-filters { margin-top: 14px !important; gap: 6px; }
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-filters .nodra-filter-pill {
+  min-height: 38px; padding: 7px 11px; font-weight: 550; font-size: 12px;
+}
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-filters .nodra-filter-pill.is-active { background: var(--ml-selected); border-color: var(--ml-border-strong); }
+.ml-workspace-shell .ml-leads-page .ml-leads-list { margin-top: 20px; }
+@container (max-width: 640px) {
+  .ml-workspace-shell .ml-customer-item, .ml-workspace-shell .ml-product-item { grid-template-columns: minmax(0,1fr) 14px; }
+  .ml-workspace-shell .ml-customer-metrics, .ml-workspace-shell .ml-product-details { grid-row: 2; grid-column: 1 / -1; }
+  .ml-workspace-shell .ml-customer-item > .ml-row-arrow,
+  .ml-workspace-shell .ml-product-item > .ml-row-arrow { grid-row: 1; grid-column: 2; }
+}
+@media (max-width: 1279px) {
+  .ml-workspace-shell .ml-leads-page .ml-unified-leads-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 560px) {
+  .ml-workspace-shell .ml-add-form-grid { grid-template-columns: minmax(0,1fr); }
+  .ml-workspace-shell .ml-product-details { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .ml-workspace-shell .ml-product-status { grid-column: 1 / -1; width: fit-content; }
+}

@@ -71,7 +71,9 @@ test("Smart Memory rows expose verification-state motion markers", () => {
 });
 
 test("dashboard, tables and reusable toasts share the data motion layer", () => {
-  assert.match(dashboard, /dashboard-kpi-item/);
+  assert.match(dashboard, /ml-summary-tile/);
+  const unifiedPagesCss = readFileSync(join(process.cwd(), "app/app/unified-pages.css"), "utf8");
+  assert.match(unifiedPagesCss, /ml-summary-tile strong/);
   assert.match(motionCss, /dashboard-kpi-item strong/);
   assert.match(motionCss, /table tbody tr/);
   assert.match(toast, /averomira-toast-region/);

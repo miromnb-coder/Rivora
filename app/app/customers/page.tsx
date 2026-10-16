@@ -25,41 +25,68 @@ export default async function CustomersPage() {
   }));
 
   return (
-    <div className="app-page-v2 customers-page">
-      <header className="product-page-head">
-        <div><div className="app-kicker-v2">{copy.kicker}</div><h1>{copy.title}</h1><p>{copy.description}</p></div>
+    <div className="app-page-v2 customers-page ml-unified-page ml-unified-customers">
+      <header className="ml-page-head">
+        <div className="ml-page-head-copy">
+          <div className="ml-page-eyebrow">{locale === "fi" ? "Työtila / Asiakkaat" : "Workspace / Customers"}</div>
+          <h1>{locale === "fi" ? "Asiakkaat" : "Customers"}</h1>
+          <p>{locale === "fi" ? "Asiakastiedot, yhteyshenkilöt ja myyntiprosessin historia yhdessä paikassa." : "Customer records, contacts and sales history in one place."}</p>
+        </div>
       </header>
 
-      <section className="customers-create-section">
-        <div className="upload-v2-section-label">{copy.add}</div>
-        <form action={createCustomer} className="nodra-inline-form customers-create-form">
-          <input name="name" required placeholder={copy.companyPlaceholder} className="nodra-input" />
-          <input name="externalId" placeholder={copy.externalPlaceholder} className="nodra-input" />
-          <input name="emailDomain" placeholder="customer.com" className="nodra-input" />
-          <button className="btn-primary">{copy.add}</button>
-        </form>
-      </section>
+      <details className="ml-add-details">
+        <summary className="ml-page-primary">+ {copy.add}</summary>
+        <section className="ml-add-form" aria-label={copy.add}>
+          <h2>{copy.add}</h2>
+          <form action={createCustomer} className="ml-add-form-grid">
+            <label>
+              <span>{copy.companyPlaceholder}</span>
+              <input name="name" required placeholder={copy.companyPlaceholder} className="nodra-input" />
+            </label>
+            <label>
+              <span>{copy.externalPlaceholder}</span>
+              <input name="externalId" placeholder={copy.externalPlaceholder} className="nodra-input" />
+            </label>
+            <label>
+              <span>{locale === "fi" ? "Sähköpostiverkkotunnus" : "Email domain"}</span>
+              <input name="emailDomain" placeholder="customer.com" className="nodra-input" />
+            </label>
+            <button className="ml-page-primary" type="submit">{copy.add}</button>
+          </form>
+        </section>
+      </details>
 
-      <section className="customers-data-section">
-        <div className="nodra-section-head customers-list-head">
-          <div><div className="upload-v2-section-label">{copy.customers}</div><h2>{rows.length} {rows.length === 1 ? copy.customer : copy.customers.toLowerCase()}</h2></div>
+      <section className="ml-unified-section" aria-labelledby="ml-customers-list-title">
+        <div className="ml-section-heading">
+          <div><div className="ml-page-eyebrow">{copy.customers}</div><h2 id="ml-customers-list-title">{locale === "fi" ? "Asiakasluettelo" : "Customer list"}</h2></div>
+          <span className="ml-order-count">{rows.length} {locale === "fi" ? "näkyvissä" : "shown"}</span>
         </div>
         {rows.length ? (
-          <div className="nodra-list">
-            {rows.map((customer) => (
-              <Link key={customer.id} href={`/app/customers/${customer.id}`} className="nodra-list-row nodra-customer-row">
-                <div><h3>{customer.name}</h3><p>{customer.external_id || common.noExternalId}{customer.email_domain ? ` · ${customer.email_domain}` : ""}</p></div>
-                <div><span>{copy.contacts}</span><strong>{customer.contactCount}</strong></div>
-                <div><span>{copy.quotes}</span><strong>{customer.quoteCount}</strong></div>
-                <div><span>{copy.rfqs}</span><strong>{customer.rfqCount}</strong></div>
-                <div><span>{copy.memory}</span><strong>{customer.memoryCount}</strong></div>
-                <span aria-hidden="true">→</span>
+          <div className="ml-customers-list">
+            {rows.map(customer => (
+              <Link key={customer.id} href={"/app/customers/" + customer.id} className="ml-customer-item">
+                <div className="ml-customer-main">
+                  <strong>{customer.name}</strong>
+                  <small>{customer.external_id || common.noExternalId}{customer.email_domain ? " · " + customer.email_domain : ""}</small>
+                </div>
+                <div className="ml-customer-metrics">
+                  {[
+                    [copy.contacts, customer.contactCount],
+                    [copy.quotes, customer.quoteCount],
+                    [copy.rfqs, customer.rfqCount],
+                    [copy.memory, customer.memoryCount],
+                  ].map(([label, value]) => (
+                    <span className="ml-customer-metric" key={String(label)}><small>{label}</small><strong>{value}</strong></span>
+                  ))}
+                </div>
+                <span className="ml-row-arrow" aria-hidden="true">→</span>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="nodra-empty"><div className="upload-v2-section-label">{copy.empty}</div><h3>{copy.emptyTitle}</h3><p>{copy.emptyBody}</p></div>
+          <div className="ml-page-empty"><strong>{copy.emptyTitle}</strong><p>{copy.emptyBody}</p></div>
         )}
+        <p className="ml-page-footnote">{locale === "fi" ? "Luettelossa näytetään enintään 500 asiakasta." : "Up to 500 customers are shown."}</p>
       </section>
     </div>
   );

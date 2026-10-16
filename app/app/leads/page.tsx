@@ -89,19 +89,19 @@ export default async function LeadsPage({
     date ? new Date(`${date}T12:00:00Z`).toLocaleDateString(displayLocale) : t.notScheduled;
 
   return (
-    <div className="app-page-v2 ml-leads-page">
+    <div className="app-page-v2 ml-leads-page ml-unified-page">
       <header className="nodra-page-head">
         <div><div className="app-kicker-v2">{t.kicker}</div><h1>{t.title}</h1><p>{t.body}</p></div>
       </header>
 
-      <section className="quotes-v1-summary mt-12 ml-leads-summary" aria-label={fi ? "Liidien yhteenveto" : "Lead overview"}>
+      <section className="quotes-v1-summary ml-leads-summary ml-unified-leads-summary" aria-label={fi ? "Liidien yhteenveto" : "Lead overview"}>
         <Link href="/app/leads?view=unread"><span>{t.unread}</span><strong>{counts.unread}</strong></Link>
         <Link href="/app/leads?view=due"><span>{t.due}</span><strong>{counts.due}</strong></Link>
         <Link href="/app/leads?view=upcoming"><span>{t.upcoming}</span><strong>{counts.upcoming}</strong></Link>
         <Link href="/app/leads?status=qualified"><span>{t.qualified}</span><strong>{counts.qualified}</strong></Link>
       </section>
 
-      <div className="ml-leads-filters mt-8 flex flex-wrap gap-2" aria-label={fi ? "Tapahtumasuodattimet" : "Activity filters"}>
+      <div className="ml-leads-filters ml-unified-leads-filters flex flex-wrap gap-2" aria-label={fi ? "Tapahtumasuodattimet" : "Activity filters"}>
         {views.map((view) => (
           <Link key={view} href={view === "all" ? "/app/leads" : `/app/leads?view=${view}`}
             className={`nodra-filter-pill ${selectedView === view && selectedStatus === "all" ? "is-active" : ""}`}>
@@ -110,7 +110,7 @@ export default async function LeadsPage({
         ))}
       </div>
 
-      <div className="ml-leads-filters mt-3 flex flex-wrap gap-2" aria-label={fi ? "Vaihesuodattimet" : "Stage filters"}>
+      <div className="ml-leads-filters ml-unified-leads-filters flex flex-wrap gap-2" aria-label={fi ? "Vaihesuodattimet" : "Stage filters"}>
         {statuses.map((status) => (
           <Link key={status} href={status === "all" ? "/app/leads" : `/app/leads?status=${status}`}
             className={`nodra-filter-pill ${selectedStatus === status && selectedView === "all" ? "is-active" : ""}`}>
