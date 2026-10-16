@@ -88,7 +88,7 @@ export function WorkspaceFrame({
     }
     if (event.key !== "Tab") return;
     const root = event.currentTarget;
-    const focusable = Array.from(root.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),[tabindex]:not([tabindex="-1"])'))
+    const focusable = Array.from(root.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'))
       .filter(node => node.getClientRects().length > 0);
     if (!focusable.length) return;
     const first = focusable[0], last = focusable[focusable.length - 1];
