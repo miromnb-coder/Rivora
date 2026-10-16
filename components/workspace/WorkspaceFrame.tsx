@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
+import { CopilotConversation } from "@/components/copilot/CopilotConversation";
 
 type WorkspaceFrameProps = {
   children: ReactNode;
@@ -136,22 +137,7 @@ export function WorkspaceFrame({
             <PanelIcon kind="close" />
           </button>
         </header>
-        <div className="ml-copilot-body">
-          <div className="ml-copilot-placeholder">
-            <span className="ml-copilot-placeholder-icon"><PanelIcon kind="spark" /></span>
-            <h2>{fi ? "Älykkäämpi työskentely alkaa tästä." : "A smarter workflow starts here."}</h2>
-            <p>{fi
-              ? "Uuden Copilotin keskustelu, työvaiheet ja tietotyökalut rakennetaan seuraavissa vaiheissa."
-              : "The conversation, live progress and data tools will be built in later phases."}</p>
-          </div>
-        </div>
-        <footer className="ml-copilot-footer">
-          <div className="ml-copilot-unavailable">
-            <span>{fi ? "Keskustelu ei ole vielä käytössä" : "Conversation is not yet available"}</span>
-            <span className="ml-copilot-unavailable-mark" aria-hidden="true"><PanelIcon kind="spark" /></span>
-          </div>
-          <p>{fi ? "Phase 2 · käyttöliittymän rakenne" : "Phase 2 · layout preview"}</p>
-        </footer>
+        <CopilotConversation locale={locale} />
       </aside>
       {support}
       {mobileNavigation}
