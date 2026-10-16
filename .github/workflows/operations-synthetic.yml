@@ -22,6 +22,8 @@ jobs:
       - run: bash scripts/test-operations-sql.sh
       - name: Verify Copilot ledger candidate on isolated PostgreSQL
         run: bash scripts/test-copilot-ledger-migration-synthetic.sh
+      - name: Verify standalone Copilot ledger and disabled budgets
+        run: bash scripts/test-copilot-standalone-sql.sh
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10
