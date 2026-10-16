@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import {
-  copilotLedger, copilotReservation, copilotActivationReadiness, prepareCopilotPricing,
+  copilotLedger, copilotReservation, copilotActivationReadiness,
+  copilotActorAuthorizedForEnvironment, prepareCopilotPricing,
 } from "@/lib/rivora/copilot-live";
 import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/rivora/workspace";
@@ -51,6 +52,11 @@ export async function POST(request: Request) {
     const activation = copilotActivationReadiness();
     if (!activation.ready)
       return failure("Copilot is not yet enabled in this environment.", 503, requestId);
+    // Enforce the private pilot's exact test actor and organization on the
+    // server. Client-provided area/history cannot override this boundary.
+    if (!copilotActorAuthorizedForEnvironment(
+      context.claims.sub, organizationId, context.workspace.role,
+    )) return failure("This Copilot pilot is restricted to its test account.", 403, requestId);
 
     if (Number(request.headers.get("content-length") ?? 0) > 12000)
       return failure("Request too large.", 413, requestId);
@@ -133,6 +139,7 @@ export async function POST(request: Request) {
           emit({ type: "stage", stage: "connecting" });
           const response = await ai.responses.create({
             model: limits.model, instructions, input, max_output_tokens: limits.maxOutputTokens,
+            reasoning: { effort: "none" },
             store: false, stream: true,
           }, { signal: abort.signal });
           let begun = false, complete = false, chars = 0;
