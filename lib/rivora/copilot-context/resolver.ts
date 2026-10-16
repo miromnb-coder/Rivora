@@ -25,7 +25,7 @@ export async function resolveCopilotContext(args: {
   args.abort?.addEventListener("abort",cancel,{once:true});
   try {
     if (controller.signal.aborted) throw new Error("COPILOT_CONTEXT_ABORTED");
-    await verifyContextMembership(args.db,args.actorId,args.organizationId);
+    await verifyContextMembership(args.db,args.actorId,args.organizationId,controller.signal);
     if (args.abort?.aborted) throw new Error("COPILOT_CONTEXT_ABORTED");
     return await getOrdersOverview(args.db,args.organizationId,args.locale,
       args.query.filter,args.query.limit,controller.signal);
