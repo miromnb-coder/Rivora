@@ -1,0 +1,201 @@
+/*
+ * Averomira Minimal Linen 1.0 — isolated Phase 1 foundation.
+ * All visual rules are scoped to .ml-theme. Do not apply this class to
+ * the production shell until the later, separately reviewed migration.
+ */
+.ml-theme {
+  --ml-canvas: #faf7f3;
+  --ml-surface: #ffffff;
+  --ml-surface-warm: #fffcf8;
+  --ml-surface-soft: #f7f4f0;
+  --ml-selected: #f2e8e1;
+  --ml-ink: #24211f;
+  --ml-muted: #665e57;
+  --ml-primary: #635244;
+  --ml-primary-hover: #4e4035;
+  --ml-border: #e5ded6;
+  --ml-border-strong: #d8cdc4;
+  --ml-success-ink: #206647;
+  --ml-success-bg: #eaf4ed;
+  --ml-warning-ink: #8c5b13;
+  --ml-warning-bg: #fff2dc;
+  --ml-danger-ink: #a23530;
+  --ml-danger-bg: #fff0ee;
+  --ml-info-ink: #385b77;
+  --ml-info-bg: #eaf2f8;
+  --ml-space-1: 4px;
+  --ml-space-2: 8px;
+  --ml-space-3: 12px;
+  --ml-space-4: 16px;
+  --ml-space-6: 24px;
+  --ml-space-8: 32px;
+  --ml-space-12: 48px;
+  --ml-radius-sm: 8px;
+  --ml-radius-control: 12px;
+  --ml-radius-card: 16px;
+  --ml-radius-shell: 20px;
+  --ml-duration-fast: 140ms;
+  --ml-duration-state: 160ms;
+  --ml-duration-panel: 260ms;
+  --ml-ease: cubic-bezier(.2, 0, 0, 1);
+  color-scheme: light;
+  min-height: 100vh;
+  background: var(--ml-canvas);
+  color: var(--ml-ink);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.ml-theme, .ml-theme * { box-sizing: border-box; }
+.ml-theme button, .ml-theme input, .ml-theme select, .ml-theme textarea { font: inherit; }
+.ml-theme .ml-display { margin: 0; font-size: clamp(36px, 4vw, 56px); line-height: 1.08; font-weight: 600; letter-spacing: -.04em; }
+.ml-theme .ml-heading { margin: 0; font-size: 28px; line-height: 36px; font-weight: 600; letter-spacing: -.025em; }
+.ml-theme .ml-subheading { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.015em; }
+.ml-theme .ml-card-heading { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+.ml-theme .ml-muted { color: var(--ml-muted); }
+.ml-theme .ml-caption { color: var(--ml-muted); font-size: 13px; line-height: 20px; }
+.ml-theme .ml-overline { color: var(--ml-muted); font-size: 12px; line-height: 18px; letter-spacing: .075em; font-weight: 600; text-transform: uppercase; }
+.ml-theme .ml-stack { display: flex; flex-direction: column; gap: var(--ml-space-4); }
+.ml-theme .ml-cluster { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ml-space-3); }
+.ml-theme .ml-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--ml-space-4); }
+.ml-theme .ml-divider { border: 0; height: 1px; margin: 0; background: var(--ml-border); }
+
+.ml-theme .ml-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--ml-radius-control);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  transform: none;
+  transition: background-color var(--ml-duration-fast) var(--ml-ease), color var(--ml-duration-fast) var(--ml-ease), border-color var(--ml-duration-fast) var(--ml-ease);
+}
+.ml-theme .ml-button:not(:disabled):hover { transform: none; }
+.ml-theme .ml-button--primary { color: #fff; background: var(--ml-primary); border-color: var(--ml-primary); }
+.ml-theme .ml-button--primary:not(:disabled):hover { background: var(--ml-primary-hover); border-color: var(--ml-primary-hover); }
+.ml-theme .ml-button--secondary { color: var(--ml-ink); background: var(--ml-surface); border-color: var(--ml-border-strong); }
+.ml-theme .ml-button--secondary:not(:disabled):hover { background: var(--ml-surface-soft); }
+.ml-theme .ml-button--quiet { color: var(--ml-primary); background: var(--ml-selected); }
+.ml-theme .ml-button--quiet:not(:disabled):hover { background: #e9d9cd; }
+.ml-theme .ml-button--danger { color: var(--ml-danger-ink); background: var(--ml-danger-bg); border-color: #efd2cd; }
+.ml-theme .ml-button--danger:not(:disabled):hover { background: #fbe3df; }
+.ml-theme .ml-button:disabled { opacity: .56; cursor: not-allowed; transform: none; }
+.ml-theme .ml-button:focus-visible,
+.ml-theme .ml-input:focus-visible,
+.ml-theme .ml-textarea:focus-visible,
+.ml-theme .ml-select:focus-visible,
+.ml-theme .ml-tab:focus-visible,
+.ml-theme .ml-checkbox:focus-visible,
+.ml-theme .ml-dialog-close:focus-visible {
+  outline: 2px solid var(--ml-primary);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.ml-theme .ml-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ml-rotate .8s linear infinite;
+}
+@keyframes ml-rotate { to { transform: rotate(360deg); } }
+
+.ml-theme .ml-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.ml-theme .ml-label { font-size: 14px; line-height: 21px; font-weight: 600; color: var(--ml-ink); }
+.ml-theme .ml-input,
+.ml-theme .ml-textarea,
+.ml-theme .ml-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid var(--ml-border-strong);
+  border-radius: var(--ml-radius-control);
+  background: var(--ml-surface-warm);
+  color: var(--ml-ink);
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 22px;
+}
+.ml-theme .ml-textarea { min-height: 104px; resize: vertical; }
+.ml-theme .ml-input::placeholder, .ml-theme .ml-textarea::placeholder { color: var(--ml-muted); opacity: 1; }
+.ml-theme .ml-input[aria-invalid="true"], .ml-theme .ml-textarea[aria-invalid="true"], .ml-theme .ml-select[aria-invalid="true"] { border-color: var(--ml-danger-ink); }
+.ml-theme .ml-input:disabled, .ml-theme .ml-textarea:disabled, .ml-theme .ml-select:disabled { opacity: .65; cursor: not-allowed; }
+.ml-theme .ml-field-hint { color: var(--ml-muted); font-size: 13px; line-height: 19px; }
+.ml-theme .ml-field-error { color: var(--ml-danger-ink); font-size: 13px; line-height: 19px; }
+.ml-theme .ml-checkbox-row { display: inline-flex; align-items: flex-start; gap: 10px; min-height: 44px; font-size: 14px; }
+.ml-theme .ml-checkbox { width: 19px; height: 19px; margin: 2px 0 0; accent-color: var(--ml-primary); }
+
+.ml-theme .ml-card { border: 1px solid var(--ml-border); border-radius: var(--ml-radius-card); background: var(--ml-surface); padding: var(--ml-space-6); min-width: 0; }
+.ml-theme .ml-card--soft { background: var(--ml-surface-soft); border-color: transparent; }
+.ml-theme .ml-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 5px 9px; border-radius: 999px; font-size: 12px; line-height: 18px; font-weight: 600; background: var(--ml-surface-soft); color: var(--ml-ink); }
+.ml-theme .ml-badge--success { background: var(--ml-success-bg); color: var(--ml-success-ink); }
+.ml-theme .ml-badge--warning { background: var(--ml-warning-bg); color: var(--ml-warning-ink); }
+.ml-theme .ml-badge--danger { background: var(--ml-danger-bg); color: var(--ml-danger-ink); }
+.ml-theme .ml-badge--info { background: var(--ml-info-bg); color: var(--ml-info-ink); }
+.ml-theme .ml-alert { border: 1px solid var(--ml-border); border-radius: var(--ml-radius-control); background: var(--ml-surface); padding: 14px 16px; }
+.ml-theme .ml-alert--success { color: var(--ml-success-ink); border-color: #cde4d4; background: var(--ml-success-bg); }
+.ml-theme .ml-alert--warning { color: var(--ml-warning-ink); border-color: #e9d6ae; background: var(--ml-warning-bg); }
+.ml-theme .ml-alert--danger { color: var(--ml-danger-ink); border-color: #e7c9c4; background: var(--ml-danger-bg); }
+.ml-theme .ml-alert-title { margin: 0 0 4px; font-weight: 600; }
+
+.ml-theme .ml-tabs { display: flex; flex-wrap: wrap; gap: var(--ml-space-4); border-bottom: 1px solid var(--ml-border); }
+.ml-theme .ml-tab {
+  min-height: 44px; padding: 10px 2px; margin-bottom: -1px;
+  border: 0; border-bottom: 2px solid transparent; border-radius: 0;
+  background: transparent; color: var(--ml-muted); font-size: 14px; font-weight: 500;
+  cursor: pointer; transform: none;
+}
+.ml-theme .ml-tab:not(:disabled):hover { color: var(--ml-ink); transform: none; }
+.ml-theme .ml-tab[aria-selected="true"] { border-bottom-color: var(--ml-primary); color: var(--ml-ink); font-weight: 600; }
+.ml-theme .ml-tab-panel { padding: var(--ml-space-4) 0; }
+
+.ml-theme .ml-table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--ml-border); border-radius: var(--ml-radius-card); }
+.ml-theme .ml-table-scroll:focus-visible { outline: 2px solid var(--ml-primary); outline-offset: 2px; }
+.ml-theme .ml-table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+.ml-theme .ml-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--ml-muted); background: var(--ml-surface-soft); }
+.ml-theme .ml-table th, .ml-theme .ml-table td { padding: 14px 16px; border-bottom: 1px solid var(--ml-border); vertical-align: middle; }
+.ml-theme .ml-table tr:last-child td { border-bottom: 0; }
+.ml-theme .ml-table .ml-align-right { text-align: right; }
+
+.ml-theme .ml-empty { border: 1px dashed var(--ml-border-strong); border-radius: var(--ml-radius-card); padding: 28px; text-align: center; }
+.ml-theme .ml-skeleton { display: block; border-radius: 7px; background: linear-gradient(90deg, #ebe4dd, #f7f2ed, #ebe4dd); background-size: 200% 100%; animation: ml-skeleton-wave 1.4s ease-in-out infinite; }
+@keyframes ml-skeleton-wave { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+.ml-theme .ml-dialog { width: min(440px, calc(100vw - 32px)); max-width: 100%; max-height: calc(100dvh - 32px); overflow: auto; margin: auto; border: 1px solid var(--ml-border); border-radius: var(--ml-radius-shell); background: var(--ml-surface); color: var(--ml-ink); padding: 24px; box-shadow: 0 24px 64px rgba(36,33,31,.14); }
+.ml-theme .ml-dialog::backdrop { background: rgba(36,33,31,.35); }
+.ml-theme .ml-dialog-head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.ml-theme .ml-dialog-close { background: var(--ml-surface-soft); color: var(--ml-ink); border: 1px solid var(--ml-border); border-radius: var(--ml-radius-sm); min-width: 44px; min-height: 44px; cursor: pointer; }
+
+.ml-theme .ml-preview { max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px; }
+.ml-theme .ml-preview-header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 40px; }
+.ml-theme .ml-preview-section { display: grid; gap: 20px; margin-top: 40px; }
+.ml-theme .ml-preview-section-head { display: flex; flex-direction: column; gap: 4px; }
+.ml-theme .ml-swatches { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.ml-theme .ml-swatch { background: var(--ml-surface); border: 1px solid var(--ml-border); border-radius: var(--ml-radius-card); padding: 10px; min-width: 0; }
+.ml-theme .ml-swatch-color { height: 65px; border-radius: var(--ml-radius-sm); border: 1px solid rgba(36,33,31,.08); }
+.ml-theme .ml-swatch-name { font-size: 13px; font-weight: 600; margin: 9px 0 2px; }
+.ml-theme .ml-swatch-value { font-size: 12px; color: var(--ml-muted); font-variant-numeric: tabular-nums; }
+.ml-theme .ml-preview-columns { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.ml-theme .ml-preview-shell { border: 1px solid var(--ml-border); border-radius: var(--ml-radius-shell); background: var(--ml-surface); padding: 24px; }
+@media (max-width: 760px) {
+  .ml-theme .ml-preview { padding: 24px 16px 56px; }
+  .ml-theme .ml-swatches { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ml-theme .ml-preview-columns, .ml-theme .ml-grid { grid-template-columns: minmax(0,1fr); }
+  .ml-theme .ml-preview-header { flex-direction: column; margin-bottom: 24px; }
+  .ml-theme .ml-dialog { padding: 18px; }
+  .ml-theme .ml-input, .ml-theme .ml-select, .ml-theme .ml-textarea { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ml-theme .ml-button, .ml-theme .ml-tab { transition: none; }
+  .ml-theme .ml-spinner, .ml-theme .ml-skeleton { animation: none; }
+}
