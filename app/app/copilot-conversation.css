@@ -3,6 +3,15 @@
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 8px 4px 5px; color: var(--ml-muted); font-size: 12px; font-weight: 600;
 }
+.ml-workspace-shell .ml-copilot-toolbar-title {
+  display: inline-flex; align-items: center; gap: 9px; min-width: 0;
+}
+.ml-workspace-shell .ml-copilot-pilot-label {
+  display: inline-flex; align-items: center; min-height: 23px;
+  padding: 2px 7px; border-radius: 7px;
+  background: var(--ml-selected); color: var(--ml-primary);
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+}
 .ml-workspace-shell .ml-copilot-new {
   display: inline-flex; align-items: center; gap: 5px; min-height: 36px;
   padding: 5px 9px; border: 1px solid transparent; border-radius: 10px;
