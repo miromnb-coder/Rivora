@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   isolatedCopilotReadiness, productionCopilotReadiness, copilotActivationReadiness,
+  privateCopilotPilotReadiness, copilotActorAuthorizedForEnvironment,
   prepareCopilotPricing, verifyCopilotUsage,
   copilotReservation, COPILOT_LEDGER_TYPE, type CopilotLedger,
 } from "../lib/rivora/copilot-live.ts";
@@ -179,4 +180,70 @@ test("Preview flags cannot activate production and production approvals cannot e
     ...productionFixture,
     VERCEL_ENV: "development",
   }).ready, false);
+});
+
+const PILOT_ACTOR_ID = "11111111-2222-4333-8444-555555555555";
+const PILOT_ORG_ID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+const pilotFixture: Record<string, string> = {
+  ...productionFixture,
+  AVEROMIRA_COPILOT_PILOT_ENABLED: "true",
+  AVEROMIRA_COPILOT_PILOT_NO_BACKUP_RISK_ACCEPTED: "true",
+  AVEROMIRA_COPILOT_PILOT_ACTOR_ID: PILOT_ACTOR_ID,
+  AVEROMIRA_COPILOT_PILOT_ORGANIZATION_ID: PILOT_ORG_ID,
+};
+
+test("Private production pilot is independently fail-closed and does not impersonate backup verification", () => {
+  assert.deepEqual(privateCopilotPilotReadiness({}), {ready: false, reason: "feature_off"});
+  assert.equal(privateCopilotPilotReadiness({
+    ...pilotFixture,
+    AVEROMIRA_COPILOT_PRODUCTION_BACKUP_VERIFIED: "",
+    AVEROMIRA_COPILOT_PRODUCTION_ROLLBACK_VERIFIED: "",
+    AVEROMIRA_COPILOT_PRODUCTION_APPROVED: "",
+  }).ready, true);
+  assert.equal(copilotActivationReadiness({
+    ...pilotFixture,
+    AVEROMIRA_COPILOT_PRODUCTION_BACKUP_VERIFIED: "",
+  }).ready, true);
+
+  for (const overrides of [
+    { AVEROMIRA_COPILOT_ENABLED: "false" },
+    { AVEROMIRA_COPILOT_PILOT_ENABLED: "" },
+    { AVEROMIRA_COPILOT_LEDGER_ENABLED: "false" },
+    { AVEROMIRA_COPILOT_PILOT_NO_BACKUP_RISK_ACCEPTED: "" },
+    { VERCEL_ENV: "preview" },
+    { VERCEL_PROJECT_ID: "prj_something_else" },
+    { AVEROMIRA_COPILOT_PILOT_ACTOR_ID: "" },
+    { AVEROMIRA_COPILOT_PILOT_ACTOR_ID: "someone@example.com" },
+    { AVEROMIRA_COPILOT_PILOT_ACTOR_ID: "00000000-0000-0000-0000-000000000000" },
+    { AVEROMIRA_COPILOT_PILOT_ORGANIZATION_ID: "" },
+    { AVEROMIRA_COPILOT_PILOT_ORGANIZATION_ID: "not-an-org" },
+    { NEXT_PUBLIC_SUPABASE_URL: "https://example.org" },
+    { NEXT_PUBLIC_SUPABASE_URL: "https://utvxopmdxqnxqgaxugxm.supabase.co/another-path" },
+    { AVEROMIRA_COPILOT_PRODUCTION_DB_REF: "" },
+    { OPENAI_API_KEY: "" },
+    { SUPABASE_SECRET_KEY: "", SUPABASE_SERVICE_ROLE_KEY: "" },
+  ]) {
+    assert.equal(privateCopilotPilotReadiness({ ...pilotFixture, ...overrides }).ready,
+      false, JSON.stringify(overrides));
+  }
+});
+
+test("Only the pinned pilot actor and tenant owner/admin can call the model", () => {
+  assert.equal(copilotActorAuthorizedForEnvironment(PILOT_ACTOR_ID, PILOT_ORG_ID, "owner", pilotFixture), true);
+  assert.equal(copilotActorAuthorizedForEnvironment(PILOT_ACTOR_ID, PILOT_ORG_ID, "admin", pilotFixture), true);
+  for (const [actor, org, role] of [
+    [PILOT_ACTOR_ID, PILOT_ORG_ID, "member"],
+    [PILOT_ACTOR_ID, PILOT_ORG_ID, "viewer"],
+    [PILOT_ACTOR_ID, "11111111-aaaa-4aaa-8aaa-111111111111", "owner"],
+    ["11111111-2222-4333-8444-999999999999", PILOT_ORG_ID, "owner"],
+  ]) {
+    assert.equal(copilotActorAuthorizedForEnvironment(actor, org, role, pilotFixture), false);
+  }
+  const disabled = {...pilotFixture, AVEROMIRA_COPILOT_PILOT_ENABLED: "false"};
+  assert.equal(copilotActorAuthorizedForEnvironment("any","any","viewer",disabled), true);
+  // A production-wide release is separately gated and does not inherit pilot approval.
+  assert.equal(copilotActivationReadiness({
+    ...pilotFixture, AVEROMIRA_COPILOT_PILOT_ENABLED: "false",
+    AVEROMIRA_COPILOT_PRODUCTION_BACKUP_VERIFIED: "",
+  }).ready,false);
 });
