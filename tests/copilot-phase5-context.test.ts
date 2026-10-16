@@ -73,7 +73,7 @@ test("Context is explicitly opt-in and rejects malformed source links",()=>{
  const frame=encodeCopilotEvent({type:"sources",sources:[source],truncated:true}).trim();
  assert.deepEqual(decodeCopilotEvent(frame),{type:"sources",sources:[source],truncated:true});
  assert.equal(decodeCopilotEvent(encodeCopilotEvent({type:"sources",sources:[{...source,href:"https://evil.example.com"}],truncated:false}).trim()),null);
- assert.equal(decodeCopilotEvent('event: stage\ndata: {"type":"stage","stage":"retrieving"}'),null===null?{type:"stage",stage:"retrieving"}:null);
+ assert.deepEqual(decodeCopilotEvent('event: stage\ndata: {"type":"stage","stage":"retrieving"}'),{type:"stage",stage:"retrieving"});
 });
 
 test("Context boundaries are before provider calls and preserve pricing guard",()=>{
