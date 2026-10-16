@@ -36,7 +36,7 @@ test("Account menu preserves locale selection and sign-out on desktop and mobile
 test("Leads keep every field across container breakpoints, without changing queries", () => {
   assert.match(leads, /requireSalesAdmin\(\)/);
   assert.match(leads, /\.from\("marketing_leads"\)/);
-  assert.match(leads, /className="app-page-v2 ml-leads-page"/);
+  assert.match(leads, /className="app-page-v2 ml-leads-page ml-unified-page"/);
   for (const cls of ["person", "company", "intent", "followup", "state", "open"]) {
     assert.match(leads, new RegExp("ml-lead-" + cls));
     assert.match(css, new RegExp("ml-lead-" + cls));

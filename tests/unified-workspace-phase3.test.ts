@@ -35,17 +35,17 @@ test("Product and customer lists preserve actions and do not promise global tota
 });
 test("Leads maintain existing filters, company data and compact presentation", () => {
   assert.match(leads, /requireSalesAdmin\(\)/);
-  assert.match(leads, /\\.from\("marketing_leads"\)/);
+  assert.match(leads, /\.from\("marketing_leads"\)/);
   assert.match(leads, /selectedView = views\.includes/);
   assert.match(leads, /ml-unified-leads-summary/);
   assert.match(leads, /ml-unified-leads-filters/);
   for (const part of ["person","company","intent","followup","state","open"]) assert.match(leads, new RegExp("ml-lead-" + part));
 });
 test("Shared responsive styles do not alter public pages or Copilot", () => {
-  assert.match(css, /\\.ml-workspace-shell \\.ml-page-head/);
+  assert.match(css, /\.ml-workspace-shell \.ml-page-head/);
   assert.match(css, /@container ml-orders \(max-width: 610px\)/);
-  assert.match(css, /\\.ml-workspace-shell \\.ml-customer-item/);
-  assert.match(css, /\\.ml-workspace-shell \\.ml-product-item/);
+  assert.match(css, /\.ml-workspace-shell \.ml-customer-item/);
+  assert.match(css, /\.ml-workspace-shell \.ml-product-item/);
   assert.match(css, /prefers-reduced-motion/);
   assert.doesNotMatch(read("app/layout.tsx"), /unified-pages\.css/);
   assert.doesNotMatch(read("components/support/SupportCenter.tsx"), /ml-unified-page/);
