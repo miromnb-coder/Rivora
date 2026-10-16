@@ -1,8 +1,8 @@
 // All application records, including customer names, are untrusted data.
 export function safeContextText(input: unknown, max = 120): string {
   if (typeof input !== "string") return "";
-  return input.replace(/[\\u0000-\\u001f\\u007f]/g," ")
-    .replace(/[<>]/g,"").replace(/\\s+/g," ").trim().slice(0,max);
+  return input.replace(/[\u0000-\u001f\u007f]/g," ")
+    .replace(/[<>]/g,"").replace(/\s+/g," ").trim().slice(0,max);
 }
 export function safeContextDate(input: unknown): string {
   if (typeof input !== "string" || !Number.isFinite(Date.parse(input))) return "";
