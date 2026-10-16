@@ -42,6 +42,21 @@ These findings upgrade database readiness to a **verified NO-GO**, not merely a 
 
 Reproduce the read-only schema/privileges probe with `docs/copilot/PRODUCTION_PREFLIGHT_READONLY.sql`. It does not view any secret values or customer rows.
 
+## Phase 4.3 production database and recovery follow-up
+
+A further read-only check established:
+
+- The Rivora Supabase organization `Liiketoiminta` uses the **Free** subscription. Supabase's official backups documentation confirms this plan **does not include automatic daily backups or PITR**. A verified manual logical export and successful restoration rehearsal are needed before any DDL; no such export or restoration has been performed in this phase.
+- The Rivora project's database size is approximately **18 MB**. This size excludes the actual bytes in Supabase Storage object files. The missing `averomira_operations_owner` role was confirmed explicitly, along with the missing AI ledger tables and RPCs.
+- Attempting to request the Vercel environment with decryption did **not** provide a readable `NEXT_PUBLIC_SUPABASE_URL`; it remains a sensitive value. Production project-link verification is still **incomplete**. Sharing the same Vercel environment variable with Preview is not evidence of isolation.
+- The migration candidates from 2026-10-11 need a reviewed dependency and data-impact assessment. A standalone ledger patch is not runnable with the observed database schema.
+
+**Runbook:** `docs/copilot/PRODUCTION_DB_BACKUP_MIGRATION_RUNBOOK.md`.
+**Repeatable, read-only SQL:** `docs/copilot/PRODUCTION_PREFLIGHT_READONLY.sql`.
+**Official backup documentation:** https://supabase.com/docs/guides/platform/backups and https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore
+
+**Status:** verified **NO-GO** for production database writes, cost-cap activation or live AI testing. These checks were non-mutating.
+
 ## Model and billing requirements
 
 - Select the actual supported `OPENAI_COPILOT_MODEL`, verify current official API prices and agreed input/output accounting including any special token types. The model must match its entry in `AVEROMIRA_AI_PRICING_JSON`. **No model or USD amount has been guessed in code.**
