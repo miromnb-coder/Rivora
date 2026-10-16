@@ -148,7 +148,7 @@ export async function POST(request: Request) {
             "CURRENT USER MESSAGE:", question,
           ].join("\n");
           // Full prompt including context must fit the reservation BEFORE any AI call.
-          const limits = prepareCopilotPricing(instructions,input);
+          const limits = prepareCopilotPricing(instructions, input);
           const ledger = copilotLedger();
           const reservationId = await ledger.reserve({
             organizationId, actorId: context.claims!.sub as string,
