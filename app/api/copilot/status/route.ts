@@ -22,7 +22,7 @@ export async function GET() {
     const available = ready.ready && authorized;
     const pilot = available && process.env.VERCEL_ENV === "production" &&
       process.env.AVEROMIRA_COPILOT_PILOT_ENABLED === "true";
-    return NextResponse.json({ available, pilot }, { headers });
+    return NextResponse.json({ available, pilot, reason: !authorized ? "account_restricted" : ready.reason }, { headers });
   } catch {
     return NextResponse.json({ available: false, pilot: false }, { headers });
   }
