@@ -291,7 +291,7 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
           <button type="button" className="ml-copilot-scroll-latest" onClick={() => {
             followTail.current = true;
             setIsAtBottom(true);
-            scrollHost.current?.scrollTo({ top: scrollHost.current.scrollHeight, behavior: "instant" });
+            scrollHost.current?.scrollTo({ top: scrollHost.current.scrollHeight, behavior: "auto" });
           }}>{fi ? "↓ Uusimmat viestit" : "↓ Latest messages"}</button>
         ) : null}
         {error ? <p className="ml-copilot-error" role="alert">{error}</p> : null}
