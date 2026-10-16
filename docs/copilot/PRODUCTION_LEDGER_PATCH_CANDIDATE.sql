@@ -20,7 +20,7 @@
 begin;
 -- Require deliberate manual acknowledgement in the same SQL session.
 -- This value is not proof of backups, DB identity or review.
-do $ begin
+do $$ begin
  if current_setting('averomira.copilot_phase43_reviewed',true) is distinct from 'yes' then
    raise exception 'COPILOT_PRODUCTION_CHANGE_NOT_APPROVED';
  end if;
@@ -28,7 +28,7 @@ do $ begin
     to_regclass('private.ai_usage_ledger') is null then
    raise exception 'COPILOT_LEDGER_FOUNDATION_MISSING';
  end if;
-end $;
+end $$;
 -- Public AI has its own system scope, in addition to the global cap.
 insert into private.operation_limits(scope_id) values('00000000-0000-0000-0000-000000000001') on conflict do nothing;
 create or replace function public.reserve_ai_usage_server(p_org uuid,p_actor uuid,p_type text,p_key uuid,p_model text,p_pricing text,p_micro bigint) returns uuid
