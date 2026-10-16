@@ -80,3 +80,40 @@ test("synthetic Minimal Linen screenshots are captured for visual review", async
     fullPage: true,
   });
 });
+
+
+test("linen welcome glyph and two-level composer have accessible responsive controls", async ({ page }, testInfo) => {
+  const mark = page.locator(".ml-copilot-welcome-mark");
+  const field = page.getByRole("textbox", { name: "Kysy Copilotilta" });
+  const composer = page.locator(".ml-copilot-composer");
+  const submit = page.getByRole("button", { name: "Lähetä viesti" });
+
+  await expect(mark.locator("svg")).toHaveCount(1);
+  await expect(mark).not.toContainText("✳");
+  await expect(field).toHaveAttribute("placeholder", "Miten voin auttaa?");
+  await expect(page.locator(".ml-copilot-composer-actions")).toBeVisible();
+  await expect(submit).toBeDisabled();
+  const shape = await submit.evaluate(node => {
+    const style = window.getComputedStyle(node);
+    return { width: node.getBoundingClientRect().width, radius: style.borderRadius };
+  });
+  expect(shape.width).toBeGreaterThanOrEqual(44);
+  expect(shape.radius).toBe("50%");
+  const areaBox = await field.boundingBox();
+  const buttonBox = await submit.boundingBox();
+  expect(areaBox).not.toBeNull();
+  expect(buttonBox).not.toBeNull();
+  expect(buttonBox!.y).toBeGreaterThan(areaBox!.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+  mkdirSync("test-results/copilot-visual", { recursive: true });
+  await page.screenshot({
+    path: "test-results/copilot-visual/welcome-" + testInfo.project.name + ".png",
+    fullPage: true,
+  });
+  await field.fill("Uusi viesti");
+  await expect(submit).toBeEnabled();
+  await submit.click();
+  await expect(page.getByText("Vastaus valmis")).toBeVisible();
+  await expect(page.locator(".ml-copilot-process-mark svg")).toHaveCount(1);
+});
