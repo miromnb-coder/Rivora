@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { usePathname } from "next/navigation";
-import { decodeCopilotEvent, type CopilotMessage } from "@/lib/rivora/copilot-protocol";
+import type { CopilotMessage } from "@/lib/rivora/copilot-protocol";
+import { buildCopilotHistory, CopilotStreamParser } from "@/lib/rivora/copilot-stream";
 
 type DisplayMessage = CopilotMessage & {
   id: number;
@@ -47,6 +48,7 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [isAtBottom, setIsAtBottom] = useState(true);
   const controller = useRef<AbortController | null>(null);
   const requestNumber = useRef(0);
   const nextId = useRef(0);
@@ -62,13 +64,23 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
   }, []);
 
   useEffect(() => {
+    const node = textarea.current;
+    if (!node) return;
+    node.style.height = "auto";
+    node.style.height = Math.min(node.scrollHeight, 152) + "px";
+  }, [draft]);
+
+  useEffect(() => {
     const host = scrollHost.current;
     if (host && followTail.current) host.scrollTop = host.scrollHeight;
   }, [messages]);
 
   function scrollChanged() {
     const host = scrollHost.current;
-    if (host) followTail.current = host.scrollHeight - host.scrollTop - host.clientHeight < 90;
+    if (host) {
+      followTail.current = host.scrollHeight - host.scrollTop - host.clientHeight < 90;
+      setIsAtBottom(followTail.current);
+    }
   }
 
   function resetConversation() {
@@ -80,6 +92,7 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
     setError("");
     setBusy(false);
     followTail.current = true;
+    setIsAtBottom(true);
     textarea.current?.focus();
   }
 
@@ -87,30 +100,48 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
     controller.current?.abort();
   }
 
-  async function send(raw: string) {
+  async function send(raw: string, retryLast = false) {
     const question = raw.trim();
-    if (busy || question.length < 2 || question.length > 1200) return;
+    if (busy || controller.current || question.length < 2 || question.length > 1200) return;
+    const tail = messages.slice(-2);
+    const canRetry = retryLast && tail.length === 2 &&
+      tail[0].role === "user" && tail[0].text === question &&
+      tail[1].role === "assistant" && (tail[1].stage === "error" || tail[1].stage === "stopped");
+    if (retryLast && !canRetry) return;
+    const baseMessages = canRetry ? messages.slice(0, -2) : messages;
     const current = ++requestNumber.current;
     const userId = ++nextId.current;
     const replyId = ++nextId.current;
-    const previous = messages.filter(message => message.text.trim()).slice(-8)
-      .map(message => ({ role: message.role, text: message.text.slice(0, 1600) }));
+    const previous = buildCopilotHistory(baseMessages);
     const pending: DisplayMessage = {
       id: replyId, role: "assistant", text: "", stage: "connecting", intent: intentFor(question),
     };
-    setMessages(prev => [...prev, { id: userId, role: "user", text: question }, pending]);
+    setMessages([...baseMessages, { id: userId, role: "user", text: question }, pending]);
     setDraft("");
     setError("");
     setBusy(true);
     followTail.current = true;
+    setIsAtBottom(true);
     const abort = new AbortController();
     controller.current = abort;
     let completed = false;
-
+    let answer = "";
+    let paintFrame: number | null = null;
     const update = (patch: Partial<DisplayMessage>) => {
       if (current !== requestNumber.current) return;
       setMessages(prev => prev.map(message =>
         message.id === replyId ? { ...message, ...patch } : message));
+    };
+    const paint = () => {
+      paintFrame = null;
+      if (answer) update({ text: answer, stage: "responding" });
+    };
+    const flushPaint = () => {
+      if (paintFrame !== null) {
+        cancelAnimationFrame(paintFrame);
+        paintFrame = null;
+      }
+      if (answer) update({ text: answer });
     };
 
     try {
@@ -143,35 +174,36 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
       }
       if (!response.body) throw new Error(fi ? "Suoratoisto ei ole käytettävissä." : "Streaming is unavailable.");
       const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let answer = "";
+      const parser = new CopilotStreamParser();
       try {
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
-          let boundary = buffer.indexOf("\n\n");
-          while (boundary >= 0) {
-            const frame = buffer.slice(0, boundary);
-            buffer = buffer.slice(boundary + 2);
-            const event = decodeCopilotEvent(frame);
-            if (event?.type === "stage") update({ stage: event.stage });
-            if (event?.type === "delta") {
+          if (done) { parser.finish(); break; }
+          for (const event of parser.push(value)) {
+            if (completed && (event.type === "delta" || event.type === "error"))
+              throw new Error("Unexpected data after response completion.");
+            if (event.type === "stage") update({ stage: event.stage });
+            if (event.type === "delta") {
               answer += event.text;
-              update({ text: answer, stage: "responding" });
+              if (paintFrame === null)
+                paintFrame = requestAnimationFrame(paint);
             }
-            if (event?.type === "done") { completed = true; update({ stage: "done" }); }
-            if (event?.type === "error") throw new Error(event.message);
-            boundary = buffer.indexOf("\n\n");
+            if (event.type === "done") {
+              flushPaint();
+              completed = true;
+              update({ stage: "done" });
+            }
+            if (event.type === "error") throw new Error(event.message);
           }
         }
       } finally {
         reader.releaseLock();
       }
       if (!completed) throw new Error(fi ? "Vastaus katkesi kesken." : "The response was interrupted.");
+
     } catch (cause) {
       if (current !== requestNumber.current) return;
+      flushPaint();
       if (abort.signal.aborted) {
         update({ stage: "stopped" });
       } else {
@@ -179,9 +211,10 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
           fi ? "Copilot ei pystynyt vastaamaan." : "Copilot could not respond.";
         update({ stage: "error" });
         setError(message);
-        setDraft(question);
+        setDraft(existing => existing || question);
       }
     } finally {
+      if (paintFrame !== null) cancelAnimationFrame(paintFrame);
       if (current === requestNumber.current) {
         setBusy(false);
         controller.current = null;
@@ -212,7 +245,7 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
       </div>
       <div ref={scrollHost} className="ml-copilot-body ml-copilot-transcript"
         role="log" aria-label={fi ? "Copilot-keskustelu" : "Copilot conversation"}
-        aria-live="off" onScroll={scrollChanged}>
+        aria-live="off" aria-busy={busy} onScroll={scrollChanged}>
         {messages.length === 0 ? (
           <section className="ml-copilot-welcome">
             <span className="ml-copilot-welcome-mark" aria-hidden="true">✳</span>
@@ -241,12 +274,26 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
                   </div>
                 ) : null}
                 {message.text ? <p className="ml-copilot-message-text">{message.text}</p> : null}
+                {message.role === "assistant" && (message.stage === "error" || message.stage === "stopped") &&
+                  messages[messages.length - 1]?.id === message.id ? (
+                  <button type="button" className="ml-copilot-retry"
+                    onClick={() => void send(messages[messages.length - 2].text, true)}>
+                    {fi ? "Yritä uudelleen" : "Retry response"} <span aria-hidden="true">↗</span>
+                  </button>
+                ) : null}
               </article>
             ))}
           </div>
         )}
       </div>
       <footer className="ml-copilot-composer-wrap">
+        {!isAtBottom && messages.length > 0 ? (
+          <button type="button" className="ml-copilot-scroll-latest" onClick={() => {
+            followTail.current = true;
+            setIsAtBottom(true);
+            scrollHost.current?.scrollTo({ top: scrollHost.current.scrollHeight, behavior: "instant" });
+          }}>{fi ? "↓ Uusimmat viestit" : "↓ Latest messages"}</button>
+        ) : null}
         {error ? <p className="ml-copilot-error" role="alert">{error}</p> : null}
         <form onSubmit={submit} className="ml-copilot-composer">
           <label className="ml-copilot-sr-only" htmlFor="ml-copilot-input">
