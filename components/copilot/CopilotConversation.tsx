@@ -3,11 +3,14 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { usePathname } from "next/navigation";
 import type { CopilotMessage } from "@/lib/rivora/copilot-protocol";
+import type { ContextSource } from "@/lib/rivora/copilot-context/types";
 import { buildCopilotHistory, CopilotStreamParser } from "@/lib/rivora/copilot-stream";
 
 type DisplayMessage = CopilotMessage & {
   id: number;
-  stage?: "connecting" | "responding" | "done" | "stopped" | "error";
+  stage?: "retrieving" | "verifying" | "connecting" | "responding" | "done" | "stopped" | "error";
+  sources?: ContextSource[];
+  truncated?: boolean;
   intent?: "steps" | "options" | "general";
 };
 
@@ -47,6 +50,8 @@ function intentFor(text: string): "steps" | "options" | "general" {
 
 function statusText(locale: "fi" | "en", stage: DisplayMessage["stage"], intent: DisplayMessage["intent"]) {
   const fi = locale === "fi";
+  if (stage === "retrieving") return fi ? "Haen työtilan tilausasioita" : "Retrieving workspace orders";
+  if (stage === "verifying") return fi ? "Tarkistan lähdetiedot" : "Verifying retrieved records";
   if (stage === "connecting") return fi ? "Yhdistän keskusteluun…" : "Connecting to the model…";
   if (stage === "responding") {
     if (intent === "steps") return fi ? "Jäsennän seuraavia vaiheita" : "Outlining next steps";
@@ -65,6 +70,8 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
   const [error, setError] = useState("");
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [pilotAvailable, setPilotAvailable] = useState(false);
+  const [contextAvailable, setContextAvailable] = useState(false);
+  const [shareWorkspaceData, setShareWorkspaceData] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const requestNumber = useRef(0);
   const nextId = useRef(0);
@@ -91,6 +98,8 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
       .then(status => {
         if (!cancelled && status?.available === true && status?.pilot === true)
           setPilotAvailable(true);
+        if (!cancelled && status?.available === true && status?.contextAvailable === true)
+          setContextAvailable(true);
       }).catch(() => { /* Status unavailable: leave the pilot label hidden. */ });
     return () => { cancelled = true; };
   }, []);
@@ -123,6 +132,7 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
     setDraft("");
     setError("");
     setBusy(false);
+    setShareWorkspaceData(false);
     followTail.current = true;
     setIsAtBottom(true);
     textarea.current?.focus();
@@ -183,7 +193,8 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
         cache: "no-store",
         credentials: "same-origin",
         signal: abort.signal,
-        body: JSON.stringify({ question, history: previous, locale, area }),
+        body: JSON.stringify({ question, history: previous, locale, area,
+          useWorkspaceData: contextAvailable && shareWorkspaceData }),
       });
       if (!response.ok) {
         if (response.status === 503) {
@@ -219,6 +230,9 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
               answer += event.text;
               if (paintFrame === null)
                 paintFrame = requestAnimationFrame(paint);
+            }
+            if (event.type === "sources") {
+              update({ sources:event.sources, truncated:event.truncated });
             }
             if (event.type === "done") {
               flushPaint();
@@ -310,6 +324,19 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
                   </div>
                 ) : null}
                 {message.text ? <p className="ml-copilot-message-text">{message.text}</p> : null}
+                {message.role === "assistant" && message.stage === "done" &&
+                  message.sources && message.sources.length>0 ? (
+                  <div className="ml-copilot-context-sources">
+                    <span>{fi ? "Haetut lähteet" : "Retrieved records"}
+                      {message.truncated ? (fi ? " · Rajattu tulos" : " · Partial results") : ""}
+                    </span>
+                    {message.sources.map(source=>(
+                      <a key={source.sourceId} href={source.href}>
+                        {source.label || source.kind} <span aria-hidden="true">↗</span>
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
                 {message.role === "assistant" && (message.stage === "error" || message.stage === "stopped") &&
                   messages[messages.length - 1]?.id === message.id ? (
                   <button type="button" className="ml-copilot-retry"
@@ -361,9 +388,22 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
             )}
           </div>
         </form>
+        {contextAvailable ? (
+          <label className="ml-copilot-context-opt">
+            <input type="checkbox" checked={shareWorkspaceData}
+              onChange={event=>{
+                if (!event.target.checked) resetConversation();
+                setShareWorkspaceData(event.target.checked);
+              }}/>
+            <span>{fi ? "Salli työtilan tietojen käyttö tässä keskustelussa (tietoja lähetetään AI-mallille)" :
+              "Allow workspace order data to be sent to the AI model in this conversation"}</span>
+          </label>
+        ) : null}
         <p className="ml-copilot-disclaimer">{fi ?
-          "Copilot ei vielä näe yrityksesi tietoja eikä tee muutoksia." :
-          "Copilot cannot yet access or change your company data."}</p>
+          (contextAvailable && shareWorkspaceData ? "Copilot voi hakea rajattuja tilausasioita, mutta ei tee muutoksia." :
+          "Copilot ei vielä näe yrityksesi tietoja eikä tee muutoksia.") :
+          (contextAvailable && shareWorkspaceData ? "Copilot may retrieve limited order data but never changes it." :
+          "Copilot cannot yet access or change your company data.")}</p>
         <span className="ml-copilot-sr-only" role="status" aria-live="polite">
           {busy ? (fi ? "Copilot muodostaa vastausta" : "Copilot is responding")
             : messages[messages.length - 1]?.stage === "done" ?

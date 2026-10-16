@@ -36,7 +36,7 @@ export class CopilotStreamParser {
 }
 
 export type HistoryMessage = CopilotMessage & {
-  stage?: "connecting" | "responding" | "done" | "stopped" | "error";
+  stage?: "retrieving" | "verifying" | "connecting" | "responding" | "done" | "stopped" | "error";
 };
 
 /** Only successful, complete turns may be sent back as contextual history. */

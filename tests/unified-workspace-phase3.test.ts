@@ -6,6 +6,7 @@ import test from "node:test";
 const read = (name: string) => readFileSync(join(process.cwd(), name), "utf8");
 const dashboard = read("app/app/page.tsx");
 const orders = read("app/app/orders/page.tsx");
+const orderCases = read("lib/rivora/order-cases.ts");
 const customers = read("app/app/customers/page.tsx");
 const products = read("app/app/products/page.tsx");
 const leads = read("app/app/leads/page.tsx");
@@ -15,7 +16,8 @@ test("Overview and orders keep business links and source data processing", () =>
   assert.match(dashboard, /requireWorkspace\(\)/);
   assert.match(dashboard, /taskCases = new Map/);
   assert.match(dashboard, /recentCases\.map/);
-  assert.match(orders, /displayCases = new Map/);
+  assert.match(orderCases, /displayCases = new Map/);
+  assert.match(orders, /loadOrderCases\(/);
   assert.match(orders, /filtered = allCases\.filter/);
   assert.match(orders, /row\.nextAction/);
   assert.match(orders, /row\.href/);
