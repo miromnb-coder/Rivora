@@ -132,3 +132,30 @@ test("minimal linen composer is a single borderless text area inside one accessi
   await expect(page.getByText("Vastaus valmis")).toBeVisible();
   await expect(page.locator(".ml-copilot-process-mark svg")).toHaveCount(1);
 });
+
+test("Phase 5 context requires explicit opt-in and renders only validated source links", async ({ page }) => {
+  await page.request.post("/__context_on");
+  await page.reload();
+  const consent=page.getByRole("checkbox", { name: /Salli työtilan tietojen käyttö/ });
+  await expect(consent).toBeVisible();
+  await expect(consent).not.toBeChecked();
+
+  const field=page.getByRole("textbox", { name: "Kysy Copilotilta" });
+  await field.fill("KONTEKSTI");
+  await field.press("Enter");
+  await expect(page.getByText("Vastaus valmis")).toBeVisible();
+  await expect(page.locator(".ml-copilot-context-sources")).toHaveCount(0);
+
+  await page.getByRole("button", { name:"Aloita uusi keskustelu" }).click();
+  await consent.check();
+  await field.fill("KONTEKSTI");
+  await field.press("Enter");
+  await expect(page.getByText("Synteettinen tilausasia: QA-TEST-1")).toBeVisible();
+  await expect(page.getByText("Vastaus valmis")).toBeVisible();
+  const link=page.locator(".ml-copilot-context-sources a");
+  await expect(link).toHaveCount(1);
+  await expect(link).toHaveAttribute("href","/app/orders/case/rfq/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+  await page.getByRole("button", { name:"Aloita uusi keskustelu" }).click();
+  await expect(page.locator(".ml-copilot-context-sources")).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
