@@ -20,6 +20,10 @@ jobs:
       - name: Wait for local database
         run: for n in {1..30}; do docker exec averomira-catalogue-test pg_isready -U postgres && exit 0; sleep 1; done; exit 1
       - run: bash scripts/test-operations-sql.sh
+      - name: Verify Copilot ledger candidate on isolated PostgreSQL
+        run: bash scripts/test-copilot-ledger-migration-synthetic.sh
+      - name: Verify standalone Copilot ledger and disabled budgets
+        run: bash scripts/test-copilot-standalone-sql.sh
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10
