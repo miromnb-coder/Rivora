@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import {
-  copilotLedger, copilotReservation, isolatedCopilotReadiness, prepareCopilotPricing,
+  copilotLedger, copilotReservation, copilotActivationReadiness, prepareCopilotPricing,
 } from "@/lib/rivora/copilot-live";
 import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/rivora/workspace";
@@ -46,9 +46,9 @@ export async function POST(request: Request) {
     if (!context.claims?.sub || !context.workspace)
       return failure("Authentication required.", 401, requestId);
 
-    // Phase 4.2: only an explicitly approved, different Preview project+DB.
+    // Phase 4.3: separate fail-closed gates for isolated preview and production.
     const organizationId = context.workspace.id;
-    const activation = isolatedCopilotReadiness();
+    const activation = copilotActivationReadiness();
     if (!activation.ready)
       return failure("Copilot is not yet enabled in this environment.", 503, requestId);
 
