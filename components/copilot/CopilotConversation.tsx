@@ -132,6 +132,7 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
     setDraft("");
     setError("");
     setBusy(false);
+    setShareWorkspaceData(false);
     followTail.current = true;
     setIsAtBottom(true);
     textarea.current?.focus();
@@ -390,7 +391,10 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
         {contextAvailable ? (
           <label className="ml-copilot-context-opt">
             <input type="checkbox" checked={shareWorkspaceData}
-              onChange={event=>setShareWorkspaceData(event.target.checked)}/>
+              onChange={event=>{
+                if (!event.target.checked) resetConversation();
+                setShareWorkspaceData(event.target.checked);
+              }}/>
             <span>{fi ? "Salli työtilan tietojen käyttö tässä keskustelussa" :
               "Allow workspace records in this conversation"}</span>
           </label>
