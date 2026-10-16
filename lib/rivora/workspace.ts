@@ -18,23 +18,21 @@ export const getAuthContext = cache(async function getAuthContext() {
   const claims = data?.claims;
 
   if (error || !claims?.sub) {
-    return { supabase  // A display name is not an identity. Respect an explicitly selected org
-  // only after confirming its membership on the authenticated JWT client.
+    return { supabase, claims: null, workspace: null };
+  }
+
   const { data: memberships, error: membershipError } = await supabase
     .from("organization_members")
-    .select("organization_id, role, organizations(name,default_tax_rate,default_quote_validity_days,onboarding_completed_at,erp_provider,erp_requested_name)")
+    .select("organization_id,role,organizations(name,default_tax_rate,default_quote_validity_days,onboarding_completed_at,erp_provider,erp_requested_name)")
     .eq("user_id", claims.sub)
-    .order("created_at", { ascending: true })
-    .limit(51);
+    .order("created_at", { ascending: true }).limit(51);
   const selectedId = (await cookies()).get("averomira-active-organization-id")?.value;
-  const safeMemberships = !membershipError && memberships && memberships.length<=50 ? memberships : [];
+  const authorized = !membershipError && memberships && memberships.length<=50 ? memberships : [];
+  // A cookie is only a selector, never authorization. The row must belong
+  // to the currently authenticated user.
   const membership = selectedId
-    ? safeMemberships.find(item=>item.organization_id===selectedId) ?? null
-    : safeMemberships[0] ?? null;
-
-sub)
-    .limit(1)
-    .maybeSingle();
+    ? authorized.find(m=>m.organization_id===selectedId) ?? null
+    : authorized[0] ?? null;
 
   const organization = Array.isArray(membership?.organizations)
     ? membership?.organizations[0]
