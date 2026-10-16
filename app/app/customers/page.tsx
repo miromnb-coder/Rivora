@@ -26,6 +26,7 @@ export default async function CustomersPage() {
 
   return (
     <div className="app-page-v2 customers-page ml-unified-page ml-unified-customers">
+      <div className="ml-customer-head-row">
       <header className="ml-page-head">
         <div className="ml-page-head-copy">
           <div className="ml-page-eyebrow">{locale === "fi" ? "Työtila / Asiakkaat" : "Workspace / Customers"}</div>
@@ -55,6 +56,7 @@ export default async function CustomersPage() {
           </form>
         </section>
       </details>
+      </div>
 
       <section className="ml-unified-section" aria-labelledby="ml-customers-list-title">
         <div className="ml-section-heading">

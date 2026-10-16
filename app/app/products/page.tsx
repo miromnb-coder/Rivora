@@ -36,7 +36,7 @@ export default async function ProductsPage() {
           <h1>{locale === "fi" ? "Tuotteet" : "Products"}</h1>
           <p>{locale === "fi" ? "Hallitse tuoteluetteloa, hintoja, varastotietoja ja tuotetunnisteita." : "Manage your catalogue, prices, inventory information and product identifiers."}</p>
         </div>
-        <Link href="/app/upload" className="ml-page-primary">{copy.update} <span aria-hidden="true">→</span></Link>
+        <Link href="/app/upload" className="ml-page-primary">{copy.update}<span aria-hidden="true">→</span></Link>
       </header>
 
       <section className="ml-summary-section" aria-label={locale === "fi" ? "Tuotekatalogin yhteenveto" : "Product catalogue overview"}>

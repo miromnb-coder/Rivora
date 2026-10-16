@@ -159,3 +159,183 @@
   .ml-workspace-shell .ml-product-details { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .ml-workspace-shell .ml-product-status { grid-column: 1 / -1; width: fit-content; }
 }
+
+
+/* Phase 3.1 — Final Polish. Shared, workspace-scoped corrections only.
+   Desktop KPI grids follow the *content width*; outer monitor width is
+   not a reliable measure when Copilot and sidebar are both visible. */
+.ml-workspace-shell .ml-summary-section {
+  container: ml-kpis / inline-size;
+  margin-bottom: 21px;
+}
+.ml-workspace-shell .ml-summary-grid { gap: 10px; }
+.ml-workspace-shell .ml-summary-tile {
+  padding: 12px 14px;
+  min-height: 73px;
+  gap: 6px;
+  border-radius: 14px;
+}
+.ml-workspace-shell .ml-summary-tile span { font-size: 12px; line-height: 1.35; }
+.ml-workspace-shell .ml-summary-tile strong { font-size: 24px; }
+@container ml-kpis (min-width: 700px) {
+  .ml-workspace-shell .ml-summary-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
+@container ml-kpis (max-width: 699px) {
+  .ml-workspace-shell .ml-summary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+.ml-workspace-shell .ml-unified-page .ml-page-head {
+  align-items: center;
+  margin-bottom: 21px;
+  gap: 16px;
+}
+.ml-workspace-shell .ml-unified-page .ml-page-head h1 { margin-top: 6px; }
+.ml-workspace-shell .ml-unified-page .ml-page-head p { margin-top: 7px; }
+.ml-workspace-shell .ml-unified-page .ml-page-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  line-height: 20px;
+  text-decoration: none;
+}
+.ml-workspace-shell .ml-unified-page .ml-page-primary > span[aria-hidden="true"] {
+  flex: none;
+  font-size: 17px;
+  line-height: 1;
+}
+.ml-workspace-shell .ml-unified-section { margin-top: 25px; }
+
+/* Customer creation: native disclosure remains fully accessible.
+   Closed: CTA aligns to the right of the page header.
+   Open: the form spans the full work-area width in normal document flow,
+   rather than covering the customer list with an overlay. */
+.ml-workspace-shell .ml-unified-customers .ml-customer-head-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 12px;
+}
+.ml-workspace-shell .ml-unified-customers .ml-customer-head-row > .ml-page-head {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+}
+.ml-workspace-shell .ml-unified-customers .ml-add-details {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  margin: 0;
+  min-width: 0;
+}
+.ml-workspace-shell .ml-unified-customers .ml-add-details[open] {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: stretch;
+}
+.ml-workspace-shell .ml-unified-customers .ml-add-details[open] > summary {
+  margin-left: auto;
+}
+.ml-workspace-shell .ml-unified-customers .ml-add-form {
+  margin-top: 12px;
+}
+.ml-workspace-shell .ml-unified-customers .ml-unified-section {
+  margin-top: 28px;
+}
+
+/* Leads: match PageHeader, keep accessible tap targets, and preserve all
+   six data fields with a more efficient real-width-dependent grid. */
+.ml-workspace-shell .ml-leads-page .ml-page-head {
+  margin-bottom: 18px;
+}
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-summary {
+  margin-top: 0;
+  gap: 10px;
+}
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-summary > a {
+  min-height: 73px;
+  padding: 11px 13px !important;
+  gap: 5px;
+}
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-summary > a strong { font-size: 24px; }
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-filters {
+  margin-top: 11px !important;
+  gap: 7px;
+}
+.ml-workspace-shell .ml-leads-page .ml-unified-leads-filters .nodra-filter-pill {
+  min-height: 44px;
+  padding: 8px 11px;
+}
+.ml-workspace-shell .ml-leads-page .ml-leads-list { margin-top: 16px; }
+.ml-workspace-shell .ml-leads-page .ml-leads-list .nodra-section-head {
+  padding: 15px 18px 12px;
+}
+.ml-workspace-shell .ml-leads-page .ml-lead-row {
+  padding: 12px 18px !important;
+  gap: 10px 14px;
+  min-height: 70px;
+}
+.ml-workspace-shell .ml-leads-page .ml-lead-row h3,
+.ml-workspace-shell .ml-leads-page .ml-lead-row strong {
+  line-height: 18px;
+}
+.ml-workspace-shell .ml-leads-page .ml-lead-row p {
+  margin: 2px 0 0;
+  line-height: 17px;
+}
+.ml-workspace-shell .ml-leads-page .ml-lead-meta-label { margin-bottom: 2px; }
+.ml-workspace-shell .ml-leads-page .ml-lead-open {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+@container leads (min-width: 650px) and (max-width: 900px) {
+  .ml-workspace-shell .ml-leads-page .ml-lead-row {
+    grid-template-columns: minmax(0,1.35fr) minmax(0,1.1fr) auto;
+    grid-template-areas: "person company state" "intent followup open";
+    align-items: center;
+  }
+  .ml-workspace-shell .ml-leads-page .ml-lead-state {
+    justify-self: end;
+    align-self: center;
+  }
+  .ml-workspace-shell .ml-leads-page .ml-lead-open {
+    justify-self: end;
+    align-self: center;
+  }
+}
+@container leads (min-width: 481px) and (max-width: 649px) {
+  .ml-workspace-shell .ml-leads-page .ml-lead-row {
+    grid-template-columns: minmax(0,1fr) auto;
+    grid-template-areas: "person state" "company company" "intent followup" "open open";
+    gap: 8px 12px;
+  }
+}
+@container leads (max-width: 480px) {
+  .ml-workspace-shell .ml-leads-page .ml-lead-row {
+    padding: 13px !important;
+    gap: 8px 12px;
+  }
+}
+@media (max-width: 620px) {
+  .ml-workspace-shell .ml-unified-customers .ml-customer-head-row {
+    grid-template-columns: minmax(0,1fr);
+  }
+  .ml-workspace-shell .ml-unified-customers .ml-customer-head-row > .ml-page-head {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .ml-workspace-shell .ml-unified-customers .ml-add-details,
+  .ml-workspace-shell .ml-unified-customers .ml-add-details[open] {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: stretch;
+  }
+  .ml-workspace-shell .ml-unified-customers .ml-add-details > summary {
+    width: 100%;
+  }
+}
+@media (max-width: 420px) {
+  .ml-workspace-shell .ml-summary-tile { padding: 11px 12px; min-height: 72px; }
+  .ml-workspace-shell .ml-unified-page .ml-page-head { align-items: stretch; }
+}

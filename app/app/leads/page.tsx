@@ -90,8 +90,12 @@ export default async function LeadsPage({
 
   return (
     <div className="app-page-v2 ml-leads-page ml-unified-page">
-      <header className="nodra-page-head">
-        <div><div className="app-kicker-v2">{t.kicker}</div><h1>{t.title}</h1><p>{t.body}</p></div>
+      <header className="ml-page-head">
+        <div className="ml-page-head-copy">
+          <div className="ml-page-eyebrow">{fi ? "Työtila / Liidit" : "Workspace / Leads"}</div>
+          <h1>{t.title}</h1>
+          <p>{t.body}</p>
+        </div>
       </header>
 
       <section className="quotes-v1-summary ml-leads-summary ml-unified-leads-summary" aria-label={fi ? "Liidien yhteenveto" : "Lead overview"}>
