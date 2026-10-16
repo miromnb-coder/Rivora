@@ -246,26 +246,26 @@ export function combineOrderCases({ rfqs, quotes, purchaseOrders, salesOrders }:
  */
 export async function loadOrderCases(
   supabase: ScopedDb, orgId: string, fi: boolean,
-  options: { strict?: boolean; detectTruncation?: boolean } = {},
+  options: { strict?: boolean; detectTruncation?: boolean; signal?: AbortSignal } = {},
 ) {
   const limit = options.detectTruncation ? 201 : 200;
   const [r, q, p, so] = await Promise.all([
     supabase.from("rfqs")
       .select("id,reference,status,received_at,customers(id,name)")
       .eq("organization_id", orgId)
-      .order("received_at", { ascending: false }).limit(limit),
+      .order("received_at", { ascending: false }).limit(limit).abortSignal(options.signal ?? new AbortController().signal),
     supabase.from("quotes")
       .select("id,quote_number,status,updated_at,customers(id,name),rfqs(id,reference)")
       .eq("organization_id", orgId)
-      .order("updated_at", { ascending: false }).limit(limit),
+      .order("updated_at", { ascending: false }).limit(limit).abortSignal(options.signal ?? new AbortController().signal),
     supabase.from("purchase_orders")
       .select("id,po_number,status,updated_at,customers(id,name),quotes(id,quote_number)")
       .eq("organization_id", orgId)
-      .order("updated_at", { ascending: false }).limit(limit),
+      .order("updated_at", { ascending: false }).limit(limit).abortSignal(options.signal ?? new AbortController().signal),
     supabase.from("sales_order_drafts")
       .select("id,status,customer_po_number,updated_at,customers(id,name),quotes(id,quote_number),purchase_orders(id,po_number)")
       .eq("organization_id", orgId)
-      .order("updated_at", { ascending: false }).limit(limit),
+      .order("updated_at", { ascending: false }).limit(limit).abortSignal(options.signal ?? new AbortController().signal),
   ]);
   if (options.strict && [r,q,p,so].some(x=>Boolean(x.error))) {
     throw new Error("COPILOT_CONTEXT_READ_FAILED");
