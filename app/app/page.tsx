@@ -425,132 +425,86 @@ export default async function AppHome() {
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 6);
 
-  return (
-    <div className="app-page-v2 dashboard-page">
-      <header className="dashboard-hero">
-        <div className="dashboard-hero-copy">
-          <div className="app-kicker-v2">{fi ? "Työpöytä" : "Workspace"}</div>
-          <div className="dashboard-title-row">
-            <h1>{fi ? "Vaatii huomiota" : "Needs attention"}</h1>
-            <span className="dashboard-attention-count" aria-label={fi ? `${dedupedTasks.length} huomiota vaativaa casea` : `${dedupedTasks.length} cases need attention`}>
-              {dedupedTasks.length}
-            </span>
-          </div>
-          <p>
-            {fi
-              ? "Näet ensin caset, jotka tarvitsevat päätöksen juuri nyt."
-              : "Averomira puts the work needing a human decision first. Everything else stays in the background."}
-          </p>
-        </div>
 
-        <Link href="/app/upload" className="upload-v2-primary-btn dashboard-primary-cta">
-          <span aria-hidden="true">+</span>
-          {fi ? "Uusi tarjouspyyntö" : "New RFQ"}
-        </Link>
+  return (
+    <div className="app-page-v2 ml-unified-page ml-unified-dashboard">
+      <header className="ml-page-head">
+        <div className="ml-page-head-copy">
+          <div className="ml-page-eyebrow">{fi ? "Työtila / Yleiskuva" : "Workspace / Overview"}</div>
+          <h1>{fi ? "Yleiskuva" : "Overview"}</h1>
+          <p>{fi ? "Tärkeimmät työtehtävät ja tilausprosessin tilanne yhdessä paikassa." : "Your next tasks and the sales workflow at a glance."}</p>
+        </div>
+        <Link href="/app/upload" className="ml-page-primary">+ {fi ? "Uusi tarjouspyyntö" : "New RFQ"}</Link>
       </header>
 
-      <section className="dashboard-section dashboard-attention-section" aria-labelledby="dashboard-tasks-heading">
-        <div className="dashboard-section-head">
-          <div>
-            <div className="dashboard-section-eyebrow">{fi ? "Työjono" : "Work queue"}</div>
-            <h2 id="dashboard-tasks-heading">{fi ? "Seuraavat tehtävät" : "Next tasks"}</h2>
-          </div>
-          <Link href="/app/orders?view=attention" className="dashboard-text-link">
-            {fi ? "Näytä kaikki" : "View all"} <span aria-hidden="true">→</span>
-          </Link>
+      <section className="ml-summary-section" aria-labelledby="ml-overview-status">
+        <div className="ml-section-heading">
+          <div><div className="ml-page-eyebrow">{fi ? "Yhteenveto" : "Summary"}</div><h2 id="ml-overview-status">{fi ? "Työtilan tilanne" : "Workspace status"}</h2></div>
         </div>
-
-        {attention.length ? (
-          <div className="dashboard-attention-list">
-            {attention.map((task, index) => (
-              <Link
-                key={task.key}
-                href={task.href}
-                className={"dashboard-task-row" + (index === 0 ? " is-primary" : "")}
-              >
-                <div className="dashboard-task-kind">{task.eyebrow}</div>
-                <div className="dashboard-task-copy">
-                  <h3>{task.title}</h3>
-                  <p>{task.detail}</p>
-                </div>
-                <div className="dashboard-task-action">
-                  <span>{task.action}</span>
-                  <span className="dashboard-row-arrow" aria-hidden="true">→</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="dashboard-empty-state">
-            <strong>{fi ? "Ei kiireellisiä tehtäviä." : "No urgent tasks."}</strong>
-            <p>
-              {fi
-                ? "Voit aloittaa uuden tarjouspyynnön tai avata kaikki tilaukset."
-                : "Start a new RFQ or open all orders."}
-            </p>
-          </div>
-        )}
-      </section>
-
-      <section className="dashboard-section dashboard-status-section" aria-labelledby="dashboard-status-heading">
-        <div className="dashboard-section-head dashboard-section-head-compact">
-          <div>
-            <div className="dashboard-section-eyebrow">{fi ? "Yhteenveto" : "Overview"}</div>
-            <h2 id="dashboard-status-heading">{fi ? "Tilanne nyt" : "Current status"}</h2>
-          </div>
-        </div>
-
-        <div className="dashboard-kpi-strip">
+        <div className="ml-summary-grid">
           {[
             [fi ? "Avoimet RFQ:t" : "Open RFQs", openRfqs],
             [fi ? "Lähetetyt tarjoukset" : "Sent quotes", sentQuotes],
             [fi ? "Aktiiviset PO:t" : "Active POs", activePos],
             [fi ? "ERP-toimet" : "ERP actions", erpReady],
           ].map(([label, value]) => (
-            <div key={String(label)} className="dashboard-kpi-item">
-              <strong>{value}</strong>
+            <div className="ml-summary-tile" key={String(label)}>
               <span>{label}</span>
+              <strong>{value}</strong>
             </div>
           ))}
         </div>
+        <p className="ml-page-footnote">{fi ? "Yhteenveto perustuu työtilasta ladattuihin asiakirjoihin." : "This summary reflects the documents loaded from the workspace."}</p>
       </section>
 
-      <section className="dashboard-section dashboard-recent-section" aria-labelledby="dashboard-recent-heading">
-        <div className="dashboard-section-head">
-          <div>
-            <div className="dashboard-section-eyebrow">{fi ? "Historia" : "History"}</div>
-            <h2 id="dashboard-recent-heading">
-              {fi ? "Viimeisimmät tilauscaset" : "Recent order cases"}
-            </h2>
+      <section className="ml-unified-section" aria-labelledby="ml-overview-tasks">
+        <div className="ml-section-heading">
+          <div><div className="ml-page-eyebrow">{fi ? "Työjono" : "Work queue"}</div><h2 id="ml-overview-tasks">{fi ? "Seuraavaksi käsiteltävät" : "Next to review"}</h2></div>
+          <Link href="/app/orders?view=attention" className="ml-page-textlink">
+            {fi ? "Näytä kaikki" : "View all"} <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+        {attention.length ? (
+          <div className="ml-task-list">
+            {attention.map((task) => (
+              <Link href={task.href} key={task.key} className="ml-task-item">
+                <div className="ml-task-item-kind">{task.eyebrow}</div>
+                <div className="ml-task-item-details">
+                  <h3>{task.title}</h3><p>{task.detail}</p>
+                </div>
+                <div className="ml-task-item-action">{task.action}<span aria-hidden="true">↗</span></div>
+              </Link>
+            ))}
           </div>
-          <Link href="/app/orders" className="dashboard-text-link">
+        ) : (
+          <div className="ml-page-empty">
+            <strong>{fi ? "Ei kiireellisiä tehtäviä" : "No urgent tasks"}</strong>
+            <p>{fi ? "Voit aloittaa tarjouspyynnön tai tarkastella kaikkia tilauksia." : "Start an RFQ or explore the order queue."}</p>
+          </div>
+        )}
+      </section>
+
+      <section className="ml-unified-section" aria-labelledby="ml-overview-recent">
+        <div className="ml-section-heading">
+          <div><div className="ml-page-eyebrow">{fi ? "Viimeisimmät" : "Recent"}</div><h2 id="ml-overview-recent">{fi ? "Tilausasiat" : "Order cases"}</h2></div>
+          <Link href="/app/orders" className="ml-page-textlink">
             {fi ? "Kaikki tilaukset" : "All orders"} <span aria-hidden="true">→</span>
           </Link>
         </div>
-
-        <div className="dashboard-recent-list">
-          {recentCases.length ? recentCases.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              className="dashboard-recent-row"
-            >
-              <div className="dashboard-recent-identity">
-                <strong>{item.customer}</strong>
-                <span>{item.reference}</span>
-              </div>
-              <span className="dashboard-recent-stage">{item.stage}</span>
-              <div className="dashboard-recent-meta">
-                <span>{new Date(item.updatedAt).toLocaleDateString(displayLocale)}</span>
-                <span className="dashboard-row-arrow" aria-hidden="true">→</span>
-              </div>
-            </Link>
-          )) : (
-            <div className="dashboard-empty-state dashboard-empty-state-plain">
-              {fi ? "Tilauksia ei ole vielä." : "No orders yet."}
-            </div>
-          )}
-        </div>
+        {recentCases.length ? (
+          <div className="ml-recent-list">
+            {recentCases.map((item) => (
+              <Link href={item.href} key={item.key} className="ml-recent-item">
+                <div className="ml-recent-identity"><strong>{item.customer}</strong><small>{item.reference}</small></div>
+                <span className="ml-page-status">{item.stage}</span>
+                <span className="ml-recent-date">{new Date(item.updatedAt).toLocaleDateString(displayLocale)}</span>
+                <span className="ml-row-arrow" aria-hidden="true">→</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="ml-page-empty">{fi ? "Tilausasioita ei ole vielä." : "No order cases yet."}</div>
+        )}
       </section>
     </div>
   );

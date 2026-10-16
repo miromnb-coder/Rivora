@@ -5,6 +5,7 @@ import "./support-s5.css";
 import "./field-focus.css";
 import "@/styles/minimal-linen.css";
 import "./workspace-shell.css";
+import "./unified-pages.css";
 import { requireWorkspace } from "@/lib/rivora/workspace";
 import { getLocale } from "@/lib/locale";
 import { canManageWorkspaceFeature } from "@/lib/rivora/features";
