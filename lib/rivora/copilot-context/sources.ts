@@ -2,7 +2,7 @@ import type { CaseRow } from "@/lib/rivora/order-cases";
 import type { ContextSource } from "./types";
 import { safeContextText } from "./sanitize";
 
-const CASE_HREF=/^\\/app\\/orders\\/case\\/(rfq|quote|po|sales)\\/([a-f0-9]{8}-[a-f0-9-]{27,})$/i;
+const CASE_HREF=/^\/app\/orders\/case\/(rfq|quote|po|sales)\/([a-f0-9]{8}-[a-f0-9-]{27,})$/i;
 export function sourceFromCase(row: CaseRow): ContextSource | null {
   const match=CASE_HREF.exec(row.href);
   if (!match) return null;
