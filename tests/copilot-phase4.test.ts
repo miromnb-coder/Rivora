@@ -48,7 +48,8 @@ test("Copilot SSE frames round-trip and malformed events are ignored", () => {
 
 test("Server streams actual provider deltas; never fakes tools or enables itself", () => {
   assert.match(api, /getAuthContext\(\)/);
-  assert.match(api, /AVEROMIRA_COPILOT_ENABLED !== "true"/);
+  assert.match(api, /isolatedCopilotReadiness\(\)/);
+  assert.match(api, /copilotReservation/);
   assert.match(api, /looksLikeSupportSecret/);
   assert.match(api, /consumePublicRateLimit/);
   assert.match(api, /stream: true/);
