@@ -73,9 +73,76 @@ export function productionCopilotReadiness(env: Record<string, string | undefine
   return { ready: true, reason: "ready" } as const;
 }
 
+const UUID_V4_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Private production pilot: an explicitly nominated single actor and single
+ * organization only. It does not assert that backups exist, and never grants
+ * the wider production approval gate. A separate no-backup risk acknowledgment
+ * reflects the owner's opted-in pilot choice without falsely marking backups
+ * as verified. The database must still refuse all spending unless both
+ * scoped limits are independently enabled.
+ */
+export function privateCopilotPilotReadiness(
+  env: Record<string, string | undefined> = process.env,
+) {
+  if (env.AVEROMIRA_COPILOT_ENABLED !== "true")
+    return { ready: false, reason: "feature_off" } as const;
+  if (env.AVEROMIRA_COPILOT_PILOT_ENABLED !== "true")
+    return { ready: false, reason: "pilot_off" } as const;
+  if (env.VERCEL_ENV !== "production" ||
+      env.VERCEL_PROJECT_ID !== PRODUCTION_VERCEL_PROJECT)
+    return { ready: false, reason: "production_project_required" } as const;
+  if (env.AVEROMIRA_COPILOT_LEDGER_ENABLED !== "true" ||
+      env.AVEROMIRA_COPILOT_PILOT_NO_BACKUP_RISK_ACCEPTED !== "true")
+    return { ready: false, reason: "pilot_approval_required" } as const;
+  const actor = env.AVEROMIRA_COPILOT_PILOT_ACTOR_ID?.trim() ?? "";
+  const org = env.AVEROMIRA_COPILOT_PILOT_ORGANIZATION_ID?.trim() ?? "";
+  if (!UUID_V4_SHAPE.test(actor) || !UUID_V4_SHAPE.test(org) ||
+      actor === "00000000-0000-0000-0000-000000000000" ||
+      org === "00000000-0000-0000-0000-000000000000")
+    return { ready: false, reason: "pilot_identity_required" } as const;
+
+  // The explicit pinned production ref must match the effective runtime
+  // Supabase URL. A database read check still needs to verify its connection.
+  if (env.AVEROMIRA_COPILOT_PRODUCTION_DB_REF?.trim() !== PRODUCTION_SUPABASE_REF)
+    return { ready: false, reason: "production_database_required" } as const;
+  try {
+    const url = new URL(env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+    if (url.protocol !== "https:" ||
+        url.hostname !== PRODUCTION_SUPABASE_REF + ".supabase.co" ||
+        url.username || url.password || url.port || url.pathname !== "/" ||
+        url.search || url.hash)
+      return { ready: false, reason: "production_database_required" } as const;
+  } catch {
+    return { ready: false, reason: "production_database_required" } as const;
+  }
+  if (!env.OPENAI_API_KEY?.trim() || !(
+      env.SUPABASE_SECRET_KEY?.trim() || env.SUPABASE_SERVICE_ROLE_KEY?.trim()))
+    return { ready: false, reason: "credentials_missing" } as const;
+  return { ready: true, reason: "ready" } as const;
+}
+
+/** Enforced on the server for every pilot request, not only in the browser. */
+export function copilotActorAuthorizedForEnvironment(
+  actorId: string, organizationId: string, role: string,
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  if (env.VERCEL_ENV !== "production" ||
+      env.AVEROMIRA_COPILOT_PILOT_ENABLED !== "true") return true;
+  return (role === "owner" || role === "admin") &&
+    actorId.toLowerCase() === (env.AVEROMIRA_COPILOT_PILOT_ACTOR_ID ?? "").trim().toLowerCase() &&
+    organizationId.toLowerCase() ===
+      (env.AVEROMIRA_COPILOT_PILOT_ORGANIZATION_ID ?? "").trim().toLowerCase();
+}
+
 /** Preview and production can never accidentally share an approval path. */
 export function copilotActivationReadiness(env: Record<string, string | undefined> = process.env) {
-  if (env.VERCEL_ENV === "production") return productionCopilotReadiness(env);
+  if (env.VERCEL_ENV === "production") {
+    if (env.AVEROMIRA_COPILOT_PILOT_ENABLED === "true")
+      return privateCopilotPilotReadiness(env);
+    return productionCopilotReadiness(env);
+  }
   return isolatedCopilotReadiness(env);
 }
 

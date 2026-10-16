@@ -64,6 +64,7 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [pilotAvailable, setPilotAvailable] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const requestNumber = useRef(0);
   const nextId = useRef(0);
@@ -81,6 +82,18 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
   useEffect(() => {
     if (paused) controller.current?.abort();
   }, [paused]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/copilot/status", {
+      cache: "no-store", credentials: "same-origin",
+    }).then(response => response.ok ? response.json() : null)
+      .then(status => {
+        if (!cancelled && status?.available === true && status?.pilot === true)
+          setPilotAvailable(true);
+      }).catch(() => { /* Status unavailable: leave the pilot label hidden. */ });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const node = textarea.current;
@@ -256,7 +269,12 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
   return (
     <>
       <div className="ml-copilot-conversation-toolbar">
-        <span>{fi ? "Keskustelu" : "Conversation"}</span>
+        <div className="ml-copilot-toolbar-title">
+          <span>{fi ? "Keskustelu" : "Conversation"}</span>
+          {pilotAvailable ? <span className="ml-copilot-pilot-label">
+            {fi ? "AI-koekäyttö" : "AI pilot"}
+          </span> : null}
+        </div>
         <button type="button" onClick={resetConversation} className="ml-copilot-new"
           aria-label={fi ? "Aloita uusi keskustelu" : "Start a new conversation"}>
           <span aria-hidden="true">＋</span>{fi ? "Uusi" : "New"}
