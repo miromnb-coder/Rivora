@@ -34,5 +34,10 @@ export type ContextQuery =
   | { kind: "orders_overview"; filter: "attention" | "all"; limit: number }
   | { kind: "rfq_review"; recordId: string; limit: number };
 export class ContextReadError extends Error {
-  constructor(public readonly code: string) { super(code); this.name="ContextReadError"; }
+  readonly code: string;
+  constructor(code: string) {
+    super(code);
+    this.code = code;
+    this.name = "ContextReadError";
+  }
 }
