@@ -317,7 +317,7 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
           <label className="ml-copilot-sr-only" htmlFor="ml-copilot-input">
             {fi ? "Kysy Copilotilta" : "Ask Copilot"}
           </label>
-          <textarea id="ml-copilot-input" ref={textarea} rows={2} value={draft}
+          <textarea id="ml-copilot-input" ref={textarea} rows={1} value={draft}
             onChange={event => setDraft(event.target.value)}
             onKeyDown={onComposerKeyDown}
             maxLength={1200}
