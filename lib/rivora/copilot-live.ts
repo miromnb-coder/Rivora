@@ -137,7 +137,7 @@ export function copilotLedger(): CopilotLedger {
     async reserve(args) {
       const { createAdminClient } = await import("@/lib/supabase/admin");
       const db = createAdminClient();
-      const { data, error } = await db.rpc("reserve_ai_usage_server", {
+      const { data, error } = await db.rpc("reserve_copilot_ai_usage_server", {
         p_org: args.organizationId, p_actor: args.actorId,
         p_type: COPILOT_LEDGER_TYPE, p_key: randomUUID(),
         p_model: args.model, p_pricing: args.pricingVersion,
@@ -150,7 +150,7 @@ export function copilotLedger(): CopilotLedger {
     async settle(args) {
       const { createAdminClient } = await import("@/lib/supabase/admin");
       const db = createAdminClient();
-      const { error } = await db.rpc("settle_ai_usage_server", {
+      const { error } = await db.rpc("settle_copilot_ai_usage_server", {
         p_id: args.reservationId, p_actual: args.microUsd,
         p_input: args.inputTokens, p_output: args.outputTokens,
         p_response: args.responseId, p_unknown: args.unknown,
