@@ -267,7 +267,6 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
         aria-live="off" aria-busy={busy} onScroll={scrollChanged}>
         {messages.length === 0 ? (
           <section className="ml-copilot-welcome">
-            <span className="ml-copilot-welcome-mark" aria-hidden="true"><CopilotGlyph /></span>
             <h2>{fi ? "Mitä haluaisit selvittää?" : "What can I help you think through?"}</h2>
             <p>{fi ?
               "Jäsennä työvaiheita, pohdi vaihtoehtoja ja suunnittele seuraavat askeleet." :
@@ -322,11 +321,8 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
             onChange={event => setDraft(event.target.value)}
             onKeyDown={onComposerKeyDown}
             maxLength={1200}
-            placeholder={fi ? "Miten voin auttaa?" : "How can I help you?"} />
+            placeholder={fi ? "Kirjoita viesti…" : "Write a message…"} />
           <div className="ml-copilot-composer-actions">
-            <span className="ml-copilot-composer-hint" aria-hidden="true">
-              {fi ? "Enter lähettää · Shift+Enter rivinvaihto" : "Enter to send · Shift+Enter for a new line"}
-            </span>
             {busy ? (
               <button type="button" onClick={stop} className="ml-copilot-send ml-copilot-stop"
                 aria-label={fi ? "Pysäytä vastaus" : "Stop response"}>
