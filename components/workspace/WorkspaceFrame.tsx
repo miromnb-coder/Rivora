@@ -35,6 +35,12 @@ export function WorkspaceFrame({
 
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
   useEffect(() => {
+    const breakpoint = window.matchMedia("(max-width: 1359px)");
+    const syncMode = () => { if (!breakpoint.matches) setDrawerOpen(false); };
+    breakpoint.addEventListener("change", syncMode);
+    return () => breakpoint.removeEventListener("change", syncMode);
+  }, []);
+  useEffect(() => {
     if (!drawerOpen) return;
     if (!window.matchMedia("(max-width: 1359px)").matches) return;
     const oldOverflow = document.body.style.overflow;
@@ -52,11 +58,14 @@ export function WorkspaceFrame({
   }
   function openCopilot() {
     setCopilotDismissed(false);
-    setDrawerOpen(true);
+    // Desktop uses a regular complementary pane, not a modal dialog.
+    setDrawerOpen(window.matchMedia("(max-width: 1359px)").matches);
   }
   function closeCopilot() {
+    const wasModal = drawerOpen;
     setCopilotDismissed(true);
     setDrawerOpen(false);
+    if (!wasModal) opener.current?.focus();
   }
   function onPanelKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (!drawerOpen) return;
