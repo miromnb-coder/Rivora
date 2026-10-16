@@ -12,6 +12,7 @@ type WorkspaceFrameProps = {
   mobileNavigation: ReactNode;
   support: ReactNode;
   locale: "fi" | "en";
+  workspaceId?: string;
 };
 
 function PanelIcon({ kind }: { kind: "menu" | "spark" | "close" }) {
@@ -24,7 +25,7 @@ function PanelIcon({ kind }: { kind: "menu" | "spark" | "close" }) {
 }
 
 export function WorkspaceFrame({
-  children, sidebar, mobileHeader, mobileNavigation, support, locale,
+  children, sidebar, mobileHeader, mobileNavigation, support, locale, workspaceId,
 }: WorkspaceFrameProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tabletExpanded, setTabletExpanded] = useState(false);
@@ -137,7 +138,9 @@ export function WorkspaceFrame({
             <PanelIcon kind="close" />
           </button>
         </header>
-        <CopilotConversation locale={locale} paused={copilotDismissed} />
+        {/* Different record/workspace = new session; abort in-flight work and reset consent. */}
+        <CopilotConversation key={(workspaceId ?? "") + ":" + (pathname ?? "")}
+          locale={locale} paused={copilotDismissed} workspaceId={workspaceId} />
       </aside>
       {support}
       {mobileNavigation}

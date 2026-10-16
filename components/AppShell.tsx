@@ -13,6 +13,7 @@ import { WorkspaceSupportTrigger } from "@/components/workspace/WorkspaceSupport
 export function AppShell({
   children,
   workspaceName,
+  workspaceId,
   workspaceRole,
   userEmail,
   locale,
@@ -22,6 +23,7 @@ export function AppShell({
 }: {
   children: React.ReactNode;
   workspaceName: string;
+  workspaceId?: string;
   workspaceRole: string;
   userEmail?: string;
   locale: Locale;
@@ -44,6 +46,7 @@ export function AppShell({
   return (
     <WorkspaceFrame
       locale={locale}
+      workspaceId={workspaceId}
       sidebar={
         <aside className="app-sidebar-v2">
           <div className="app-sidebar-v2-top">
