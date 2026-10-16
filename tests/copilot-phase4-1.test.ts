@@ -66,7 +66,7 @@ test("Phase 4.1 keeps streaming and recovery local to Copilot without database w
   const shell = readFileSync("components/workspace/WorkspaceFrame.tsx", "utf8");
   const css = readFileSync("app/app/copilot-conversation.css", "utf8");
   for (const fragment of ["CopilotStreamParser", "buildCopilotHistory", "requestAnimationFrame",
-                          "flushPaint", "retryLast", "followTail.current", "Shift", "role=\"log\""])
+                          "flushPaint", "retryLast", "followTail.current", "shiftKey", "role=\"log\""])
     assert.ok(ui.includes(fragment), "Missing recovery contract: " + fragment);
   assert.match(ui, /aria-busy=\{busy\}/);
   assert.match(shell, /SUPPORT_OPEN_EVENT/);
