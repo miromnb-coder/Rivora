@@ -37,6 +37,48 @@ export function isolatedCopilotReadiness(env: Record<string, string | undefined>
   return { ready: true, reason: "ready" } as const;
 }
 
+/**
+ * Production is a separate opt-in release, NOT an extension of preview.
+ * Flags record operator approval, but do not themselves prove that backups,
+ * live database integrity, billing RPCs, or rollback were independently checked.
+ * No production environment has these flags configured in Phase 4.3.
+ */
+export function productionCopilotReadiness(env: Record<string, string | undefined> = process.env) {
+  if (env.AVEROMIRA_COPILOT_ENABLED !== "true")
+    return { ready: false, reason: "feature_off" } as const;
+  if (env.VERCEL_ENV !== "production" ||
+      env.VERCEL_PROJECT_ID !== PRODUCTION_VERCEL_PROJECT)
+    return { ready: false, reason: "production_project_required" } as const;
+  if (env.AVEROMIRA_COPILOT_PRODUCTION_APPROVED !== "true" ||
+      env.AVEROMIRA_COPILOT_PRODUCTION_BACKUP_VERIFIED !== "true" ||
+      env.AVEROMIRA_COPILOT_PRODUCTION_ROLLBACK_VERIFIED !== "true" ||
+      env.AVEROMIRA_COPILOT_LEDGER_ENABLED !== "true")
+    return { ready: false, reason: "production_approval_required" } as const;
+  // A matching project URL is necessary, but not sufficient, to confirm
+  // production DB linkage. The preflight SQL checklist remains mandatory.
+  const expected = env.AVEROMIRA_COPILOT_PRODUCTION_DB_REF?.trim();
+  let actual = "";
+  try {
+    const url = new URL(env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+    if (url.protocol === "https:" &&
+        url.hostname.endsWith(".supabase.co") &&
+        !url.username && !url.password && !url.port)
+      actual = url.hostname.slice(0, -".supabase.co".length);
+  } catch { /* Invalid or missing Supabase address fails closed. */ }
+  if (expected !== PRODUCTION_SUPABASE_REF || actual !== expected)
+    return { ready: false, reason: "production_database_required" } as const;
+  if (!env.OPENAI_API_KEY?.trim() || !(
+      env.SUPABASE_SECRET_KEY?.trim() || env.SUPABASE_SERVICE_ROLE_KEY?.trim()))
+    return { ready: false, reason: "credentials_missing" } as const;
+  return { ready: true, reason: "ready" } as const;
+}
+
+/** Preview and production can never accidentally share an approval path. */
+export function copilotActivationReadiness(env: Record<string, string | undefined> = process.env) {
+  if (env.VERCEL_ENV === "production") return productionCopilotReadiness(env);
+  return isolatedCopilotReadiness(env);
+}
+
 export function prepareCopilotPricing(
   instructions: string, input: string,
   env: Record<string, string | undefined> = process.env,
