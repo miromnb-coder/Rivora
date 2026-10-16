@@ -63,7 +63,7 @@ begin
  return reservation_id;
 end $$;
 create or replace function public.settle_ai_usage_server(p_id uuid,p_actual bigint,p_input bigint,p_output bigint,p_response text,p_unknown boolean) returns void
-language plpgsql security definer set search_path='' as $
+language plpgsql security definer set search_path='' as $$
 declare changed integer;
 begin
  if p_unknown is null or (not p_unknown and (p_actual is null or p_actual<0 or p_input is null or p_output is null or p_input<0 or p_output<0)) then raise exception 'OPERATION_INVALID_USAGE'; end if;
@@ -76,7 +76,7 @@ begin
    and (p_unknown or p_actual<=reserved_micro_usd);
  get diagnostics changed = row_count;
  if changed<>1 then raise exception 'OPERATION_SETTLEMENT_MISMATCH'; end if;
-end $;
+end $$;
 alter function public.reserve_ai_usage_server(uuid,uuid,text,uuid,text,text,bigint) owner to averomira_operations_owner;
 alter function public.settle_ai_usage_server(uuid,bigint,bigint,bigint,text,boolean) owner to averomira_operations_owner;
 revoke all on function public.reserve_ai_usage_server(uuid,uuid,text,uuid,text,text,bigint),public.settle_ai_usage_server(uuid,bigint,bigint,bigint,text,boolean) from public,anon,authenticated,averomira_worker;
