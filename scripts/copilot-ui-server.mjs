@@ -16,6 +16,7 @@ const styles = (await Promise.all([
   "app/app/copilot-conversation.css",
 ].map(file => readFile(file, "utf8")))).join("\n");
 const count = new Map();
+let contextMode = false;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const event = data => "event: " + data.type + "\ndata: " + JSON.stringify(data) + "\n\n";
 
@@ -26,7 +27,12 @@ async function respond(req, res) {
     if (raw.length > 12000) { res.writeHead(413); res.end(); return; }
   }
   let question = "";
-  try { question = JSON.parse(raw).question || ""; } catch { /* Synthetic invalid payload */ }
+  let optedIn = false;
+  try {
+    const payload=JSON.parse(raw);
+    question=payload.question||"";
+    optedIn=payload.useWorkspaceData===true;
+  } catch { /* Synthetic invalid payload */ }
   if (question.includes("POIS")) {
     res.writeHead(503, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "Copilot is not yet enabled in this environment." }));
@@ -40,6 +46,22 @@ async function respond(req, res) {
     "X-Accel-Buffering": "no",
   });
   const send = data => { if (!res.destroyed) res.write(event(data)); };
+  if (contextMode && optedIn && question.includes("KONTEKSTI")) {
+    send({type:"stage",stage:"retrieving"});
+    await delay(15);
+    send({type:"stage",stage:"verifying"});
+    send({type:"stage",stage:"responding"});
+    send({type:"delta",text:"Synteettinen tilausasia: QA-TEST-1"});
+    send({type:"sources",sources:[{
+      sourceId:"rfq:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      kind:"rfq",recordId:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      label:"QA-TEST-1",
+      href:"/app/orders/case/rfq/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    }],truncated:false});
+    send({type:"done"});
+    res.end();
+    return;
+  }
   // Fragment even the SSE event boundary, without any real model calls.
   const beginning = Buffer.from(event({ type: "stage", stage: "connecting" }), "utf8");
   if (!res.destroyed) res.write(beginning.subarray(0, 5));
@@ -77,7 +99,16 @@ async function respond(req, res) {
 http.createServer(async (req, res) => {
   if (req.url === "/__reset" && req.method === "POST") {
     count.clear();
+    contextMode=false;
     res.writeHead(204); res.end();
+  } else if (req.url === "/__context_on" && req.method === "POST") {
+    contextMode=true;
+    res.writeHead(204);res.end();
+  } else if (req.url === "/api/copilot/status" && req.method === "GET") {
+    res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});
+    res.end(JSON.stringify({
+      available:contextMode,pilot:contextMode,contextAvailable:contextMode,
+    }));
   } else if (req.url?.startsWith("/api/copilot/stream") && req.method === "POST") {
     try { await respond(req, res); }
     catch { if (!res.writableEnded) { res.writeHead(500); res.end(); } }
