@@ -395,8 +395,8 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
                 if (!event.target.checked) resetConversation();
                 setShareWorkspaceData(event.target.checked);
               }}/>
-            <span>{fi ? "Salli työtilan tietojen käyttö tässä keskustelussa" :
-              "Allow workspace records in this conversation"}</span>
+            <span>{fi ? "Salli työtilan tietojen käyttö tässä keskustelussa (tietoja lähetetään AI-mallille)" :
+              "Allow workspace order data to be sent to the AI model in this conversation"}</span>
           </label>
         ) : null}
         <p className="ml-copilot-disclaimer">{fi ?
