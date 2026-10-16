@@ -82,15 +82,30 @@ test("synthetic Minimal Linen screenshots are captured for visual review", async
 });
 
 
-test("linen welcome glyph and two-level composer have accessible responsive controls", async ({ page }, testInfo) => {
+test("minimal linen composer is a single borderless text area inside one accessible container", async ({ page }, testInfo) => {
   const mark = page.locator(".ml-copilot-welcome-mark");
   const field = page.getByRole("textbox", { name: "Kysy Copilotilta" });
   const composer = page.locator(".ml-copilot-composer");
   const submit = page.getByRole("button", { name: "Lähetä viesti" });
 
-  await expect(mark.locator("svg")).toHaveCount(1);
-  await expect(mark).not.toContainText("✳");
-  await expect(field).toHaveAttribute("placeholder", "Miten voin auttaa?");
+  await expect(mark).toHaveCount(0);
+  await expect(field).toHaveAttribute("placeholder", "Kirjoita viesti…");
+  await expect(composer).not.toContainText("Enter lähettää");
+  await expect(page.locator(".ml-copilot-composer-hint")).toHaveCount(0);
+  const textStyle = await field.evaluate(element => {
+    const computed = getComputedStyle(element);
+    return {
+      border: computed.borderTopWidth, background: computed.backgroundColor,
+      shadow: computed.boxShadow, radius: computed.borderRadius,
+    };
+  });
+  expect(textStyle).toEqual({border: "0px", background: "rgba(0, 0, 0, 0)", shadow: "none", radius: "0px"});
+  await field.focus();
+  const focusStyle = await field.evaluate(element => {
+    const computed = getComputedStyle(element);
+    return {border: computed.borderTopWidth, shadow: computed.boxShadow, outline: computed.outlineStyle};
+  });
+  expect(focusStyle).toEqual({border: "0px", shadow: "none", outline: "none"});
   await expect(page.locator(".ml-copilot-composer-actions")).toBeVisible();
   await expect(submit).toBeDisabled();
   const shape = await submit.evaluate(node => {
