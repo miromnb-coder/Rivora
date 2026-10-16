@@ -270,7 +270,9 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
           "Copilot ei vielä näe yrityksesi tietoja eikä tee muutoksia." :
           "Copilot cannot yet access or change your company data."}</p>
         <span className="ml-copilot-sr-only" role="status" aria-live="polite">
-          {busy ? (fi ? "Copilot muodostaa vastausta" : "Copilot is responding") : ""}
+          {busy ? (fi ? "Copilot muodostaa vastausta" : "Copilot is responding")
+            : messages[messages.length - 1]?.stage === "done" ?
+              (fi ? "Vastaus on valmis" : "Response complete") : ""}
         </span>
       </footer>
     </>
