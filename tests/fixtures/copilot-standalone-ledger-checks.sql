@@ -97,8 +97,12 @@ begin
 end $$;
 rollback;
 -- Test changes above are rolled back; synthetic deployment remains disabled.
-select case when enabled=false and daily_micro_usd=0 and monthly_micro_usd=0
-  then 'Copilot standalone synthetic ledger: PASS'
-  else 1/0::text end
-from private.copilot_ai_limits
-where scope_id='00000000-0000-0000-0000-000000000000';
+do $
+begin
+ if not exists(
+   select 1 from private.copilot_ai_limits
+   where scope_id='00000000-0000-0000-0000-000000000000'
+   and enabled=false and daily_micro_usd=0 and monthly_micro_usd=0
+ ) then raise exception 'SYNTHETIC_DEFAULTS_CHANGED'; end if;
+end $;
+select 'Copilot standalone synthetic ledger: PASS' as result;
