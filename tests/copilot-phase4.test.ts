@@ -61,7 +61,7 @@ test("Server streams actual provider deltas; never fakes tools or enables itself
 });
 
 test("Copilot is a separate accessible experience with real cancellation and no record tools", () => {
-  assert.match(frame, /<CopilotConversation locale=\{locale\} \/>/);
+  assert.match(frame, /<CopilotConversation locale=\{locale\} paused=\{copilotDismissed\} \/>/);
   assert.match(ui, /CopilotStreamParser/);
   assert.match(ui, /AbortController/);
   assert.match(ui, /reader\.read\(\)/);
