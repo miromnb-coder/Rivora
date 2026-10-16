@@ -1,4 +1,8 @@
 // Typed boundaries for Phase 5: no arbitrary SQL or model-selected database tools.
+export type ActiveRecord = {
+  kind: "rfq" | "quote" | "po" | "sales";
+  id: string;
+};
 export type ContextSource = {
   sourceId: string;
   kind: "rfq" | "quote" | "po" | "sales";

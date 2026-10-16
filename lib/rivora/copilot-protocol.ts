@@ -1,4 +1,5 @@
-import type { ContextSource } from "./copilot-context/types";
+import type { ActiveRecord, ContextSource } from "./copilot-context/types";
+import { isActiveRecordUuid, normalizeActiveRecord } from "./copilot-context/active-record.ts";
 export type CopilotMessage = { role: "user" | "assistant"; text: string };
 export type CopilotInput = {
   question: string;
@@ -6,6 +7,8 @@ export type CopilotInput = {
   locale: "fi" | "en";
   area: string;
   useWorkspaceData: boolean;
+  workspaceId: string | null;
+  activeRecord: ActiveRecord | null;
 };
 const areas = new Set([
   "overview", "orders", "customers", "products", "leads", "inbox",
@@ -19,6 +22,11 @@ export function normalizeCopilotInput(value: unknown):
   if (typeof body.question !== "string" || body.question.trim().length < 2 ||
       body.question.trim().length > 1200 || !Array.isArray(body.history) ||
       body.history.length > 8) return { ok: false, reason: "invalid" };
+  if (body.workspaceId != null && !isActiveRecordUuid(body.workspaceId))
+    return { ok: false, reason: "invalid" };
+  const activeRecord = normalizeActiveRecord(body.activeRecord);
+  if (body.activeRecord != null && !activeRecord)
+    return { ok: false, reason: "invalid" };
   const history: CopilotMessage[] = [];
   for (const value of body.history) {
     if (!value || typeof value !== "object" || Array.isArray(value)) return { ok: false, reason: "invalid" };
@@ -33,6 +41,8 @@ export function normalizeCopilotInput(value: unknown):
     locale: body.locale === "en" ? "en" : "fi",
     area: typeof body.area === "string" && areas.has(body.area) ? body.area : "overview",
     useWorkspaceData: body.useWorkspaceData === true,
+    workspaceId: typeof body.workspaceId === "string" ? body.workspaceId.toLowerCase() : null,
+    activeRecord,
   }};
 }
 // Self-contained transport validator: Node's native TS test runner must be
