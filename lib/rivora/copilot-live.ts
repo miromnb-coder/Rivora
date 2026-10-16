@@ -139,7 +139,7 @@ export function copilotLedger(): CopilotLedger {
       const db = createAdminClient();
       const { data, error } = await db.rpc("reserve_copilot_ai_usage_server", {
         p_org: args.organizationId, p_actor: args.actorId,
-        p_type: COPILOT_LEDGER_TYPE, p_key: randomUUID(),
+        p_key: randomUUID(),
         p_model: args.model, p_pricing: args.pricingVersion,
         p_micro: args.reservedMicroUsd,
       });
