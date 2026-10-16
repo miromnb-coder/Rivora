@@ -24,6 +24,8 @@ jobs:
         run: bash scripts/test-copilot-ledger-migration-synthetic.sh
       - name: Verify standalone Copilot ledger and disabled budgets
         run: bash scripts/test-copilot-standalone-sql.sh
+      - name: Verify Phase 5 same-name tenant RLS isolation
+        run: docker exec -i averomira-catalogue-test psql -U postgres -d averomira_test -v ON_ERROR_STOP=1 < tests/fixtures/copilot-context-rls.sql
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10
