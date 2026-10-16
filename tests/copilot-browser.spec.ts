@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { mkdirSync } from "node:fs";
 
 test.beforeEach(async ({ page }) => {
   await page.request.post("/__reset");
@@ -64,4 +65,18 @@ test("Disabled backend and broken stream show truthful errors without pretending
   await field.press("Enter");
   await expect(page.getByRole("alert")).toContainText("Vastaus katkesi kesken");
   await expect(page.getByText("Vastaus valmis")).toHaveCount(0);
+});
+
+
+test("synthetic Minimal Linen screenshots are captured for visual review", async ({ page }, testInfo) => {
+  const field = page.getByRole("textbox", { name: "Kysy Copilotilta" });
+  await field.fill("Miten jäsennän seuraavat työvaiheet?");
+  await field.press("Enter");
+  await expect(page.getByText("Vastaus valmis")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  mkdirSync("test-results/copilot-visual", { recursive: true });
+  await page.screenshot({
+    path: "test-results/copilot-visual/" + testInfo.project.name + ".png",
+    fullPage: true,
+  });
 });
