@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       return failure("Authentication required.", 401, requestId);
 
     // Off by default on production and Preview. Activation is a separate release decision.
+    const organizationId = context.workspace.id;
     if (process.env.AVEROMIRA_COPILOT_ENABLED !== "true")
       return failure("Copilot is not yet enabled in this environment.", 503, requestId);
 
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
         "Do not send passwords, API keys or other credentials.", 400, requestId);
     }
 
-    const identity = context.workspace.id + ":" + context.claims.sub;
+    const identity = organizationId + ":" + context.claims.sub;
     const short = await consumePublicRateLimit({
       scope: "copilot_user_short", value: identity, windowSeconds: 600, limit: 15,
     });
@@ -144,14 +145,14 @@ export async function POST(request: Request) {
             if (!complete || !begun) throw new Error("Copilot answer incomplete.");
             emit({ type: "done" });
             operationalLog("info", "copilot_answered", {
-              requestId, organizationId: context.workspace.id,
+              requestId, organizationId,
               area, inputLength: question.length, outputLength: chars,
             });
           }
         } catch (error) {
           if (!abort.signal.aborted) {
             operationalLog("error", "copilot_stream_failed", {
-              requestId, organizationId: context.workspace.id,
+              requestId, organizationId,
               message: safeErrorMessage(error),
             });
             emit({ type: "error", message: locale === "fi" ?
@@ -161,7 +162,7 @@ export async function POST(request: Request) {
         } finally {
           request.signal.removeEventListener("abort", cancel);
           closed = true;
-          controller.close();
+          try { controller.close(); } catch { /* Consumer already canceled. */ }
         }
       },
       cancel,
@@ -169,9 +170,9 @@ export async function POST(request: Request) {
     return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream; charset=utf-8",
-        "Cache-Control": "no-store, no-transform",
         "X-Accel-Buffering": "no",
         ...requestIdHeaders(requestId),
+        "Cache-Control": "no-store, no-transform",
       },
     });
   } catch (error) {
