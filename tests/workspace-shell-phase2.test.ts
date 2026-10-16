@@ -20,8 +20,9 @@ test("Workspace Shell keeps all existing routes, support and account functions",
   assert.match(frame, /WorkspaceFrame/);
   assert.doesNotMatch(frame, /fetch\(|openai|supabase/);
 });
-test("Copilot in Phase 2 is a UI-only placeholder", () => {
-  assert.match(frame, /Keskustelu ei ole vielä käytössä/);
+test("Copilot Phase 4 replaces only the placeholder, preserving shell accessibility", () => {
+  assert.match(frame, /<CopilotConversation locale=\{locale\} \/>/);
+  assert.doesNotMatch(frame, /Keskustelu ei ole vielä käytössä/);
   assert.doesNotMatch(frame, /\/api\/copilot|<textarea|<input|MessageComposer|SupportCenter/);
   assert.match(frame, /ml-copilot-close/);
   assert.match(frame, /ml-copilot-backdrop/);
