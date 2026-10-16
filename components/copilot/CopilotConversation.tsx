@@ -24,8 +24,8 @@ const prompts = {
 };
 
 function intentFor(text: string): "steps" | "options" | "general" {
-  if (/\b(vaihe|seuraav|aloit|step|next|plan)/i.test(text)) return "steps";
-  if (/\b(vertaa|vertail|vaihtoeh|compar|option)/i.test(text)) return "options";
+  if (/(vaihe|seuraav|aloit|step|next|plan)/i.test(text)) return "steps";
+  if (/(vertaa|vertail|vaihtoeh|compar|option)/i.test(text)) return "options";
   return "general";
 }
 
@@ -123,9 +123,16 @@ export function CopilotConversation({ locale }: { locale: "fi" | "en" }) {
         body: JSON.stringify({ question, history: previous, locale, area }),
       });
       if (!response.ok) {
-        if (response.status === 503) throw new Error(fi ?
-          "Copilotin keskustelumalli ei ole vielä käytössä tässä ympäristössä." :
-          "The Copilot model is not enabled in this environment.");
+        if (response.status === 503) {
+          const details: unknown = await response.json().catch(() => null);
+          const disabled = details && typeof details === "object" && "error" in details &&
+            details.error === "Copilot is not yet enabled in this environment.";
+          throw new Error(disabled ?
+            (fi ? "Copilotin keskustelumalli ei ole vielä käytössä tässä ympäristössä." :
+              "The Copilot model is not enabled in this environment.") :
+            (fi ? "Copilot ei ole juuri nyt käytettävissä." :
+              "Copilot is temporarily unavailable."));
+        }
         if (response.status === 429) throw new Error(fi ?
           "Kysymysraja tuli vastaan. Kokeile myöhemmin uudelleen." :
           "Request limit reached. Please try again later.");
