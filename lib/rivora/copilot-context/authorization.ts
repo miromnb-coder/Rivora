@@ -9,12 +9,13 @@ type ScopedDb=Awaited<ReturnType<typeof createClient>>;
  * before context can be sent outside Supabase.
  */
 export async function verifyContextMembership(
-  db: ScopedDb, actorId: string, organizationId: string,
+  db: ScopedDb, actorId: string, organizationId: string, signal?: AbortSignal,
 ): Promise<void> {
   const { data, error }=await db.from("organization_members")
     .select("organization_id,role")
     .eq("user_id",actorId)
-    .order("created_at",{ascending:true}).limit(51);
+    .order("created_at",{ascending:true}).limit(51)
+    .abortSignal(signal ?? new AbortController().signal);
   if (error || !data || data.length===0 || data.length>50)
     throw new ContextReadError("CONTEXT_MEMBERSHIP_UNAVAILABLE");
   const allowed=data.some(m=>m.organization_id===organizationId);
