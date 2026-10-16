@@ -23,6 +23,25 @@
 
 The normal Phase 4.2 isolated Preview policy remains unchanged. Preview approval never grants production approval. On any missing field the endpoint still returns `503` (model off).
 
+## Direct read-only Supabase findings (2026-10-16)
+
+Using the connected Supabase account, the `Rivora` project with ref `utvxopmdxqnxqgaxugxm` was confirmed to exist and be active. Its reported migration history ended at 2026-10-07 (58 entries); the 2026-10-11 Operations Foundation and AI ledger migrations were **not recorded as applied**.
+
+A read-only SQL query on that project directly verified:
+
+- `private.operation_limits` **absent**
+- `private.ai_usage_ledger` **absent**
+- `public.reserve_ai_usage_server` **absent**
+- `public.settle_ai_usage_server` **absent**
+- `private.integration_secrets` **exists, RLS disabled**, but direct `SELECT` privileges for both `anon` and `authenticated` were **false**. The general listing tool flagged RLS as critical; the specific privilege check narrows the immediate exposure assessment. Still review grants, policies, and security hardening before launch. Do not apply a blanket RLS fix without access-path review.
+- Supabase security advisor reported **leaked password protection disabled** ([Supabase guidance](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)).
+
+The Vercel `NEXT_PUBLIC_SUPABASE_URL` value was not readable with the available permissions because it is stored as a sensitive variable. **An exact Vercel-to-Supabase production connection has therefore not been proven.** Independently confirm it before touching SQL.
+
+These findings upgrade database readiness to a **verified NO-GO**, not merely a suspected gap. The release patch candidate **cannot be safely executed against the observed schema** because its foundation objects are missing. Do NOT apply the patch alone or deploy Operations Foundation migrations into production without a separate reviewed migration, backup/restore rehearsal, and explicit authorization.
+
+Reproduce the read-only schema/privileges probe with `docs/copilot/PRODUCTION_PREFLIGHT_READONLY.sql`. It does not view any secret values or customer rows.
+
 ## Model and billing requirements
 
 - Select the actual supported `OPENAI_COPILOT_MODEL`, verify current official API prices and agreed input/output accounting including any special token types. The model must match its entry in `AVEROMIRA_AI_PRICING_JSON`. **No model or USD amount has been guessed in code.**
