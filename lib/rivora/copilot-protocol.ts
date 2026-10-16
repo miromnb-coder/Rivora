@@ -1,4 +1,3 @@
-import { validContextSource } from "./copilot-context/sources";
 import type { ContextSource } from "./copilot-context/types";
 export type CopilotMessage = { role: "user" | "assistant"; text: string };
 export type CopilotInput = {
@@ -36,6 +35,21 @@ export function normalizeCopilotInput(value: unknown):
     useWorkspaceData: body.useWorkspaceData === true,
   }};
 }
+// Self-contained transport validator: Node's native TS test runner must be
+// able to import the protocol without Next.js alias resolution.
+const CASE_HREF = /^\\/app\\/orders\\/case\\/(rfq|quote|po|sales)\\/([a-f0-9]{8}-[a-f0-9-]{27,})$/i;
+function validContextSource(value: unknown): value is ContextSource {
+  if (!value || typeof value !== "object") return false;
+  const s=value as Record<string,unknown>;
+  return typeof s.kind === "string" &&
+    ["rfq","quote","po","sales"].includes(s.kind) &&
+    typeof s.recordId==="string" && typeof s.sourceId==="string" &&
+    s.sourceId===s.kind+":"+s.recordId &&
+    typeof s.label==="string" && s.label.length<=100 &&
+    typeof s.href==="string" && CASE_HREF.test(s.href) &&
+    s.href==="/app/orders/case/"+s.kind+"/"+s.recordId;
+}
+
 export type CopilotEvent =
   | { type: "stage"; stage: "retrieving" | "verifying" | "connecting" | "responding" }
   | { type: "sources"; sources: ContextSource[]; truncated: boolean }
