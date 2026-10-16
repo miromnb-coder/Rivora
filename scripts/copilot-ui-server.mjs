@@ -75,7 +75,10 @@ async function respond(req, res) {
 }
 
 http.createServer(async (req, res) => {
-  if (req.url?.startsWith("/api/copilot/stream") && req.method === "POST") {
+  if (req.url === "/__reset" && req.method === "POST") {
+    count.clear();
+    res.writeHead(204); res.end();
+  } else if (req.url?.startsWith("/api/copilot/stream") && req.method === "POST") {
     try { await respond(req, res); }
     catch { if (!res.writableEnded) { res.writeHead(500); res.end(); } }
   } else if (req.url === "/bundle.js") {
