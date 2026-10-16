@@ -137,7 +137,7 @@ export function WorkspaceFrame({
             <PanelIcon kind="close" />
           </button>
         </header>
-        <CopilotConversation locale={locale} />
+        <CopilotConversation locale={locale} paused={copilotDismissed} />
       </aside>
       {support}
       {mobileNavigation}
