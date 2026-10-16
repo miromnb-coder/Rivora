@@ -8,6 +8,7 @@ Continues Phase 4 on PR #115, branch `design/minimal-linen-workspace-copilot-1`.
 - UI updates are grouped to animation frames instead of a React state update for every model token. The final text flushes before the completion or error state is shown.
 - Partial/interrupted assistant turns are retained visually but excluded from future prompt history; only fully completed user/assistant pairs are forwarded.
 - Stopped or failed replies can be retried in place without duplicating the user bubble. New conversation cancels the old stream and ignores stale responses.
+- Closing Copilot or opening the separate AI Support pane aborts any in-flight model stream rather than continuing work invisibly; reopen keeps the local transcript.
 - Users can scroll up to read earlier content without autoscroll forcing them back to the bottom; a compact "Uusimmat viestit / Latest messages" action returns to the latest content.
 - Composer grows with text, respects Enter and Shift+Enter, uses larger touch targets and shows truthful failure/disabled-service text.
 - The Copilot pane remains Linen-canvas without a separate conversation card; Help Center/AI Support remain separate. Includes keyboard focus cues and reduced-motion support.
