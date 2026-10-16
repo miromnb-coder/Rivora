@@ -8,7 +8,7 @@ export function chooseContextQuery(question: string, area: string): ContextQuery
   if (typeof question!=="string" || question.length>1200) return null;
   // One deterministic allowed operation. No model-created queries or tool names.
   const orders=/tilau|työjon|huomiota vaativ|order|work queue|needs attention/i.test(question);
-  if (!orders && area!=="orders") return null;
+  if (!orders) return null; // Never fetch orders for unrelated questions.
   if (area==="orders" && /tarjouspyynnön rivi|rfq line|product match/i.test(question))
     return null; // Reserved for Phase 5.1, no fabricated line analysis.
   const attention=/huomi|urgent|attention|tärkeimm|seuraav|next|priorit/i.test(question);
