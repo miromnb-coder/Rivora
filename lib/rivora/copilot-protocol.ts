@@ -37,7 +37,7 @@ export function normalizeCopilotInput(value: unknown):
 }
 // Self-contained transport validator: Node's native TS test runner must be
 // able to import the protocol without Next.js alias resolution.
-const CASE_HREF = /^\/app\/orders\/case\/(rfq|quote|po|sales)\/([a-f0-9]{8}-[a-f0-9-]{27,})$/i;
+const CASE_HREF = /^\/app\/orders\/case\/(rfq|quote|po|sales)\/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
 function validContextSource(value: unknown): value is ContextSource {
   if (!value || typeof value !== "object") return false;
   const s=value as Record<string,unknown>;
