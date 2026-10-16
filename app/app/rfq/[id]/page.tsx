@@ -298,7 +298,7 @@ export default async function RfqPage({ params }: { params: Promise<{ id: string
             );
 
             return (
-              <article key={line.id} id={`line-${line.id}`} className={`rfq-review-v2-line ${tone} motion-rfq-extraction-flow`}>
+              <article key={line.id} className={`rfq-review-v2-line ${tone} motion-rfq-extraction-flow`}>
                 <div className="rfq-review-v2-source">
                   <div className="rfq-review-v2-line-meta">
                     <span>{text.line} {line.line_number}</span>

@@ -65,10 +65,8 @@ test("2.1 modal restores focus and traps keyboard navigation", () => {
   assert.match(center, /ref=\{dialogRef\}/);
   assert.match(center, /ref=\{launcherRef\}/);
   assert.match(center, /previousFocusRef\.current/);
-  assert.match(center, /useModal\(\{ active: open, panel: dialogRef/);
-  const modal = read("components/workspace/useModal.ts");
-  assert.match(modal, /event\.key !== "Tab"/);
-  assert.match(modal, /event\.key === "Escape"/);
+  assert.match(center, /event\.key !== "Tab"/);
+  assert.match(center, /event\.key === "Escape"/);
   assert.match(center, /returnTo\?\.focus\(\)/);
 });
 
@@ -85,8 +83,7 @@ test("2.1 covers phone and desktop heights and preserves reduced motion", () => 
 test("2.1 polish: welcome has no icon and composer uses one subtle focus border", () => {
   assert.doesNotMatch(prompts, /support-s5-sparkle/);
   assert.equal(styles.includes(".support-s5-sparkle {"), false);
-  assert.ok(styles.includes("border-color: var(--app-control-border);"));
-  assert.ok(styles.includes("outline: 2px solid var(--app-focus);"));
+  assert.ok(styles.includes("border-color: #aead9f;\n  box-shadow: none;"));
   assert.ok(styles.includes("border: 0 !important;"));
   assert.ok(styles.includes("outline: none !important;"));
   assert.ok(styles.includes(".support-ai-form > textarea:focus-visible"));

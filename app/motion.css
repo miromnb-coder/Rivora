@@ -190,7 +190,7 @@ button:disabled,
   height: 4px;
   border-radius: 999px;
   background: currentColor;
-  animation: averomira-dot var(--motion-pending-cycle, 900ms) ease-in-out infinite;
+  animation: averomira-dot 900ms ease-in-out infinite;
 }
 
 .motion-dots > i:nth-child(2) {
@@ -224,11 +224,11 @@ button:disabled,
 }
 
 .motion-rfq-extraction-flow .rfq-review-v2-source {
-  animation: averomira-source-highlight var(--motion-content, 620ms) var(--ease-enter) both;
+  animation: averomira-source-highlight 620ms var(--ease-enter) both;
 }
 
 .motion-rfq-extraction-flow .rfq-review-v2-decision {
-  animation: averomira-decision-enter var(--motion-emphasis) var(--ease-enter) both;
+  animation: averomira-decision-enter var(--motion-emphasis) var(--ease-enter) 110ms both;
 }
 
 .motion-state-badge {
@@ -391,11 +391,11 @@ button:disabled,
 }
 
 .support-center-layer.is-closing .support-center-backdrop {
-  animation: averomira-backdrop-exit var(--motion-exit, 180ms) var(--ease-exit) both;
+  animation: averomira-backdrop-exit 180ms var(--ease-exit) both;
 }
 
 .support-center-layer.is-closing .support-center-panel {
-  animation: averomira-help-panel-exit var(--motion-exit, 180ms) var(--ease-exit) both;
+  animation: averomira-help-panel-exit 180ms var(--ease-exit) both;
   pointer-events: none;
 }
 
@@ -544,56 +544,4 @@ table tbody tr.motion-row-enter {
     min-width: 0;
     max-width: none;
   }
-}
-
-/* Motion 3.2. Public/auth retain their historical root timings above. */
-.app-shell-v2,
-[data-averomira-app-portal] {
-  --motion-instant: 80ms;
-  --motion-fast: 140ms;
-  --motion-base: 180ms;
-  --motion-content: 220ms;
-  --motion-panel: 280ms;
-  --motion-dialog: 320ms;
-  --motion-process: 400ms;
-  --motion-exit: 200ms;
-  --motion-difference: 300ms;
-  --motion-pending-cycle: 900ms;
-  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --motion-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
-  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
-  --motion-ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
-  --motion-emphasis: var(--motion-panel);
-  --motion-data: var(--motion-content);
-  --ease-standard: var(--motion-ease-standard);
-  --ease-enter: var(--motion-ease-enter);
-  --ease-exit: var(--motion-ease-exit);
-  --ease-soft: var(--motion-ease-soft);
-}
-.app-shell-v2 :is(button,a):hover { transform: none; }
-.app-shell-v2 button:active { transform: none; transition-duration: var(--motion-instant); }
-.app-shell-v2 .app-sidebar-v2-link { transition: background-color var(--motion-fast) var(--motion-ease-standard), color var(--motion-fast) var(--motion-ease-standard); }
-.app-shell-v2 .app-sidebar-v2-link.is-active { transition-duration: var(--motion-base); }
-.app-shell-v2 :is(.app-search-popover,.app-sidebar-account-menu) { animation: workspace-popover var(--motion-base) var(--motion-ease-enter); }
-.app-shell-v2 .app-page-v2 { animation: workspace-content var(--motion-content) var(--motion-ease-enter); }
-.app-shell-v2 .sales-copilot[data-phase="opening"] { animation: workspace-panel-enter var(--motion-panel) var(--motion-ease-enter); }
-.app-shell-v2 .sales-copilot[data-phase="closing"] { animation: workspace-panel-exit var(--motion-exit) var(--motion-ease-exit) forwards; pointer-events: none; }
-.app-shell-v2 .sales-copilot-message.is-user { animation: workspace-user-message var(--motion-base) var(--motion-ease-enter); }
-.app-shell-v2 .sales-copilot-message.is-assistant { animation: workspace-answer var(--motion-content) var(--motion-ease-enter); }
-.app-shell-v2 .app-sidebar-v2.is-mobile-open { animation: workspace-content var(--motion-panel) var(--motion-ease-enter); }
-.app-shell-v2 .support-center-panel { animation-duration: var(--motion-dialog); }
-.app-shell-v2 :is(.dashboard-kpi-item strong,.dashboard-attention-count,.memory-app-v2-row) { animation: none; }
-.app-shell-v2 .motion-rfq-extraction-flow { animation: workspace-answer var(--motion-content) var(--motion-ease-enter); }
-.app-shell-v2 .averomira-toast { animation: workspace-toast var(--motion-content) var(--motion-ease-enter); }
-@keyframes workspace-popover { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@keyframes workspace-content { from { opacity: .85; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@keyframes workspace-panel-enter { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
-@keyframes workspace-panel-exit { to { opacity: 0; transform: translateX(12px); } }
-@keyframes workspace-user-message { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@keyframes workspace-answer { from { opacity: 0; } to { opacity: 1; } }
-@keyframes workspace-toast { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) {
-  :is(.app-shell-v2,[data-averomira-app-portal]) *,
-  :is(.app-shell-v2,[data-averomira-app-portal]) *::before,
-  :is(.app-shell-v2,[data-averomira-app-portal]) *::after { animation: none; transition: none; scroll-behavior: auto; }
 }

@@ -1,4 +1,3 @@
-import { activeWorkspaceItem } from "../lib/workspace-navigation.ts";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -167,8 +166,7 @@ test("RFQ Review renders remembered mapping provenance without bypassing review"
 test("Smart Memory remains reachable from the Settings page", () => {
   assert.match(settingsPage, /"Älykäs muisti"/);
   assert.match(settingsPage, /"\/app\/memory"/);
-  assert.match(appNav, /activeWorkspaceItem/);
-  assert.equal(activeWorkspaceItem("/app/memory", null, ""), "settings");
+  assert.match(appNav, /pathname === "\/app\/memory"/);
 });
 
 test("M3 does not relax the M2 verified-only reuse rule", () => {

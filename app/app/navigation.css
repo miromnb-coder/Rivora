@@ -1,301 +1,38 @@
-/* Workspace 3.2: one authenticated theme, including explicitly owned portals. */
-.app-shell-v2,
-[data-averomira-app-portal] {
-  --app-bg: #FAF6F2;
-  --app-surface: #FFFFFF;
-  --app-soft: #FFFCF9;
-  --app-selected: #F1EBE6;
-  --app-hover: #F5F0EB;
-  --app-outer-border: #EDE6DF;
-  --app-line: #E8E1DC;
-  --app-line-strong: #D8CDC5;
-  --app-control-border: #8D7B6D;
-  --app-ink: #24211F;
-  --app-body: #3B3531;
-  --app-muted: #625B56;
-  --app-caption: #746E6A;
-  --app-user-bubble: #F1E7E0;
-  --app-field: #FFFEFC;
-  --app-focus: #705A4A;
-  --app-success: #256B4D;
-  --app-success-bg: #EDF6F0;
-  --app-warning: #8A5A16;
-  --app-warning-bg: #FFF4DE;
-  --app-danger: #A14343;
-  --app-danger-bg: #FFF0EF;
-  --app-info: #365B75;
-  --app-info-bg: #EBF3F8;
-  --app-neutral: #625B56;
-  --app-neutral-bg: #F1EBE6;
-  /* Compatibility names used by existing pages, never a second palette. */
-  --app-paper: var(--app-surface);
-  --app-soft-2: var(--app-soft);
-  --panel: var(--app-surface);
-  --green-dark: var(--app-success);
-  --green-soft: var(--app-success-bg);
-  --amber: var(--app-warning);
-  --amber-soft: var(--app-warning-bg);
-  --red: var(--app-danger);
-  --red-soft: var(--app-danger-bg);
-  --app-mocha-hover: var(--app-body);
-  --app-button-text: var(--app-surface);
-  --app-border-strong: var(--app-line-strong);
-  --app-button-border: var(--app-control-border);
-  --app-shadow: none;
-  --app-radius-sm: 8px;
-  --app-radius-md: 9px;
-  --app-radius-lg: 12px;
-  --app-control-h: 44px;
-  --app-border: var(--app-line);
-  --app-input-border: var(--app-control-border);
-  --app-brand: var(--app-focus);
-  --app-mocha: var(--app-focus);
-  --app-tertiary: var(--app-caption);
-  --ink: var(--app-ink);
-  --muted: var(--app-muted);
-  --line: var(--app-line);
-  --wash: var(--app-bg);
-  --green: var(--app-success);
-  color: var(--app-body);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 14px;
-  line-height: 1.55;
+/* Navigation-only styles scoped to the authenticated workspace. */
+@media (min-width: 1024px) {
+  .app-shell-v2 .app-sidebar-v2-link.is-active {
+    box-shadow: inset 3px 0 0 var(--app-brand) !important;
+  }
 }
-.app-shell-v2, .app-shell-v2 *, [data-averomira-app-portal], [data-averomira-app-portal] * { box-sizing: border-box; }
-.app-shell-v2 {
-  --workspace-nav: 232px;
-  display: grid;
-  grid-template-columns: var(--workspace-nav) minmax(0, 1fr);
-  gap: 0 16px;
-  padding-right: 16px;
-  width: 100%; min-width: 0;
-  height: auto; min-height: 100dvh; overflow: visible;
-  background: var(--app-bg);
+.app-shell-v2 .app-sidebar-v2-link.is-pending { color: var(--app-ink) !important; }
+.app-shell-v2 .app-nav-pending-dot {
+  flex: 0 0 8px; width: 8px; height: 8px;
+  border: 2px solid var(--app-brand); border-top-color: transparent;
+  border-radius: 50%; background: transparent;
+  animation: app-navigation-wait .75s linear infinite;
 }
-.app-shell-v2.is-sidebar-collapsed { --workspace-nav: 68px; }
-.app-shell-v2[data-shell-mode="desktop"].is-copilot-open {
-  grid-template-columns: var(--workspace-nav) minmax(0, 1fr) var(--workspace-rail);
-  padding-right: 0;
+@keyframes app-navigation-wait { to { transform: rotate(360deg); } }
+.app-shell-v2 .app-route-location {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+  width: min(1200px, calc(100% - 64px)); margin: 0 auto;
+  padding-top: 22px; color: var(--app-muted); font-size: 12px;
+  font-weight: 600; line-height: 1.5;
 }
-.app-shell-v2 .app-main-v2 {
-  grid-column: 2; grid-row: 1;
-  align-self: start; min-width: 0;
-  height: auto; min-height: calc(100dvh - 24px);
-  margin: 12px 0;
-  border: 1px solid var(--app-outer-border);
-  border-radius: 0 16px 16px 0;
-  overflow: visible;
-  background: var(--app-surface);
+.app-shell-v2 .app-route-location a {
+  color: var(--app-muted); text-decoration: underline; text-underline-offset: 3px;
 }
-.app-shell-v2 .app-workspace-toolbar {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
-  min-height: 70px; padding: 12px 32px;
-  border-bottom: 1px solid var(--app-line);
+.app-shell-v2 .app-route-location a:hover,
+.app-shell-v2 .app-route-location [aria-current="page"] { color: var(--app-ink); }
+.app-shell-v2 .app-route-location-divider { color: var(--app-brand); }
+.app-shell-v2 .app-route-location + .app-page-v2 { padding-top: 20px; }
+@media (max-width: 1023px) {
+  .app-shell-v2 .app-route-location { width: calc(100% - 32px); padding-top: 15px; }
+  .app-shell-v2 .app-route-location + .app-page-v2 { padding-top: 15px; }
+  .app-shell-v2 .app-mobile-bottom-nav .app-sidebar-v2-link.is-active {
+    box-shadow: inset 0 -3px 0 var(--app-brand) !important;
+  }
+  .app-shell-v2 .app-mobile-bottom-nav .app-nav-label { font-size: 10px !important; }
 }
-.app-workspace-toolbar-context { flex: 1; min-width: 0; }
-.app-route-location { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--app-muted); font-size: 12px; }
-.app-route-location a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.app-route-location [aria-current] { color: var(--app-ink); }
-.app-content-v2 { container: workspace-content / inline-size; min-width: 0; padding: 32px 32px 48px; }
-.app-content-v2 .app-page-v2 { width: 100%; max-width: none; margin: 0; padding: 0; min-width: 0; }
-.app-shell-v2 .app-page-v2 :is(h1,h2,h3) { color: var(--app-ink); }
-.app-shell-v2 .app-page-v2 h1, .app-shell-v2 .app-page-v2 > header h1 { font-size: 28px; font-weight: 700; line-height: 1.25; }
-.app-shell-v2 .app-page-v2 h2 { font-size: 20px; font-weight: 600; }
-.app-shell-v2 .app-page-v2 h3 { font-size: 16px; font-weight: 600; }
-.app-shell-v2 .app-page-v2 :is(header,section,form,article,div) { min-width: 0; }
-.app-shell-v2 .app-page-v2 :is(h1,h2,h3,p,a,b,strong,small,code,td,th) { overflow-wrap: anywhere; }
-.app-shell-v2 .app-page-v2 :is(input,select,textarea) { max-width: 100%; }
-.app-shell-v2 :is(.btn-primary,.btn-secondary,.upload-v2-primary-btn,.upload-v2-secondary-btn,.products-v2-primary,.inbox-v2-primary) {
-  display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; min-height: 44px; border-radius: 8px; font-size: 14px; font-weight: 600;
+@media (prefers-reduced-motion: reduce) {
+  .app-shell-v2 .app-nav-pending-dot { animation: none; }
 }
-.app-shell-v2 :is(.btn-primary,.upload-v2-primary-btn,.products-v2-primary,.inbox-v2-primary) { background: var(--app-ink); border: 1px solid var(--app-ink); color: white; }
-.app-shell-v2 :is(.btn-primary,.upload-v2-primary-btn,.products-v2-primary,.inbox-v2-primary):hover { background: var(--app-body); color: white; }
-.app-shell-v2 :is(.btn-secondary,.upload-v2-secondary-btn) { background: var(--app-surface); color: var(--app-ink); border: 1px solid var(--app-control-border); }
-.app-shell-v2 :is(.btn-secondary,.upload-v2-secondary-btn):hover { background: var(--app-hover); }
-.app-shell-v2 :is(button,input,select,textarea) { font-family: inherit; }
-.app-shell-v2 :is(button,a,input,select,textarea):disabled { cursor: not-allowed; }
-.app-shell-v2 :is(td,th,.dashboard-kpi-item strong,.orders-case-table-row > strong) { font-variant-numeric: tabular-nums; }
-/* Semantic tables retain all columns in a bounded horizontal scroller. */
-.app-shell-v2 :is(.table-wrap,.table-scroll,.quote-builder-v1-table-wrap,.workspace-table-scroll) { max-width: 100%; overflow-x: auto; }
-/* Quote fields follow their own column, including when Copilot is closed. */
-.app-shell-v2 .quote-builder-v1-grid > main { min-width: 0; container: quote-lines / inline-size; }
-.app-shell-v2 .quote-builder-v1-header-form { grid-template-columns: minmax(0, 1fr); }
-/* Block labels keep WebKit's native select contents inside the field. */
-.app-shell-v2 .quote-builder-v1-header-form label { display: block; }
-.app-shell-v2 .quote-builder-v1-header-form label > span { display: block; margin-bottom: 7px; }
-.app-shell-v2 .quote-builder-v1-header-form :is(input,select,textarea) { min-width: 0; width: 100%; }
-@container quote-lines (width < 680px) {
-  .quote-builder-v1-line-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@container quote-lines (width < 400px) {
-  .quote-builder-v1-line-form { grid-template-columns: minmax(0, 1fr); }
-}
-
-/* Navigation: fixed brand/search and account, a genuinely flexible link region. */
-.app-shell-v2 .app-sidebar-v2 {
-  grid-column: 1; grid-row: 1; position: sticky; top: 0; align-self: start;
-  display: flex; flex-direction: column; gap: 0;
-  height: 100dvh; min-height: 0; min-width: 0; padding: 24px 16px 16px;
-  background: var(--app-surface); border: 0; border-radius: 0;
-  z-index: 30; overflow: visible;
-}
-.app-sidebar-v2-top { flex: 0 0 auto; }
-.app-sidebar-v2-brand { display: flex; align-items: center; min-height: 32px; color: var(--app-ink); text-decoration: none; }
-.app-sidebar-v2-brand .nodra-wordmark { font-size: 17px; font-weight: 700; gap: 8px; }
-.app-sidebar-v2-brand .averomira-brand-symbol { display: flex; width: 24px; height: 24px; }
-.app-sidebar-v2-brand .averomira-brand-symbol svg { width: 24px; height: 24px; }
-.app-sidebar-v2-product { margin-top: 2px; color: var(--app-muted); font-size: 12px; }
-.app-workspace-search { position: relative; flex: 0 0 auto; margin: 24px 0 8px; }
-.app-search-trigger { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--app-control-border); border-radius: 10px; background: var(--app-field); color: var(--app-muted); font: inherit; cursor: pointer; }
-.app-search-trigger span { flex: 1; text-align: left; font-size: 12px; }
-.app-search-trigger kbd { border-radius: 4px; padding: 2px; background: var(--app-selected); font-size: 10px; white-space: nowrap; }
-.app-search-popover { position: absolute; top: calc(100% + 8px); left: 0; z-index: 150; width: min(320px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 10px; border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-surface); box-shadow: 0 12px 32px #24211f20; }
-.app-search-popover input { width: 100%; min-height: 44px; padding: 10px; }
-.app-search-results { max-height: min(45dvh, 370px); overflow-y: auto; padding: 4px; }
-.app-search-results button { display: block; width: 100%; min-height: 44px; border: 0; border-radius: 8px; background: transparent; padding: 8px; color: var(--app-ink); text-align: left; font: inherit; cursor: pointer; }
-.app-search-results button:hover, .app-search-results button:focus-visible { background: var(--app-hover); }
-.app-nav-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 4px; margin: 0 -4px; }
-.app-sidebar-v2-nav { display: grid; grid-auto-rows: max-content; gap: 0; }
-.app-nav-entry { min-width: 0; }
-.app-nav-group-title { padding: 16px 10px 6px; color: var(--app-caption); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
-.app-sidebar-v2-link { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 8px 10px; border: 0; border-radius: 9px; background: transparent; color: var(--app-muted); font-size: 14px; font-weight: 500; text-decoration: none; }
-.app-nav-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.app-nav-icon, .app-nav-icon svg { display: block; flex: 0 0 19px; width: 19px; height: 19px; }
-.app-nav-label { white-space: normal; overflow-wrap: anywhere; }
-.app-sidebar-v2-link:hover { background: var(--app-hover); color: var(--app-ink); }
-.app-sidebar-v2-link.is-active { background: var(--app-selected); color: var(--app-ink); font-weight: 600; }
-.app-nav-pending-dot { width: 6px; height: 6px; background: var(--app-focus); border-radius: 50%; }
-.app-nav-tooltip { display: none; }
-.app-sidebar-v2-account { position: relative; flex: 0 0 auto; margin-top: auto; padding-top: 12px; }
-.app-sidebar-account-trigger { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 54px; padding: 4px; border: 0; border-radius: 9px; background: transparent; color: var(--app-ink); font: inherit; text-align: left; cursor: pointer; }
-.app-sidebar-account-trigger:hover, .app-sidebar-account-trigger[aria-expanded="true"] { background: var(--app-selected); }
-.app-account-avatar { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; background: var(--app-user-bubble); font-weight: 700; }
-.app-account-summary { display: grid; gap: 2px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.app-account-summary strong { font-size: 12px; font-weight: 600; }
-.app-account-summary small { color: var(--app-muted); font-size: 12px; }
-.app-sidebar-account-menu { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 150; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 16px; border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-surface); box-shadow: 0 12px 32px #24211f20; overflow-wrap: anywhere; }
-.app-sidebar-v2-account-label { font-size: 11px; color: var(--app-muted); }
-.app-sidebar-v2-account-name { font-weight: 600; }
-.app-sidebar-v2-role, .app-sidebar-v2-email { font-size: 12px; }
-.app-sidebar-account-menu > a { display: block; padding-block: 12px; color: var(--app-ink); text-decoration: underline; }
-.app-sidebar-v2-signout { width: 100%; min-height: 44px; border: 1px solid var(--app-control-border); border-radius: 8px; background: var(--app-surface); color: var(--app-ink); margin-top: 12px; cursor: pointer; }
-.app-shell-v2:is([data-shell-mode="desktop"],[data-shell-mode="overlay"]).is-sidebar-collapsed .app-sidebar-v2 { padding-inline: 12px; }
-.app-shell-v2:is([data-shell-mode="desktop"],[data-shell-mode="overlay"]).is-sidebar-collapsed :is(.averomira-wordmark-text,.app-sidebar-v2-product,.app-nav-label,.app-nav-group-title,.app-search-trigger span,.app-search-trigger kbd,.app-account-summary,.app-account-chevron) { display: none; }
-.app-shell-v2:is([data-shell-mode="desktop"],[data-shell-mode="overlay"]).is-sidebar-collapsed :is(.app-sidebar-v2-brand,.app-search-trigger,.app-sidebar-v2-link,.app-sidebar-account-trigger) { justify-content: center; padding-inline: 0; }
-.app-shell-v2:is([data-shell-mode="desktop"],[data-shell-mode="overlay"]).is-sidebar-collapsed .app-sidebar-account-trigger { min-height: 44px; }
-.app-shell-v2.is-sidebar-collapsed .app-nav-tooltip { position: fixed; left: 76px; z-index: 200; padding: 6px 10px; border: 1px solid var(--app-line); border-radius: 8px; background: var(--app-surface); color: var(--app-ink); font-size: 12px; pointer-events: none; }
-.app-shell-v2.is-sidebar-collapsed .app-sidebar-v2-link:is(:hover,:focus-visible) .app-nav-tooltip { display: block; }
-.app-shell-v2:is([data-shell-mode="desktop"],[data-shell-mode="overlay"]).is-sidebar-collapsed :is(.app-search-popover,.app-sidebar-account-menu) { left: calc(100% + 12px); }
-.app-sidebar-toggle, .app-mobile-menu-button, .app-mobile-search-button, .app-mobile-menu-close, .app-tablet-menu-button { display: grid; place-items: center; flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--app-ink); cursor: pointer; }
-.app-sidebar-toggle:hover { background: var(--app-hover); }
-.app-copilot-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--app-control-border); border-radius: 8px; background: var(--app-surface); color: var(--app-ink); font: inherit; font-weight: 600; cursor: pointer; }
-.app-copilot-trigger:hover, .app-copilot-trigger[aria-expanded="true"] { background: var(--app-selected); }
-.app-shell-v2 :is(.app-mobile-topbar,.app-mobile-menu-close,.app-tablet-menu-button,.app-mobile-menu-backdrop) { display: none; }
-.app-shell-v2.is-copilot-open .support-launcher { visibility: hidden; pointer-events: none; }
-
-/* Copilot has no outer conversation card. Header, history and composer own height. */
-.app-shell-v2 .sales-copilot { position: fixed; inset: 0 0 auto auto; z-index: 100; display: flex; flex-direction: column; width: min(400px, calc(100% - 32px)); top: var(--copilot-visible-top, 0px); height: var(--copilot-visible-height, 100dvh); min-height: 0; min-width: 0; border: 0; background: var(--app-bg); color: var(--app-body); }
-.app-shell-v2[data-shell-mode="desktop"] .sales-copilot { grid-column: 3; grid-row: 1; position: sticky; top: 0; align-self: start; width: auto; }
-.sales-copilot-header { display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; gap: 8px; min-height: 76px; padding: 12px 20px; }
-.sales-copilot-header h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--app-ink); }
-.sales-copilot-context { margin-top: 4px; font-size: 12px; color: var(--app-muted); }
-.sales-copilot-header-actions { display: flex; flex: 0 0 auto; }
-.sales-copilot-header-actions button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--app-muted); cursor: pointer; }
-.sales-copilot-header-actions button:hover { background: var(--app-hover); }
-.sales-copilot-scroll { flex: 1 1 auto; min-height: 0; padding: 20px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; overflow-wrap: anywhere; }
-.sales-copilot-verified { margin-bottom: 24px; color: var(--app-muted); font-size: 12px; }
-.sales-copilot-intro h3 { font-size: 17px; font-weight: 600; margin: 0; }
-.sales-copilot-intro p { margin: 8px 0 24px; font-size: 14px; line-height: 1.55; color: var(--app-muted); }
-.sales-copilot-intro > span { font-size: 11px; font-weight: 700; }
-.sales-copilot-intro button { display: flex; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--app-control-border); border-radius: 9px; background: var(--app-soft); color: var(--app-body); font: inherit; text-align: left; cursor: pointer; }
-.sales-copilot-message { max-width: 100%; margin: 0 0 24px; padding: 0; border: 0; border-radius: 0; background: transparent; }
-.sales-copilot-message.is-user { max-width: 88%; margin-left: auto; padding: 12px; border-radius: 14px; background: var(--app-user-bubble); color: var(--app-ink); }
-.sales-copilot-message > span { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--app-muted); }
-.sales-copilot-message.is-user > span { display: none; }
-.sales-copilot-message p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.55; }
-.sales-copilot-message time { display: block; margin-top: 6px; text-align: right; font-size: 12px; color: var(--app-caption); }
-.sales-copilot-message small { display: block; margin-top: 8px; font-size: 12px; }
-.sales-copilot-message-actions, .sales-copilot-sources { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.sales-copilot-message-actions button, .sales-copilot-sources button, .sales-copilot-latest { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; border: 0; border-radius: 8px; padding: 8px; background: transparent; color: var(--app-muted); font: inherit; font-size: 12px; cursor: pointer; }
-.sales-copilot-message-actions button:hover, .sales-copilot-sources button:hover { background: var(--app-selected); }
-.sales-copilot-sources button { text-decoration: underline; color: var(--app-ink); }
-.sales-copilot-status { color: var(--app-muted); font-size: 13px; }
-.sales-copilot-error { color: var(--app-danger); font-size: 13px; }
-.sales-copilot-bottom { flex: 0 0 auto; padding: 12px 20px calc(16px + env(safe-area-inset-bottom)); background: var(--app-bg); }
-.sales-copilot-bottom form { position: relative; min-height: 64px; border: 1px solid var(--app-control-border); border-radius: 13px; background: var(--app-field); }
-.app-shell-v2 .sales-copilot-bottom textarea { display: block; width: 100%; min-height: 62px; max-height: 148px; resize: none; overflow-y: auto; padding: 12px 56px 12px 12px; border: 0; border-radius: 13px; background: transparent; color: var(--app-body); font: inherit; font-size: 14px; line-height: 1.55; }
-.sales-copilot-bottom form button { position: absolute; bottom: 8px; right: 6px; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 8px; background: var(--app-ink); color: white; cursor: pointer; }
-.sales-copilot-bottom form button:disabled { opacity: .5; cursor: not-allowed; }
-.sales-copilot-bottom > p { margin: 8px 0 0; color: var(--app-muted); font-size: 12px; text-align: center; }
-.sales-copilot-latest { width: 100%; justify-content: center; margin-bottom: 8px; background: var(--app-selected); color: var(--app-ink); }
-.sales-copilot-backdrop, .app-shell-v2 .app-mobile-menu-backdrop { position: fixed; inset: 0; z-index: 90; border: 0; background: #24211f40; }
-.app-shell-v2[data-shell-mode="desktop"] .sales-copilot-backdrop { display: none; }
-.copilot-line-highlight { outline: 2px solid var(--app-focus); outline-offset: 2px; }
-
-.app-shell-v2:is([data-shell-mode="mobile"],[data-shell-mode="tablet"]) { grid-template-columns: minmax(0, 1fr); padding: 0 16px; }
-.app-shell-v2:is([data-shell-mode="mobile"],[data-shell-mode="tablet"]) .app-main-v2 { grid-column: 1; border-radius: 16px; }
-.app-shell-v2:is([data-shell-mode="mobile"],[data-shell-mode="tablet"]) .app-sidebar-v2 { display: none; }
-.app-shell-v2:is([data-shell-mode="mobile"],[data-shell-mode="tablet"]) .app-sidebar-v2.is-mobile-open { display: flex; position: fixed; inset: 0 auto auto 0; width: min(280px, calc(100% - 32px)); height: 100dvh; z-index: 110; }
-.app-shell-v2:is([data-shell-mode="mobile"],[data-shell-mode="tablet"]) .app-mobile-menu-backdrop { display: block; }
-.app-shell-v2:is([data-shell-mode="mobile"],[data-shell-mode="tablet"]) .app-mobile-menu-close { display: grid; position: absolute; right: 4px; top: 4px; }
-.app-shell-v2:is([data-shell-mode="mobile"],[data-shell-mode="tablet"]) .app-sidebar-toggle { display: none; }
-.app-shell-v2[data-shell-mode="tablet"] .app-tablet-menu-button { display: grid; }
-.app-shell-v2[data-shell-mode="mobile"] { display: block; padding: 0; }
-.app-shell-v2[data-shell-mode="mobile"] .app-mobile-topbar { display: flex; align-items: center; gap: 8px; min-height: 60px; padding: calc(8px + env(safe-area-inset-top)) 12px 8px; background: var(--app-bg); }
-.app-mobile-brand { flex: 1; min-width: 0; color: var(--app-ink); text-decoration: none; }
-.app-mobile-brand .nodra-wordmark { font-size: 16px; }
-.app-mobile-brand .averomira-brand-symbol { width: 24px; height: 24px; }
-.app-shell-v2[data-shell-mode="mobile"] .app-mobile-search-button { display: none; }
-.app-shell-v2[data-shell-mode="mobile"] .app-main-v2 { margin: 0; border-radius: 0; min-height: calc(100dvh - 60px); }
-.app-shell-v2[data-shell-mode="mobile"] .app-workspace-toolbar { padding-inline: 16px; min-height: 60px; }
-.app-shell-v2[data-shell-mode="mobile"] .app-workspace-toolbar .app-copilot-trigger { display: none; }
-.app-shell-v2[data-shell-mode="mobile"] .app-content-v2 { padding: 32px 16px 48px; }
-.app-shell-v2[data-shell-mode="mobile"] .sales-copilot { width: 100%; }
-.app-shell-v2[data-shell-mode="mobile"] .sales-copilot-header { padding-top: calc(12px + env(safe-area-inset-top)); }
-.app-shell-v2[data-shell-mode="mobile"] :is(input,select,textarea) { font-size: 16px; }
-.app-shell-v2[data-shell-mode="mobile"] .sales-copilot-backdrop { display: none; }
-@media (max-height: 600px) {
-  .app-shell-v2 .app-sidebar-v2 { padding-top: 12px; padding-bottom: 8px; }
-  .app-workspace-search { margin-top: 12px; }
-  .app-nav-group-title { padding-top: 8px; }
-  .app-sidebar-v2-account { padding-top: 4px; }
-}
-@media (max-height: 350px) {
-  .app-shell-v2 .app-sidebar-v2 { overflow-y: auto; }
-  .app-nav-scroll { flex-shrink: 0; overflow: visible; }
-  .app-sidebar-account-menu { position: fixed; inset: 8px auto auto 8px; }
-  .app-shell-v2 .sales-copilot { overflow-y: auto; }
-  .sales-copilot-scroll { flex-shrink: 0; min-height: 64px; }
-  .sales-copilot-header { min-height: 56px; padding-block: 4px; }
-  .sales-copilot-bottom { padding-block: 4px; }
-}
-@container workspace-content (width < 680px) {
-  .orders-case-table-header { display: none; }
-  .orders-case-table-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding: 16px; min-height: 64px; }
-  .orders-case-table-row > div:first-child { grid-column: 1 / -1; }
-  .orders-case-table-row > div:first-child span { display: block; }
-  .orders-case-table-row > span:nth-child(2) { display: none; }
-  .app-page-v2 [class*="grid-cols-"], .products-v2-row, .quotes-v1-row, .nodra-customer-row, .customers-create-form, .quote-builder-v1-grid, .rfq-review-v2-grid, .product-page-grid, .settings-connection-grid { grid-template-columns: minmax(0, 1fr); }
-  .rfq-review-v2-line { grid-template-columns: minmax(0, 1fr); }
-  .quote-builder-v1-summary, .rfq-review-v2-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .quote-builder-v1-summary > div:nth-child(odd), .rfq-review-v2-summary > div:nth-child(odd) { border-left: 0; padding-left: 0; }
-  .quote-builder-v1-summary > div:nth-child(n+3), .rfq-review-v2-summary > div:nth-child(n+3) { border-top: 1px solid var(--app-line); }
-  .products-v2-summary, .quotes-v1-summary, .dashboard-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@container workspace-content (width < 400px) {
-  .quote-builder-v1-summary, .rfq-review-v2-summary { grid-template-columns: minmax(0, 1fr); }
-  .quote-builder-v1-summary > div + div, .rfq-review-v2-summary > div + div { border-left: 0; border-top: 1px solid var(--app-line); padding-left: 0; }
-}
-@container workspace-content (width < 560px) {
-  .product-page-head, .products-v2-head, .quotes-v1-head, .app-page-v2 > header, .orders-case-filters, .orders-case-filter-row, .orders-case-toolbar, .products-v2-toolbar, .customers-v2-toolbar, .inbox-v2-toolbar, .quote-builder-v1-stage-actions, .rfq-review-v2-actions { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
-  .orders-case-table-row { grid-template-columns: minmax(0, 1fr); }
-  .orders-case-table-row > * { grid-column: 1; }
-  .products-v2-summary, .quotes-v1-summary, .dashboard-kpi-grid, .dashboard-overview-grid { grid-template-columns: minmax(0,1fr); }
-}
-
-/* Enlarged mobile text must reflow even when the host's system font is wider. */
-.app-shell-v2[data-shell-mode="mobile"] .app-mobile-brand .nodra-wordmark { min-width: 0; white-space: normal; flex-wrap: wrap; }
-.app-shell-v2[data-shell-mode="mobile"] .app-mobile-brand .averomira-wordmark-text { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
-.app-shell-v2[data-shell-mode="mobile"] .app-mobile-topbar .app-copilot-trigger { min-width: 0; max-width: 50%; flex: 0 1 auto; }
-.app-shell-v2[data-shell-mode="mobile"] .app-mobile-topbar .app-copilot-trigger > span { min-width: 0; overflow-wrap: anywhere; }
-.app-shell-v2[data-shell-mode="mobile"] .app-mobile-topbar .app-copilot-icon { flex-shrink: 0; }

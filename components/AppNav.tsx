@@ -2,11 +2,38 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
-import { activeWorkspaceItem } from "@/lib/workspace-navigation";
+type NavItem = readonly [label: string, href: string, id: string];
+type SubItem = readonly [label: string, href: string];
 
-export type NavItem = readonly [label: string, href: string, id: string, group: "main" | "process" | "manage"];
+function isItemActive(pathname: string, href: string, id: string) {
+  if (id === "dashboard") return pathname === "/app";
+
+  if (id === "orders") {
+    return (
+      pathname === "/app/orders" ||
+      pathname.startsWith("/app/orders/") ||
+      pathname.startsWith("/app/inbox") ||
+      pathname.startsWith("/app/rfq/") ||
+      pathname.startsWith("/app/quotes") ||
+      pathname.startsWith("/app/purchase-orders") ||
+      pathname.startsWith("/app/sales-orders") ||
+      pathname === "/app/upload" ||
+      pathname.startsWith("/app/templates")
+    );
+  }
+
+  if (id === "settings") {
+    return (
+      pathname === "/app/settings" ||
+      pathname.startsWith("/app/settings/") ||
+      pathname === "/app/memory"
+    );
+  }
+
+  return pathname === href || pathname.startsWith(href + "/");
+}
 
 function NavIcon({ id }: { id: string }) {
   const common = {
@@ -15,7 +42,7 @@ function NavIcon({ id }: { id: string }) {
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 1.8,
+    strokeWidth: 1.95,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true,
@@ -24,30 +51,35 @@ function NavIcon({ id }: { id: string }) {
   if (id === "dashboard") {
     return (
       <svg {...common}>
-        <path d="m3.5 10 8.5-7 8.5 7v9.2a1.3 1.3 0 0 1-1.3 1.3h-4.4v-7h-5.6v7H4.8a1.3 1.3 0 0 1-1.3-1.3Z" />
+        <circle cx="7" cy="7" r="2.25" />
+        <circle cx="17" cy="7" r="2.25" />
+        <circle cx="7" cy="17" r="2.25" />
+        <circle cx="17" cy="17" r="2.25" />
       </svg>
     );
   }
 
-  if (["orders", "rfq", "quotes"].includes(id)) {
+  if (id === "orders") {
     return (
       <svg {...common}>
-        <path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" />
-        <path d="M14 3.5V8h4M8 12h7M8 16h7" />
+        <rect x="4" y="7.5" width="16" height="12" rx="3" />
+        <path d="M8.5 7.5V5.8c0-1 .8-1.8 1.8-1.8h3.4c1 0 1.8.8 1.8 1.8v1.7" />
       </svg>
     );
   }
 
-  if (id === "products") {
+  if (id === "leads") {
     return (
       <svg {...common}>
-        <path d="m12 2.7 8 4.5v9.6l-8 4.5-8-4.5V7.2Z" />
-        <path d="m4.2 7.3 7.8 4.6 7.8-4.6M12 11.9v9.2" />
+        <path d="M5 6.5h14" />
+        <path d="M5 11.5h9" />
+        <path d="M5 16.5h7" />
+        <circle cx="18" cy="16.5" r="2" />
       </svg>
     );
   }
 
-  if (["customers", "team"].includes(id)) {
+  if (id === "customers") {
     return (
       <svg {...common}>
         <circle cx="12" cy="8" r="3" />
@@ -56,16 +88,14 @@ function NavIcon({ id }: { id: string }) {
     );
   }
 
-  if (id === "reviews") {
+  if (id === "products") {
     return (
       <svg {...common}>
-        <circle cx="12" cy="12" r="9" /><path d="m8 12 2.7 2.7L16 9" />
+        <rect x="4" y="7" width="16" height="13" rx="3" />
+        <path d="M8 7V5.8C8 4.8 8.8 4 9.8 4h4.4c1 0 1.8.8 1.8 1.8V7" />
       </svg>
     );
   }
-  if (id === "erp") return <svg {...common}><path d="M20 7V3l-3 3a8 8 0 0 0-13 4M4 17v4l3-3a8 8 0 0 0 13-4" /><path d="M20 3v5h-5M4 21v-5h5" /></svg>;
-  if (id === "tasks") return <svg {...common}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="m8 12 2.5 2.5L16 9" /></svg>;
-  if (id === "leads") return <svg {...common}><path d="M5 6h14M5 11h12M5 16h8" /><circle cx="17" cy="17" r="2" /></svg>;
 
   return (
     <svg {...common}>
@@ -75,59 +105,33 @@ function NavIcon({ id }: { id: string }) {
   );
 }
 
-export function AppNav({ items, compact = false, collapsed = false, locale = "fi" }: {
+export function AppNav({ items, compact = false, locale = "fi" }: {
   items: readonly NavItem[];
   compact?: boolean;
-  collapsed?: boolean;
   locale?: "fi" | "en";
 }) {
   const pathname = usePathname();
-  const view = useSearchParams().get("view");
-  const [hash, setHash] = useState("");
-  useEffect(() => {
-    const update = () => setHash(window.location.hash);
-    update();
-    const navigate = (event: Event) => {
-      const href = (event as CustomEvent<{ href: string }>).detail?.href;
-      if (href) setHash(new URL(href, window.location.origin).hash);
-    };
-    window.addEventListener("averomira:workspace-navigation", navigate);
-    window.addEventListener("hashchange", update);
-    window.addEventListener("popstate", update);
-    return () => { window.removeEventListener("averomira:workspace-navigation", navigate); window.removeEventListener("hashchange", update); window.removeEventListener("popstate", update); };
-  }, [pathname]);
-  const activeId = activeWorkspaceItem(pathname, view, hash);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
-  useEffect(() => { setPendingHref(null); }, [pathname, view, hash]);
-  const visible = compact ? items.filter(([, , id]) => ["dashboard", "orders", "rfq", "products", "customers"].includes(id)) : items;
-  let lastGroup = "";
+  useEffect(() => { setPendingHref(null); }, [pathname]);
   return (
     <nav className={"app-sidebar-v2-nav" + (compact ? " is-compact" : "")}
       aria-label={locale === "fi" ? "Sovelluksen päävalikko" : "Application main navigation"}>
-      {visible.map(([label, href, id, group]) => {
-        const groupHeading = !compact && group !== lastGroup ? (group === "process" ? (locale === "fi" ? "Prosessit" : "Processes") : group === "manage" ? (locale === "fi" ? "Hallinta" : "Manage") : (locale === "fi" ? "Päänavigaatio" : "Main navigation")) : null;
-        lastGroup = group;
-        const active = id === activeId;
-        const pending = pendingHref === href && !active;
+      {items.map(([label, href, id]) => {
+        const active = isItemActive(pathname, href, id);
+        const pending = pendingHref === href && pathname !== href;
         return (
-          <div className="app-nav-entry" key={id}>
-          {groupHeading ? <div className="app-nav-group-title">{groupHeading}</div> : null}
-          <Link href={href} prefetch
-            title={collapsed && !compact ? label : undefined}
-            aria-label={collapsed && !compact ? label : undefined}
-            onClick={() => { setHash(new URL(href, window.location.origin).hash); if (href.split(/[?#]/)[0] !== pathname || href.includes("?")) setPendingHref(href); }}
-            aria-current={active ? (href.includes("#") ? "location" : "page") : undefined}
+          <Link key={href} href={href} prefetch
+            onClick={() => { if (pathname !== href) setPendingHref(href); }}
+            aria-current={pathname === href ? "page" : active ? "location" : undefined}
             aria-busy={pending || undefined}
             className={"app-sidebar-v2-link app-sidebar-v2-link-" + id +
               (active ? " is-active" : "") + (pending ? " is-pending" : "")}>
             <span className="app-nav-main">
               <span className="app-nav-icon"><NavIcon id={id} /></span>
               <span className="app-nav-label">{label}</span>
-              {collapsed ? <span className="app-nav-tooltip" role="tooltip">{label}</span> : null}
             </span>
             {pending ? <span className="app-nav-pending-dot" aria-hidden="true" /> : null}
           </Link>
-          </div>
         );
       })}
     </nav>

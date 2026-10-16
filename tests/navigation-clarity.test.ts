@@ -9,7 +9,7 @@ const location = readFileSync(new URL("../components/AppLocation.tsx", import.me
 test("sidebar has a single navigation action per section", () => {
   assert.match(nav, /aria-current=/);
   assert.doesNotMatch(nav, /ordersOpen|settingsOpen|orderSubItems|settingsSubItems|function Chevron/);
-  assert.match(nav, /activeWorkspaceItem/);
+  assert.match(nav, /pathname === "\/app\/upload"/);
   assert.match(shell, /<AppNav items=\{nav\} locale=\{locale\}/);
 });
 test("detail pages provide a way back to their parent section", () => {

@@ -15,7 +15,7 @@ import {
   getErpAdapter,
   getErpProviderCapability,
 } from "@/lib/rivora/erp";
-import { createAdminClient, hasSupabaseAdminKey } from "@/lib/supabase/admin";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupportOperatorEmail } from "@/lib/rivora/support-operator";
 import {
   disconnectBusinessCentralConnectionAction,
@@ -38,10 +38,7 @@ export default async function SettingsPage({
   const fi = locale === "fi";
   const canManage = ["owner", "admin"].includes(workspace.role);
   const erpAdapter = getErpAdapter(workspace.erpProvider);
-  // Keep settings readable if this Preview environment has no admin key.
-  // Never infer a verified connection from an unavailable status.
-  const erpStatusUnavailable = Boolean(erpAdapter) && !hasSupabaseAdminKey();
-  const config = erpAdapter && !erpStatusUnavailable
+  const config = erpAdapter
     ? await erpAdapter.getConfigurationStatus(workspace.id)
     : {
         configured: false,
@@ -326,16 +323,6 @@ export default async function SettingsPage({
 
         {erpProvider === "business_central" ? (
           <div className="mt-5">
-            {erpStatusUnavailable ? (
-              <div role="status" className="mb-5 rounded-xl border border-[var(--app-line)] bg-[var(--app-paper)] p-4 text-sm">
-                <strong>{fi ? "ERP-yhteyden tilaa ei voi tarkistaa" : "ERP connection status cannot be checked"}</strong>
-                <p className="mt-1 text-[var(--app-muted)]">
-                  {fi
-                    ? "Tämän ympäristön palvelimelta puuttuu tarvittava suojattu määritys. Yhteyttä ei merkitä vahvistetuksi eikä ERP-tunnusten tallennusta tai tarkistusta sallita ennen määrityksen korjaamista."
-                    : "A required secure server configuration is missing in this environment. The connection will not be marked verified, and ERP credential changes and verification remain unavailable until it is fixed."}
-                </p>
-              </div>
-            ) : null}
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="upload-v2-section-label">Microsoft Business Central</div>
@@ -347,11 +334,7 @@ export default async function SettingsPage({
                     ? fi
                       ? "Nykyinen production-yhteys käyttää vielä palvelimen legacy-määritystä. Sen voi siirtää turvallisesti tämän työtilan omaksi yhteydeksi tallentamalla alla olevan lomakkeen."
                       : "The current production connection still uses the legacy server configuration. Save the form below to migrate it securely to this workspace."
-                    : erpStatusUnavailable
-                      ? fi
-                        ? "ERP-yhteyden tila ei ole saatavilla tässä ympäristössä."
-                        : "ERP connection status is unavailable in this environment."
-                      : config.configured
+                    : config.configured
                       ? fi
                         ? "Business Central -tunnukset on tallennettu tälle työtilalle ja yhteys on tarkistettu."
                         : "Business Central credentials are stored for this workspace and the connection is verified."
@@ -361,9 +344,7 @@ export default async function SettingsPage({
                 </p>
               </div>
               <span className={config.configured ? "settings-status is-ready" : "settings-status is-warning"}>
-                {erpStatusUnavailable
-                  ? (fi ? "Tila ei saatavilla" : "Status unavailable")
-                  : config.configured
+                {config.configured
                   ? config.source === "legacy_env"
                     ? (fi ? "Yhdistetty · legacy" : "Connected · legacy")
                     : (fi ? "Yhdistetty" : "Connected")
@@ -402,7 +383,7 @@ export default async function SettingsPage({
               </div>
             ) : null}
 
-            {canManage && !erpStatusUnavailable ? (
+            {canManage ? (
               <form action={saveBusinessCentralConnectionAction} className="mt-5 grid gap-4 rounded-xl border border-[var(--line)] bg-[var(--app-paper)] p-5 sm:grid-cols-2">
                 <label className="sm:col-span-2">
                   <span className="settings-field-label">Microsoft tenant ID</span>
@@ -485,11 +466,9 @@ export default async function SettingsPage({
                   <button className="btn-secondary">{fi ? "Katkaise yhteys" : "Disconnect"}</button>
                 </form>
               ) : null}
-              {!erpStatusUnavailable ? (
-                <Link href="/app/settings/business-central" className="btn-secondary">
-                  {fi ? "Hallitse BC-vastineita" : "Manage BC mappings"} →
-                </Link>
-              ) : null}
+              <Link href="/app/settings/business-central" className="btn-secondary">
+                {fi ? "Hallitse BC-vastineita" : "Manage BC mappings"} →
+              </Link>
             </div>
           </div>
         ) : erpCapability.availability === "unsupported" ? (

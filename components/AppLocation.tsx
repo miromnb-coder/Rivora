@@ -42,16 +42,7 @@ function getTrail(path: string, fi: boolean): Trail | null {
 export function AppLocation({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const trail = getTrail(pathname, locale === "fi");
-  if (!trail) {
-    const names: Record<string, [string, string]> = {
-      "/app": ["Yleiskatsaus", "Overview"], "/app/orders": ["Tilaukset", "Orders"],
-      "/app/products": ["Tuotteet", "Products"], "/app/customers": ["Asiakkaat", "Customers"],
-      "/app/leads": ["Liidit", "Leads"], "/app/settings": ["Asetukset", "Settings"],
-      "/app/quotes": ["Tarjoukset", "Quotes"], "/app/purchase-orders": ["Ostotilaukset", "Purchase orders"],
-      "/app/sales-orders": ["Myyntitilaukset", "Sales orders"],
-    };
-    return names[pathname] ? <span className="app-route-location">{names[pathname][locale === "fi" ? 0 : 1]}</span> : null;
-  }
+  if (!trail) return null;
   return (
     <nav className="app-route-location" aria-label={locale === "fi" ? "Sijaintipolku" : "Breadcrumb"}>
       <Link href={trail.href}>{trail.group}</Link>
