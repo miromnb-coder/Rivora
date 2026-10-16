@@ -26,13 +26,13 @@ export default async function LeadsPage({
   const displayLocale = formatLocale(locale);
   const t = {
     kicker: fi ? "Liidit" : "Lead inbox",
-    title: fi ? "Liidit, jotka vaativat huomiota – ilman uutta taulukkoa." : "Leads that need attention, not another spreadsheet.",
+    title: fi ? "Liidit" : "Leads",
     body: fi ? "Uudet pyynnöt pysyvät lukemattomina tarkistukseen asti. Aikatauluta seuraava toimenpide ja pidä myöhässä olevat seurannat näkyvissä." : "New requests stay unread until reviewed. Schedule the next action and keep overdue follow-ups visible.",
     unread: fi ? "Lukematta" : "Unread", due: fi ? "Erääntyneet seurannat" : "Due follow-ups",
     upcoming: fi ? "Tulossa" : "Upcoming", qualified: fi ? "Kvalifioidut" : "Qualified",
     allActivity: fi ? "Kaikki tapahtumat" : "All activity", allStages: fi ? "Kaikki vaiheet" : "All stages",
     pipeline: fi ? "Liidiputki" : "Lead pipeline",
-    pipelineBody: fi ? "Uusimmat ensin · lukematon tila ja seurannat pysyvät näkyvissä" : "Newest first · unread and follow-up state stay visible",
+    pipelineBody: fi ? "Uusimmat yhteydenotot" : "Latest enquiries",
     roleMissing: fi ? "Roolia ei annettu" : "Role not provided", intent: fi ? "Tavoite" : "Intent",
     followUpDue: fi ? "Seuranta erääntynyt" : "Follow-up due", nextFollowUp: fi ? "Seuraava seuranta" : "Next follow-up",
     notScheduled: fi ? "Ei aikataulutettu" : "Not scheduled", open: fi ? "Avaa" : "Open",
@@ -89,19 +89,19 @@ export default async function LeadsPage({
     date ? new Date(`${date}T12:00:00Z`).toLocaleDateString(displayLocale) : t.notScheduled;
 
   return (
-    <div className="app-page-v2">
+    <div className="app-page-v2 ml-leads-page">
       <header className="nodra-page-head">
         <div><div className="app-kicker-v2">{t.kicker}</div><h1>{t.title}</h1><p>{t.body}</p></div>
       </header>
 
-      <section className="quotes-v1-summary mt-12">
+      <section className="quotes-v1-summary mt-12 ml-leads-summary" aria-label={fi ? "Liidien yhteenveto" : "Lead overview"}>
         <Link href="/app/leads?view=unread"><span>{t.unread}</span><strong>{counts.unread}</strong></Link>
         <Link href="/app/leads?view=due"><span>{t.due}</span><strong>{counts.due}</strong></Link>
         <Link href="/app/leads?view=upcoming"><span>{t.upcoming}</span><strong>{counts.upcoming}</strong></Link>
         <Link href="/app/leads?status=qualified"><span>{t.qualified}</span><strong>{counts.qualified}</strong></Link>
       </section>
 
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="ml-leads-filters mt-8 flex flex-wrap gap-2" aria-label={fi ? "Tapahtumasuodattimet" : "Activity filters"}>
         {views.map((view) => (
           <Link key={view} href={view === "all" ? "/app/leads" : `/app/leads?view=${view}`}
             className={`nodra-filter-pill ${selectedView === view && selectedStatus === "all" ? "is-active" : ""}`}>
@@ -110,7 +110,7 @@ export default async function LeadsPage({
         ))}
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="ml-leads-filters mt-3 flex flex-wrap gap-2" aria-label={fi ? "Vaihesuodattimet" : "Stage filters"}>
         {statuses.map((status) => (
           <Link key={status} href={status === "all" ? "/app/leads" : `/app/leads?status=${status}`}
             className={`nodra-filter-pill ${selectedStatus === status && selectedView === "all" ? "is-active" : ""}`}>
@@ -119,7 +119,7 @@ export default async function LeadsPage({
         ))}
       </div>
 
-      <section className="surface nodra-data-surface">
+      <section className="surface nodra-data-surface ml-leads-list">
         <div className="nodra-section-head">
           <div><div className="upload-v2-section-label">{t.pipeline}</div><h2>{t.pipelineBody}</h2></div>
         </div>
@@ -128,13 +128,13 @@ export default async function LeadsPage({
             {leads.map((lead) => {
               const due = lead.status !== "closed" && typeof lead.follow_up_on === "string" && lead.follow_up_on <= today;
               return (
-                <Link href={`/app/leads/${lead.id}`} key={lead.id} className="nodra-list-row nodra-lead-row">
-                  <div><h3>{lead.name}</h3><p>{lead.work_email}</p></div>
-                  <div><strong>{lead.company}</strong><p>{lead.role || t.roleMissing}</p></div>
-                  <div><span>{t.intent}</span><strong>{lead.intent}</strong></div>
-                  <div><span>{due ? t.followUpDue : t.nextFollowUp}</span><strong>{formatFollowUp(lead.follow_up_on)}</strong>{lead.next_action ? <p>{lead.next_action}</p> : null}</div>
-                  <div className={`status ${statusClass(lead.status)}`}>{t.statuses[lead.status] ?? lead.status}</div>
-                  <span>{t.open} →</span>
+                <Link href={`/app/leads/${lead.id}`} key={lead.id} className="nodra-list-row nodra-lead-row ml-lead-row">
+                  <div className="ml-lead-person"><h3>{lead.name}</h3><p>{lead.work_email}</p></div>
+                  <div className="ml-lead-company"><span className="ml-lead-meta-label">{fi ? "Yritys" : "Company"}</span><strong>{lead.company}</strong><p>{lead.role || t.roleMissing}</p></div>
+                  <div className="ml-lead-intent"><span className="ml-lead-meta-label">{t.intent}</span><strong>{lead.intent}</strong></div>
+                  <div className="ml-lead-followup"><span className="ml-lead-meta-label">{due ? t.followUpDue : t.nextFollowUp}</span><strong>{formatFollowUp(lead.follow_up_on)}</strong>{lead.next_action ? <p>{lead.next_action}</p> : null}</div>
+                  <div className={`ml-lead-state status ${statusClass(lead.status)}`}>{t.statuses[lead.status] ?? lead.status}</div>
+                  <span className="ml-lead-open">{t.open} →</span>
                 </Link>
               );
             })}

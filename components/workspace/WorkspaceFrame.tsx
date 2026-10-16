@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
 
 type WorkspaceFrameProps = {
   children: ReactNode;
@@ -34,6 +35,16 @@ export function WorkspaceFrame({
   const fi = locale === "fi";
 
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
+  useEffect(() => {
+    // Help Center is a separate modal experience; never leave a Copilot
+    // drawer or desktop pane competing with it.
+    const onSupportOpen = () => {
+      setDrawerOpen(false);
+      setCopilotDismissed(true);
+    };
+    window.addEventListener(SUPPORT_OPEN_EVENT, onSupportOpen);
+    return () => window.removeEventListener(SUPPORT_OPEN_EVENT, onSupportOpen);
+  }, []);
   useEffect(() => {
     const breakpoint = window.matchMedia("(max-width: 1359px)");
     const syncMode = () => { if (!breakpoint.matches) setDrawerOpen(false); };

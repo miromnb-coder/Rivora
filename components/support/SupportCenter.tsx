@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/locale";
 import { supportContextForPath } from "@/lib/rivora/support-context";
-import { SUPPORT_OPEN_EVENT } from "@/components/support/ContextHelpTrigger";
+import { SUPPORT_OPEN_EVENT, SUPPORT_UNREAD_EVENT } from "@/components/support/ContextHelpTrigger";
 import { SupportTicketTracker } from "@/components/support/SupportTicketTracker";
 import { helpArticles, type HelpArticle } from "@/lib/rivora/support-knowledge";
 import { SupportQuickPrompts } from "./SupportQuickPrompts";
@@ -199,6 +199,10 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
   }, []);
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent(SUPPORT_UNREAD_EVENT, { detail: { count: supportUnreadCount } }));
+  }, [supportUnreadCount]);
+
+  useEffect(() => {
     if (previousPathRef.current === pathname) return;
     previousPathRef.current = pathname;
     // Keep the thread visible across navigation; previous records are never
@@ -255,16 +259,21 @@ export function SupportCenter({ locale, recordContextAvailable }: { locale: Loca
     const handleContextHelp = (event: Event) => {
       const detail = (event as CustomEvent<{ articleId?: string }>).detail;
       const articleId = detail?.articleId;
-      if (!articleId || !articles.some((article) => article.id === articleId)) return;
-
-      setQuery("");
-      setView({ kind: "article", articleId });
+      if (articleId) {
+        if (!articles.some((article) => article.id === articleId)) return;
+        setQuery("");
+        setView({ kind: "article", articleId });
+      } else if (view.kind === "success") {
+        setView({ kind: "home" });
+      }
+      // The workspace navigation opens Help Center without requiring a
+      // specific article. Existing contextual article links still work.
       openSupport();
     };
 
     window.addEventListener(SUPPORT_OPEN_EVENT, handleContextHelp);
     return () => window.removeEventListener(SUPPORT_OPEN_EVENT, handleContextHelp);
-  }, [articles]);
+  }, [articles, view.kind]);
 
   useEffect(() => {
     if (!open) return;

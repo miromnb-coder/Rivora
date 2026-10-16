@@ -8,6 +8,7 @@ import { AppLocation } from "@/components/AppLocation";
 import { SupportCenter } from "@/components/support/SupportCenter";
 import { RivoraMark } from "@/components/marketing/RivoraMark";
 import { WorkspaceFrame } from "@/components/workspace/WorkspaceFrame";
+import { WorkspaceSupportTrigger } from "@/components/workspace/WorkspaceSupportTrigger";
 
 export function AppShell({
   children,
@@ -52,15 +53,26 @@ export function AppShell({
             <div className="app-sidebar-v2-product">{copy.product}</div>
           </div>
           <AppNav items={nav} locale={locale} />
-          <div className="app-sidebar-v2-account">
-            <LocaleSwitcher locale={locale} label={copy.language} />
-            <div className="app-sidebar-v2-account-label">{copy.workspace}</div>
-            <div className="app-sidebar-v2-account-name">{workspaceName}</div>
-            <div className="app-sidebar-v2-role">{workspaceRole}</div>
-            {userEmail ? <div className="app-sidebar-v2-email">{userEmail}</div> : null}
-            <form action={signOut}>
-              <button className="app-sidebar-v2-signout">{copy.signOut}</button>
-            </form>
+          <div className="ml-sidebar-bottom">
+            <WorkspaceSupportTrigger locale={locale} />
+            <details className="ml-workspace-account-menu">
+              <summary aria-label={fiLabel(locale, "Avaa työtilin asetukset", "Open workspace account settings")}>
+                <span className="ml-account-avatar" aria-hidden="true">{workspaceName.slice(0, 1).toLocaleUpperCase()}</span>
+                <span className="ml-account-text">
+                  <strong>{workspaceName}</strong>
+                  <small>{workspaceRole}</small>
+                </span>
+                <span className="ml-account-chevron" aria-hidden="true">⌄</span>
+              </summary>
+              <div className="ml-workspace-account-details">
+                <span className="ml-account-details-title">{copy.workspace}</span>
+                {userEmail ? <span className="ml-account-details-email">{userEmail}</span> : null}
+                <LocaleSwitcher locale={locale} label={copy.language} />
+                <form action={signOut}>
+                  <button className="app-sidebar-v2-signout">{copy.signOut}</button>
+                </form>
+              </div>
+            </details>
           </div>
         </aside>
       }
@@ -77,6 +89,7 @@ export function AppShell({
             <div className="ml-mobile-account-menu">
               <span className="ml-mobile-account-role">{workspaceRole}</span>
               {userEmail ? <span className="ml-mobile-account-email">{userEmail}</span> : null}
+              <WorkspaceSupportTrigger locale={locale} />
               <LocaleSwitcher locale={locale} label={copy.language} />
               <form action={signOut}>
                 <button className="app-sidebar-v2-signout">{copy.signOut}</button>
