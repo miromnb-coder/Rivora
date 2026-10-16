@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  isolatedCopilotReadiness, prepareCopilotPricing, verifyCopilotUsage,
+  isolatedCopilotReadiness, productionCopilotReadiness, copilotActivationReadiness,
+  prepareCopilotPricing, verifyCopilotUsage,
   copilotReservation, COPILOT_LEDGER_TYPE, type CopilotLedger,
 } from "../lib/rivora/copilot-live.ts";
 
@@ -114,4 +115,68 @@ test("Failure, cancellation, ambiguous usage conservatively keep full reservatio
     inputTokens: null, outputTokens: null,
     responseId: null, unknown: true,
   }]);
+});
+
+
+const productionFixture: Record<string, string> = {
+  ...fixtureEnv,
+  VERCEL_ENV: "production",
+  VERCEL_PROJECT_ID: "prj_69utcxbvaCPDSle5W3zptTa946rv",
+  AVEROMIRA_COPILOT_PRODUCTION_APPROVED: "true",
+  AVEROMIRA_COPILOT_PRODUCTION_BACKUP_VERIFIED: "true",
+  AVEROMIRA_COPILOT_PRODUCTION_ROLLBACK_VERIFIED: "true",
+  AVEROMIRA_COPILOT_LEDGER_ENABLED: "true",
+  AVEROMIRA_COPILOT_PRODUCTION_DB_REF: "utvxopmdxqnxqgaxugxm",
+  NEXT_PUBLIC_SUPABASE_URL: "https://utvxopmdxqnxqgaxugxm.supabase.co",
+};
+
+test("Production stays disabled by default and requires independent approvals", () => {
+  assert.equal(productionCopilotReadiness({}).ready, false);
+  assert.equal(copilotActivationReadiness({ VERCEL_ENV: "production" }).ready, false);
+  assert.equal(productionCopilotReadiness(productionFixture).ready, true);
+  for (const overrides of [
+    { AVEROMIRA_COPILOT_ENABLED: "" },
+    { VERCEL_ENV: "preview" },
+    { VERCEL_PROJECT_ID: "prj_other" },
+    { VERCEL_PROJECT_ID: "" },
+    { AVEROMIRA_COPILOT_PRODUCTION_APPROVED: "" },
+    { AVEROMIRA_COPILOT_PRODUCTION_BACKUP_VERIFIED: "" },
+    { AVEROMIRA_COPILOT_PRODUCTION_ROLLBACK_VERIFIED: "" },
+    { AVEROMIRA_COPILOT_LEDGER_ENABLED: "" },
+    { AVEROMIRA_COPILOT_PRODUCTION_DB_REF: "" },
+    { AVEROMIRA_COPILOT_PRODUCTION_DB_REF: "abcdefghijklmnopqrst" },
+    { NEXT_PUBLIC_SUPABASE_URL: "https://abcdefghijklmnopqrst.supabase.co" },
+    { NEXT_PUBLIC_SUPABASE_URL: "http://utvxopmdxqnxqgaxugxm.supabase.co" },
+    { NEXT_PUBLIC_SUPABASE_URL: "https://utvxopmdxqnxqgaxugxm.supabase.co.evil.test" },
+    { NEXT_PUBLIC_SUPABASE_URL: "https://user:pass@utvxopmdxqnxqgaxugxm.supabase.co" },
+    { OPENAI_API_KEY: "" },
+    { SUPABASE_SECRET_KEY: "", SUPABASE_SERVICE_ROLE_KEY: "" },
+  ]) {
+    const result = productionCopilotReadiness({ ...productionFixture, ...overrides });
+    assert.equal(result.ready, false, JSON.stringify(overrides));
+  }
+});
+
+test("Preview flags cannot activate production and production approvals cannot enable Preview", () => {
+  const previewWithProductionFlags = {
+    ...fixtureEnv,
+    AVEROMIRA_COPILOT_PRODUCTION_APPROVED: "true",
+    AVEROMIRA_COPILOT_PRODUCTION_BACKUP_VERIFIED: "true",
+    AVEROMIRA_COPILOT_PRODUCTION_ROLLBACK_VERIFIED: "true",
+    AVEROMIRA_COPILOT_PRODUCTION_DB_REF: "utvxopmdxqnxqgaxugxm",
+  };
+  assert.equal(copilotActivationReadiness(previewWithProductionFlags).ready, true);
+  assert.equal(copilotActivationReadiness({
+    ...previewWithProductionFlags,
+    AVEROMIRA_COPILOT_ISOLATED_PREVIEW: "",
+  }).ready, false);
+  assert.equal(copilotActivationReadiness({
+    ...productionFixture,
+    AVEROMIRA_COPILOT_ISOLATED_PREVIEW: "true",
+    AVEROMIRA_COPILOT_PRODUCTION_APPROVED: "",
+  }).ready, false);
+  assert.equal(copilotActivationReadiness({
+    ...productionFixture,
+    VERCEL_ENV: "development",
+  }).ready, false);
 });
