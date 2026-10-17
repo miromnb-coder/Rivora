@@ -6,6 +6,7 @@ import type { CopilotMessage } from "@/lib/rivora/copilot-protocol";
 import type { ContextSource } from "@/lib/rivora/copilot-context/types";
 import { parseActiveRecordPath } from "@/lib/rivora/copilot-context/active-record";
 import { buildCopilotHistory, CopilotStreamParser } from "@/lib/rivora/copilot-stream";
+import { formatCopilotAnswer } from "@/lib/rivora/copilot-answer-format";
 
 type DisplayMessage = CopilotMessage & {
   id: number;
@@ -62,6 +63,25 @@ function statusText(locale: "fi" | "en", stage: DisplayMessage["stage"], intent:
   if (stage === "done") return fi ? "Vastaus valmis" : "Response complete";
   if (stage === "stopped") return fi ? "Vastaus pysäytetty" : "Response stopped";
   return fi ? "Vastauksen muodostaminen epäonnistui" : "The response failed";
+}
+
+/** Safe, deliberately limited presentational markup. Never render model HTML or URLs. */
+function CopilotAnswerText({ text }: { text: string }) {
+  const blocks = formatCopilotAnswer(text);
+  return (
+    <div className="ml-copilot-answer">
+      {blocks.map((block, index) => {
+        const key = index + ":" + block.kind;
+        if (block.kind === "heading")
+          return <h3 className="ml-copilot-answer-heading" key={key}>{block.text}</h3>;
+        if (block.kind === "list")
+          return <ul className="ml-copilot-answer-list" key={key}>
+            {block.items.map((item, i) => <li key={i}>{item}</li>)}
+          </ul>;
+        return <p className="ml-copilot-answer-paragraph" key={key}>{block.text}</p>;
+      })}
+    </div>
+  );
 }
 
 export function CopilotConversation({
@@ -334,13 +354,21 @@ export function CopilotConversation({
                     <span>{statusText(locale, message.stage, message.intent)}</span>
                   </div>
                 ) : null}
-                {message.text ? <p className="ml-copilot-message-text">{message.text}</p> : null}
+                {message.text ? (message.role === "assistant"
+                  ? <CopilotAnswerText text={message.text} />
+                  : <p className="ml-copilot-message-text">{message.text}</p>) : null}
                 {message.role === "assistant" && message.stage === "done" &&
                   message.sources && message.sources.length>0 ? (
                   <div className="ml-copilot-context-sources">
                     <span>{fi ? "Haetut lähteet" : "Retrieved records"}
                       {message.truncated ? (fi ? " · Rajattu tulos" : " · Partial results") : ""}
                     </span>
+                    {message.truncated ? (
+                      <p className="ml-copilot-context-limited">
+                        {fi ? "Näytetyt rivit tai tuote-ehdokkaat ovat rajattu otos."
+                          : "The displayed lines or product candidates are a limited sample."}
+                      </p>
+                    ) : null}
                     {message.sources.map(source=>(
                       <a key={source.sourceId} href={source.href}>
                         {source.label || source.kind} <span aria-hidden="true">↗</span>

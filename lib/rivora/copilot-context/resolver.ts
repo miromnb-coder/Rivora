@@ -49,6 +49,7 @@ export async function resolveCopilotContext(args: {
 export async function resolveRfqIntelligenceContext(args: {
   db: ScopedDb; actorId: string; organizationId: string;
   query: Extract<ContextQuery, { kind: "rfq_review" | "rfq_line_explanation" }>;
+  locale: "fi" | "en";
   abort?: AbortSignal;
 }): Promise<RfqIntelligenceContext> {
   const controller = new AbortController();
@@ -65,7 +66,7 @@ export async function resolveRfqIntelligenceContext(args: {
       rfqId:args.query.recordId, focusLineNumber, signal:controller.signal,
     });
     if (controller.signal.aborted) throw new Error("COPILOT_CONTEXT_ABORTED");
-    return serializeRfqExplanation(explainRfq(snapshot,focusLineNumber));
+    return serializeRfqExplanation(explainRfq(snapshot,focusLineNumber),args.locale);
   } finally {
     clearTimeout(timer);
     args.abort?.removeEventListener("abort", cancel);

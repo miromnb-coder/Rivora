@@ -159,3 +159,17 @@ test("Phase 5 context requires explicit opt-in and renders only validated source
   await expect(page.locator(".ml-copilot-context-sources")).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test("Phase 5.1B.4 streams readable RFQ sections without injecting HTML",async({page})=>{
+  const input=page.getByRole("textbox",{name:"Kysy Copilotilta"});
+  await input.fill("JASENNYS");
+  await input.press("Enter");
+  await expect(page.getByText("Vastaus valmis")).toBeVisible();
+  await expect(page.locator(".ml-copilot-answer-heading")).toHaveCount(2);
+  await expect(page.locator(".ml-copilot-answer-list li")).toHaveCount(2);
+  await expect(page.locator(".ml-copilot-answer-heading").first()).toContainText("Rivit");
+  await expect(page.locator(".ml-copilot-answer-heading").last()).toContainText("Seuraavaksi");
+  await expect(page.locator(".ml-copilot-answer")).toContainText("<script>alert(1)</script>");
+  await expect(page.locator(".ml-copilot-answer script")).toHaveCount(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

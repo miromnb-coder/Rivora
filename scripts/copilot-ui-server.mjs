@@ -46,6 +46,15 @@ async function respond(req, res) {
     "X-Accel-Buffering": "no",
   });
   const send = data => { if (!res.destroyed) res.write(event(data)); };
+  if (question.includes("JASENNYS")) {
+    send({type:"stage",stage:"responding"});
+    send({type:"delta",text:"Tarjouspyyntö vaatii yhden rivin tarkistusta.\n\nRivit\n- Rivi 1: vahvistettu\n"});
+    await delay(20);
+    send({type:"delta",text:"- Rivi 2: tuoteosuma puuttuu\n\nSeuraavaksi\nValitse sopiva tuote. <script>alert(1)</script>"});
+    send({type:"done"});
+    res.end();
+    return;
+  }
   if (contextMode && optedIn && question.includes("KONTEKSTI")) {
     send({type:"stage",stage:"retrieving"});
     await delay(15);

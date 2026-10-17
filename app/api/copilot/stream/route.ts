@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { chooseContextQuery, resolveCopilotContext, resolveRfqIntelligenceContext } from "@/lib/rivora/copilot-context/resolver";
+import { rfqAnswerGuidance } from "@/lib/rivora/copilot-context/rfq-answer-guidance";
 import { verifyContextMembership } from "@/lib/rivora/copilot-context/authorization";
 import { verifyActiveRecordAccess } from "@/lib/rivora/copilot-context/active-record";
 import { serializeContextForModel } from "@/lib/rivora/copilot-context/sanitize";
@@ -143,7 +144,7 @@ export async function POST(request: Request) {
                 contextQuery.recordId === permittedRecord.id) {
               rfqContext = await resolveRfqIntelligenceContext({
                 db: context.supabase, actorId: context.claims!.sub as string,
-                organizationId, query: contextQuery, abort: abort.signal,
+                organizationId, query: contextQuery, locale, abort: abort.signal,
               });
             } else {
               throw new Error("COPILOT_RFQ_CONTEXT_UNAVAILABLE");
@@ -171,6 +172,8 @@ export async function POST(request: Request) {
             "If asked to act, explain UI steps rather than pretending to act.",
             "Never request passwords, tokens or sensitive credentials.",
             "Be useful, concise and actionable. Output plain text.",
+            ...(rfqContext ? rfqAnswerGuidance(locale,
+              contextQuery?.kind === "rfq_line_explanation") : []),
             "Reply in " + (locale === "fi" ? "Finnish" : "English") + ".",
             "Navigation area: " + area + ".",
           ].join("\n");
