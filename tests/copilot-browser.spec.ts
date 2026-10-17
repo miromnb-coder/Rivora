@@ -195,8 +195,10 @@ test("Phase 5.1D renders verified findings + next steps only after completed opt
   await expect(page.locator(".ml-copilot-finding strong")).toHaveText("Rivi 2: tuoteosuma puuttuu");
   await expect(page.locator(".ml-copilot-next-list li")).toHaveCount(1);
   await expect(page.locator(".ml-copilot-next-list a")).toHaveAttribute("href",
-    "/app/orders/case/rfq/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    "/app/rfq/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa#rfq-line-2");
   await expect(page.locator(".ml-copilot-findings-partial")).toBeVisible();
+  await expect(page.locator(".ml-copilot-findings-coverage")).toContainText("2/5");
+  await expect(page.locator(".ml-copilot-findings-coverage")).toContainText("1");
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.getByRole("button",{name:"Aloita uusi keskustelu"}).click();
   await expect(page.locator(".ml-copilot-findings")).toHaveCount(0);
