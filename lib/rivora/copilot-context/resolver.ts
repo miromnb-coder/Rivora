@@ -1,6 +1,7 @@
 import type { createClient } from "@/lib/supabase/server";
 import { verifyContextMembership } from "./authorization";
 import { getOrdersOverview } from "./orders";
+import { chooseRfqContextQuery } from "./rfq-intent";
 import { readAuthorizedRfqSnapshot } from "./rfq-access";
 import { explainRfq, serializeRfqExplanation, type RfqIntelligenceContext } from "./rfq-explanation";
 import type { ActiveRecord, CopilotContextResult, ContextQuery } from "./types";
@@ -11,20 +12,8 @@ export function chooseContextQuery(
   activeRecord: ActiveRecord | null = null, rfqEnabled = false,
 ): ContextQuery | null {
   if (typeof question!=="string" || question.length>1200) return null;
-  // Only selected, authenticated RFQ pages may produce RFQ lookups.
-  if (rfqEnabled && activeRecord?.kind==="rfq") {
-    const lineMatch=/(?:rivi(?:lle|stä|n|ä|llä)?|line|row)\s*#?(\d{1,5})\b/i.exec(question);
-    const rfqIntent=/tarjouspyyn|rfq|rivi|rive|tuote|osum|match|product|explain|selit|miksi|why|tämän|tämä|tässä|tilanne|status|valmi|review|tarkist|seuraav|next|line|row/i.test(question);
-    if (lineMatch || rfqIntent) {
-      if (lineMatch) {
-        const lineNumber=Number(lineMatch[1]);
-        if (lineNumber>=1 && lineNumber<=100000)
-          return {kind:"rfq_line_explanation",recordId:activeRecord.id,lineNumber,limit:10};
-        return null; // Never silently fall back to a different RFQ query.
-      }
-      return {kind:"rfq_review",recordId:activeRecord.id,limit:10};
-    }
-  }
+  const rfqQuery = chooseRfqContextQuery(question,activeRecord,rfqEnabled);
+  if (rfqQuery) return rfqQuery;
   // One deterministic allowed operation. No model-created queries or tool names.
   const orders=/tilau|työjon|huomiota vaativ|order|work queue|needs attention/i.test(question);
   if (!orders) return null; // Never fetch orders for unrelated questions.

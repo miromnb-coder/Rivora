@@ -5,6 +5,7 @@ import {
   explainMatchMethod, explainRfq, rfqExplanationSource, serializeRfqExplanation,
 } from "../lib/rivora/copilot-context/rfq-explanation.ts";
 import type { RfqDataSnapshot, RfqLineSnapshot } from "../lib/rivora/copilot-context/rfq.ts";
+import { chooseRfqContextQuery } from "../lib/rivora/copilot-context/rfq-intent.ts";
 
 const RFQ="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const product="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
@@ -102,4 +103,18 @@ test("5.1B.3 stays consentful, read-only, and independently gated",()=>{
   assert.doesNotMatch(route+authorized+reader,/createAdminClient\(|refresh_rfq_matches_with_memory_server|get_rfq_product_memory_explanations_server|\.insert\(|\.update\(|\.delete\(/);
   assert.match(status,/rfqIntelligenceAvailable = activeRecordAvailable/);
   assert.match(protocol,/CASE_HREF/);
+});
+
+test("5.1B.3 RFQ query intent is deterministic, focused and feature gated",()=>{
+  const record={kind:"rfq" as const,id:RFQ};
+  assert.deepEqual(chooseRfqContextQuery("Miksi riville 4 ehdotettiin tuotetta?",record,true),
+    {kind:"rfq_line_explanation",recordId:RFQ,lineNumber:4,limit:10});
+  assert.deepEqual(chooseRfqContextQuery("Why did line 9 get this match?",record,true),
+    {kind:"rfq_line_explanation",recordId:RFQ,lineNumber:9,limit:10});
+  assert.deepEqual(chooseRfqContextQuery("Mikä tämän tarjouspyynnön tilanne on?",record,true),
+    {kind:"rfq_review",recordId:RFQ,limit:10});
+  assert.equal(chooseRfqContextQuery("Mikä tämän tarjouspyynnön tilanne on?",record,false),null);
+  assert.equal(chooseRfqContextQuery("RFQ review",{kind:"po",id:RFQ},true),null);
+  assert.equal(chooseRfqContextQuery("Hei",record,true),null);
+  assert.equal(chooseRfqContextQuery("Rivi 0",record,true),null);
 });
