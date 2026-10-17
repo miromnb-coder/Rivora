@@ -1,4 +1,5 @@
 import type { ActiveRecord, ContextSource } from "./copilot-context/types";
+import { EVIDENCE_CODES, EVIDENCE_LEVELS, type Phase6EvidenceEvent } from "./copilot-intelligence/types.ts";
 import { isActiveRecordUuid, normalizeActiveRecord } from "./copilot-context/active-record.ts";
 export type CopilotMessage = { role: "user" | "assistant"; text: string };
 export type CopilotInput = {
@@ -101,9 +102,10 @@ function validFinding(value: unknown): value is CopilotFinding {
     typeof item.sourceId === "string" && SOURCE_ID.test(item.sourceId);
 }
 export type CopilotEvent =
-  | { type: "stage"; stage: "retrieving" | "verifying" | "connecting" | "responding" }
+  | { type: "stage"; stage: "retrieving" | "evidence_read" | "verifying" | "connecting" | "responding" }
   | { type: "sources"; sources: ContextSource[]; truncated: boolean }
   | CopilotFindingsEvent
+  | Phase6EvidenceEvent
   | { type: "delta"; text: string }
   | { type: "done" }
   | { type: "error"; message: string };
@@ -121,7 +123,8 @@ export function decodeCopilotEvent(frame: string): CopilotEvent | null {
     const item = value as Record<string, unknown>;
     if (kind === "stage" && item.type === "stage" &&
         (item.stage === "connecting" || item.stage === "responding" ||
-         item.stage === "retrieving" || item.stage === "verifying"))
+         item.stage === "retrieving" || item.stage === "evidence_read" ||
+         item.stage === "verifying"))
       return { type: "stage", stage: item.stage };
     if (kind === "sources" && item.type === "sources" &&
       Array.isArray(item.sources) && item.sources.length<=10 &&
@@ -150,6 +153,24 @@ export function decodeCopilotEvent(frame: string): CopilotEvent | null {
         ...(item.retrievedCount !== undefined ? {retrievedCount:item.retrievedCount as number} : {}),
         ...(item.totalCount !== undefined ? {totalCount:item.totalCount as number | null} : {}),
         findings:item.findings as CopilotFinding[] };
+    if (kind === "evidence" && item.type === "evidence" &&
+      ["memory_provenance","business_chain","business_comparison"].includes(String(item.kind)) &&
+      typeof item.partial==="boolean" &&
+      Array.isArray(item.facts) && item.facts.length<=12 &&
+      item.facts.every((f:unknown)=>{
+        if(!f||typeof f!=="object"||Array.isArray(f))return false;
+        const x=f as Record<string,unknown>;
+        return typeof x.factId==="string" && x.factId.length>0 && x.factId.length<=96 &&
+          EVIDENCE_CODES.has(x.code as never) &&
+          EVIDENCE_LEVELS.has(x.verification as never) &&
+          typeof x.sourceId==="string" && SOURCE_ID.test(x.sourceId) &&
+          typeof x.detail==="string" && x.detail.length>0 && x.detail.length<=180;
+      }) &&
+      Array.isArray(item.limitations) && item.limitations.length<=4 &&
+      item.limitations.every((x:unknown)=>typeof x==="string" && x.length<=140))
+      return {type:"evidence",kind:item.kind as Phase6EvidenceEvent["kind"],
+        partial:item.partial,facts:item.facts as Phase6EvidenceEvent["facts"],
+        limitations:item.limitations as string[]};
     if (kind === "delta" && item.type === "delta" && typeof item.text === "string")
       return { type: "delta", text: item.text };
     if (kind === "done" && item.type === "done") return { type: "done" };
