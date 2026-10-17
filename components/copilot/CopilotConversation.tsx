@@ -75,6 +75,7 @@ export function CopilotConversation({
   const [pilotAvailable, setPilotAvailable] = useState(false);
   const [contextAvailable, setContextAvailable] = useState(false);
   const [activeRecordAvailable, setActiveRecordAvailable] = useState(false);
+  const [rfqIntelligenceAvailable, setRfqIntelligenceAvailable] = useState(false);
   const [shareWorkspaceData, setShareWorkspaceData] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const requestNumber = useRef(0);
@@ -105,6 +106,7 @@ export function CopilotConversation({
         if (!cancelled && status?.available === true && status?.contextAvailable === true) {
           setContextAvailable(true);
           setActiveRecordAvailable(status?.activeRecordAvailable === true);
+          setRfqIntelligenceAvailable(status?.rfqIntelligenceAvailable === true);
         }
       }).catch(() => { /* Status unavailable: leave the pilot label hidden. */ });
     return () => { cancelled = true; };
