@@ -60,9 +60,46 @@ function validContextSource(value: unknown): value is ContextSource {
     s.href==="/app/orders/case/"+s.kind+"/"+s.recordId;
 }
 
+export type CopilotFinding = {
+  id: string;
+  code: string;
+  severity: "critical" | "high" | "medium" | "info";
+  title: string;
+  explanation: string;
+  suggestedAction: string;
+  sourceId: string;
+};
+export type CopilotFindingsEvent = {
+  type: "findings";
+  kind: "orders_priority" | "rfq_review";
+  partial: boolean;
+  findings: CopilotFinding[];
+};
+const FINDING_CODES = new Set([
+  "ORDER_ERP_FAILURE", "ORDER_PO_REVIEW", "ORDER_RFQ_REVIEW",
+  "ORDER_QUOTE_ACTION", "ORDER_ERP_READY",
+  "RFQ_PROCESSING_FAILED", "RFQ_LINE_UNMATCHED", "RFQ_EXTRACTION_UNCERTAIN",
+  "RFQ_LINE_UNCONFIRMED", "RFQ_REVIEW_REMAINING", "RFQ_READY_FOR_QUOTE",
+]);
+const SOURCE_ID = /^(rfq|quote|po|sales):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function validFinding(value: unknown): value is CopilotFinding {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.id === "string" && item.id.length > 0 && item.id.length <= 100 &&
+    typeof item.code === "string" && FINDING_CODES.has(item.code) &&
+    typeof item.severity === "string" &&
+      ["critical", "high", "medium", "info"].includes(item.severity) &&
+    typeof item.title === "string" && item.title.trim().length > 0 &&
+      item.title.length <= 100 &&
+    typeof item.explanation === "string" && item.explanation.length <= 200 &&
+    typeof item.suggestedAction === "string" &&
+      item.suggestedAction.trim().length > 0 && item.suggestedAction.length <= 150 &&
+    typeof item.sourceId === "string" && SOURCE_ID.test(item.sourceId);
+}
 export type CopilotEvent =
   | { type: "stage"; stage: "retrieving" | "verifying" | "connecting" | "responding" }
   | { type: "sources"; sources: ContextSource[]; truncated: boolean }
+  | CopilotFindingsEvent
   | { type: "delta"; text: string }
   | { type: "done" }
   | { type: "error"; message: string };
@@ -87,6 +124,14 @@ export function decodeCopilotEvent(frame: string): CopilotEvent | null {
       typeof item.truncated==="boolean" &&
       item.sources.every(validContextSource))
       return { type:"sources",sources:item.sources,truncated:item.truncated };
+    if (kind === "findings" && item.type === "findings" &&
+      (item.kind === "orders_priority" || item.kind === "rfq_review") &&
+      typeof item.partial === "boolean" &&
+      Array.isArray(item.findings) && item.findings.length <= 5 &&
+      item.findings.every(validFinding) &&
+      new Set((item.findings as CopilotFinding[]).map(f => f.id)).size === item.findings.length)
+      return { type:"findings", kind:item.kind, partial:item.partial,
+        findings:item.findings as CopilotFinding[] };
     if (kind === "delta" && item.type === "delta" && typeof item.text === "string")
       return { type: "delta", text: item.text };
     if (kind === "done" && item.type === "done") return { type: "done" };
