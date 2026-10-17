@@ -13,13 +13,14 @@ export function chooseContextQuery(
   if (typeof question!=="string" || question.length>1200) return null;
   // Only selected, authenticated RFQ pages may produce RFQ lookups.
   if (rfqEnabled && activeRecord?.kind==="rfq") {
-    const lineMatch=/(?:rivi(?:lle|stä|n|ä|llä)?|line|row)\\s*#?(\\d{1,5})\\b/i.exec(question);
+    const lineMatch=/(?:rivi(?:lle|stä|n|ä|llä)?|line|row)\s*#?(\d{1,5})\b/i.exec(question);
     const rfqIntent=/tarjouspyyn|rfq|rivi|rive|tuote|osum|match|product|explain|selit|miksi|why|tämän|tämä|tässä|tilanne|status|valmi|review|tarkist|seuraav|next|line|row/i.test(question);
     if (lineMatch || rfqIntent) {
       if (lineMatch) {
         const lineNumber=Number(lineMatch[1]);
         if (lineNumber>=1 && lineNumber<=100000)
           return {kind:"rfq_line_explanation",recordId:activeRecord.id,lineNumber,limit:10};
+        return null; // Never silently fall back to a different RFQ query.
       }
       return {kind:"rfq_review",recordId:activeRecord.id,limit:10};
     }
