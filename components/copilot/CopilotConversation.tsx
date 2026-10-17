@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { usePathname } from "next/navigation";
-import type { CopilotMessage } from "@/lib/rivora/copilot-protocol";
+import type { CopilotMessage, CopilotFindingsEvent } from "@/lib/rivora/copilot-protocol";
 import type { ContextSource } from "@/lib/rivora/copilot-context/types";
 import { parseActiveRecordPath } from "@/lib/rivora/copilot-context/active-record";
 import { buildCopilotHistory, CopilotStreamParser } from "@/lib/rivora/copilot-stream";
@@ -12,6 +12,7 @@ type DisplayMessage = CopilotMessage & {
   id: number;
   stage?: "retrieving" | "verifying" | "connecting" | "responding" | "done" | "stopped" | "error";
   sources?: ContextSource[];
+  findings?: CopilotFindingsEvent;
   truncated?: boolean;
   intent?: "steps" | "options" | "general";
 };
@@ -81,6 +82,55 @@ function CopilotAnswerText({ text }: { text: string }) {
         return <p className="ml-copilot-answer-paragraph" key={key}>{block.text}</p>;
       })}
     </div>
+  );
+}
+
+/** Findings are deterministic server evidence, never generated links or actions. */
+function CopilotFindings({
+  value, sources, locale,
+}: {
+  value: CopilotFindingsEvent; sources: ContextSource[]; locale: "fi" | "en";
+}) {
+  const fi = locale === "fi";
+  const sourceById = new Map(sources.map(source => [source.sourceId, source]));
+  // No source link = no finding. Never use model-provided URLs or actions.
+  const verified = value.findings.filter(item => sourceById.has(item.sourceId));
+  if (!verified.length) return null;
+  return (
+    <section className="ml-copilot-findings" aria-label={fi ? "Havainnot ja seuraavat tehtävät" : "Findings and next steps"}>
+      <h3 className="ml-copilot-findings-heading">{fi ? "Havainnot" : "Findings"}</h3>
+      <ul className="ml-copilot-findings-list">
+        {verified.map(item => (
+          <li key={item.id} className="ml-copilot-finding">
+            <span className={"ml-copilot-finding-mark is-" + item.severity} aria-hidden="true" />
+            <div className="ml-copilot-finding-content">
+              <strong>{item.title}</strong>
+              <p>{item.explanation}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <h3 className="ml-copilot-findings-heading">{fi ? "Seuraavaksi" : "Next steps"}</h3>
+      <ol className="ml-copilot-next-list">
+        {verified.map(item => {
+          const source = sourceById.get(item.sourceId);
+          if (!source) return null;
+          return <li key={item.id}>
+            <p>{item.suggestedAction}</p>
+            <a href={source.href} aria-label={(fi ? "Avaa tietue: " : "Open record: ") + source.label}>
+              {fi ? "Avaa tietue" : "Open record"} <span aria-hidden="true">↗</span>
+            </a>
+          </li>;
+        })}
+      </ol>
+      {value.partial ? (
+        <p className="ml-copilot-findings-partial">
+          {fi
+            ? "Havainnot perustuvat rajattuun aineistoon. Muitakin tarkistettavia asioita voi olla."
+            : "Findings use a limited set of records. Other issues may still need review."}
+        </p>
+      ) : null}
+    </section>
   );
 }
 
@@ -254,7 +304,7 @@ export function CopilotConversation({
           const { done, value } = await reader.read();
           if (done) { parser.finish(); break; }
           for (const event of parser.push(value)) {
-            if (completed && (event.type === "delta" || event.type === "error"))
+            if (completed)
               throw new Error("Unexpected data after response completion.");
             if (event.type === "stage") update({ stage: event.stage });
             if (event.type === "delta") {
@@ -264,6 +314,9 @@ export function CopilotConversation({
             }
             if (event.type === "sources") {
               update({ sources:event.sources, truncated:event.truncated });
+            }
+            if (event.type === "findings") {
+              update({ findings:event });
             }
             if (event.type === "done") {
               flushPaint();
@@ -357,6 +410,10 @@ export function CopilotConversation({
                 {message.text ? (message.role === "assistant"
                   ? <CopilotAnswerText text={message.text} />
                   : <p className="ml-copilot-message-text">{message.text}</p>) : null}
+                {message.role === "assistant" && message.stage === "done" &&
+                  message.findings && message.sources ? (
+                  <CopilotFindings value={message.findings} sources={message.sources} locale={locale} />
+                ) : null}
                 {message.role === "assistant" && message.stage === "done" &&
                   message.sources && message.sources.length>0 ? (
                   <div className="ml-copilot-context-sources">

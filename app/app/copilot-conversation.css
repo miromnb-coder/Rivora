@@ -263,3 +263,109 @@
   color: var(--ml-muted); font-size: 11px; line-height: 1.55;
   margin: 0;
 }
+
+
+/* Phase 5.1D — findings flow directly on Minimal Linen; no extra chat container. */
+.ml-workspace-shell .ml-copilot-findings {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ml-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.ml-workspace-shell .ml-copilot-findings-heading {
+  margin: 0;
+  color: var(--ml-primary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.ml-workspace-shell .ml-copilot-findings-list,
+.ml-workspace-shell .ml-copilot-next-list {
+  list-style: none;
+  display: grid;
+  gap: 11px;
+  padding: 0;
+  margin: 0;
+}
+.ml-workspace-shell .ml-copilot-finding {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+}
+.ml-workspace-shell .ml-copilot-finding-mark {
+  flex: 0 0 4px;
+  width: 4px;
+  min-height: 27px;
+  align-self: stretch;
+  border-radius: 5px;
+  background: var(--ml-border-strong);
+}
+.ml-workspace-shell .ml-copilot-finding-mark.is-critical,
+.ml-workspace-shell .ml-copilot-finding-mark.is-high {
+  background: var(--ml-primary);
+}
+.ml-workspace-shell .ml-copilot-finding-mark.is-medium { background: var(--ml-muted); }
+.ml-workspace-shell .ml-copilot-finding-content { min-width: 0; }
+.ml-workspace-shell .ml-copilot-finding-content strong {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ml-ink);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ml-workspace-shell .ml-copilot-finding-content p,
+.ml-workspace-shell .ml-copilot-next-list p {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ml-muted);
+  overflow-wrap: anywhere;
+}
+.ml-workspace-shell .ml-copilot-next-list {
+  counter-reset: copilot-next;
+  gap: 9px;
+}
+.ml-workspace-shell .ml-copilot-next-list li {
+  counter-increment: copilot-next;
+  padding-left: 22px;
+  position: relative;
+  min-width: 0;
+}
+.ml-workspace-shell .ml-copilot-next-list li::before {
+  content: counter(copilot-next) ".";
+  position: absolute;
+  inset-inline-start: 1px;
+  top: 2px;
+  color: var(--ml-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.ml-workspace-shell .ml-copilot-next-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 6px;
+  color: var(--ml-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ml-workspace-shell .ml-copilot-next-list a:focus-visible {
+  outline: 2px solid var(--ml-primary);
+  outline-offset: 3px;
+}
+.ml-workspace-shell .ml-copilot-findings-partial {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ml-muted);
+  margin: 0;
+}
+@media (max-width: 767px) {
+  .ml-workspace-shell .ml-copilot-findings { gap: 9px; }
+  .ml-workspace-shell .ml-copilot-findings-list { gap: 9px; }
+}
