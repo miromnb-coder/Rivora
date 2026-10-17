@@ -67,6 +67,31 @@ export function orderPriorityRule(caseRow: Pick<CaseRow, "stage" | "stageStatus"
   return null; // Unknown statuses are never assigned an invented priority.
 }
 
+/** Explain the exact stored workflow status; score is a deterministic queue aid, not urgency evidence. */
+export function orderPriorityReason(
+  item: Pick<CaseRow,"stage"|"stageStatus">, locale:"fi"|"en",
+): string {
+  const stage=item.stage, status=item.stageStatus ?? "";
+  const descriptions:Record<string,[string,string]>={
+    "erp:erp_failed":["ERP-viennin tila on epäonnistunut. Tarkista virhe ennen mahdollista uudelleenyritystä.","The ERP export is recorded as failed. Review the error before retrying."],
+    "erp:erp_partial":["ERP-vienti onnistui vain osittain. Tarkista, mitkä tiedot siirtyivät, ennen uudelleenyritystä.","ERP export is recorded as partial. Check what was transferred before retrying."],
+    "rfq:failed":["Tarjouspyynnön käsittely on epäonnistunut, eikä tulosta pidä olettaa valmiiksi.","RFQ processing failed; do not assume the result is complete."],
+    "rfq:needs_review":["Tarjouspyyntö on merkitty tarkistusta vaativaksi. Vahvistustarpeet selviävät sen riveiltä.","The RFQ is marked for review. Open its lines to identify pending confirmations."],
+    "po:extracted":["Ostotilauksen tiedot on poimittu, mutta niitä ei ole vielä vahvistettu.","Purchase-order details were extracted but have not been confirmed."],
+    "po:needs_review":["Ostotilaus on merkitty tarkistusta vaativaksi ennen seuraavaa käsittelyvaihetta.","The purchase order is marked as requiring review before proceeding."],
+    "po:matched":["Ostotilaus on täsmäytetty, mutta hyväksyntävaihe on vielä edessä.","The purchase order is matched but awaits the approval step."],
+    "quote:draft":["Tarjous on luonnostilassa ja vaatii viimeistelyä ennen jatkamista.","The quote is a draft and needs completion before proceeding."],
+    "quote:ready":["Tarjous on merkitty valmiiksi hyväksyntää varten.","The quote is marked ready for approval."],
+    "quote:approved":["Tarjous on hyväksytty, mutta sen lähetysvaihe tulee vielä tarkistaa.","The quote is approved but its sending step still needs review."],
+    "erp:draft":["Myyntitilausluonnos vaatii tietojen tarkistuksen ennen ERP-toimenpidettä.","The sales-order draft needs review before an ERP action."],
+    "erp:ready_for_erp":["Myyntitilaus on valmis ERP-vaiheen tarkistukseen; vientiä ei ole tässä tehty.","The sales order is ready for ERP review; no export has been performed here."],
+    "erp:approved":["Myyntitilaus on hyväksytty ja odottaa ERP-vaiheen käsittelyä.","The sales order is approved and awaits ERP processing."],
+  };
+  const found=descriptions[stage+":"+status];
+  return found ? found[locale==="fi"?0:1] :
+    locale==="fi"?"Tila ei vastaa tunnettua työjonosääntöä.":"Status has no known queue rule.";
+}
+
 const CASE_HREF = /^\/app\/orders\/case\/(rfq|quote|po|sales)\/([0-9a-f-]{36})$/i;
 function sourceIdFromCase(row: CaseRow): string | null {
   const match=CASE_HREF.exec(row.href);
@@ -101,12 +126,41 @@ export function prioritizeOrderCases(
         severity:entry.rule.severity,priority:entry.rule.priority,
         sourceId:entry.sourceId,
         title:strings(entry.rule.fi,entry.rule.en,locale),
-        explanation:strings("Prioriteetti perustuu tallennettuun käsittelytilaan, ei määräaikaan.",
-          "Priority is based on recorded workflow status, not a due date.",locale),
+        explanation:orderPriorityReason(entry.row,locale),
         suggestedAction:strings(entry.rule.actionFi,entry.rule.actionEn,locale),
       })),
     },
   };
+}
+
+/** Bounded wording grounded only in verified per-line fields. */
+export function rfqLineFindingReason(
+  code: FindingCode, lineNumber: number,
+  line: RfqExplanation["explanations"][number] | undefined, locale:"fi"|"en",
+): string {
+  if (!line) return locale==="fi"?"Rivi tulee tarkistaa sovelluksessa.":"Review the line in the application.";
+  if (code==="RFQ_EXTRACTION_UNCERTAIN") {
+    const percentage=line.extractionConfidencePercent;
+    if (percentage===null) return locale==="fi"?"Poiminnan varmuutta ei ole saatavilla.":"Extraction confidence is unavailable.";
+    return locale==="fi"
+      ? "Rivin "+lineNumber+" tietojen poiminnan varmuus on "+percentage+" %. Tarkista alkuperäinen dokumentti."
+      : "Line "+lineNumber+" extraction confidence is "+percentage+"%. Compare with the source document.";
+  }
+  if (code==="RFQ_LINE_UNMATCHED") {
+    return locale==="fi"
+      ? "Riville "+lineNumber+" ei ole vahvistettua tuoteosumaa."+
+        (line.candidateListComplete ? " Haettu ehdokaslista on tarkistettu." : " Muitakin ehdokkaita voi olla.")
+      : "Line "+lineNumber+" has no confirmed product match."+
+        (line.candidateListComplete ? " The retrieved candidate list was checked." : " Other candidates may exist.");
+  }
+  const state:Record<string,[string,string]>={
+    matched:["Tuote-ehdotus odottaa ihmisen vahvistusta.","A product suggestion awaits human confirmation."],
+    needs_review:["Rivi on merkitty tarkistusta vaativaksi.","The line is marked as requiring review."],
+    pending:["Rivi odottaa käsittelyä.","The line is pending review."],
+  };
+  return (state[line.reviewStatus]??[
+    "Rivin vahvistusta ei ole tallennettu.","No confirmation is recorded for the line.",
+  ])[locale==="fi"?0:1];
 }
 
 export function analyzeRfq(
@@ -114,16 +168,16 @@ export function analyzeRfq(
 ): DeterministicAnalysis {
   const sourceId="rfq:"+rfq.rfqId;
   const findings: AnalysisFinding[]=[];
+  const byLine=new Map(rfq.explanations.map(line=>[line.lineNumber,line]));
   const add=(code:FindingCode, severity:FindingSeverity, priority:number,
     lineNumber:number|null, fi:string,en:string,actionFi:string,actionEn:string)=>{
     findings.push({
       id:code+":"+(lineNumber??"rfq"),code,severity,priority,sourceId,
       title:strings(fi,en,locale),
       explanation:lineNumber===null?
-        strings("Havainto perustuu tarjouspyynnön tallennettuun tilaan ja tarkkoihin laskentoihin.",
-          "Based on recorded RFQ status and exact counts.",locale):
-        strings("Rivin "+lineNumber+" tallennetun tarkistustilan perusteella.",
-          "Based on recorded review state for line "+lineNumber+".",locale),
+        strings("Tarjouspyynnön tallennetun tilan ja tarkkojen rivimäärien perusteella.",
+          "Based on the recorded RFQ status and exact line counts.",locale):
+        rfqLineFindingReason(code,lineNumber,byLine.get(lineNumber),locale),
       suggestedAction:strings(actionFi,actionEn,locale),
     });
   };
@@ -152,8 +206,16 @@ export function analyzeRfq(
       add("RFQ_LINE_UNCONFIRMED","medium",70,line.lineNumber,
         "Rivi "+line.lineNumber+": vahvistus puuttuu",
         "Line "+line.lineNumber+": confirmation missing",
-        "Tarkista ja vahvista osuma tarvittaessa",
-        "Review and confirm the match if appropriate");
+        line.reviewStatus==="matched"
+          ? "Vertaa ehdotusta tilaajan tietoihin ja vahvista sopiva osuma"
+          : line.reviewStatus==="pending"
+            ? "Käsittele rivi ja tarkista mahdollinen tuote-ehdotus"
+            : "Tarkista rivin tuotetiedot ja vahvista vasta sopiva osuma",
+        line.reviewStatus==="matched"
+          ? "Compare the suggestion with the requested item and confirm only a valid match"
+          : line.reviewStatus==="pending"
+            ? "Review the line and any available product suggestion"
+            : "Review the requested item and confirm only a suitable match");
   }
   if(rfq.unresolvedLines>0 && findings.length===0)
     add("RFQ_REVIEW_REMAINING","high",75,null,
