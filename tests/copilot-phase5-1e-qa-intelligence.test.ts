@@ -5,7 +5,7 @@ import { orderPriorityReason,analyzeRfq } from "../lib/rivora/copilot-context/an
 import { explainRfq } from "../lib/rivora/copilot-context/rfq-explanation.ts";
 import { verifiedFindingLink } from "../lib/rivora/copilot-finding-navigation.ts";
 import { buildVerifiedFindingsEvent } from "../lib/rivora/copilot-context/findings-event.ts";
-import { encodeCopilotEvent,decodeCopilotEvent } from "../lib/rivora/copilot-protocol.ts";
+import { encodeCopilotEvent,decodeCopilotEvent, type CopilotFindingsEvent } from "../lib/rivora/copilot-protocol.ts";
 import type { ContextSource } from "../lib/rivora/copilot-context/types.ts";
 import type { RfqDataSnapshot } from "../lib/rivora/copilot-context/rfq.ts";
 import type { DeterministicAnalysis } from "../lib/rivora/copilot-context/analysis.ts";
@@ -104,10 +104,10 @@ test("5.1E findings keep numeric coverage and still reject invalid counts",()=>{
   assert.equal(event?.totalCount,5);
   assert.deepEqual(decodeCopilotEvent(encodeCopilotEvent(event!).trim()),event);
   for(const invalid of [-1,10001,1.5,NaN]){
-    const spoof={...event,inspectedCount:invalid};
+    const spoof: CopilotFindingsEvent={...event!,inspectedCount:invalid};
     assert.equal(decodeCopilotEvent(encodeCopilotEvent(spoof!).trim()),null);
   }
-  const broken={...event,totalCount:-1};
+  const broken: CopilotFindingsEvent={...event!,totalCount:-1};
   assert.equal(decodeCopilotEvent(encodeCopilotEvent(broken!).trim()),null);
 });
 
