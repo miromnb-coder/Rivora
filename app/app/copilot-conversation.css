@@ -236,3 +236,30 @@
 .ml-workspace-shell .ml-copilot-context-sources a:focus-visible {
   outline: 2px solid var(--ml-primary); outline-offset: 2px;
 }
+
+
+/* Phase 5.1B.4 — read-only RFQ answers on the existing Minimal Linen background. */
+.ml-workspace-shell .ml-copilot-answer {
+  display: flex; flex-direction: column; gap: 10px;
+  color: var(--ml-ink); font-size: 13.5px; line-height: 1.7;
+  overflow-wrap: anywhere; min-width: 0;
+}
+.ml-workspace-shell .ml-copilot-answer-paragraph {
+  margin: 0; white-space: pre-wrap;
+}
+.ml-workspace-shell .ml-copilot-answer-heading {
+  margin: 5px 0 -5px; color: var(--ml-primary);
+  font-size: 12px; font-weight: 700; line-height: 1.5;
+  letter-spacing: .015em;
+}
+.ml-workspace-shell .ml-copilot-answer-list {
+  margin: 0; padding-left: 19px; display: grid; gap: 7px;
+}
+.ml-workspace-shell .ml-copilot-answer-list li {
+  padding-left: 1px; white-space: pre-wrap;
+}
+.ml-workspace-shell .ml-copilot-answer-list li::marker { color: var(--ml-muted); }
+.ml-workspace-shell .ml-copilot-context-limited {
+  color: var(--ml-muted); font-size: 11px; line-height: 1.55;
+  margin: 0;
+}
