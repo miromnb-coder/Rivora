@@ -55,6 +55,26 @@ async function respond(req, res) {
     res.end();
     return;
   }
+  if (contextMode && optedIn && question.includes("HAVAINNOT")) {
+    const id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    send({type:"stage",stage:"retrieving"});
+    send({type:"stage",stage:"responding"});
+    send({type:"delta",text:"Tämä RFQ vaatii tarkistuksen."});
+    const source={sourceId:"rfq:"+id,kind:"rfq",recordId:id,
+      href:"/app/orders/case/rfq/"+id,label:"QA-RFQ-001"};
+    send({type:"sources",sources:[source],truncated:false});
+    send({type:"findings",kind:"rfq_review",partial:true,findings:[{
+      id:"RFQ_LINE_UNMATCHED:2",code:"RFQ_LINE_UNMATCHED",severity:"high",
+      sourceId:"rfq:"+id,title:"Rivi 2: tuoteosuma puuttuu",
+      explanation:"Rivin 2 tallennetun tilan perusteella.",
+      suggestedAction:"Valitse sopiva tuote käsin",
+    }]});
+    if(question.includes("KESKEN")){res.end();return;}
+    if(question.includes("VIRHE")){send({type:"error",message:"Synthetic error"});res.end();return;}
+    send({type:"done"});
+    res.end();
+    return;
+  }
   if (contextMode && optedIn && question.includes("KONTEKSTI")) {
     send({type:"stage",stage:"retrieving"});
     await delay(15);

@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { chooseContextQuery, resolveCopilotContext, resolveRfqIntelligenceContext } from "@/lib/rivora/copilot-context/resolver";
 import { rfqAnswerGuidance } from "@/lib/rivora/copilot-context/rfq-answer-guidance";
 import { serializeAnalysis } from "@/lib/rivora/copilot-context/analysis";
+import { buildVerifiedFindingsEvent } from "@/lib/rivora/copilot-context/findings-event";
 import { verifyContextMembership } from "@/lib/rivora/copilot-context/authorization";
 import { verifyActiveRecordAccess } from "@/lib/rivora/copilot-context/active-record";
 import { serializeContextForModel } from "@/lib/rivora/copilot-context/sanitize";
@@ -259,6 +260,16 @@ export async function POST(request: Request) {
             if (rfqContext && rfqContext.sources.length) emit({
               type:"sources", sources:rfqContext.sources, truncated:rfqContext.truncated,
             });
+            // Findings are shown only AFTER successful provider completion and
+            // final ledger settlement, and ONLY on approved, source-verified records.
+            if (analysis &&
+                process.env.AVEROMIRA_COPILOT_DETERMINISTIC_ANALYSIS_ENABLED === "true" &&
+                process.env.AVEROMIRA_COPILOT_FINDINGS_UI_ENABLED === "true") {
+              const findingsEvent = buildVerifiedFindingsEvent(
+                analysis, contextResult?.sources ?? rfqContext?.sources ?? [],
+              );
+              if (findingsEvent) emit(findingsEvent);
+            }
             emit({ type: "done" });
             operationalLog("info", "copilot_answered", {
               requestId, organizationId,
