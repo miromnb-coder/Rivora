@@ -44,18 +44,13 @@ test("5.1D only emits source-scoped verified findings and marks omissions partia
 test("5.1D encode/decode roundtrips bounded findings but rejects tampering",()=>{
   const result=buildVerifiedFindingsEvent(analysis,[source])!;
   assert.deepEqual(decodeCopilotEvent(encodeCopilotEvent(result).trim()),result);
-  const bad=[{
-    ...result,findings:[{...result.findings[0],sourceId:"rfq:"+other+"?extra=1"}],
-  },{
-    ...result,findings:[{...result.findings[0],severity:"danger"}],
-  },{
-    ...result,findings:[{...result.findings[0],code:"EXECUTE_ACTION"}],
-  },{
-    ...result,findings:[{...result.findings[0],suggestedAction:"X".repeat(151)}],
-  },{
-    ...result,findings:Array.from({length:6},()=>result.findings[0])},
-  },{
-    ...result,findings:[result.findings[0],result.findings[0]]},
+  const bad = [
+    {...result, findings:[{...result.findings[0],sourceId:"rfq:"+other+"?extra=1"}]},
+    {...result, findings:[{...result.findings[0],severity:"danger"}]},
+    {...result, findings:[{...result.findings[0],code:"EXECUTE_ACTION"}]},
+    {...result, findings:[{...result.findings[0],suggestedAction:"X".repeat(151)}]},
+    {...result, findings:Array.from({length:6},()=>result.findings[0])},
+    {...result, findings:[result.findings[0],result.findings[0]]},
   ];
   for(const sample of bad)
     assert.equal(decodeCopilotEvent(encodeCopilotEvent(sample as CopilotFindingsEvent).trim()),null);
