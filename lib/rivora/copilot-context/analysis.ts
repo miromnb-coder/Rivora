@@ -22,8 +22,9 @@ export type AnalysisFinding = {
 export type DeterministicAnalysis = {
   kind: "orders_priority" | "rfq_review";
   partial: boolean;
-  /** Only inspected cases or selected RFQ lines; NEVER the entire business history. */
+  /** Number of cases inspected or RFQ lines analyzed for findings; not necessarily all rows read. */
   inspectedCount: number;
+  retrievedCount?: number;
   totalCount: number | null;
   findings: AnalysisFinding[];
 };
@@ -236,6 +237,7 @@ export function analyzeRfq(
     partial:rfq.truncated || !rfq.allLinesInspected || findings.length>5 ||
       rfq.explanations.length < rfq.inspectedLines,
     inspectedCount:rfq.explanations.length,
+    retrievedCount:rfq.inspectedLines,
     totalCount:rfq.totalLines,
     findings:selected,
   };

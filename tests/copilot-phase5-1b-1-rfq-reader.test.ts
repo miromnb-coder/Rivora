@@ -192,10 +192,10 @@ test("5.1B.2 focused RFQ line included ahead of review prioritization",async()=>
   const value=await loadRfqSnapshot(fakeDb(scenario) as never,
     ORG_A,RFQ,new AbortController().signal,40);
   assert.equal(value.lines[0]?.lineNumber,40);
-  assert.equal(value.selectedLines,10);
+  assert.equal(value.selectedLines,1);
   await assert.rejects(loadRfqSnapshot(fakeDb(scenario) as never,
     ORG_A,RFQ,new AbortController().signal,999),
-    /COPILOT_RFQ_LINE_OUTSIDE_SCAN/);
+    /COPILOT_RFQ_LINE_UNAVAILABLE/);
 });
 
 test("5.1B.2 candidate completeness is false on more than three candidates per line",async()=>{
