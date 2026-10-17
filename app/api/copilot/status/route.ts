@@ -14,7 +14,7 @@ export async function GET() {
   try {
     const context = await getAuthContext();
     if (!context.claims?.sub || !context.workspace)
-      return NextResponse.json({ available: false, pilot: false, contextAvailable: false, activeRecordAvailable: false }, { status: 401, headers });
+      return NextResponse.json({ available: false, pilot: false, contextAvailable: false, activeRecordAvailable: false, rfqIntelligenceAvailable: false }, { status: 401, headers });
     const ready = copilotActivationReadiness();
     const authorized = copilotActorAuthorizedForEnvironment(
       context.claims.sub, context.workspace.id, context.workspace.role,
@@ -25,8 +25,10 @@ export async function GET() {
     const contextAvailable = available && process.env.AVEROMIRA_COPILOT_CONTEXT_ENABLED === "true";
     const activeRecordAvailable = contextAvailable &&
       process.env.AVEROMIRA_COPILOT_ACTIVE_RECORD_ENABLED === "true";
-    return NextResponse.json({ available, pilot, contextAvailable, activeRecordAvailable }, { headers });
+    const rfqIntelligenceAvailable = activeRecordAvailable &&
+      process.env.AVEROMIRA_COPILOT_RFQ_INTELLIGENCE_ENABLED === "true";
+    return NextResponse.json({ available, pilot, contextAvailable, activeRecordAvailable, rfqIntelligenceAvailable }, { headers });
   } catch {
-    return NextResponse.json({ available: false, pilot: false, contextAvailable: false, activeRecordAvailable: false }, { headers });
+    return NextResponse.json({ available: false, pilot: false, contextAvailable: false, activeRecordAvailable: false, rfqIntelligenceAvailable: false }, { headers });
   }
 }

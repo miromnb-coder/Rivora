@@ -15,11 +15,13 @@ export async function readAuthorizedRfqSnapshot(args: {
   organizationId: string;
   rfqId: string;
   signal: AbortSignal;
+  focusLineNumber?: number;
 }): Promise<RfqDataSnapshot> {
   if (args.signal.aborted) throw new ContextReadError("COPILOT_RFQ_ABORTED");
   await verifyContextMembership(args.db, args.actorId, args.organizationId, args.signal);
   await verifyActiveRecordAccess(args.db, args.organizationId, {
     kind: "rfq", id: args.rfqId,
   }, args.signal);
-  return loadRfqSnapshot(args.db, args.organizationId, args.rfqId, args.signal);
+  return loadRfqSnapshot(args.db, args.organizationId, args.rfqId,
+    args.signal, args.focusLineNumber);
 }

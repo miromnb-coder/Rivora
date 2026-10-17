@@ -185,3 +185,24 @@ test("5.1B.1 is an isolated read-only reader and wrapper verifies membership",()
   assert.equal(route.includes("loadRfqSnapshot("),false);
   assert.equal(route.includes("readAuthorizedRfqSnapshot("),false);
 });
+
+
+test("5.1B.2 focused RFQ line included ahead of review prioritization",async()=>{
+  const scenario=setup({n:40,candidates:0});
+  const value=await loadRfqSnapshot(fakeDb(scenario) as never,
+    ORG_A,RFQ,new AbortController().signal,40);
+  assert.equal(value.lines[0]?.lineNumber,40);
+  assert.equal(value.selectedLines,10);
+  await assert.rejects(loadRfqSnapshot(fakeDb(scenario) as never,
+    ORG_A,RFQ,new AbortController().signal,999),
+    /COPILOT_RFQ_LINE_OUTSIDE_SCAN/);
+});
+
+test("5.1B.2 candidate completeness is false on more than three candidates per line",async()=>{
+  const scenario=setup({n:4,candidates:5});
+  const value=await loadRfqSnapshot(fakeDb(scenario) as never,
+    ORG_A,RFQ,new AbortController().signal);
+  assert.equal(value.truncated,true);
+  assert.ok(value.lines.some(item=>item.candidatesComplete===false));
+  assert.ok(value.lines.every(item=>item.candidates.length<=3));
+});

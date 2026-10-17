@@ -32,7 +32,8 @@ export type CopilotContextResult = {
 };
 export type ContextQuery =
   | { kind: "orders_overview"; filter: "attention" | "all"; limit: number }
-  | { kind: "rfq_review"; recordId: string; limit: number };
+  | { kind: "rfq_review"; recordId: string; limit: number }
+  | { kind: "rfq_line_explanation"; recordId: string; lineNumber: number; limit: number };
 export class ContextReadError extends Error {
   readonly code: string;
   constructor(code: string) {

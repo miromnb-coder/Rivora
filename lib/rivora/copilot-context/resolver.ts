@@ -1,11 +1,19 @@
 import type { createClient } from "@/lib/supabase/server";
 import { verifyContextMembership } from "./authorization";
 import { getOrdersOverview } from "./orders";
-import type { CopilotContextResult, ContextQuery } from "./types";
+import { chooseRfqContextQuery } from "./rfq-intent";
+import { readAuthorizedRfqSnapshot } from "./rfq-access";
+import { explainRfq, serializeRfqExplanation, type RfqIntelligenceContext } from "./rfq-explanation";
+import type { ActiveRecord, CopilotContextResult, ContextQuery } from "./types";
 
 type ScopedDb=Awaited<ReturnType<typeof createClient>>;
-export function chooseContextQuery(question: string, area: string): ContextQuery | null {
+export function chooseContextQuery(
+  question: string, area: string,
+  activeRecord: ActiveRecord | null = null, rfqEnabled = false,
+): ContextQuery | null {
   if (typeof question!=="string" || question.length>1200) return null;
+  const rfqQuery = chooseRfqContextQuery(question,activeRecord,rfqEnabled);
+  if (rfqQuery) return rfqQuery;
   // One deterministic allowed operation. No model-created queries or tool names.
   const orders=/tilau|työjon|huomiota vaativ|order|work queue|needs attention/i.test(question);
   if (!orders) return null; // Never fetch orders for unrelated questions.
@@ -32,5 +40,34 @@ export async function resolveCopilotContext(args: {
   } finally {
     clearTimeout(timer);
     args.abort?.removeEventListener("abort",cancel);
+  }
+}
+
+/** Separate resolver retains the Phase 5.0 orders return contract unchanged.
+ * Uses only the allowlisted RFQ snapshot reader; no model-supplied SQL/tools.
+ */
+export async function resolveRfqIntelligenceContext(args: {
+  db: ScopedDb; actorId: string; organizationId: string;
+  query: Extract<ContextQuery, { kind: "rfq_review" | "rfq_line_explanation" }>;
+  abort?: AbortSignal;
+}): Promise<RfqIntelligenceContext> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  const cancel = () => controller.abort();
+  args.abort?.addEventListener("abort", cancel, { once: true });
+  if (args.abort?.aborted) controller.abort();
+  try {
+    if (controller.signal.aborted) throw new Error("COPILOT_CONTEXT_ABORTED");
+    const focusLineNumber=args.query.kind==="rfq_line_explanation"
+      ? args.query.lineNumber : undefined;
+    const snapshot=await readAuthorizedRfqSnapshot({
+      db:args.db, actorId:args.actorId, organizationId:args.organizationId,
+      rfqId:args.query.recordId, focusLineNumber, signal:controller.signal,
+    });
+    if (controller.signal.aborted) throw new Error("COPILOT_CONTEXT_ABORTED");
+    return serializeRfqExplanation(explainRfq(snapshot,focusLineNumber));
+  } finally {
+    clearTimeout(timer);
+    args.abort?.removeEventListener("abort", cancel);
   }
 }

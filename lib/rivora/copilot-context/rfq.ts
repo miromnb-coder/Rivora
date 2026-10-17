@@ -132,10 +132,14 @@ function asCandidate(row: unknown): { lineId: string; value: RfqCandidateSnapsho
 // The caller must use a JWT/RLS-scoped client and an org validated by the wrapper.
 export async function loadRfqSnapshot(
   db: ScopedDb, organizationId: string, rfqId: string, signal: AbortSignal,
+  focusLineNumber?: number,
 ): Promise<RfqDataSnapshot> {
   if (!isActiveRecordUuid(organizationId) || !isActiveRecordUuid(rfqId))
     fail("COPILOT_RFQ_INVALID_INPUT");
   if (signal.aborted) fail("COPILOT_RFQ_ABORTED");
+  if (focusLineNumber !== undefined &&
+      (!Number.isSafeInteger(focusLineNumber) || focusLineNumber < 1 || focusLineNumber > 100000))
+    fail("COPILOT_RFQ_INVALID_INPUT");
 
   const { data: header, error: headerError } = await db.from("rfqs")
     .select("id,reference,status,source_type,overall_confidence,extraction_confidence,extraction_warnings")
@@ -186,7 +190,12 @@ export async function loadRfqSnapshot(
     };
     return weights[line.reviewStatus] ?? 4;
   };
+  const focused = focusLineNumber === undefined ? null :
+    inspected.find(line => line.lineNumber === focusLineNumber);
+  if (focusLineNumber !== undefined && !focused)
+    fail("COPILOT_RFQ_LINE_OUTSIDE_SCAN");
   const selected = [...inspected].sort((a, b) =>
+    (a.id === focused?.id ? -1 : b.id === focused?.id ? 1 : 0) ||
     severity(a) - severity(b) || a.lineNumber - b.lineNumber || a.id.localeCompare(b.id))
     .slice(0, RFQ_MODEL_LINE_LIMIT);
   let candidatesComplete = true;
@@ -201,19 +210,24 @@ export async function loadRfqSnapshot(
       fail("COPILOT_RFQ_CANDIDATES_UNAVAILABLE");
     candidatesComplete = candidateRows.length < RFQ_CANDIDATE_SCAN_LIMIT;
     const allowed = new Set(ids);
+    const perLineCounts = new Map<string, number>();
     for (const candidate of candidateRows.slice(0, RFQ_CANDIDATE_SCAN_LIMIT - 1)) {
       const item = asCandidate(candidate);
       if (!allowed.has(item.lineId)) fail("COPILOT_RFQ_INVALID_DATA");
       const target = selected.find(row => row.id === item.lineId);
       if (!target) fail("COPILOT_RFQ_INVALID_DATA");
+      perLineCounts.set(item.lineId, (perLineCounts.get(item.lineId) ?? 0) + 1);
       if (target.candidates.length < RFQ_CANDIDATE_LIMIT) target.candidates.push(item.value);
     }
-    for (const line of selected) line.candidatesComplete = candidatesComplete;
+    for (const line of selected)
+      line.candidatesComplete = candidatesComplete &&
+        (perLineCounts.get(line.id) ?? 0) <= RFQ_CANDIDATE_LIMIT;
   }
   if (signal.aborted) fail("COPILOT_RFQ_ABORTED");
   const allLinesInspected = totalLines === inspected.length && rows.length <= RFQ_LINE_SCAN_LIMIT;
   const truncated = !allLinesInspected ||
-    inspected.length > selected.length || !candidatesComplete;
+    inspected.length > selected.length || !candidatesComplete ||
+    selected.some(line => !line.candidatesComplete);
 
   return {
     kind: "rfq_snapshot", rfqId: rfq.id.toLowerCase(),
