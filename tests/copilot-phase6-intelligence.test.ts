@@ -4,6 +4,7 @@ import {readFileSync} from "node:fs";
 import {choosePhase6Intent,choosePhase6Line,choosePhase6FollowUpIntent} from "../lib/rivora/copilot-intelligence/intent-router.ts";
 import {validatedPhase6Facts,serializePhase6Evidence,verifiedEvidenceEvent} from "../lib/rivora/copilot-intelligence/evidence.ts";
 import {encodeCopilotEvent,decodeCopilotEvent} from "../lib/rivora/copilot-protocol.ts";
+import {assessMemoryTargets,compareRecordedStatuses} from "../lib/rivora/copilot-intelligence/reasoner.ts";
 import type {Phase6Evidence} from "../lib/rivora/copilot-intelligence/types.ts";
 const org="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const rec={kind:"rfq" as const,id:org};
@@ -84,4 +85,24 @@ test("6.6 feature gates, settling order, streaming and customer isolation remain
  assert.match(route,/process\.env\.AVEROMIRA_COPILOT_DETERMINISTIC_ANALYSIS_ENABLED/);
  assert.match(route,/const limits = prepareCopilotPricing\(instructions, input\)/);
  assert.match(u,/message\.stage === "done" &&\s*message\.evidence/);
+});
+
+test("6.1 historical memory target remains distinct from mutable current mapping",()=>{
+ const a="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const b="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+ assert.deepEqual(assessMemoryTargets(a,b,a),{
+   snapshotVerified:true,currentChanged:true,selectedDiffers:false});
+ assert.deepEqual(assessMemoryTargets(a,a,b),{
+   snapshotVerified:true,currentChanged:false,selectedDiffers:true});
+ assert.deepEqual(assessMemoryTargets(null,b,a),{
+   snapshotVerified:false,currentChanged:false,selectedDiffers:false});
+ assert.deepEqual(assessMemoryTargets("<script>",b,a),{
+   snapshotVerified:false,currentChanged:false,selectedDiffers:false});
+});
+test("6.3 differing quote statuses are not proof of an operational failure",()=>{
+ assert.equal(compareRecordedStatuses(["draft","approved"]),"different");
+ assert.equal(compareRecordedStatuses(["ready","ready"]),"same");
+ assert.equal(compareRecordedStatuses(["draft"]),"insufficient");
+ assert.equal(compareRecordedStatuses(["","approved"]),"insufficient");
+ assert.equal(compareRecordedStatuses(["x".repeat(100),"ready"]),"insufficient");
 });
