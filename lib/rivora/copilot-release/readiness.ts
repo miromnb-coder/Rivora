@@ -52,6 +52,8 @@ export function evaluateCopilotRelease(manifest:ReleaseManifest):{
  decision:"GO"|"NO_GO"; missing:string[]; passedGates:number;
 } {
  const missing:string[]=[];
+ if(!manifest || typeof manifest!=="object")return {decision:"NO_GO",missing:["invalid_manifest"],passedGates:0};
+ if(!manifest.gates || typeof manifest.gates!=="object")return {decision:"NO_GO",missing:["missing_gates"],passedGates:0};
  if(manifest.version!==1) missing.push("manifest_version");
  if(!SHA.test(manifest.targetCommit) || manifest.targetCommit!==manifest.deployedCommit)
    missing.push("commit_mismatch");

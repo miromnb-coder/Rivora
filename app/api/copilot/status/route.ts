@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/rivora/workspace";
+import { copilotCustomerAudienceAuthorizedForEnvironment } from "@/lib/rivora/copilot-release/audience";
 import {
   copilotActivationReadiness, copilotActorAuthorizedForEnvironment,
 } from "@/lib/rivora/copilot-live";
@@ -19,7 +20,10 @@ export async function GET() {
     const authorized = copilotActorAuthorizedForEnvironment(
       context.claims.sub, context.workspace.id, context.workspace.role,
     );
-    const available = ready.ready && authorized;
+    const available = ready.ready && authorized &&
+      copilotCustomerAudienceAuthorizedForEnvironment(
+        context.claims.sub, context.workspace.id, context.workspace.role,
+      );
     const pilot = available && process.env.VERCEL_ENV === "production" &&
       process.env.AVEROMIRA_COPILOT_PILOT_ENABLED === "true";
     const contextAvailable = available && process.env.AVEROMIRA_COPILOT_CONTEXT_ENABLED === "true";
