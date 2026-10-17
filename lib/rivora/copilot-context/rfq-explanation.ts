@@ -150,10 +150,12 @@ export function explainRfq(snapshot: RfqDataSnapshot, focusedLineNumber?: number
   };
 }
 
+import type { DeterministicAnalysis } from "./analysis.ts";
 export type RfqIntelligenceContext = {
   modelSnapshot: string;
   sources: ContextSource[];
   truncated: boolean;
+  analysis?: DeterministicAnalysis;
 };
 
 /** An allowlisted, verified case link, not a model-selected URL. */

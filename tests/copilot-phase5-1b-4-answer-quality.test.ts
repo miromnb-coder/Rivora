@@ -81,7 +81,9 @@ test("5.1B.4 answer guidance enforces scope, language and honest confidence",()=
   assert.ok(route.indexOf("rfqAnswerGuidance(locale")>route.indexOf("const instructions"));
   assert.ok(route.indexOf("await resolveRfqIntelligenceContext(")<route.indexOf("await ledger.reserve("));
   assert.match(readFileSync("lib/rivora/copilot-context/resolver.ts","utf8"),
-    /serializeRfqExplanation\(explainRfq\(snapshot,focusLineNumber\),args.locale\)/);
+    /serializeRfqExplanation\(explanation,args.locale\)/);
+  assert.match(readFileSync("lib/rivora/copilot-context/resolver.ts","utf8"),
+    /const explanation=explainRfq\(snapshot,focusLineNumber\)/);
 });
 
 test("5.1B.4 readable answer parser groups paragraphs, headings and bullets",()=>{

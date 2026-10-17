@@ -1,6 +1,8 @@
 import type { createClient } from "@/lib/supabase/server";
 import { verifyContextMembership } from "./authorization";
 import { getOrdersOverview } from "./orders";
+import { getOrdersPriority } from "./order-priority";
+import { analyzeRfq } from "./analysis";
 import { chooseRfqContextQuery } from "./rfq-intent";
 import { readAuthorizedRfqSnapshot } from "./rfq-access";
 import { explainRfq, serializeRfqExplanation, type RfqIntelligenceContext } from "./rfq-explanation";
@@ -10,10 +12,15 @@ type ScopedDb=Awaited<ReturnType<typeof createClient>>;
 export function chooseContextQuery(
   question: string, area: string,
   activeRecord: ActiveRecord | null = null, rfqEnabled = false,
+  analysisEnabled = false,
 ): ContextQuery | null {
   if (typeof question!=="string" || question.length>1200) return null;
   const rfqQuery = chooseRfqContextQuery(question,activeRecord,rfqEnabled);
   if (rfqQuery) return rfqQuery;
+  // Route priority only when independently enabled and the intent is explicit.
+  if (analysisEnabled && area === "orders" &&
+      /priorit|tärkeimm|kiireellis|järjestyk|mihin.*(tartu|tarttua|aloit)|ensin|what.*first|priority/i.test(question))
+    return { kind:"orders_priority",limit:5 };
   // One deterministic allowed operation. No model-created queries or tool names.
   const orders=/tilau|työjon|huomiota vaativ|order|work queue|needs attention/i.test(question);
   if (!orders) return null; // Never fetch orders for unrelated questions.
@@ -26,7 +33,8 @@ export async function resolveCopilotContext(args: {
   db:ScopedDb; actorId:string; organizationId:string;
   locale:"fi"|"en"; query:ContextQuery; abort?:AbortSignal;
 }): Promise<CopilotContextResult> {
-  if (args.query.kind!=="orders_overview") throw new Error("COPILOT_CONTEXT_TOOL_UNAVAILABLE");
+  if (args.query.kind!=="orders_overview" && args.query.kind!=="orders_priority")
+    throw new Error("COPILOT_CONTEXT_TOOL_UNAVAILABLE");
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),5000);
   const cancel=()=>controller.abort();
@@ -35,6 +43,9 @@ export async function resolveCopilotContext(args: {
     if (controller.signal.aborted) throw new Error("COPILOT_CONTEXT_ABORTED");
     await verifyContextMembership(args.db,args.actorId,args.organizationId,controller.signal);
     if (args.abort?.aborted) throw new Error("COPILOT_CONTEXT_ABORTED");
+    if (args.query.kind==="orders_priority")
+      return await getOrdersPriority(args.db,args.organizationId,args.locale,
+        args.query.limit,controller.signal);
     return await getOrdersOverview(args.db,args.organizationId,args.locale,
       args.query.filter,args.query.limit,controller.signal);
   } finally {
@@ -50,6 +61,7 @@ export async function resolveRfqIntelligenceContext(args: {
   db: ScopedDb; actorId: string; organizationId: string;
   query: Extract<ContextQuery, { kind: "rfq_review" | "rfq_line_explanation" }>;
   locale: "fi" | "en";
+  analyze?: boolean;
   abort?: AbortSignal;
 }): Promise<RfqIntelligenceContext> {
   const controller = new AbortController();
@@ -66,7 +78,9 @@ export async function resolveRfqIntelligenceContext(args: {
       rfqId:args.query.recordId, focusLineNumber, signal:controller.signal,
     });
     if (controller.signal.aborted) throw new Error("COPILOT_CONTEXT_ABORTED");
-    return serializeRfqExplanation(explainRfq(snapshot,focusLineNumber),args.locale);
+    const explanation=explainRfq(snapshot,focusLineNumber);
+    const context=serializeRfqExplanation(explanation,args.locale);
+    return args.analyze ? { ...context,analysis:analyzeRfq(explanation,args.locale) } : context;
   } finally {
     clearTimeout(timer);
     args.abort?.removeEventListener("abort", cancel);

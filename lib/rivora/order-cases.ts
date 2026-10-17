@@ -15,6 +15,8 @@ export type CaseRow = {
   poNumber: string | null;
   stage: "rfq" | "quote" | "po" | "erp" | "done";
   stageLabel: string;
+  /** Original row state; ranking must not infer status from translated UI text. */
+  stageStatus?: string;
   nextAction: string;
   attention: boolean;
   href: string;
@@ -73,7 +75,7 @@ export function combineOrderCases({ rfqs, quotes, purchaseOrders, salesOrders }:
       quoteNumber: null,
       poNumber: null,
       stage: "rfq",
-      stageLabel,
+      stageLabel, stageStatus: String(rfq.status ?? ""),
       nextAction,
       attention,
       href: `/app/orders/case/rfq/${rfq.id}`,
@@ -111,7 +113,7 @@ export function combineOrderCases({ rfqs, quotes, purchaseOrders, salesOrders }:
       quoteNumber: quote.quote_number || null,
       poNumber: existing?.poNumber || null,
       stage: "quote",
-      stageLabel,
+      stageLabel, stageStatus: String(quote.status ?? ""),
       nextAction,
       attention,
       href: `/app/orders/case/quote/${quote.id}`,
@@ -155,7 +157,7 @@ export function combineOrderCases({ rfqs, quotes, purchaseOrders, salesOrders }:
       quoteNumber: existing?.quoteNumber || quote?.quote_number || null,
       poNumber: po.po_number || null,
       stage: po.status === "erp_created" ? "done" : "po",
-      stageLabel,
+      stageLabel, stageStatus: String(po.status ?? ""),
       nextAction,
       attention,
       href: `/app/orders/case/po/${po.id}`,
@@ -195,7 +197,7 @@ export function combineOrderCases({ rfqs, quotes, purchaseOrders, salesOrders }:
       quoteNumber: existing?.quoteNumber || quote?.quote_number || null,
       poNumber: existing?.poNumber || po?.po_number || order.customer_po_number || null,
       stage: done ? "done" : "erp",
-      stageLabel,
+      stageLabel, stageStatus: String(order.status ?? ""),
       nextAction,
       attention,
       href: `/app/orders/case/sales/${order.id}`,
