@@ -406,7 +406,7 @@ export function CopilotConversation({
                 if (!event.target.checked) resetConversation();
                 setShareWorkspaceData(event.target.checked);
               }}/>
-            <span>{fi ? "Salli rajattujen työtilatietojen käyttö tässä keskustelussa (tietoja lähetetään AI-mallille)" :
+            <span>{fi ? "Salli työtilan tietojen käyttö tässä keskustelussa (tietoja lähetetään AI-mallille)" :
               "Allow workspace data to be sent to the AI model in this conversation"}</span>
           </label>
         ) : null}
