@@ -23,15 +23,18 @@ export type OrderContextItem = {
   updatedAt: string;
   href: string;
 };
+import type { DeterministicAnalysis } from "./analysis.ts";
 export type CopilotContextResult = {
   status: ContextStatus;
   retrievedAt: string;
   items: OrderContextItem[];
   sources: ContextSource[];
   truncated: boolean;
+  analysis?: DeterministicAnalysis;
 };
 export type ContextQuery =
   | { kind: "orders_overview"; filter: "attention" | "all"; limit: number }
+  | { kind: "orders_priority"; limit: number }
   | { kind: "rfq_review"; recordId: string; limit: number }
   | { kind: "rfq_line_explanation"; recordId: string; lineNumber: number; limit: number };
 export class ContextReadError extends Error {
