@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { usePathname } from "next/navigation";
 import type { CopilotMessage } from "@/lib/rivora/copilot-protocol";
 import type { ContextSource } from "@/lib/rivora/copilot-context/types";
+import { parseActiveRecordPath } from "@/lib/rivora/copilot-context/active-record";
 import { buildCopilotHistory, CopilotStreamParser } from "@/lib/rivora/copilot-stream";
 
 type DisplayMessage = CopilotMessage & {
@@ -63,7 +64,9 @@ function statusText(locale: "fi" | "en", stage: DisplayMessage["stage"], intent:
   return fi ? "Vastauksen muodostaminen epäonnistui" : "The response failed";
 }
 
-export function CopilotConversation({ locale, paused = false }: { locale: "fi" | "en"; paused?: boolean }) {
+export function CopilotConversation({
+  locale, paused = false, workspaceId,
+}: { locale: "fi" | "en"; paused?: boolean; workspaceId?: string }) {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -71,6 +74,7 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [pilotAvailable, setPilotAvailable] = useState(false);
   const [contextAvailable, setContextAvailable] = useState(false);
+  const [activeRecordAvailable, setActiveRecordAvailable] = useState(false);
   const [shareWorkspaceData, setShareWorkspaceData] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const requestNumber = useRef(0);
@@ -98,8 +102,10 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
       .then(status => {
         if (!cancelled && status?.available === true && status?.pilot === true)
           setPilotAvailable(true);
-        if (!cancelled && status?.available === true && status?.contextAvailable === true)
+        if (!cancelled && status?.available === true && status?.contextAvailable === true) {
           setContextAvailable(true);
+          setActiveRecordAvailable(status?.activeRecordAvailable === true);
+        }
       }).catch(() => { /* Status unavailable: leave the pilot label hidden. */ });
     return () => { cancelled = true; };
   }, []);
@@ -194,7 +200,10 @@ export function CopilotConversation({ locale, paused = false }: { locale: "fi" |
         credentials: "same-origin",
         signal: abort.signal,
         body: JSON.stringify({ question, history: previous, locale, area,
-          useWorkspaceData: contextAvailable && shareWorkspaceData }),
+          useWorkspaceData: contextAvailable && shareWorkspaceData,
+          workspaceId: workspaceId ?? null,
+          activeRecord: contextAvailable && shareWorkspaceData && activeRecordAvailable
+            ? parseActiveRecordPath(pathname) : null }),
       });
       if (!response.ok) {
         if (response.status === 503) {

@@ -1,4 +1,8 @@
 // Typed boundaries for Phase 5: no arbitrary SQL or model-selected database tools.
+export type ActiveRecord = {
+  kind: "rfq" | "quote" | "po" | "sales";
+  id: string;
+};
 export type ContextSource = {
   sourceId: string;
   kind: "rfq" | "quote" | "po" | "sales";
@@ -30,5 +34,10 @@ export type ContextQuery =
   | { kind: "orders_overview"; filter: "attention" | "all"; limit: number }
   | { kind: "rfq_review"; recordId: string; limit: number };
 export class ContextReadError extends Error {
-  constructor(public readonly code: string) { super(code); this.name="ContextReadError"; }
+  readonly code: string;
+  constructor(code: string) {
+    super(code);
+    this.code = code;
+    this.name = "ContextReadError";
+  }
 }

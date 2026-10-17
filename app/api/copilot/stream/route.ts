@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import { chooseContextQuery, resolveCopilotContext } from "@/lib/rivora/copilot-context/resolver";
+import { verifyContextMembership } from "@/lib/rivora/copilot-context/authorization";
+import { verifyActiveRecordAccess } from "@/lib/rivora/copilot-context/active-record";
 import { serializeContextForModel } from "@/lib/rivora/copilot-context/sanitize";
 import {
   copilotLedger, copilotReservation, copilotActivationReadiness,
@@ -71,7 +73,10 @@ export async function POST(request: Request) {
     if (!parsed.ok)
       return failure("Invalid question or conversation history.", 400, requestId);
 
-    const { question, history, locale, area, useWorkspaceData } = parsed.input;
+    const { question, history, locale, area, useWorkspaceData, workspaceId, activeRecord } = parsed.input;
+    // Reject requests from stale clients after switching workspace.
+    if (workspaceId && workspaceId !== organizationId)
+      return failure("Selected workspace changed. Start a new Copilot conversation.", 409, requestId);
     const contextQuery = useWorkspaceData && process.env.AVEROMIRA_COPILOT_CONTEXT_ENABLED === "true"
       ? chooseContextQuery(question, area) : null;
     if (looksLikeSupportSecret(question) || history.some(item => looksLikeSupportSecret(item.text))) {
@@ -109,6 +114,16 @@ export async function POST(request: Request) {
         };
         let billing: ReturnType<typeof copilotReservation> | null = null;
         try {
+          // 5.1A authorizes identity only. No record data/ID enters the AI prompt.
+          // Requires existing context consent and an independent default-OFF flag.
+          if (useWorkspaceData && activeRecord &&
+              process.env.AVEROMIRA_COPILOT_CONTEXT_ENABLED === "true" &&
+              process.env.AVEROMIRA_COPILOT_ACTIVE_RECORD_ENABLED === "true") {
+            await verifyContextMembership(
+              context.supabase, context.claims!.sub as string, organizationId, abort.signal,
+            );
+            await verifyActiveRecordAccess(context.supabase, organizationId, activeRecord, abort.signal);
+          }
           let contextResult: Awaited<ReturnType<typeof resolveCopilotContext>> | null = null;
           if (contextQuery) {
             emit({ type: "stage", stage: "retrieving" });

@@ -40,6 +40,7 @@ export default async function ProductLayout({ children }: { children: React.Reac
     <div>
       <AppShell
         workspaceName={workspace.name}
+        workspaceId={workspace.id}
         workspaceRole={workspace.role}
         userEmail={typeof claims.email === "string" ? claims.email : undefined}
         locale={locale}
