@@ -7,6 +7,7 @@ import { verifyActiveRecordAccess, isActiveRecordUuid } from "../copilot-context
 import { safeContextText } from "../copilot-context/sanitize.ts";
 import { ContextReadError,type ContextSource } from "../copilot-context/types.ts";
 import { validatedPhase6Facts } from "./evidence.ts";
+import { assessMemoryTargets,compareRecordedStatuses } from "./reasoner.ts";
 import type { Phase6Intent,Phase6Evidence,EvidenceCode,EvidenceLevel } from "./types.ts";
 type ScopedDb=Awaited<ReturnType<typeof createClient>>;
 const RFQ_LINE_COLUMNS="id,line_number,selected_product_id,match_method,review_status";
@@ -110,8 +111,9 @@ export async function readAuthorizedPhase6Evidence(args:{
               note("Muistivastineen tarkkaa alkuperää ei voitu varmistaa.","Exact memory provenance could not be verified.");
             }else{
               const metadata=obj(event.metadata);
-              const historical=metadata.memory_target_entity_id;
-              const historicalValid=isActiveRecordUuid(historical);
+              const comparison=assessMemoryTargets(
+                metadata.memory_target_entity_id,memory.target_entity_id,line.selected_product_id);
+              const historicalValid=comparison.snapshotVerified;
               const time=iso(event.used_at);
               add("MEMORY_USAGE_FOUND",rootSource.sourceId,
                 time ? (fi?"Muistivastinetta käytettiin: ":"Memory usage recorded: ")+time.slice(0,10)
@@ -125,14 +127,13 @@ export async function readAuthorizedPhase6Evidence(args:{
                 add("MEMORY_VERIFIED_AT_USE",rootSource.sourceId,
                   (fi?"Tapahtumahetken vahvistustila: ":"Verification state at usage: ")+safeContextText(verification,40));
               if(historicalValid){
-                const selected=line.selected_product_id;
-                add("MEMORY_TARGET_AT_USE",rootSource.sourceId,
+                 add("MEMORY_TARGET_AT_USE",rootSource.sourceId,
                   fi?"Tapahtumahetken kohdetuote on tallennettu tilannekuvaan.":"The product target at usage is recorded in an immutable snapshot.");
-                if(isActiveRecordUuid(memory.target_entity_id) && historical!==memory.target_entity_id)
+                if(comparison.currentChanged)
                   add("MEMORY_TARGET_CHANGED",rootSource.sourceId,
                     fi?"Muistivastineen nykyinen kohdetuote poikkeaa tapahtumahetken kohteesta.":"The current memory target differs from the historical target.",
                     "conflicting_evidence");
-                if(isActiveRecordUuid(selected) && selected!==historical)
+                if(comparison.selectedDiffers)
                   note("Rivin nykyinen valittu tuote poikkeaa muistin käyttötapahtuman kohteesta.",
                     "The RFQ line's current selected product differs from the usage-event target.");
               }else{
@@ -161,8 +162,7 @@ export async function readAuthorizedPhase6Evidence(args:{
       if(chosen.length===0) add("RELATION_MISSING",rootSource.sourceId,
         fi?"Tähän RFQ:hun ei löytynyt liittyvää tarjousta rajatusta hausta.":"No related quote was found for this RFQ in the scoped search.");
       if(intent==="business_comparison" && chosen.length>1){
-        const statuses=new Set(chosen.map(row=>boundedStatus(row.status)));
-        if(statuses.size>1){
+        if(compareRecordedStatuses(chosen.map(row=>boundedStatus(row.status)))==="different"){
           add("REVIEW_REQUIRED",rootSource.sourceId,
             fi?"Liittyvien tarjousten tallennetut tilat poikkeavat toisistaan. Tämä ei yksin osoita virhettä."
               :"Related quotes have different recorded statuses. This alone does not prove an error.",
