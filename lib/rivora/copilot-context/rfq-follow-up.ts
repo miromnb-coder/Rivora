@@ -4,8 +4,8 @@
 import type { ActiveRecord, ContextQuery } from "./types.ts";
 
 export type FollowUpMessage = {role:"user"|"assistant";text:string};
-const EXPLICIT_LINE=/(?:rivi(?:lle|stä|n|ä|llä)?|line|row)\\s*#?(\\d{1,5})\\b/i;
-const FOLLOWUP=/^(?:entä (?:sen|sitä)|miksi (?:niin|sitä|se)|miten (?:sen|sitä)|onko (?:se|sitä)|mistä (?:se|tämä) tieto|what about (?:it|that)|why (?:that|it)|is it confirmed|and (?:that|it))\\??[.! ]*$/i;
+const EXPLICIT_LINE=/(?:rivi(?:lle|stä|n|ä|llä)?|line|row)\s*#?(\d{1,5})\b/i;
+const FOLLOWUP=/^(?:entä (?:sen|sitä)|miksi (?:niin|sitä|se)|miten (?:sen|sitä)|onko (?:se|sitä)|mistä (?:se|tämä) tieto|what about (?:it|that)|why (?:that|it)|is it confirmed|and (?:that|it))\??[.! ]*$/i;
 
 export function chooseRfqFollowUp(
   question:string,history:readonly FollowUpMessage[],
@@ -29,5 +29,5 @@ export function ambiguousRfqFollowUp(
   question:string,activeRecord:ActiveRecord|null,enabled:boolean,
 ):boolean {
   return !!enabled && activeRecord?.kind==="rfq" && typeof question==="string" &&
-    /^(?:entä toinen|entä se toinen|which one|what about the other)\\??[.! ]*$/i.test(question.trim());
+    /^(?:entä toinen|entä se toinen|which one|what about the other)\??[.! ]*$/i.test(question.trim());
 }
