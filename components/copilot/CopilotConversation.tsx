@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { usePathname } from "next/navigation";
 import type { CopilotMessage, CopilotFindingsEvent } from "@/lib/rivora/copilot-protocol";
+import type { Phase6EvidenceEvent } from "@/lib/rivora/copilot-intelligence/types";
 import type { ContextSource } from "@/lib/rivora/copilot-context/types";
 import { verifiedFindingLink } from "@/lib/rivora/copilot-finding-navigation";
 import { parseActiveRecordPath } from "@/lib/rivora/copilot-context/active-record";
@@ -11,9 +12,10 @@ import { formatCopilotAnswer } from "@/lib/rivora/copilot-answer-format";
 
 type DisplayMessage = CopilotMessage & {
   id: number;
-  stage?: "retrieving" | "verifying" | "connecting" | "responding" | "done" | "stopped" | "error";
+  stage?: "retrieving" | "evidence_read" | "verifying" | "connecting" | "responding" | "done" | "stopped" | "error";
   sources?: ContextSource[];
   findings?: CopilotFindingsEvent;
+  evidence?: Phase6EvidenceEvent;
   truncated?: boolean;
   intent?: "steps" | "options" | "general";
 };
@@ -55,6 +57,7 @@ function intentFor(text: string): "steps" | "options" | "general" {
 function statusText(locale: "fi" | "en", stage: DisplayMessage["stage"], intent: DisplayMessage["intent"]) {
   const fi = locale === "fi";
   if (stage === "retrieving") return fi ? "Haen työtilan tietoja" : "Retrieving workspace data";
+  if (stage === "evidence_read") return fi ? "Selvitän tietojen alkuperää ja yhteyksiä" : "Checking evidence and linked records";
   if (stage === "verifying") return fi ? "Tarkistan lähdetiedot" : "Verifying retrieved records";
   if (stage === "connecting") return fi ? "Yhdistän keskusteluun…" : "Connecting to the model…";
   if (stage === "responding") {
@@ -152,6 +155,36 @@ function CopilotFindings({
       ) : null}
     </section>
   );
+}
+
+/** Evidence is rendered only after a successfully completed, source-verified stream. */
+function CopilotEvidence({value,sources,locale}:{
+  value:Phase6EvidenceEvent; sources:ContextSource[];locale:"fi"|"en";
+}){
+  const fi=locale==="fi";
+  const allowed=new Map(sources.map(s=>[s.sourceId,s]));
+  const facts=value.facts.filter(f=>allowed.has(f.sourceId));
+  if(!facts.length)return null;
+  return <section className="ml-copilot-evidence" aria-label={fi?"Tarkistetut perustelut":"Verified evidence"}>
+    <h3 className="ml-copilot-findings-heading">{fi?"Mihin vastaus perustuu":"Evidence behind the answer"}</h3>
+    <ul className="ml-copilot-evidence-list">
+      {facts.map(f=>{
+        const s=allowed.get(f.sourceId)!;
+        return <li key={f.factId} className="ml-copilot-evidence-fact">
+          <span>{f.detail}</span>
+          <a href={s.href} aria-label={(fi?"Avaa lähde: ":"Open source: ")+s.label}>
+            {s.label}<span aria-hidden="true"> ↗</span>
+          </a>
+        </li>;
+      })}
+    </ul>
+    {value.limitations.length>0 ? <div className="ml-copilot-evidence-limits">
+      <strong>{fi?"Mitä ei voitu varmistaa":"Limitations"}</strong>
+      {value.limitations.map((x,i)=><p key={i}>{x}</p>)}
+    </div> : null}
+    {value.partial && value.limitations.length===0 ?
+      <p className="ml-copilot-context-limited">{fi?"Näyttö on rajattu.":"Evidence is partial."}</p>:null}
+  </section>;
 }
 
 export function CopilotConversation({
@@ -338,6 +371,7 @@ export function CopilotConversation({
             if (event.type === "findings") {
               update({ findings:event });
             }
+            if(event.type==="evidence") update({evidence:event});
             if (event.type === "done") {
               flushPaint();
               completed = true;
@@ -434,6 +468,9 @@ export function CopilotConversation({
                   message.findings && message.sources ? (
                   <CopilotFindings value={message.findings} sources={message.sources} locale={locale} />
                 ) : null}
+                {message.role === "assistant" && message.stage === "done" &&
+                  message.evidence && message.sources ?
+                    <CopilotEvidence value={message.evidence} sources={message.sources} locale={locale}/> : null}
                 {message.role === "assistant" && message.stage === "done" &&
                   message.sources && message.sources.length>0 ? (
                   <div className="ml-copilot-context-sources">

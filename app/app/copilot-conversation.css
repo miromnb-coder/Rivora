@@ -396,3 +396,15 @@
   outline: 2px solid var(--ml-border-strong, #c9bbaa);
   outline-offset: 4px;
 }
+
+/* Phase 6 — compact evidence, integrated into the shared Minimal Linen transcript. */
+.ml-workspace-shell .ml-copilot-evidence { display:grid;gap:9px;margin:12px 0;color:var(--ml-ink); }
+.ml-workspace-shell .ml-copilot-evidence-list { display:grid;gap:8px;list-style:none;padding:0;margin:0; }
+.ml-workspace-shell .ml-copilot-evidence-fact { display:grid;gap:3px;padding-inline-start:11px;
+  border-inline-start:2px solid var(--ml-border);font-size:12px;line-height:1.5;min-width:0; }
+.ml-workspace-shell .ml-copilot-evidence-fact a { font-size:11px;color:var(--ml-primary);
+  text-decoration:underline;text-underline-offset:3px;width:fit-content; }
+.ml-workspace-shell .ml-copilot-evidence-limits {display:grid;gap:3px;color:var(--ml-muted);
+  font-size:11px;line-height:1.5; }
+.ml-workspace-shell .ml-copilot-evidence-limits p {margin:0;}
+.ml-workspace-shell .ml-copilot-evidence-fact a:focus-visible {outline:2px solid var(--ml-primary);outline-offset:2px;}

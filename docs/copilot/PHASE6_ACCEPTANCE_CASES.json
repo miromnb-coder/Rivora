@@ -1,0 +1,343 @@
+{
+  "phase": "6.6",
+  "version": "1.0",
+  "status": "pending_real_authenticated_pilot",
+  "cases": [
+    {
+      "id": "P6-001",
+      "subject": "Memory usage verified",
+      "expectation": "matched event plus point-in-time snapshot",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-002",
+      "subject": "Memory usage absent",
+      "expectation": "no invented provenance",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-003",
+      "subject": "Changed memory target",
+      "expectation": "historical target wins",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-004",
+      "subject": "Disabled memory entry",
+      "expectation": "do not treat as approval",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-005",
+      "subject": "Missing old memory target",
+      "expectation": "incomplete evidence",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-006",
+      "subject": "Unknown memory method",
+      "expectation": "no false history",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-007",
+      "subject": "No selected product",
+      "expectation": "no technical compatibility claim",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-008",
+      "subject": "Memory snapshot present",
+      "expectation": "source and verification clearly separated",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-009",
+      "subject": "Memory metadata malicious text",
+      "expectation": "sanitized fact fields",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-010",
+      "subject": "Usage events > 5",
+      "expectation": "partial evidence marked",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-011",
+      "subject": "Memory belongs to different customer",
+      "expectation": "deny provenance",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-012",
+      "subject": "Memory belongs to other tenant",
+      "expectation": "no data disclosure",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-013",
+      "subject": "RFQ line 75 of 100",
+      "expectation": "focused scoped read",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-014",
+      "subject": "RFQ line 1 confirmed",
+      "expectation": "no false action",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-015",
+      "subject": "RFQ line unmatched",
+      "expectation": "truthful unknown",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-016",
+      "subject": "RFQ no memory history",
+      "expectation": "explain limitations",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-017",
+      "subject": "RFQ quote 1",
+      "expectation": "verified relation",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-018",
+      "subject": "RFQ quote 2",
+      "expectation": "multiple variants",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-019",
+      "subject": "RFQ no quote",
+      "expectation": "explicitly no linked quote",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-020",
+      "subject": "RFQ quote limit exceeded",
+      "expectation": "partial evidence",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-021",
+      "subject": "Quote -> PO",
+      "expectation": "explicit quote_id",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-022",
+      "subject": "Quote -> sales draft",
+      "expectation": "explicit quote_id",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-023",
+      "subject": "No PO relation",
+      "expectation": "no fabricated PO",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-024",
+      "subject": "No sales draft",
+      "expectation": "no fabricated sales",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-025",
+      "subject": "Multiple POs",
+      "expectation": "bounded samples",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-026",
+      "subject": "Cross-org related PO",
+      "expectation": "reject",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-027",
+      "subject": "Customer mismatch in relation",
+      "expectation": "fail closed",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-028",
+      "subject": "Unknown quote status",
+      "expectation": "no invented meaning",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-029",
+      "subject": "Quote status differs",
+      "expectation": "comparison not failure claim",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-030",
+      "subject": "External ERP state",
+      "expectation": "never claim queried",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-031",
+      "subject": "Question why suggested",
+      "expectation": "memory intent",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-032",
+      "subject": "Question related quotes",
+      "expectation": "chain intent",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-033",
+      "subject": "Question compare quotes",
+      "expectation": "comparison intent",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-034",
+      "subject": "Generic unrelated question",
+      "expectation": "no Phase6 reads",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-035",
+      "subject": "Active record not RFQ",
+      "expectation": "no Phase6 read",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-036",
+      "subject": "Context consent disabled",
+      "expectation": "no Phase6 read",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-037",
+      "subject": "Workspace changed",
+      "expectation": "reject",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-038",
+      "subject": "Prompt injection in RFQ data",
+      "expectation": "ignored as instructions",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-039",
+      "subject": "Model-generated URL",
+      "expectation": "not rendered",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-040",
+      "subject": "Evidence without sources",
+      "expectation": "not rendered",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-041",
+      "subject": "Malformed SSE frame",
+      "expectation": "rejected",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-042",
+      "subject": "Interrupted SSE",
+      "expectation": "no final evidence",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-043",
+      "subject": "Failed AI provider",
+      "expectation": "no completed claim",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-044",
+      "subject": "Ledger reserve exceeded",
+      "expectation": "no AI call",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-045",
+      "subject": "Ledger settle failure",
+      "expectation": "no evidence",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-046",
+      "subject": "Phase 6 flag off",
+      "expectation": "legacy Phase5 unchanged",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-047",
+      "subject": "Memory flag off",
+      "expectation": "no memory reads",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-048",
+      "subject": "Relations flag off",
+      "expectation": "no relation reads",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-049",
+      "subject": "Multi-turn valid user RFQ reference",
+      "expectation": "bounded follow-up",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-050",
+      "subject": "Multi-turn assistant-hallucinated reference",
+      "expectation": "ignored",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-051",
+      "subject": "Long mobile response",
+      "expectation": "no overlay",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-052",
+      "subject": "Keyboard access source links",
+      "expectation": "WCAG focus",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-053",
+      "subject": "Reduced-motion mode",
+      "expectation": "transitions suppressed",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-054",
+      "subject": "Real tenant two-way isolation",
+      "expectation": "no cross org",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-055",
+      "subject": "Original record stale",
+      "expectation": "fresh scoped read",
+      "status": "not_executed"
+    },
+    {
+      "id": "P6-056",
+      "subject": "Owner acceptance",
+      "expectation": "requires manual sign-off",
+      "status": "not_executed"
+    }
+  ]
+}
