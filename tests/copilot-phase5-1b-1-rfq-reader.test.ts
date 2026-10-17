@@ -106,14 +106,16 @@ test("5.1B.1 reads exact tenant-scoped counts and no cross-workspace data",async
   assert.equal(value.allLinesInspected,true);
   assert.equal(value.truncated,false);
   assert.equal(value.extractionConfidence,null);
-  assert.equal(value.lines[0]?.matchConfidence,97);
-  assert.equal(value.lines[0]?.extractionConfidence,0.7);
-  assert.equal(value.lines[0]?.reviewStatus,"needs_review");
-  assert.equal(value.lines[1]?.reviewStatus,"unmatched");
-  assert.equal(value.lines[0]?.candidates[0]?.sku,"P-1");
-  assert.equal(value.lines[0]?.candidatesComplete,true);
+  const lineOne=value.lines.find(item=>item.lineNumber===1);
+  const lineTwo=value.lines.find(item=>item.lineNumber===2);
+  assert.equal(lineOne?.matchConfidence,97);
+  assert.equal(lineOne?.extractionConfidence,0.7);
+  assert.equal(lineOne?.reviewStatus,"needs_review");
+  assert.equal(lineTwo?.reviewStatus,"unmatched");
+  assert.equal(lineOne?.candidates[0]?.sku,"P-1");
+  assert.equal(lineOne?.candidatesComplete,true);
   assert.equal(value.reference?.includes("<"),false);
-  assert.equal(value.lines[0]?.description?.includes("<"),false);
+  assert.equal(lineOne?.description?.includes("<"),false);
   assert.equal(value.extractionWarnings?.[0]?.includes("<"),false);
   assert.equal(JSON.stringify(value).includes("TENANT_B_SECRET"),false);
   assert.equal(JSON.stringify(value).includes("SECRET OTHER TENANT"),false);
@@ -134,7 +136,8 @@ test("5.1B.1 60-line RFQ is partial; counts remain exact; only ten rows selected
   assert.equal(value.selectedLines,10);
   assert.equal(value.allLinesInspected,false);
   assert.equal(value.truncated,true);
-  assert.deepEqual(value.lines.slice(0,2).map(x=>x.lineNumber),[1,2]);
+  // Unmatched lines are intentionally ranked ahead of needs_review lines.
+  assert.deepEqual(value.lines.slice(0,2).map(x=>x.lineNumber),[2,1]);
 });
 
 test("5.1B.1 candidates do not claim completeness when sentinel exceeds cap",async()=>{
