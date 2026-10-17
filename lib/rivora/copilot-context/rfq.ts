@@ -178,6 +178,24 @@ export async function loadRfqSnapshot(
       (totalLines === 0 && rows.length > 0))
     fail("COPILOT_RFQ_INVALID_DATA");
 
+  // A specific permitted line can be outside the first 50 lines. Fetch it with
+  // exact RFQ/organization scope; never lift the global scan or model limits.
+  let focusedExtra: RfqLineSnapshot | null = null;
+  if (focusLineNumber !== undefined &&
+      !inspected.some(line => line.lineNumber === focusLineNumber)) {
+    const { data: focusedRows, error: focusedError } = await db.from("rfq_lines")
+      .select("id,line_number,customer_sku,raw_description,selected_product_id,match_method,match_confidence,extraction_confidence,review_status")
+      .eq("organization_id", organizationId).eq("rfq_id", rfqId)
+      .eq("line_number", focusLineNumber)
+      .limit(2).abortSignal(signal);
+    if (focusedError || !Array.isArray(focusedRows))
+      fail("COPILOT_RFQ_LINES_UNAVAILABLE");
+    if (focusedRows.length !== 1) fail("COPILOT_RFQ_LINE_UNAVAILABLE");
+    focusedExtra = asRfqLine(focusedRows[0]);
+    if (focusedExtra.lineNumber !== focusLineNumber ||
+        inspected.some(line => line.id === focusedExtra?.id))
+      fail("COPILOT_RFQ_INVALID_DATA");
+  }
   const { data: quotes, error: quoteError } = await db.from("quotes")
     .select("id").eq("organization_id", organizationId).eq("rfq_id", rfqId)
     .limit(1).abortSignal(signal);
@@ -191,27 +209,34 @@ export async function loadRfqSnapshot(
     return weights[line.reviewStatus] ?? 4;
   };
   const focused = focusLineNumber === undefined ? null :
-    inspected.find(line => line.lineNumber === focusLineNumber);
+    (inspected.find(line => line.lineNumber === focusLineNumber) ?? focusedExtra);
   if (focusLineNumber !== undefined && !focused)
-    fail("COPILOT_RFQ_LINE_OUTSIDE_SCAN");
-  const selected = [...inspected].sort((a, b) =>
-    (a.id === focused?.id ? -1 : b.id === focused?.id ? 1 : 0) ||
-    severity(a) - severity(b) || a.lineNumber - b.lineNumber || a.id.localeCompare(b.id))
-    .slice(0, RFQ_MODEL_LINE_LIMIT);
+    fail("COPILOT_RFQ_LINE_UNAVAILABLE");
+  const selected = focused ? [focused] :
+    [...inspected].sort((a, b) =>
+      severity(a) - severity(b) || a.lineNumber - b.lineNumber ||
+      a.id.localeCompare(b.id)).slice(0, RFQ_MODEL_LINE_LIMIT);
   let candidatesComplete = true;
   if (selected.length) {
     const ids = selected.map(item => item.id);
-    const { data: candidateRows, error: candidatesError } = await db.from("product_match_candidates")
+    let candidateQuery = db.from("product_match_candidates")
       .select("rfq_line_id,product_id,confidence,method,rank,products(id,sku,name)")
-      .eq("organization_id", organizationId).in("rfq_line_id", ids)
+      .eq("organization_id", organizationId);
+    // A focused lookup reads only the chosen line and an existence sentinel.
+    // General overview retains its conservative global-candidate limit.
+    candidateQuery = focused
+      ? candidateQuery.eq("rfq_line_id", focused.id)
+      : candidateQuery.in("rfq_line_id", ids);
+    const candidateScanLimit = focused ? RFQ_CANDIDATE_LIMIT + 1 : RFQ_CANDIDATE_SCAN_LIMIT;
+    const { data: candidateRows, error: candidatesError } = await candidateQuery
       .order("rank", { ascending: true }).order("product_id", { ascending: true })
-      .limit(RFQ_CANDIDATE_SCAN_LIMIT).abortSignal(signal);
+      .limit(candidateScanLimit).abortSignal(signal);
     if (candidatesError || !Array.isArray(candidateRows))
       fail("COPILOT_RFQ_CANDIDATES_UNAVAILABLE");
-    candidatesComplete = candidateRows.length < RFQ_CANDIDATE_SCAN_LIMIT;
+    candidatesComplete = candidateRows.length < candidateScanLimit;
     const allowed = new Set(ids);
     const perLineCounts = new Map<string, number>();
-    for (const candidate of candidateRows.slice(0, RFQ_CANDIDATE_SCAN_LIMIT - 1)) {
+    for (const candidate of candidateRows.slice(0, candidateScanLimit - 1)) {
       const item = asCandidate(candidate);
       if (!allowed.has(item.lineId)) fail("COPILOT_RFQ_INVALID_DATA");
       const target = selected.find(row => row.id === item.lineId);
@@ -237,7 +262,8 @@ export async function loadRfqSnapshot(
     overallConfidence: asNumber(rfq.overall_confidence),
     extractionConfidence: asNumber(rfq.extraction_confidence),
     extractionWarnings: asWarnings(rfq.extraction_warnings),
-    totalLines, unresolvedLines, inspectedLines: inspected.length,
+    totalLines, unresolvedLines,
+    inspectedLines: inspected.length + (focusedExtra ? 1 : 0),
     selectedLines: selected.length, allLinesInspected,
     quoteExists, lines: selected, truncated,
     retrievedAt: new Date().toISOString(),

@@ -4,6 +4,7 @@ import { getOrdersOverview } from "./orders";
 import { getOrdersPriority } from "./order-priority";
 import { analyzeRfq } from "./analysis";
 import { chooseRfqContextQuery } from "./rfq-intent";
+import { chooseRfqFollowUp, type FollowUpMessage } from "./rfq-follow-up";
 import { readAuthorizedRfqSnapshot } from "./rfq-access";
 import { explainRfq, serializeRfqExplanation, type RfqIntelligenceContext } from "./rfq-explanation";
 import type { ActiveRecord, CopilotContextResult, ContextQuery } from "./types";
@@ -12,9 +13,11 @@ type ScopedDb=Awaited<ReturnType<typeof createClient>>;
 export function chooseContextQuery(
   question: string, area: string,
   activeRecord: ActiveRecord | null = null, rfqEnabled = false,
-  analysisEnabled = false,
+  analysisEnabled = false, history: readonly FollowUpMessage[] = [],
 ): ContextQuery | null {
   if (typeof question!=="string" || question.length>1200) return null;
+  const followUp = chooseRfqFollowUp(question,history,activeRecord,rfqEnabled);
+  if (followUp) return followUp;
   const rfqQuery = chooseRfqContextQuery(question,activeRecord,rfqEnabled);
   if (rfqQuery) return rfqQuery;
   // Route priority only when independently enabled and the intent is explicit.

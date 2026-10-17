@@ -133,7 +133,10 @@ function CopilotFindings({
       {typeof value.inspectedCount === "number" ? (
         <p className="ml-copilot-findings-coverage">
           {value.kind === "rfq_review"
-            ? (fi ? "Tarkasteltuja rivejä: " : "Lines inspected: ") +
+            ? (typeof value.retrievedCount === "number"
+                ? (fi ? "Haettuja rivejä: " : "Lines fetched: ")+value.retrievedCount+" · "
+                : "") +
+              (fi ? "Analysoituja rivejä: " : "Lines analyzed: ") +
               value.inspectedCount + (value.totalCount === null || value.totalCount === undefined
                 ? "" : "/" + value.totalCount)
             : (fi ? "Tarkasteltuja tapauksia: " : "Cases inspected: ") + value.inspectedCount}

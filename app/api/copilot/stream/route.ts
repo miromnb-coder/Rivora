@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { chooseContextQuery, resolveCopilotContext, resolveRfqIntelligenceContext } from "@/lib/rivora/copilot-context/resolver";
 import { rfqAnswerGuidance } from "@/lib/rivora/copilot-context/rfq-answer-guidance";
+import { ambiguousRfqFollowUp } from "@/lib/rivora/copilot-context/rfq-follow-up";
 import { serializeAnalysis } from "@/lib/rivora/copilot-context/analysis";
 import { buildVerifiedFindingsEvent } from "@/lib/rivora/copilot-context/findings-event";
 import { verifyContextMembership } from "@/lib/rivora/copilot-context/authorization";
@@ -90,7 +91,10 @@ export async function POST(request: Request) {
       process.env.AVEROMIRA_COPILOT_CONTEXT_ENABLED === "true" &&
       process.env.AVEROMIRA_COPILOT_DETERMINISTIC_ANALYSIS_ENABLED === "true";
     const contextQuery = useWorkspaceData && process.env.AVEROMIRA_COPILOT_CONTEXT_ENABLED === "true"
-      ? chooseContextQuery(question, area, permittedRecord, rfqEnabled, analysisEnabled) : null;
+      ? chooseContextQuery(question, area, permittedRecord, rfqEnabled, analysisEnabled, history) : null;
+    // For an unspecified "other line", ask for the number instead of
+    // searching a guessed record or spending model tokens on a fabricated answer.
+    const needsLineClarification = ambiguousRfqFollowUp(question,permittedRecord,rfqEnabled);
     if (looksLikeSupportSecret(question) || history.some(item => looksLikeSupportSecret(item.text))) {
       return failure(locale === "fi" ?
         "Älä lähetä salasanoja, API-avaimia tai muita salaisuuksia." :
@@ -112,6 +116,21 @@ export async function POST(request: Request) {
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) return failure("Copilot model not configured.", 503, requestId);
 
+    if (needsLineClarification) {
+      const message=locale === "fi"
+        ? "Minkä tarjouspyynnön rivin haluat tarkistaa? Kerro rivinumero."
+        : "Which RFQ line should I review? Please provide the line number.";
+      const payload=[
+        {type:"stage" as const,stage:"responding" as const},
+        {type:"delta" as const,text:message},
+        {type:"done" as const},
+      ].map(encodeCopilotEvent).join("");
+      return new Response(payload,{headers:{
+        "Content-Type":"text/event-stream; charset=utf-8",
+        "Cache-Control":"no-store",
+        "X-Content-Type-Options":"nosniff",
+      }});
+    }
     const abort = new AbortController();
     const cancel = () => abort.abort();
     request.signal.addEventListener("abort", cancel, { once: true });
@@ -193,7 +212,8 @@ export async function POST(request: Request) {
             "Never request passwords, tokens or sensitive credentials.",
             "Be useful, concise and actionable. Output plain text.",
             ...(rfqContext ? rfqAnswerGuidance(locale,
-              contextQuery?.kind === "rfq_line_explanation") : []),
+              contextQuery?.kind === "rfq_line_explanation",
+              structuredFindingsVisible) : []),
             "Reply in " + (locale === "fi" ? "Finnish" : "English") + ".",
             "Navigation area: " + area + ".",
           ].join("\n");

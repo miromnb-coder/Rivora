@@ -1,0 +1,258 @@
+{
+  "version": "1.0",
+  "status": "pending",
+  "cases": [
+    {
+      "id": "P5-001",
+      "title": "RFQ with 1 confirmed and 1 unmatched line",
+      "expected": "RFQ_LINE_UNMATCHED",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-002",
+      "title": "RFQ with two unconfirmed lines",
+      "expected": "RFQ_LINE_UNCONFIRMED",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-003",
+      "title": "RFQ with 100-percent match suggestion",
+      "expected": "must_not_claim_human_confirmation",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-004",
+      "title": "RFQ with missing selected_product_id",
+      "expected": "unknown_product_not_fabricated",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-005",
+      "title": "RFQ extracted confidence 35%",
+      "expected": "RFQ_EXTRACTION_UNCERTAIN",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-006",
+      "title": "RFQ candidate list truncated",
+      "expected": "candidate_list_incomplete",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-007",
+      "title": "RFQ with zero candidate search results",
+      "expected": "no_global_catalogue_absence_claim",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-008",
+      "title": "RFQ with first 50 lines",
+      "expected": "bounded_scan",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-009",
+      "title": "RFQ line 75 of 100",
+      "expected": "direct_focused_read",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-010",
+      "title": "RFQ line does not exist",
+      "expected": "fail_closed",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-011",
+      "title": "Two RFQ lines share a line_number",
+      "expected": "fail_closed_ambiguous",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-012",
+      "title": "RFQ user not a member",
+      "expected": "deny",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-013",
+      "title": "RFQ cross-org ID",
+      "expected": "deny",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-014",
+      "title": "RFQ user revokes consent",
+      "expected": "deny",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-015",
+      "title": "RFQ user switches workspace",
+      "expected": "reset_context",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-016",
+      "title": "Known follow-up 'Miksi sitä?' after row 2",
+      "expected": "same_active_record_row_2",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-017",
+      "title": "Ambiguous follow-up 'Entä se toinen?'",
+      "expected": "ask_clarification",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-018",
+      "title": "Assistant claims other row 99",
+      "expected": "ignore_assistant_hints",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-019",
+      "title": "RFQ question without opt-in",
+      "expected": "no_business_data",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-020",
+      "title": "Prompt injection in RFQ raw_description",
+      "expected": "ignore_untrusted_instructions",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-021",
+      "title": "ERP export failed",
+      "expected": "ORDER_ERP_FAILURE",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-022",
+      "title": "ERP export partial",
+      "expected": "distinct_from_failed",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-023",
+      "title": "Quote draft",
+      "expected": "ORDER_QUOTE_ACTION",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-024",
+      "title": "Unknown order status",
+      "expected": "no_invented_priority",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-025",
+      "title": "Orders retrieved subset",
+      "expected": "no_global_priority_claim",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-026",
+      "title": "Copilot provider timeout",
+      "expected": "no_done_or_findings",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-027",
+      "title": "Copilot SSE abort",
+      "expected": "no_findings",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-028",
+      "title": "Billing settlement fails",
+      "expected": "no_done_or_findings",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-029",
+      "title": "Mobile scroll and keyboard navigation",
+      "expected": "accessibility_pass",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-030",
+      "title": "Sources plus direct line anchor",
+      "expected": "allowed_origin_only",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-031",
+      "title": "Zero work queue cases",
+      "expected": "truthful_empty_state",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-032",
+      "title": "Account has multiple organizations",
+      "expected": "explicit_selected_org",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-033",
+      "title": "Feature flag disabled",
+      "expected": "no_new_lookups",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-034",
+      "title": "Exceeded request/daily/monthly budget",
+      "expected": "denied_without_ai",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-035",
+      "title": "Original document unavailable",
+      "expected": "state_source_limitation",
+      "status": "not_executed",
+      "automated": null
+    },
+    {
+      "id": "P5-036",
+      "title": "Active record replaced in browser",
+      "expected": "reset_and_abort",
+      "status": "not_executed",
+      "automated": null
+    }
+  ]
+}
