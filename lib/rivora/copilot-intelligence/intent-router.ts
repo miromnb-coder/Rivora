@@ -26,3 +26,21 @@ export function choosePhase6Line(
   const n=Number((m??hint)?.[1]);
   return Number.isSafeInteger(n)&&n>0&&n<=100000?n:null;
 }
+
+// References used for follow-up routing must originate in the most recent
+// USER turn, never assistant prose or a customer-controlled model answer.
+export function choosePhase6FollowUpIntent(
+ question:string,history:readonly {role:"user"|"assistant";text:string}[],
+ record:ActiveRecord|null,enabled:boolean,
+):Phase6Intent|null {
+ if(!enabled||record?.kind!=="rfq"||typeof question!=="string"||question.length>1200)
+   return null;
+ const prior=[...history].reverse().find(x=>x.role==="user");
+ if(!prior || typeof prior.text!=="string" || prior.text.length>1200)return null;
+ if(!/^(?:vertaa niitä|miten ne liittyvät|entä sen jälkeen|compare them|how are they related|and then)\??[.! ]*$/i.test(question.trim()))
+   return null;
+ const priorIntent=choosePhase6Intent(prior.text,record,true);
+ return priorIntent==="business_chain" || priorIntent==="business_comparison"
+   ? (/(vertaa|compare)/i.test(question)?"business_comparison":"business_chain")
+   : null;
+}

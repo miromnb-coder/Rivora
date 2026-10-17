@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { chooseContextQuery, resolveCopilotContext, resolveRfqIntelligenceContext } from "@/lib/rivora/copilot-context/resolver";
 import { rfqAnswerGuidance } from "@/lib/rivora/copilot-context/rfq-answer-guidance";
 import { ambiguousRfqFollowUp } from "@/lib/rivora/copilot-context/rfq-follow-up";
-import { choosePhase6Intent, choosePhase6Line } from "@/lib/rivora/copilot-intelligence/intent-router";
+import { choosePhase6Intent, choosePhase6Line, choosePhase6FollowUpIntent } from "@/lib/rivora/copilot-intelligence/intent-router";
 import { readAuthorizedPhase6Evidence } from "@/lib/rivora/copilot-intelligence/reader";
 import { serializePhase6Evidence, verifiedEvidenceEvent } from "@/lib/rivora/copilot-intelligence/evidence";
 import { serializeAnalysis } from "@/lib/rivora/copilot-context/analysis";
@@ -93,7 +93,8 @@ export async function POST(request: Request) {
     const phase6Enabled = useWorkspaceData && workspaceId === organizationId &&
       permittedRecord?.kind === "rfq" &&
       process.env.AVEROMIRA_COPILOT_PHASE6_ENABLED === "true";
-    const phase6Intent = choosePhase6Intent(question, permittedRecord, phase6Enabled);
+    const phase6Intent = choosePhase6Intent(question, permittedRecord, phase6Enabled) ??
+      choosePhase6FollowUpIntent(question,history,permittedRecord,phase6Enabled);
     const phase6Line = choosePhase6Line(question, history);
     const memoryEnabled = process.env.AVEROMIRA_COPILOT_MEMORY_EVIDENCE_ENABLED === "true";
     const multisourceEnabled = process.env.AVEROMIRA_COPILOT_MULTISOURCE_ENABLED === "true";

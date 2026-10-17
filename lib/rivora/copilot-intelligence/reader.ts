@@ -160,6 +160,15 @@ export async function readAuthorizedPhase6Evidence(args:{
       const chosen=quotes.slice(0,MAX_QUOTES);
       if(chosen.length===0) add("RELATION_MISSING",rootSource.sourceId,
         fi?"Tähän RFQ:hun ei löytynyt liittyvää tarjousta rajatusta hausta.":"No related quote was found for this RFQ in the scoped search.");
+      if(intent==="business_comparison" && chosen.length>1){
+        const statuses=new Set(chosen.map(row=>boundedStatus(row.status)));
+        if(statuses.size>1){
+          add("REVIEW_REQUIRED",rootSource.sourceId,
+            fi?"Liittyvien tarjousten tallennetut tilat poikkeavat toisistaan. Tämä ei yksin osoita virhettä."
+              :"Related quotes have different recorded statuses. This alone does not prove an error.",
+            "deterministic_derivation");
+        }
+      }
       const ids:string[]=[];
       for(const row of chosen){
         if(!isActiveRecordUuid(row.id)||row.rfq_id!==root.id ||
