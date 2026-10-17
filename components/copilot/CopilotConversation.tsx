@@ -51,7 +51,7 @@ function intentFor(text: string): "steps" | "options" | "general" {
 
 function statusText(locale: "fi" | "en", stage: DisplayMessage["stage"], intent: DisplayMessage["intent"]) {
   const fi = locale === "fi";
-  if (stage === "retrieving") return fi ? "Haen työtilan tilausasioita" : "Retrieving workspace orders";
+  if (stage === "retrieving") return fi ? "Haen työtilan tietoja" : "Retrieving workspace data";
   if (stage === "verifying") return fi ? "Tarkistan lähdetiedot" : "Verifying retrieved records";
   if (stage === "connecting") return fi ? "Yhdistän keskusteluun…" : "Connecting to the model…";
   if (stage === "responding") {
@@ -75,6 +75,7 @@ export function CopilotConversation({
   const [pilotAvailable, setPilotAvailable] = useState(false);
   const [contextAvailable, setContextAvailable] = useState(false);
   const [activeRecordAvailable, setActiveRecordAvailable] = useState(false);
+  const [rfqIntelligenceAvailable, setRfqIntelligenceAvailable] = useState(false);
   const [shareWorkspaceData, setShareWorkspaceData] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const requestNumber = useRef(0);
@@ -105,6 +106,7 @@ export function CopilotConversation({
         if (!cancelled && status?.available === true && status?.contextAvailable === true) {
           setContextAvailable(true);
           setActiveRecordAvailable(status?.activeRecordAvailable === true);
+          setRfqIntelligenceAvailable(status?.rfqIntelligenceAvailable === true);
         }
       }).catch(() => { /* Status unavailable: leave the pilot label hidden. */ });
     return () => { cancelled = true; };
@@ -405,13 +407,17 @@ export function CopilotConversation({
                 setShareWorkspaceData(event.target.checked);
               }}/>
             <span>{fi ? "Salli työtilan tietojen käyttö tässä keskustelussa (tietoja lähetetään AI-mallille)" :
-              "Allow workspace order data to be sent to the AI model in this conversation"}</span>
+              "Allow workspace data to be sent to the AI model in this conversation"}</span>
           </label>
         ) : null}
         <p className="ml-copilot-disclaimer">{fi ?
-          (contextAvailable && shareWorkspaceData ? "Copilot voi hakea rajattuja tilausasioita, mutta ei tee muutoksia." :
+          (contextAvailable && shareWorkspaceData ? (rfqIntelligenceAvailable && parseActiveRecordPath(pathname)?.kind === "rfq"
+            ? "Copilot voi lukea tämän tarjouspyynnön rajattuja tietoja, mutta ei tee muutoksia."
+            : "Copilot voi hakea rajattuja tilausasioita, mutta ei tee muutoksia.") :
           "Copilot ei vielä näe yrityksesi tietoja eikä tee muutoksia.") :
-          (contextAvailable && shareWorkspaceData ? "Copilot may retrieve limited order data but never changes it." :
+          (contextAvailable && shareWorkspaceData ? (rfqIntelligenceAvailable && parseActiveRecordPath(pathname)?.kind === "rfq"
+            ? "Copilot can read limited data from this RFQ, but cannot change it."
+            : "Copilot may retrieve limited order data but never changes it.") :
           "Copilot cannot yet access or change your company data.")}</p>
         <span className="ml-copilot-sr-only" role="status" aria-live="polite">
           {busy ? (fi ? "Copilot muodostaa vastausta" : "Copilot is responding")
