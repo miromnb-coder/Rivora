@@ -48,6 +48,51 @@ test("6.3 facts are source-verified, bounded, sanitized and never use model URLs
  assert.equal(validatedPhase6Facts({...a,facts:[{...a.facts[0],sourceId:"rfq:bad"}]}),false);
  assert.equal(validatedPhase6Facts({...a,sources:[{...src,href:"https://evil.example"}]}),false);
 });
+test("6.3 validator and serializer reject empty and duplicate evidence",()=>{
+ const good=data();
+ const fact=good.facts[0];
+ const invalid:Phase6Evidence[]=[
+   {...good,facts:[{...fact,factId:""}]},
+   {...good,facts:[{...fact,factId:"  \t  "}]},
+   {...good,facts:[{...fact,detail:"  \t  "}]},
+   {...good,facts:[fact,{...fact,detail:"A different observation"}]},
+   {...good,facts:[fact,{...fact,factId:"MEMORY_USAGE_FOUND:2"}]},
+   {...good,limitations:["  \t  "]},
+ ];
+ for(const candidate of invalid){
+   assert.equal(validatedPhase6Facts(candidate),false);
+   assert.throws(()=>serializePhase6Evidence(candidate),/PHASE6_EVIDENCE_INVALID/);
+ }
+ assert.equal(validatedPhase6Facts({...good,limitations:["Review needed"]}),true);
+ assert.ok(serializePhase6Evidence(good).includes("MEMORY_USAGE_FOUND"));
+});
+test("6.5 event drops invalid and repeated facts without losing verified facts",()=>{
+ const good=data();
+ const fact=good.facts[0];
+ const result=verifiedEvidenceEvent({
+   ...good,
+   facts:[
+     fact,
+     {...fact,factId:"  "},
+     {...fact,factId:"MEMORY_USAGE_FOUND:2"}, // duplicate content
+     {...fact,detail:"Different observation"}, // duplicate ID
+     {...fact,factId:"MEMORY_USAGE_FOUND:3",detail:" \t "},
+     {...fact,factId:"MEMORY_USAGE_FOUND:4",sourceId:"rfq:invalid"},
+     {...fact,factId:"MEMORY_USAGE_FOUND:5",detail:"Another verified fact"},
+   ],
+   limitations:["  ","Needs manual review",""],
+ },[src]);
+ assert.ok(result);
+ assert.equal(result.facts.length,2);
+ assert.deepEqual(result.facts.map(x=>x.factId),["MEMORY_USAGE_FOUND:1","MEMORY_USAGE_FOUND:5"]);
+ assert.deepEqual(result.limitations,["Needs manual review"]);
+ assert.equal(result.partial,true);
+ const invalid=verifiedEvidenceEvent({...good,facts:[{...fact,detail:"   "}]},[src]);
+ assert.equal(invalid,null);
+ const noSources=verifiedEvidenceEvent(good,[]);
+ assert.equal(noSources,null);
+});
+
 test("6.5 evidence SSE schema and malicious frames are rejected",()=>{
  const e=verifiedEvidenceEvent(data(),[src]);assert.ok(e);
  assert.deepEqual(decodeCopilotEvent(encodeCopilotEvent(e!).trim()),e);
