@@ -52,7 +52,7 @@ test("6.5 evidence SSE schema and malicious frames are rejected",()=>{
  assert.deepEqual(decodeCopilotEvent(encodeCopilotEvent(e!).trim()),e);
  assert.equal(decodeCopilotEvent(encodeCopilotEvent({...e!,facts:[{...e!.facts[0],sourceId:"invalid"}]}).trim()),null);
  assert.equal(decodeCopilotEvent(encodeCopilotEvent({...e!,limitations:["x".repeat(141)]}).trim()),null);
- assert.equal(decodeCopilotEvent(encodeCopilotEvent({...e!,facts:[{...e!.facts[0],code:"UNKNOWN"}]}).trim()),null);
+ assert.equal(decodeCopilotEvent(encodeCopilotEvent({...e!,facts:[{...e!.facts[0],code:"UNKNOWN" as never}]}).trim()),null);
 });
 test("6.1 memory provenance never calls service_role RPC or changes memory",()=>{
  const reader=readFileSync("lib/rivora/copilot-intelligence/reader.ts","utf8");
