@@ -29,6 +29,7 @@ export function buildVerifiedFindingsEvent(
   if (findings.length === 0) return null;
   return {
     type:"findings", kind:analysis.kind,
+    inspectedCount:analysis.inspectedCount, totalCount:analysis.totalCount,
     // Omissions must not be hidden by a "complete" label.
     partial:analysis.partial || findings.length < analysis.findings.length,
     findings,

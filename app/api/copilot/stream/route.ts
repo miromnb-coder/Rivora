@@ -158,6 +158,9 @@ export async function POST(request: Request) {
             emit({ type: "stage", stage: "verifying" });
           }
           const analysis = contextResult?.analysis ?? rfqContext?.analysis ?? null;
+          const structuredFindingsVisible = analysis !== null &&
+            process.env.AVEROMIRA_COPILOT_DETERMINISTIC_ANALYSIS_ENABLED === "true" &&
+            process.env.AVEROMIRA_COPILOT_FINDINGS_UI_ENABLED === "true";
           const instructions = [
             "You are Averomira Intelligent Copilot in an authenticated B2B workspace.",
             "You are a read-only planning assistant, separate from AI Support.",
@@ -180,6 +183,11 @@ export async function POST(request: Request) {
               "A deterministic rules engine supplied ranked findings with record source IDs.",
               "Those priorities rank only observed workflow issues; never imply deadlines, amounts or a complete ranking.",
               "Use the findings as read-only suggestions, not proof that records were acted upon.",
+            ] : []),
+            ...(structuredFindingsVisible ? [
+              "The interface will separately render verified findings and next steps after this answer succeeds.",
+              "Reply with a brief factual overview (1–3 sentences), do not repeat the full findings list or duplicate the next-step instructions.",
+              "Never claim findings will appear if the response fails. Cite no external URLs.",
             ] : []),
             "If asked to act, explain UI steps rather than pretending to act.",
             "Never request passwords, tokens or sensitive credentials.",

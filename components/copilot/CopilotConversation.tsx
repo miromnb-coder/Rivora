@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { usePathname } from "next/navigation";
 import type { CopilotMessage, CopilotFindingsEvent } from "@/lib/rivora/copilot-protocol";
 import type { ContextSource } from "@/lib/rivora/copilot-context/types";
+import { verifiedFindingLink } from "@/lib/rivora/copilot-finding-navigation";
 import { parseActiveRecordPath } from "@/lib/rivora/copilot-context/active-record";
 import { buildCopilotHistory, CopilotStreamParser } from "@/lib/rivora/copilot-stream";
 import { formatCopilotAnswer } from "@/lib/rivora/copilot-answer-format";
@@ -115,14 +116,30 @@ function CopilotFindings({
         {verified.map(item => {
           const source = sourceById.get(item.sourceId);
           if (!source) return null;
+          const target=verifiedFindingLink(source,item.id);
+          if (!target.href) return null;
           return <li key={item.id}>
             <p>{item.suggestedAction}</p>
-            <a href={source.href} aria-label={(fi ? "Avaa tietue: " : "Open record: ") + source.label}>
-              {fi ? "Avaa tietue" : "Open record"} <span aria-hidden="true">↗</span>
+            <a href={target.href} aria-label={(fi ? "Avaa: " : "Open: ") + source.label +
+              (target.lineNumber !== null ? " · "+(fi ? "rivi " : "line ")+target.lineNumber : "")}>
+              {target.lineNumber !== null
+                ? (fi ? "Avaa rivi "+target.lineNumber : "Open line "+target.lineNumber)
+                : (fi ? "Avaa tietue" : "Open record")}
+              <span aria-hidden="true">↗</span>
             </a>
           </li>;
         })}
       </ol>
+      {typeof value.inspectedCount === "number" ? (
+        <p className="ml-copilot-findings-coverage">
+          {value.kind === "rfq_review"
+            ? (fi ? "Tarkasteltuja rivejä: " : "Lines inspected: ") +
+              value.inspectedCount + (value.totalCount === null || value.totalCount === undefined
+                ? "" : "/" + value.totalCount)
+            : (fi ? "Tarkasteltuja tapauksia: " : "Cases inspected: ") + value.inspectedCount}
+          {" · " + (fi ? "Nostettuja havaintoja: " : "Findings shown: ") + verified.length}
+        </p>
+      ) : null}
       {value.partial ? (
         <p className="ml-copilot-findings-partial">
           {fi

@@ -63,7 +63,8 @@ async function respond(req, res) {
     const source={sourceId:"rfq:"+id,kind:"rfq",recordId:id,
       href:"/app/orders/case/rfq/"+id,label:"QA-RFQ-001"};
     send({type:"sources",sources:[source],truncated:false});
-    send({type:"findings",kind:"rfq_review",partial:true,findings:[{
+    send({type:"findings",kind:"rfq_review",partial:true,
+      inspectedCount:2,totalCount:5,findings:[{
       id:"RFQ_LINE_UNMATCHED:2",code:"RFQ_LINE_UNMATCHED",severity:"high",
       sourceId:"rfq:"+id,title:"Rivi 2: tuoteosuma puuttuu",
       explanation:"Rivin 2 tallennetun tilan perusteella.",
