@@ -51,7 +51,7 @@ function intentFor(text: string): "steps" | "options" | "general" {
 
 function statusText(locale: "fi" | "en", stage: DisplayMessage["stage"], intent: DisplayMessage["intent"]) {
   const fi = locale === "fi";
-  if (stage === "retrieving") return fi ? "Haen työtilan tilausasioita" : "Retrieving workspace orders";
+  if (stage === "retrieving") return fi ? "Haen työtilan tietoja" : "Retrieving workspace data";
   if (stage === "verifying") return fi ? "Tarkistan lähdetiedot" : "Verifying retrieved records";
   if (stage === "connecting") return fi ? "Yhdistän keskusteluun…" : "Connecting to the model…";
   if (stage === "responding") {
@@ -406,14 +406,18 @@ export function CopilotConversation({
                 if (!event.target.checked) resetConversation();
                 setShareWorkspaceData(event.target.checked);
               }}/>
-            <span>{fi ? "Salli työtilan tietojen käyttö tässä keskustelussa (tietoja lähetetään AI-mallille)" :
-              "Allow workspace order data to be sent to the AI model in this conversation"}</span>
+            <span>{fi ? "Salli rajattujen työtilatietojen käyttö tässä keskustelussa (tietoja lähetetään AI-mallille)" :
+              "Allow workspace data to be sent to the AI model in this conversation"}</span>
           </label>
         ) : null}
         <p className="ml-copilot-disclaimer">{fi ?
-          (contextAvailable && shareWorkspaceData ? "Copilot voi hakea rajattuja tilausasioita, mutta ei tee muutoksia." :
+          (contextAvailable && shareWorkspaceData ? (rfqIntelligenceAvailable && parseActiveRecordPath(pathname)?.kind === "rfq"
+            ? "Copilot voi lukea tämän tarjouspyynnön rajattuja tietoja, mutta ei tee muutoksia."
+            : "Copilot voi hakea rajattuja tilausasioita, mutta ei tee muutoksia.") :
           "Copilot ei vielä näe yrityksesi tietoja eikä tee muutoksia.") :
-          (contextAvailable && shareWorkspaceData ? "Copilot may retrieve limited order data but never changes it." :
+          (contextAvailable && shareWorkspaceData ? (rfqIntelligenceAvailable && parseActiveRecordPath(pathname)?.kind === "rfq"
+            ? "Copilot can read limited data from this RFQ, but cannot change it."
+            : "Copilot may retrieve limited order data but never changes it.") :
           "Copilot cannot yet access or change your company data.")}</p>
         <span className="ml-copilot-sr-only" role="status" aria-live="polite">
           {busy ? (fi ? "Copilot muodostaa vastausta" : "Copilot is responding")
