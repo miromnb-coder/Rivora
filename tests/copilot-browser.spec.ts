@@ -173,3 +173,50 @@ test("Phase 5.1B.4 streams readable RFQ sections without injecting HTML",async({
   await expect(page.locator(".ml-copilot-answer script")).toHaveCount(0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+
+test("Phase 5.1D renders verified findings + next steps only after completed opted-in reply",async({page})=>{
+  await page.request.post("/__context_on");
+  await page.reload();
+  const consent=page.getByRole("checkbox",{name:/Salli työtilan tietojen käyttö/});
+  const input=page.getByRole("textbox",{name:"Kysy Copilotilta"});
+  await expect(consent).not.toBeChecked();
+  await input.fill("HAVAINNOT");
+  await input.press("Enter");
+  await expect(page.getByText("Vastaus valmis")).toBeVisible();
+  await expect(page.locator(".ml-copilot-findings")).toHaveCount(0);
+  await page.getByRole("button",{name:"Aloita uusi keskustelu"}).click();
+  await consent.check();
+  await input.fill("HAVAINNOT");
+  await input.press("Enter");
+  await expect(page.getByText("Vastaus valmis")).toBeVisible();
+  await expect(page.getByRole("region",{name:"Havainnot ja seuraavat tehtävät"})).toBeVisible();
+  await expect(page.locator(".ml-copilot-findings-heading")).toHaveText(["Havainnot","Seuraavaksi"]);
+  await expect(page.locator(".ml-copilot-finding")).toHaveCount(1);
+  await expect(page.locator(".ml-copilot-finding strong")).toHaveText("Rivi 2: tuoteosuma puuttuu");
+  await expect(page.locator(".ml-copilot-next-list li")).toHaveCount(1);
+  await expect(page.locator(".ml-copilot-next-list a")).toHaveAttribute("href",
+    "/app/orders/case/rfq/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+  await expect(page.locator(".ml-copilot-findings-partial")).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.getByRole("button",{name:"Aloita uusi keskustelu"}).click();
+  await expect(page.locator(".ml-copilot-findings")).toHaveCount(0);
+  await expect(consent).not.toBeChecked();
+});
+
+test("Phase 5.1D does not display uncompleted findings or actions after error",async({page})=>{
+  await page.request.post("/__context_on");
+  await page.reload();
+  await page.getByRole("checkbox",{name:/Salli työtilan tietojen käyttö/}).check();
+  const input=page.getByRole("textbox",{name:"Kysy Copilotilta"});
+  await input.fill("HAVAINNOT VIRHE");
+  await input.press("Enter");
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.locator(".ml-copilot-findings")).toHaveCount(0);
+  await expect(page.locator(".ml-copilot-next-list a")).toHaveCount(0);
+  await page.getByRole("button",{name:"Aloita uusi keskustelu"}).click();
+  await page.getByRole("checkbox",{name:/Salli työtilan tietojen käyttö/}).check();
+  await input.fill("HAVAINNOT KESKEN");
+  await input.press("Enter");
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.locator(".ml-copilot-findings")).toHaveCount(0);
+});
