@@ -199,7 +199,7 @@ test("5.1B.2 focused RFQ line included ahead of review prioritization",async()=>
 });
 
 test("5.1B.2 candidate completeness is false on more than three candidates per line",async()=>{
-  const scenario=setup({n:4,candidates:4});
+  const scenario=setup({n:4,candidates:5});
   const value=await loadRfqSnapshot(fakeDb(scenario) as never,
     ORG_A,RFQ,new AbortController().signal);
   assert.equal(value.truncated,true);
