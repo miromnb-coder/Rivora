@@ -73,6 +73,9 @@ export type CopilotFindingsEvent = {
   type: "findings";
   kind: "orders_priority" | "rfq_review";
   partial: boolean;
+  /** Counts are measured on the server, never inferred from list length. */
+  inspectedCount?: number;
+  totalCount?: number | null;
   findings: CopilotFinding[];
 };
 const FINDING_CODES = new Set([
@@ -127,10 +130,18 @@ export function decodeCopilotEvent(frame: string): CopilotEvent | null {
     if (kind === "findings" && item.type === "findings" &&
       (item.kind === "orders_priority" || item.kind === "rfq_review") &&
       typeof item.partial === "boolean" &&
+      (item.inspectedCount === undefined ||
+        (Number.isSafeInteger(item.inspectedCount) && (item.inspectedCount as number) >= 0 &&
+         (item.inspectedCount as number) <= 10000)) &&
+      (item.totalCount === undefined || item.totalCount === null ||
+        (Number.isSafeInteger(item.totalCount) && (item.totalCount as number) >= 0 &&
+         (item.totalCount as number) <= 100000)) &&
       Array.isArray(item.findings) && item.findings.length <= 5 &&
       item.findings.every(validFinding) &&
       new Set((item.findings as CopilotFinding[]).map(f => f.id)).size === item.findings.length)
       return { type:"findings", kind:item.kind, partial:item.partial,
+        ...(item.inspectedCount !== undefined ? {inspectedCount:item.inspectedCount as number} : {}),
+        ...(item.totalCount !== undefined ? {totalCount:item.totalCount as number | null} : {}),
         findings:item.findings as CopilotFinding[] };
     if (kind === "delta" && item.type === "delta" && typeof item.text === "string")
       return { type: "delta", text: item.text };

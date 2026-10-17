@@ -369,3 +369,30 @@
   .ml-workspace-shell .ml-copilot-findings { gap: 9px; }
   .ml-workspace-shell .ml-copilot-findings-list { gap: 9px; }
 }
+
+/* Phase 5.1E — stable scroll layout and quiet, informative count summary. */
+.ml-workspace-shell .ml-copilot-transcript {
+  scroll-padding-bottom: 24px;
+  padding-bottom: 26px;
+}
+.ml-workspace-shell .ml-copilot-scroll-latest {
+  margin: 0 2px 9px auto;
+  padding: 5px 9px;
+  min-height: 32px;
+  border-color: var(--ml-border);
+  background: var(--ml-surface-warm);
+  box-shadow: none;
+  font-size: 11px;
+}
+.ml-workspace-shell .ml-copilot-findings-coverage {
+  margin: 3px 0 0;
+  color: var(--ml-muted);
+  font-size: 11px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+.rfq-review-v2-line[id^="rfq-line-"] { scroll-margin-top: 96px; }
+.rfq-review-v2-line[id^="rfq-line-"]:target {
+  outline: 2px solid var(--ml-border-strong, #c9bbaa);
+  outline-offset: 4px;
+}
