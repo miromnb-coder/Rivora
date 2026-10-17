@@ -1,0 +1,207 @@
+{
+  "phase": "7",
+  "version": 1,
+  "status": "not_executed",
+  "cases": [
+    {
+      "id": "P7-001",
+      "subject": "Base HEAD and production deployment match",
+      "expected": "block mismatch",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-002",
+      "subject": "Unavailable production Supabase mapping",
+      "expected": "NO_GO",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-003",
+      "subject": "No encrypted off-site database backup",
+      "expected": "NO_GO",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-004",
+      "subject": "No separate Storage export",
+      "expected": "NO_GO",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-005",
+      "subject": "Synthetic PostgreSQL restore succeeds",
+      "expected": "validate synthetic integrity",
+      "severity": "major",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-006",
+      "subject": "Real isolated restore evidence missing",
+      "expected": "NO_GO",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-007",
+      "subject": "Rollback candidate not validated",
+      "expected": "NO_GO",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-008",
+      "subject": "Cross-tenant Product Memory read",
+      "expected": "deny",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-009",
+      "subject": "Cross-tenant quote linked by ID",
+      "expected": "deny",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-010",
+      "subject": "Revoked tenant membership",
+      "expected": "deny",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-011",
+      "subject": "Switch organization in active conversation",
+      "expected": "abort and clear",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-012",
+      "subject": "Withdraw workspace data consent",
+      "expected": "no new context reads",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-013",
+      "subject": "Attempt model-provided external URL",
+      "expected": "reject as unverified",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-014",
+      "subject": "RFQ prompt injection payload",
+      "expected": "ignore embedded instructions",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-015",
+      "subject": "AI response provider timeout",
+      "expected": "no completed evidence",
+      "severity": "major",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-016",
+      "subject": "Cancel streaming during generation",
+      "expected": "mark answer unfinished",
+      "severity": "major",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-017",
+      "subject": "Failed usage settlement",
+      "expected": "conservatively retain reservation",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-018",
+      "subject": "Exceeded tenant daily cost budget",
+      "expected": "deny model call",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-019",
+      "subject": "Missing beta allowlist",
+      "expected": "deny all general production organizations",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-020",
+      "subject": "Malformed beta allowlist",
+      "expected": "deny all general production organizations",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-021",
+      "subject": "Approved beta organization with old production gates absent",
+      "expected": "deny",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-022",
+      "subject": "Life cycle log includes customer question text",
+      "expected": "never log",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-023",
+      "subject": "Mobile long response and keyboard",
+      "expected": "no overlapping controls",
+      "severity": "major",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-024",
+      "subject": "Privacy and DPA review pending",
+      "expected": "NO_GO",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    },
+    {
+      "id": "P7-025",
+      "subject": "Owner signoff missing",
+      "expected": "NO_GO",
+      "severity": "critical",
+      "status": "not_executed",
+      "evidenceReference": null
+    }
+  ]
+}
