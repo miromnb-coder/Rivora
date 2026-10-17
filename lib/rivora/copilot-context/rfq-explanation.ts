@@ -51,8 +51,64 @@ const METHODS: Record<string, string> = {
   catalogue: "Suggested from the catalogue; no more detailed match provenance was retrieved.",
   ai_suggestion: "AI-suggested candidate; not a human approval.",
 };
-export function explainMatchMethod(method: string | null): string {
-  return (method && METHODS[method]) || "Matching method is not known from the retrieved record.";
+const METHODS_FI: Record<string, string> = {
+  exact_sku: "Tuotetunnus (SKU) täsmäsi tallennetussa haussa. Se ei yksin todista teknistä sopivuutta.",
+  exact_mpn: "Valmistajan tuotenumero täsmäsi tallennetussa haussa. Tarkista silti tuotteen sopivuus.",
+  product_memory: "Tallennettu menetelmä on tuotemuisti. Aiemman hyväksyjän tai vahvistuksen historiaa ei haettu.",
+  customer_memory: "Tallennettu menetelmä on asiakaskohtainen muisti. Aiemman hyväksynnän tarkempia tietoja ei haettu.",
+  fuzzy: "Tuotetta ehdotettiin samankaltaisuuden perusteella, ei varmennettuna tarkkana osumana.",
+  manual: "Tuote on valittu käsin. Vahvistus tarkistetaan erikseen.",
+  catalogue: "Ehdotus perustuu tuotekatalogiin. Tarkempaa osumaperustetta ei haettu.",
+  ai_suggestion: "Ehdotus on tekoälyn tekemä, eikä se tarkoita käyttäjän hyväksyntää.",
+};
+export function explainMatchMethod(method: string | null, locale: "fi" | "en" = "en"): string {
+  const dictionary = locale === "fi" ? METHODS_FI : METHODS;
+  return (method && dictionary[method]) || (locale === "fi"
+    ? "Tallennettu osumamenetelmä ei ole tiedossa."
+    : "Matching method is not known from the retrieved record.");
+}
+const REVIEW_FI: Record<string, string> = {
+  pending: "Odottaa käsittelyä", matched: "Ehdotus odottaa vahvistusta",
+  needs_review: "Vaatii tarkistuksen", confirmed: "Vahvistettu",
+  unmatched: "Tuoteosuma puuttuu",
+};
+const REVIEW_EN: Record<string, string> = {
+  pending: "Pending review", matched: "Suggested, not confirmed",
+  needs_review: "Needs review", confirmed: "Confirmed",
+  unmatched: "No product match",
+};
+const RFQ_FI: Record<string, string> = {
+  needs_review: "Vaatii tarkistuksen", ready: "Valmis seuraavaan vaiheeseen",
+  draft: "Luonnos", processing: "Käsittelyssä", failed: "Käsittely epäonnistui",
+};
+const RFQ_EN: Record<string, string> = {
+  needs_review: "Needs review", ready: "Ready for next step",
+  draft: "Draft", processing: "Processing", failed: "Processing failed",
+};
+export function rfqReviewLabel(status: string, locale: "fi" | "en"): string {
+  return (locale === "fi" ? REVIEW_FI : REVIEW_EN)[status] ??
+    (locale === "fi" ? "Tila vaatii tarkistamista sovelluksesta" : "Check this status in the application");
+}
+export function rfqStatusLabel(status: string, locale: "fi" | "en"): string {
+  return (locale === "fi" ? RFQ_FI : RFQ_EN)[status] ??
+    (locale === "fi" ? "Tarkista tila sovelluksesta" : "Check the status in the application");
+}
+export function rfqNextActionLabel(
+  action: MatchExplanation["nextReview"], locale: "fi" | "en",
+): string {
+  const fi = {
+    human_confirmation: "Tarkista ja vahvista osuma sovelluksessa",
+    check_extraction: "Tarkista dokumentista poimitut tiedot",
+    inspect_candidates: "Etsi tai valitse sopiva tuote käsin",
+    none: "Ei tähän riviin liittyvää vahvistustehtävää",
+  };
+  const en = {
+    human_confirmation: "Review and confirm the match in the application",
+    check_extraction: "Review the extracted document details",
+    inspect_candidates: "Find or select a suitable product manually",
+    none: "No confirmation task for this line",
+  };
+  return (locale === "fi" ? fi : en)[action];
 }
 export function explainRfq(snapshot: RfqDataSnapshot, focusedLineNumber?: number): RfqExplanation {
   let chosen: RfqLineSnapshot[] = snapshot.lines;
@@ -111,11 +167,16 @@ export function rfqExplanationSource(explanation: RfqExplanation): ContextSource
 }
 
 /** Reduce detail, never truncate JSON arbitrarily or fabricate full coverage. */
-export function serializeRfqExplanation(explanation: RfqExplanation): RfqIntelligenceContext {
+export function serializeRfqExplanation(
+  explanation: RfqExplanation, locale: "fi" | "en" = "en",
+): RfqIntelligenceContext {
   const lines = explanation.explanations.map(line => ({
-    lineNumber: line.lineNumber, reviewStatus: line.reviewStatus,
-    humanConfirmed: line.confirmedByHuman, matchMethod: line.method,
-    methodMeaning: line.methodMeaning,
+    lineNumber: line.lineNumber,
+    reviewStatus: line.reviewStatus,
+    reviewStatusLabel: rfqReviewLabel(line.reviewStatus, locale),
+    humanConfirmed: line.confirmedByHuman,
+    matchMethod: line.method,
+    matchMethodExplanation: explainMatchMethod(line.method, locale),
     matchConfidence: line.matchConfidence,
     extractionConfidencePercent: line.extractionConfidencePercent,
     candidates: line.candidates.map(item=>({
@@ -123,12 +184,15 @@ export function serializeRfqExplanation(explanation: RfqExplanation): RfqIntelli
     })),
     candidateListComplete: line.candidateListComplete,
     nextReview: line.nextReview,
+    nextActionLabel: rfqNextActionLabel(line.nextReview, locale),
   }));
   let truncated = explanation.truncated;
   const payload = {
     type: "rfq_read_only_evidence", rfqId: explanation.rfqId,
     reference: explanation.reference, status: explanation.rfqStatus,
+    statusLabel: rfqStatusLabel(explanation.rfqStatus, locale),
     totalLines: explanation.totalLines, unresolvedLines: explanation.unresolvedLines,
+    confirmedLines: explanation.totalLines - explanation.unresolvedLines,
     inspectedLines: explanation.inspectedLines, allLinesInspected: explanation.allLinesInspected,
     quoteExists: explanation.quoteExists,
     extractionConfidencePercent: explanation.extractionConfidencePercent,
