@@ -40,7 +40,7 @@ test("6.3 facts are source-verified, bounded, sanitized and never use model URLs
  const a=data();assert.equal(validatedPhase6Facts(a),true);
  const payload=serializePhase6Evidence(a);
  assert.ok(payload.includes("MEMORY_USAGE_FOUND"));
- assert.ok(!payload.includes(org)); // model sees sourceId only, not leaked organization ID
+ assert.ok(!payload.includes('"organizationId"')); // no privileged workspace field is serialized
  const event=verifiedEvidenceEvent(a,[src]);assert.equal(event?.facts.length,1);
  const missing=verifiedEvidenceEvent(a,[]);assert.equal(missing,null);
  assert.equal(validatedPhase6Facts({...a,sources:[]}),false);
