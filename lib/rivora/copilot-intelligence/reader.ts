@@ -105,7 +105,7 @@ export async function readAuthorizedPhase6Evidence(args:{
               .abortSignal(controller.signal).maybeSingle();
             if(memError || controller.signal.aborted)fail();
             if(!memory || memory.memory_type!=="customer_sku_product" ||
-              memory.customer_id!==root.customer_id){
+              root.customer_id===null || memory.customer_id!==root.customer_id){
               add("MEMORY_ORIGIN_UNVERIFIED",rootSource.sourceId,
                 fi?"Käyttötapahtuman muistimerkintää ei voitu varmentaa nykyisestä työtilasta.":"The memory entry linked to the usage event could not be verified.","incomplete_evidence");
               note("Muistivastineen tarkkaa alkuperää ei voitu varmistaa.","Exact memory provenance could not be verified.");
@@ -172,7 +172,7 @@ export async function readAuthorizedPhase6Evidence(args:{
       const ids:string[]=[];
       for(const row of chosen){
         if(!isActiveRecordUuid(row.id)||row.rfq_id!==root.id ||
-          row.customer_id!==root.customer_id)fail();
+          (root.customer_id!==null && row.customer_id!==root.customer_id))fail();
         const node=source("quote",row.id,fi?"Tarjous":"Quote");sources.push(node);
         ids.push(row.id);
         add("QUOTE_STATUS",node.sourceId,(fi?"Tarjouksen tila: ":"Quote status: ")+boundedStatus(row.status));
@@ -187,7 +187,7 @@ export async function readAuthorizedPhase6Evidence(args:{
         if(pos.length>MAX_PO)note("Ostotilausketju on rajattu otos.","Purchase order relations are a partial sample.");
         for(const row of pos.slice(0,MAX_PO)){
           if(!isActiveRecordUuid(row.id)||!ids.includes(String(row.quote_id)) ||
-            row.customer_id!==root.customer_id)fail();
+            (root.customer_id!==null && row.customer_id!==root.customer_id))fail();
           const node=source("po",row.id,fi?"Ostotilaus":"Purchase order");sources.push(node);
           add("PO_STATUS",node.sourceId,(fi?"Ostotilauksen tila: ":"Purchase order status: ")+boundedStatus(row.status));
         }
@@ -200,7 +200,7 @@ export async function readAuthorizedPhase6Evidence(args:{
         if(sales.length>MAX_SALES)note("Myyntitilausluonnokset ovat rajattu otos.","Sales order drafts are a partial sample.");
         for(const row of sales.slice(0,MAX_SALES)){
           if(!isActiveRecordUuid(row.id)||!ids.includes(String(row.quote_id)) ||
-            row.customer_id!==root.customer_id)fail();
+            (root.customer_id!==null && row.customer_id!==root.customer_id))fail();
           const node=source("sales",row.id,fi?"Myyntitilausluonnos":"Sales draft");sources.push(node);
           add("SALES_STATUS",node.sourceId,(fi?"Myyntitilausluonnoksen tila: ":"Sales draft status: ")+boundedStatus(row.status));
         }
