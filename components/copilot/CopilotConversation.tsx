@@ -9,6 +9,9 @@ import { verifiedFindingLink } from "@/lib/rivora/copilot-finding-navigation";
 import { parseActiveRecordPath } from "@/lib/rivora/copilot-context/active-record";
 import { buildCopilotHistory, CopilotStreamParser } from "@/lib/rivora/copilot-stream";
 import { formatCopilotAnswer } from "@/lib/rivora/copilot-answer-format";
+import { CopilotHistoryPanel,type ConversationListItem } from "./CopilotHistoryPanel";
+import { CopilotSettingsMenu } from "./CopilotSettingsMenu";
+import { CopilotConsentDialog } from "./CopilotConsentDialog";
 
 type DisplayMessage = CopilotMessage & {
   id: number;
@@ -200,6 +203,16 @@ export function CopilotConversation({
   const [activeRecordAvailable, setActiveRecordAvailable] = useState(false);
   const [rfqIntelligenceAvailable, setRfqIntelligenceAvailable] = useState(false);
   const [shareWorkspaceData, setShareWorkspaceData] = useState(false);
+  const [cx2Enabled,setCx2Enabled]=useState(false);
+  const [historyAvailable,setHistoryAvailable]=useState(false);
+  const [persistentConsentAvailable,setPersistentConsentAvailable]=useState(false);
+  const [historyEnabled,setHistoryEnabled]=useState(true);
+  const [activeConversationId,setActiveConversationId]=useState<string|null>(null);
+  const [historyList,setHistoryList]=useState<ConversationListItem[]>([]);
+  const [historyOpen,setHistoryOpen]=useState(false);
+  const [settingsOpen,setSettingsOpen]=useState(false);
+  const [consentPrompt,setConsentPrompt]=useState(false);
+  const [cx2Loading,setCx2Loading]=useState(false);
   const controller = useRef<AbortController | null>(null);
   const requestNumber = useRef(0);
   const nextId = useRef(0);
@@ -218,21 +231,24 @@ export function CopilotConversation({
     if (paused) controller.current?.abort();
   }, [paused]);
 
-  // Phase 7: do not carry conversations, consent or in-flight streams across
-  // a route / organization boundary. Both references are UI hints only;
-  // the server independently rechecks access on every request.
+  // An organization change is a hard isolation boundary. Page changes do
+  // not destroy a persisted conversation; its original record binding is kept.
   useEffect(() => {
     requestNumber.current += 1;
     controller.current?.abort();
     controller.current = null;
-    setMessages([]);
-    setDraft("");
-    setError("");
-    setBusy(false);
-    setShareWorkspaceData(false);
-    followTail.current = true;
-    setIsAtBottom(true);
-  }, [pathname, workspaceId]);
+    setMessages([]);setDraft("");setError("");setBusy(false);
+    setShareWorkspaceData(false);setActiveConversationId(null);
+    setHistoryList([]);setHistoryOpen(false);setSettingsOpen(false);
+    setConsentPrompt(false);setCx2Enabled(false);
+    followTail.current=true;setIsAtBottom(true);
+  }, [workspaceId]);
+  useEffect(()=>{
+    if(cx2Enabled)return;
+    requestNumber.current += 1;
+    controller.current?.abort();controller.current=null;
+    setMessages([]);setDraft("");setBusy(false);setShareWorkspaceData(false);
+  },[pathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -243,14 +259,56 @@ export function CopilotConversation({
     void fetch("/api/copilot/status", {
       cache: "no-store", credentials: "same-origin",
     }).then(response => response.ok ? response.json() : null)
-      .then(status => {
-        if (!cancelled && status?.available === true && status?.pilot === true)
-          setPilotAvailable(true);
-        if (!cancelled && status?.available === true && status?.contextAvailable === true) {
+      .then(async status => {
+        if(cancelled)return;
+        if(status?.available===true&&status?.pilot===true)setPilotAvailable(true);
+        if(status?.available===true&&status?.contextAvailable===true){
           setContextAvailable(true);
-          setActiveRecordAvailable(status?.activeRecordAvailable === true);
-          setRfqIntelligenceAvailable(status?.rfqIntelligenceAvailable === true);
+          setActiveRecordAvailable(status?.activeRecordAvailable===true);
+          setRfqIntelligenceAvailable(status?.rfqIntelligenceAvailable===true);
         }
+        if(status?.cx2Enabled!==true)return;
+        setCx2Enabled(true);setCx2Loading(true);
+        const available=status?.historyAvailable===true;
+        setHistoryAvailable(available);
+        setPersistentConsentAvailable(status?.persistentConsentAvailable===true);
+        try{
+          const res=await fetch("/api/copilot/preferences",{credentials:"same-origin",cache:"no-store"});
+          if(!res.ok)throw Error("Settings unavailable");
+          const prefs=await res.json();
+          if(cancelled)return;
+          setShareWorkspaceData(prefs.workspaceDataConsent===true);
+          setHistoryEnabled(prefs.historyEnabled===true);
+          setConsentPrompt(status?.persistentConsentAvailable===true&&!prefs.consentVersion);
+          if(available&&prefs.historyEnabled===true){
+            const list=await fetch("/api/copilot/conversations",{credentials:"same-origin",cache:"no-store"});
+            if(!list.ok)throw Error("History unavailable");
+            const data=await list.json();
+            if(cancelled)return;
+            setHistoryList(data.conversations??[]);
+            const last=data.conversations?.find((x:ConversationListItem)=>x.id===prefs.lastConversationId)
+              ??data.conversations?.[0];
+            if(last){
+              const load=await fetch("/api/copilot/conversations/"+last.id,
+                {credentials:"same-origin",cache:"no-store"});
+              if(!load.ok)throw Error("Could not resume conversation");
+              const history=await load.json();
+              if(cancelled)return;
+              const restored:DisplayMessage[]=(history.messages??[]).map(
+                (x:{role:"user"|"assistant";content:string;status:string},i:number)=>({
+                  id:i+1,role:x.role,text:x.content,
+                  stage:x.role==="assistant"?
+                    (x.status==="completed"?"done":x.status==="cancelled"?"stopped":"error"):undefined,
+                }));
+              nextId.current=restored.length;
+              setMessages(restored);setActiveConversationId(last.id);
+            }
+          }
+        }catch{
+          if(!cancelled)setError(fi?
+            "Keskusteluhistoriaa ei saatu ladattua. Yritä myöhemmin uudelleen.":
+            "Conversation history could not be loaded.");
+        }finally{if(!cancelled)setCx2Loading(false);}
       }).catch(() => { /* Status unavailable: leave the pilot label hidden. */ });
     return () => { cancelled = true; };
   }, [workspaceId]);
@@ -283,10 +341,61 @@ export function CopilotConversation({
     setDraft("");
     setError("");
     setBusy(false);
-    setShareWorkspaceData(false);
+    if(!cx2Enabled)setShareWorkspaceData(false);
+    if(cx2Enabled)setActiveConversationId(null);
+    setHistoryOpen(false);setSettingsOpen(false);
     followTail.current = true;
     setIsAtBottom(true);
     textarea.current?.focus();
+  }
+
+
+  async function updatePreferences(patch:{workspaceDataConsent?:boolean;historyEnabled?:boolean}){
+    const r=await fetch("/api/copilot/preferences",{method:"PATCH",credentials:"same-origin",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify(patch)});
+    if(!r.ok)throw Error("Preferences could not be saved");
+    const p=await r.json();
+    setShareWorkspaceData(p.workspaceDataConsent===true);
+    setHistoryEnabled(p.historyEnabled===true);
+    setConsentPrompt(false);
+    if(p.historyEnabled===false)setActiveConversationId(null);
+  }
+  async function refreshHistory(){
+    const r=await fetch("/api/copilot/conversations",{cache:"no-store",credentials:"same-origin"});
+    if(!r.ok)throw Error("History unavailable");
+    const data=await r.json();setHistoryList(data.conversations??[]);
+  }
+  async function openSavedConversation(id:string){
+    controller.current?.abort();requestNumber.current+=1;
+    setBusy(false);setMessages([]);setError("");
+    try{
+      const r=await fetch("/api/copilot/conversations/"+id,{cache:"no-store",credentials:"same-origin"});
+      if(!r.ok)throw Error("Could not open conversation");
+      const data=await r.json();
+      await fetch("/api/copilot/conversations/"+id,{method:"PATCH",
+        headers:{"Content-Type":"application/json"},credentials:"same-origin",
+        body:JSON.stringify({activate:true})});
+      const items:DisplayMessage[]=(data.messages??[]).map(
+        (x:{role:"user"|"assistant";content:string;status:string},i:number)=>({
+          id:i+1,role:x.role,text:x.content,
+          stage:x.role==="assistant"?(x.status==="completed"?"done":x.status==="cancelled"?"stopped":"error"):undefined,
+        }));
+      nextId.current=items.length;setMessages(items);setActiveConversationId(id);
+      setHistoryOpen(false);setSettingsOpen(false);
+    }catch{setError(fi?"Keskustelua ei voitu avata.":"Unable to open conversation.");}
+  }
+  async function renameSavedConversation(id:string,title:string){
+    try{const r=await fetch("/api/copilot/conversations/"+id,{method:"PATCH",
+      headers:{"Content-Type":"application/json"},credentials:"same-origin",
+      body:JSON.stringify({title})});if(!r.ok)throw Error();await refreshHistory();}
+    catch{setError(fi?"Keskustelun nimeäminen epäonnistui.":"Rename failed.");}
+  }
+  async function deleteSavedConversation(id:string){
+    try{const r=await fetch("/api/copilot/conversations/"+id,{method:"DELETE",credentials:"same-origin"});
+      if(!r.ok)throw Error();
+      if(id===activeConversationId)resetConversation();
+      await refreshHistory();
+    }catch{setError(fi?"Keskustelun poistaminen epäonnistui.":"Delete failed.");}
   }
 
   function stop() {
@@ -295,7 +404,8 @@ export function CopilotConversation({
 
   async function send(raw: string, retryLast = false) {
     const question = raw.trim();
-    if (paused || busy || controller.current || question.length < 2 || question.length > 1200) return;
+    if (paused || busy || controller.current || cx2Loading ||
+      question.length < 2 || question.length > 1200) return;
     const tail = messages.slice(-2);
     const canRetry = retryLast && tail.length === 2 &&
       tail[0].role === "user" && tail[0].text === question &&
@@ -338,6 +448,16 @@ export function CopilotConversation({
     };
 
     try {
+      let conversationId=activeConversationId;
+      if(cx2Enabled && historyAvailable && historyEnabled && !conversationId){
+        const record=shareWorkspaceData&&activeRecordAvailable?parseActiveRecordPath(pathname):null;
+        const create=await fetch("/api/copilot/conversations",{method:"POST",
+          headers:{"Content-Type":"application/json"},credentials:"same-origin",
+          body:JSON.stringify({title:question,
+            ...(record?{contextKind:record.kind,contextRecordId:record.id}:{})})});
+        if(!create.ok)throw Error(fi?"Keskustelua ei voitu tallentaa.":"Could not save conversation.");
+        const made=await create.json();conversationId=made.id;setActiveConversationId(conversationId);
+      }
       const response = await fetch("/api/copilot/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -348,7 +468,9 @@ export function CopilotConversation({
           useWorkspaceData: contextAvailable && shareWorkspaceData,
           workspaceId: workspaceId ?? null,
           activeRecord: contextAvailable && shareWorkspaceData && activeRecordAvailable
-            ? parseActiveRecordPath(pathname) : null }),
+            ? parseActiveRecordPath(pathname) : null,
+          conversationId:cx2Enabled&&historyAvailable&&historyEnabled?conversationId:null,
+          clientRequestId:cx2Enabled&&historyAvailable&&historyEnabled?crypto.randomUUID():null }),
       });
       if (!response.ok) {
         if (response.status === 503) {
@@ -404,6 +526,7 @@ export function CopilotConversation({
         reader.releaseLock();
       }
       if (!completed) throw new Error(fi ? "Vastaus katkesi kesken." : "The response was interrupted.");
+      if(cx2Enabled && historyAvailable && historyEnabled)void refreshHistory().catch(()=>{});
 
     } catch (cause) {
       if (current !== requestNumber.current) return;
@@ -447,6 +570,12 @@ export function CopilotConversation({
             {fi ? "AI-koekäyttö" : "AI pilot"}
           </span> : null}
         </div>
+        {cx2Enabled && historyAvailable ? <button type="button" className="ml-copilot-new"
+          onClick={()=>{setHistoryOpen(true);setSettingsOpen(false);}}
+          aria-label={fi?"Avaa keskusteluhistoria":"Open conversation history"}>◷</button>:null}
+        {cx2Enabled ? <button type="button" className="ml-copilot-new"
+          onClick={()=>{setSettingsOpen(true);setHistoryOpen(false);}}
+          aria-label={fi?"Copilotin asetukset":"Copilot settings"}>⚙</button>:null}
         <button type="button" onClick={resetConversation} className="ml-copilot-new"
           aria-label={fi ? "Aloita uusi keskustelu" : "Start a new conversation"}>
           <span aria-hidden="true">＋</span>{fi ? "Uusi" : "New"}
@@ -455,7 +584,19 @@ export function CopilotConversation({
       <div ref={scrollHost} className="ml-copilot-body ml-copilot-transcript"
         role="log" aria-label={fi ? "Copilot-keskustelu" : "Copilot conversation"}
         aria-live="off" aria-busy={busy} onScroll={scrollChanged}>
-        {messages.length === 0 ? (
+        {cx2Enabled && historyOpen ?
+          <CopilotHistoryPanel locale={locale} items={historyList}
+            onOpen={id=>void openSavedConversation(id)}
+            onRename={(id,title)=>void renameSavedConversation(id,title)}
+            onDelete={id=>void deleteSavedConversation(id)}
+            onClose={()=>setHistoryOpen(false)}/> :
+         cx2Enabled && settingsOpen ?
+          <CopilotSettingsMenu locale={locale} consent={shareWorkspaceData}
+            historyEnabled={historyEnabled} busy={busy}
+            onConsent={enabled=>void updatePreferences({workspaceDataConsent:enabled}).catch(()=>setError(fi?"Asetusta ei voitu tallentaa.":"Could not save setting."))}
+            onHistory={enabled=>void updatePreferences({historyEnabled:enabled}).catch(()=>setError(fi?"Asetusta ei voitu tallentaa.":"Could not save setting."))}
+            onClose={()=>setSettingsOpen(false)}/> :
+         messages.length === 0 ? (
           <section className="ml-copilot-welcome">
             <h2>{fi ? "Mitä haluaisit selvittää?" : "What can I help you think through?"}</h2>
             <p>{fi ?
@@ -537,6 +678,10 @@ export function CopilotConversation({
           }}>{fi ? "↓ Uusimmat viestit" : "↓ Latest messages"}</button>
         ) : null}
         {error ? <p className="ml-copilot-error" role="alert">{error}</p> : null}
+        {cx2Enabled && persistentConsentAvailable && consentPrompt ?
+          <CopilotConsentDialog locale={locale}
+            onAllow={()=>void updatePreferences({workspaceDataConsent:true}).catch(()=>setError(fi?"Lupaa ei voitu tallentaa.":"Could not save permission."))}
+            onSkip={()=>setConsentPrompt(false)}/> : null}
         <form onSubmit={submit} className="ml-copilot-composer">
           <label className="ml-copilot-sr-only" htmlFor="ml-copilot-input">
             {fi ? "Kysy Copilotilta" : "Ask Copilot"}
@@ -567,7 +712,7 @@ export function CopilotConversation({
             )}
           </div>
         </form>
-        {contextAvailable ? (
+        {!cx2Enabled && contextAvailable ? (
           <label className="ml-copilot-context-opt">
             <input type="checkbox" checked={shareWorkspaceData}
               onChange={event=>{
@@ -578,7 +723,7 @@ export function CopilotConversation({
               "Allow workspace data to be sent to the AI model in this conversation"}</span>
           </label>
         ) : null}
-        <p className="ml-copilot-disclaimer">{fi ?
+        {!cx2Enabled ? <p className="ml-copilot-disclaimer">{fi ?
           (contextAvailable && shareWorkspaceData ? (rfqIntelligenceAvailable && parseActiveRecordPath(pathname)?.kind === "rfq"
             ? "Copilot voi lukea tämän tarjouspyynnön rajattuja tietoja, mutta ei tee muutoksia."
             : "Copilot voi hakea rajattuja tilausasioita, mutta ei tee muutoksia.") :
@@ -586,7 +731,7 @@ export function CopilotConversation({
           (contextAvailable && shareWorkspaceData ? (rfqIntelligenceAvailable && parseActiveRecordPath(pathname)?.kind === "rfq"
             ? "Copilot can read limited data from this RFQ, but cannot change it."
             : "Copilot may retrieve limited order data but never changes it.") :
-          "Copilot cannot yet access or change your company data.")}</p>
+          "Copilot cannot yet access or change your company data.")}</p>:null}
         <span className="ml-copilot-sr-only" role="status" aria-live="polite">
           {busy ? (fi ? "Copilot muodostaa vastausta" : "Copilot is responding")
             : messages[messages.length - 1]?.stage === "done" ?
