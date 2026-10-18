@@ -138,8 +138,9 @@ export function WorkspaceFrame({
             <PanelIcon kind="close" />
           </button>
         </header>
-        {/* Different record/workspace = new session; abort in-flight work and reset consent. */}
-        <CopilotConversation key={(workspaceId ?? "") + ":" + (pathname ?? "")}
+        {/* Same authenticated workspace keeps the mounted conversation during navigation.
+            CopilotConversation separately resets on organization switch and handles legacy pages. */}
+        <CopilotConversation key={workspaceId ?? ""}
           locale={locale} paused={copilotDismissed} workspaceId={workspaceId} />
       </aside>
       {support}

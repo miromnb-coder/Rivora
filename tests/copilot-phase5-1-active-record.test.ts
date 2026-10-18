@@ -93,7 +93,10 @@ test("5.1A is default OFF and cannot inject record IDs into model input",()=>{
   assert.match(route,/await verifyActiveRecordAccess\(/);
   assert.ok(route.indexOf("await verifyActiveRecordAccess(")<route.indexOf("await ledger.reserve("));
   assert.doesNotMatch(active,/createAdminClient|\.insert\(|\.update\(|\.delete\(/);
-  assert.match(frame,/key=\{\(workspaceId \?\? ""\)/);
+  // Conversation identity is workspace scoped; the legacy component itself
+  // still clears on route changes while CX2 persists and resumes.
+  assert.match(frame,/key=\{workspaceId \?\? ""\}/);
+  assert.match(read("components/copilot/CopilotConversation.tsx"),/if\(cx2Enabled\)return/);
   assert.match(read("components/copilot/CopilotConversation.tsx"),/parseActiveRecordPath\(pathname\)/);
   assert.match(read("app/api/copilot/status/route.ts"),/activeRecordAvailable/);
   assert.match(read("app/app/layout.tsx"),/workspaceId=\{workspace.id\}/);

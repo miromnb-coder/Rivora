@@ -26,6 +26,8 @@ jobs:
         run: bash scripts/test-copilot-standalone-sql.sh
       - name: Verify Phase 5 same-name tenant RLS isolation
         run: docker exec -i averomira-catalogue-test psql -U postgres -d averomira_test -v ON_ERROR_STOP=1 < tests/fixtures/copilot-context-rls.sql
+      - name: Verify CX2 isolated persistence and tenant/private user RLS
+        run: bash scripts/test-copilot-cx2-sql.sh
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10
