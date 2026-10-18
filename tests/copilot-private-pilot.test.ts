@@ -27,7 +27,7 @@ test("Authorized pilot status is read-only, authenticated and cache-disabled", (
   assert.match(status, /"Cache-Control": "private, no-store"/);
   assert.doesNotMatch(status, /reserve\(|settle\(|\.insert\(|\.update\(|\.delete\(/);
   assert.match(ui, /fetch\("\/api\/copilot\/status"/);
-  assert.match(ui, /status\?\.available === true && status\?\.pilot === true/);
+  assert.match(ui, /status\?\.available===true&&status\?\.pilot===true/);
   assert.match(css, /\.ml-copilot-pilot-label/);
   assert.match(live, /AVEROMIRA_COPILOT_PILOT_NO_BACKUP_RISK_ACCEPTED/);
   assert.match(live, /AVEROMIRA_COPILOT_PILOT_ACTOR_ID/);

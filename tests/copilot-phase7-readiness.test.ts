@@ -125,11 +125,13 @@ test("7.3 deterministic alert rules preserve unknown settlements and low signal"
  assert.equal(assessCopilotHealth([{kind:"failure",timestamp:now-2_000_000}],now).status,"healthy");
  assert.throws(()=>assessCopilotHealth([],now,10));
 });
-test("7.4 route/workspace navigation clears consent, history and in-flight requests",()=>{
+test("7.4 workspace changes clear context, while only CX2 may preserve route history",()=>{
  const ui=readFileSync("components/copilot/CopilotConversation.tsx","utf8");
  assert.match(ui,/requestNumber\.current \+= 1;\s*controller\.current\?\.abort\(\)/);
  assert.match(ui,/setShareWorkspaceData\(false\)/);
- assert.match(ui,/\}, \[pathname, workspaceId\]\)/);
+ assert.match(ui,/\}, \[pathname\]\)/);
+ assert.match(ui,/if\(cx2Enabled\)return/);
+ assert.match(ui,/setActiveConversationId\(null\)/);
  assert.match(ui,/\}, \[workspaceId\]\)/);
  assert.match(ui,/Tämä vastaus jäi kesken eikä sen tietoja ole varmennettu/);
  assert.match(ui,/message\.stage === "done" &&\s*message\.evidence/);
