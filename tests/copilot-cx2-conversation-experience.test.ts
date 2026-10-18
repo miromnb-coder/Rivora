@@ -69,3 +69,12 @@ test("CX2 no auto-production activation, no automatic retention claims",()=>{
  const docs=readFileSync("docs/copilot/CX2_MIGRATION_READINESS.md","utf8");
  assert.match(docs,/Do not run against production/);
 });
+
+test("CX2 async conversation creation must pin the selected workspace and abort on navigation",()=>{
+ const route=readFileSync("app/api/copilot/conversations/route.ts","utf8");
+ const ui=readFileSync("components/copilot/CopilotConversation.tsx","utf8");
+ assert.match(route,/data.workspaceId!==actor.workspace.id/);
+ assert.match(ui,/workspaceId:workspaceId\?\?null/);
+ assert.match(ui,/current!==requestNumber.current \|\| abort.signal.aborted/);
+ assert.match(ui,/signal:abort.signal/);
+});

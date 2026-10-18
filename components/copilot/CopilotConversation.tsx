@@ -454,11 +454,15 @@ export function CopilotConversation({
         const record=shareWorkspaceData&&activeRecordAvailable?parseActiveRecordPath(pathname):null;
         const create=await fetch("/api/copilot/conversations",{method:"POST",
           headers:{"Content-Type":"application/json"},credentials:"same-origin",
-          body:JSON.stringify({title:question,
+          signal:abort.signal,
+          body:JSON.stringify({title:question,workspaceId:workspaceId??null,
             ...(record?{contextKind:record.kind,contextRecordId:record.id}:{})})});
         if(!create.ok)throw Error(fi?"Keskustelua ei voitu tallentaa.":"Could not save conversation.");
-        const made=await create.json();conversationId=made.id;setActiveConversationId(conversationId);
+        const made=await create.json();
+        if(current!==requestNumber.current || abort.signal.aborted)return;
+        conversationId=made.id;setActiveConversationId(conversationId);
       }
+      if(current!==requestNumber.current || abort.signal.aborted)return;
       const response = await fetch("/api/copilot/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

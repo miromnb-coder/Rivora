@@ -32,8 +32,9 @@ export async function POST(request:Request){
   const raw:unknown=await request.json();
   if(!raw||typeof raw!=="object"||Array.isArray(raw))return reply({error:"Invalid request"},400);
   const data=raw as Record<string,unknown>;
-  if(Object.keys(data).some(x=>!["title","contextKind","contextRecordId"].includes(x)))
+  if(Object.keys(data).some(x=>!["title","workspaceId","contextKind","contextRecordId"].includes(x)))
     return reply({error:"Invalid keys"},400);
+  if(data.workspaceId!==actor.workspace.id)return reply({error:"Selected workspace changed"},409);
   if(data.title!==undefined && (typeof data.title!=="string"||data.title.length>120))
     return reply({error:"Invalid title"},400);
   const kind=data.contextKind??null,record=data.contextRecordId??null;
