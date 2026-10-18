@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cx2Enabled,cx2HistoryEnabled,cx2ConsentEnabled } from "@/lib/rivora/copilot-conversations/auth";
 import { getAuthContext } from "@/lib/rivora/workspace";
 import { copilotCustomerAudienceAuthorizedForEnvironment } from "@/lib/rivora/copilot-release/audience";
 import {
@@ -31,7 +32,9 @@ export async function GET() {
       process.env.AVEROMIRA_COPILOT_ACTIVE_RECORD_ENABLED === "true";
     const rfqIntelligenceAvailable = activeRecordAvailable &&
       process.env.AVEROMIRA_COPILOT_RFQ_INTELLIGENCE_ENABLED === "true";
-    return NextResponse.json({ available, pilot, contextAvailable, activeRecordAvailable, rfqIntelligenceAvailable }, { headers });
+    return NextResponse.json({ available, pilot, contextAvailable, activeRecordAvailable, rfqIntelligenceAvailable,
+      cx2Enabled:available&&cx2Enabled(),historyAvailable:available&&cx2HistoryEnabled(),
+      persistentConsentAvailable:available&&cx2ConsentEnabled() }, { headers });
   } catch {
     return NextResponse.json({ available: false, pilot: false, contextAvailable: false, activeRecordAvailable: false, rfqIntelligenceAvailable: false }, { headers });
   }

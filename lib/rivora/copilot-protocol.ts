@@ -10,6 +10,8 @@ export type CopilotInput = {
   useWorkspaceData: boolean;
   workspaceId: string | null;
   activeRecord: ActiveRecord | null;
+  conversationId: string | null;
+  clientRequestId: string | null;
 };
 const areas = new Set([
   "overview", "orders", "customers", "products", "leads", "inbox",
@@ -25,6 +27,10 @@ export function normalizeCopilotInput(value: unknown):
       body.history.length > 8) return { ok: false, reason: "invalid" };
   if (body.workspaceId != null && !isActiveRecordUuid(body.workspaceId))
     return { ok: false, reason: "invalid" };
+  if(body.conversationId != null && !isActiveRecordUuid(body.conversationId))
+    return {ok:false,reason:"invalid"};
+  if(body.clientRequestId != null && !isActiveRecordUuid(body.clientRequestId))
+    return {ok:false,reason:"invalid"};
   const activeRecord = normalizeActiveRecord(body.activeRecord);
   if (body.activeRecord != null && !activeRecord)
     return { ok: false, reason: "invalid" };
@@ -44,6 +50,8 @@ export function normalizeCopilotInput(value: unknown):
     useWorkspaceData: body.useWorkspaceData === true,
     workspaceId: typeof body.workspaceId === "string" ? body.workspaceId.toLowerCase() : null,
     activeRecord,
+    conversationId:typeof body.conversationId==="string"?body.conversationId:null,
+    clientRequestId:typeof body.clientRequestId==="string"?body.clientRequestId:null,
   }};
 }
 // Self-contained transport validator: Node's native TS test runner must be

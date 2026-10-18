@@ -1,4 +1,7 @@
 import OpenAI from "openai";
+import { cx2Enabled,cx2HistoryEnabled,cx2ConsentEnabled,validCx2Id,type Cx2Auth } from "@/lib/rivora/copilot-conversations/auth";
+import { loadCx2Preferences } from "@/lib/rivora/copilot-conversations/preferences";
+import { beginCx2Turn,finishCx2Turn,failCx2Turn,findCx2Conversation,loadCx2History } from "@/lib/rivora/copilot-conversations/repository";
 import { chooseContextQuery, resolveCopilotContext, resolveRfqIntelligenceContext } from "@/lib/rivora/copilot-context/resolver";
 import { rfqAnswerGuidance } from "@/lib/rivora/copilot-context/rfq-answer-guidance";
 import { copilotCustomerAudienceAuthorizedForEnvironment } from "@/lib/rivora/copilot-release/audience";
@@ -84,7 +87,28 @@ export async function POST(request: Request) {
     if (!parsed.ok)
       return failure("Invalid question or conversation history.", 400, requestId);
 
-    const { question, history, locale, area, useWorkspaceData, workspaceId, activeRecord } = parsed.input;
+    const { question, history:clientHistory, locale, area, useWorkspaceData:clientConsent,
+      workspaceId, activeRecord, conversationId, clientRequestId } = parsed.input;
+    const cx2=cx2Enabled();
+    const actor=context as Cx2Auth;
+    const preferences=cx2?await loadCx2Preferences(actor):null;
+    const useWorkspaceData=clientConsent &&
+      (!cx2ConsentEnabled() || preferences?.workspaceDataConsent===true);
+    const storeTurn=cx2HistoryEnabled() && preferences?.historyEnabled===true;
+    let history=clientHistory;
+    let storedRecord=activeRecord;
+    if(storeTurn){
+      if(!validCx2Id(conversationId)||!validCx2Id(clientRequestId))
+        return failure("Conversation identity required.",400,requestId);
+      const conversation=await findCx2Conversation(actor,conversationId);
+      if(!conversation)return failure("Conversation not found.",404,requestId);
+      // A recorded RFQ/quote/etc context remains anchored across page changes.
+      // Never silently switch this conversation to the current page's record.
+      if(conversation.context_kind && conversation.context_record_id)
+        storedRecord={kind:conversation.context_kind as "rfq"|"quote"|"po"|"sales",
+          id:conversation.context_record_id};
+      history=await loadCx2History(actor,conversationId);
+    }
     // Reject requests from stale clients after switching workspace.
     if (workspaceId && workspaceId !== organizationId)
       return failure("Selected workspace changed. Start a new Copilot conversation.", 409, requestId);
@@ -93,7 +117,7 @@ export async function POST(request: Request) {
       process.env.AVEROMIRA_COPILOT_RFQ_INTELLIGENCE_ENABLED === "true";
     // No record access unless the server-issued workspace ID is present and matches.
     const permittedRecord = useWorkspaceData && workspaceId === organizationId &&
-      rfqEnabled ? activeRecord : null;
+      rfqEnabled ? storedRecord : null;
     const phase6Enabled = useWorkspaceData && workspaceId === organizationId &&
       permittedRecord?.kind === "rfq" &&
       process.env.AVEROMIRA_COPILOT_PHASE6_ENABLED === "true";
@@ -150,6 +174,15 @@ export async function POST(request: Request) {
         "Cache-Control":"no-store",
         "X-Content-Type-Options":"nosniff",
       }});
+    }
+    if(storeTurn && conversationId && clientRequestId){
+      try{
+        await beginCx2Turn(actor,conversationId,clientRequestId,question);
+      }catch(error){
+        if(error instanceof Error && error.message==="COPILOT_DUPLICATE_REQUEST")
+          return failure("This message has already been submitted.",409,requestId);
+        return failure("Could not save the new message.",503,requestId);
+      }
     }
     const abort = new AbortController();
     const cancel = () => abort.abort();
@@ -302,7 +335,7 @@ export async function POST(request: Request) {
             reasoning: { effort: "none" },
             store: false, stream: true,
           }, { signal: abort.signal });
-          let begun = false, complete = false, chars = 0;
+          let begun = false, complete = false, chars = 0, completedText = "";
           let completedUsage: { input_tokens?: number | null; output_tokens?: number | null } | null = null;
           let completedResponseId: string | null = null;
           for await (const event of response) {
@@ -313,6 +346,7 @@ export async function POST(request: Request) {
                 begun = true;
               }
               chars += event.delta.length;
+              completedText += event.delta;
               if (chars > 6000) throw new Error("Copilot answer size exceeded.");
               emit({ type: "delta", text: event.delta });
             } else if (event.type === "response.completed") {
@@ -330,6 +364,8 @@ export async function POST(request: Request) {
             // validated and the conservative reservation has settled.
             await billing.complete(completedUsage, completedResponseId);
             copilotLifecycleLog("settled",requestId);
+            if(storeTurn && conversationId && clientRequestId)
+              await finishCx2Turn(actor,conversationId,clientRequestId,completedText);
             if (contextResult && contextResult.sources.length) emit({
               type:"sources", sources:contextResult.sources, truncated:contextResult.truncated,
             });
@@ -360,6 +396,9 @@ export async function POST(request: Request) {
               sizeClass:chars<500?"short":chars<2500?"medium":"long"});
           }
         } catch (error) {
+          if(storeTurn && conversationId && clientRequestId)
+            await failCx2Turn(actor,conversationId,clientRequestId,
+              abort.signal.aborted?"cancelled":"failed").catch(()=>{});
           if (!abort.signal.aborted) {
             copilotLifecycleLog("failed",requestId,{
               reason:error instanceof Error ? error.name : "unknown",
