@@ -287,6 +287,7 @@ export function CopilotConversation({
             if(cancelled)return;
             setHistoryList(data.conversations??[]);
             const last=data.conversations?.find((x:ConversationListItem)=>x.id===prefs.lastConversationId)
+              ?? (prefs.lastConversationId ? {id:prefs.lastConversationId} : null)
               ??data.conversations?.[0];
             if(last){
               const load=await fetch("/api/copilot/conversations/"+last.id,
@@ -593,8 +594,14 @@ export function CopilotConversation({
          cx2Enabled && settingsOpen ?
           <CopilotSettingsMenu locale={locale} consent={shareWorkspaceData}
             historyEnabled={historyEnabled} busy={busy}
-            onConsent={enabled=>void updatePreferences({workspaceDataConsent:enabled}).catch(()=>setError(fi?"Asetusta ei voitu tallentaa.":"Could not save setting."))}
-            onHistory={enabled=>void updatePreferences({historyEnabled:enabled}).catch(()=>setError(fi?"Asetusta ei voitu tallentaa.":"Could not save setting."))}
+            onConsent={enabled=>{
+              if(!enabled){requestNumber.current+=1;controller.current?.abort();controller.current=null;setBusy(false);}
+              void updatePreferences({workspaceDataConsent:enabled}).catch(()=>setError(fi?"Asetusta ei voitu tallentaa.":"Could not save setting."));
+            }}
+            onHistory={enabled=>{
+              if(!enabled){requestNumber.current+=1;controller.current?.abort();controller.current=null;setBusy(false);}
+              void updatePreferences({historyEnabled:enabled}).catch(()=>setError(fi?"Asetusta ei voitu tallentaa.":"Could not save setting."));
+            }}
             onClose={()=>setSettingsOpen(false)}/> :
          messages.length === 0 ? (
           <section className="ml-copilot-welcome">

@@ -129,7 +129,7 @@ test("7.4 workspace changes clear context, while only CX2 may preserve route his
  const ui=readFileSync("components/copilot/CopilotConversation.tsx","utf8");
  assert.match(ui,/requestNumber\.current \+= 1;\s*controller\.current\?\.abort\(\)/);
  assert.match(ui,/setShareWorkspaceData\(false\)/);
- assert.match(ui,/\}, \[pathname\]\)/);
+ assert.match(ui,/\},\s*\[pathname\]\)/);
  assert.match(ui,/if\(cx2Enabled\)return/);
  assert.match(ui,/setActiveConversationId\(null\)/);
  assert.match(ui,/\}, \[workspaceId\]\)/);

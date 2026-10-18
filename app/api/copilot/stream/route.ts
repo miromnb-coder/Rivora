@@ -318,6 +318,12 @@ export async function POST(request: Request) {
             ] : []),
             "CURRENT USER MESSAGE:", question,
           ].join("\n");
+          // Persisted consent must still be current immediately before sending
+          // the business data to the model; a stale browser checkbox is not enough.
+          if(cx2ConsentEnabled() && useWorkspaceData){
+            const latest=await loadCx2Preferences(actor);
+            if(!latest.workspaceDataConsent)throw new Error("COPILOT_CONSENT_REVOKED");
+          }
           // Full prompt including context must fit the reservation BEFORE any AI call.
           const limits = prepareCopilotPricing(instructions, input);
           const ledger = copilotLedger();
