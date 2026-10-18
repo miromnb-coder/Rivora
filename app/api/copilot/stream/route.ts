@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { chooseContextQuery, resolveCopilotContext, resolveRfqIntelligenceContext } from "@/lib/rivora/copilot-context/resolver";
 import { rfqAnswerGuidance } from "@/lib/rivora/copilot-context/rfq-answer-guidance";
+import { copilotCustomerAudienceAuthorizedForEnvironment } from "@/lib/rivora/copilot-release/audience";
+import { copilotLifecycleLog } from "@/lib/rivora/copilot-release/observability";
 import { ambiguousRfqFollowUp } from "@/lib/rivora/copilot-context/rfq-follow-up";
 import { choosePhase6Intent, choosePhase6Line, choosePhase6FollowUpIntent } from "@/lib/rivora/copilot-intelligence/intent-router";
 import { readAuthorizedPhase6Evidence } from "@/lib/rivora/copilot-intelligence/reader";
@@ -67,7 +69,9 @@ export async function POST(request: Request) {
     // server. Client-provided area/history cannot override this boundary.
     if (!copilotActorAuthorizedForEnvironment(
       context.claims.sub, organizationId, context.workspace.role,
-    )) return failure("This Copilot pilot is restricted to its test account.", 403, requestId);
+    ) || !copilotCustomerAudienceAuthorizedForEnvironment(
+      context.claims.sub, organizationId, context.workspace.role,
+    )) return failure("Copilot is not enabled for this workspace.", 403, requestId);
 
     if (Number(request.headers.get("content-length") ?? 0) > 12000)
       return failure("Request too large.", 413, requestId);
@@ -290,6 +294,7 @@ export async function POST(request: Request) {
             reservedMicroUsd:limits.pricing.reservationMicroUsd,
           });
           billing = copilotReservation(ledger,reservationId,limits.pricing,limits);
+          copilotLifecycleLog("reserved",requestId,{context:contextQuery?"business":"none"});
           const ai = new OpenAI({apiKey, timeout:30_000,maxRetries:0});
           emit({type:"stage",stage:"connecting"});
           const response = await ai.responses.create({
@@ -324,6 +329,7 @@ export async function POST(request: Request) {
             // UI receives "done" ONLY after provider usage has been
             // validated and the conservative reservation has settled.
             await billing.complete(completedUsage, completedResponseId);
+            copilotLifecycleLog("settled",requestId);
             if (contextResult && contextResult.sources.length) emit({
               type:"sources", sources:contextResult.sources, truncated:contextResult.truncated,
             });
@@ -350,16 +356,13 @@ export async function POST(request: Request) {
               if (findingsEvent) emit(findingsEvent);
             }
             emit({ type: "done" });
-            operationalLog("info", "copilot_answered", {
-              requestId, organizationId,
-              area, inputLength: question.length, outputLength: chars,
-            });
+            copilotLifecycleLog("completed",requestId,{context:contextQuery?"business":"none",
+              sizeClass:chars<500?"short":chars<2500?"medium":"long"});
           }
         } catch (error) {
           if (!abort.signal.aborted) {
-            operationalLog("error", "copilot_stream_failed", {
-              requestId, organizationId,
-              reason: error instanceof Error ? error.name : "unknown",
+            copilotLifecycleLog("failed",requestId,{
+              reason:error instanceof Error ? error.name : "unknown",
             });
             emit({ type: "error", message: locale === "fi" ?
               "Vastaus keskeytyi. Voit yrittää uudelleen." :
@@ -371,9 +374,7 @@ export async function POST(request: Request) {
               await billing.unknown();
             } catch {
               // Fail closed: retain reserved budget for manual reconciliation.
-              operationalLog("error", "copilot_usage_ambiguous", {
-                requestId, organizationId, billedUnknownSettlementFailed: true,
-              });
+              copilotLifecycleLog("ambiguous_billing",requestId);
             }
           }
           request.signal.removeEventListener("abort", cancel);

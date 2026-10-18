@@ -218,8 +218,28 @@ export function CopilotConversation({
     if (paused) controller.current?.abort();
   }, [paused]);
 
+  // Phase 7: do not carry conversations, consent or in-flight streams across
+  // a route / organization boundary. Both references are UI hints only;
+  // the server independently rechecks access on every request.
+  useEffect(() => {
+    requestNumber.current += 1;
+    controller.current?.abort();
+    controller.current = null;
+    setMessages([]);
+    setDraft("");
+    setError("");
+    setBusy(false);
+    setShareWorkspaceData(false);
+    followTail.current = true;
+    setIsAtBottom(true);
+  }, [pathname, workspaceId]);
+
   useEffect(() => {
     let cancelled = false;
+    setPilotAvailable(false);
+    setContextAvailable(false);
+    setActiveRecordAvailable(false);
+    setRfqIntelligenceAvailable(false);
     void fetch("/api/copilot/status", {
       cache: "no-store", credentials: "same-origin",
     }).then(response => response.ok ? response.json() : null)
@@ -233,7 +253,7 @@ export function CopilotConversation({
         }
       }).catch(() => { /* Status unavailable: leave the pilot label hidden. */ });
     return () => { cancelled = true; };
-  }, []);
+  }, [workspaceId]);
 
   useEffect(() => {
     const node = textarea.current;
@@ -464,6 +484,12 @@ export function CopilotConversation({
                 {message.text ? (message.role === "assistant"
                   ? <CopilotAnswerText text={message.text} />
                   : <p className="ml-copilot-message-text">{message.text}</p>) : null}
+                {message.role === "assistant" &&
+                  (message.stage === "error" || message.stage === "stopped") &&
+                  message.text ? <p className="ml-copilot-context-limited">
+                    {fi ? "Tämä vastaus jäi kesken eikä sen tietoja ole varmennettu."
+                      : "This answer is incomplete and its claims are not verified."}
+                  </p> : null}
                 {message.role === "assistant" && message.stage === "done" &&
                   message.findings && message.sources ? (
                   <CopilotFindings value={message.findings} sources={message.sources} locale={locale} />
